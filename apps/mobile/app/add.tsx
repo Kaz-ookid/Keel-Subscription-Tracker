@@ -15,7 +15,6 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Stack, useRouter } from "expo-router";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import ColorPicker, { HueSlider, Panel1, Preview } from "reanimated-color-picker";
 
 import { CategorySheet } from "../src/components/CategorySheet";
 import { FieldButton } from "../src/components/FieldButton";
@@ -34,6 +33,15 @@ const Picker = RNPicker as unknown as ComponentType<{
 }> & { Item: typeof RNPicker.Item };
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
+
+// A curated spectrum for the subscription colour. A fixed palette is reliable
+// and crash-free (the previous full-spectrum picker crashed on selection).
+const COLOR_SWATCHES = [
+  "#EF4444", "#F87171", "#EC4899", "#F472B6", "#F59E0B", "#FB923C", "#FBBF24",
+  "#FACC15", "#22C55E", "#4ADE80", "#16A34A", "#10B981", "#14B8A6", "#06B6D4",
+  "#2DD4BF", "#3B82F6", "#60A5FA", "#2563EB", "#0EA5E9", "#8B5CF6", "#A78BFA",
+  "#6366F1", "#0B1E3F", "#7FB8B0", "#6B7280", "#9CA3AF", "#111827", "#78350F",
+];
 
 const UNIT_OPTIONS: SegmentedOption<TimeUnit>[] = [
   { value: "day", label: "Day" },
@@ -243,17 +251,22 @@ export default function AddScreen() {
       />
 
       <Sheet visible={sheet === "color"} title="Colour" onClose={() => setSheet(null)}>
-        <View style={styles.colorPicker}>
-          <ColorPicker
-            style={{ gap: spacing.lg }}
-            value={color ?? colors.accent}
-            onComplete={({ hex }: { hex: string }) => setColor(hex)}
-          >
-            <Preview />
-            <Panel1 />
-            <HueSlider />
-          </ColorPicker>
-        </View>
+        <ScrollView contentContainerStyle={styles.swatchGrid}>
+          {COLOR_SWATCHES.map((c) => (
+            <Pressable
+              key={c}
+              onPress={() => {
+                setColor(c);
+                setSheet(null);
+              }}
+              style={[
+                styles.colorSwatch,
+                { backgroundColor: c },
+                color === c && styles.colorSwatchActive,
+              ]}
+            />
+          ))}
+        </ScrollView>
       </Sheet>
     </ScrollView>
   );
@@ -302,5 +315,21 @@ const styles = StyleSheet.create({
   intervalInput: { width: 64, textAlign: "center" },
   notesInput: { minHeight: 60, textAlignVertical: "top" },
   dot: { width: 20, height: 20, borderRadius: 10 },
-  colorPicker: { padding: spacing.lg },
+  swatchGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.md,
+    padding: spacing.lg,
+    justifyContent: "center",
+  },
+  colorSwatch: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 3,
+    borderColor: "transparent",
+  },
+  colorSwatchActive: {
+    borderColor: colors.text,
+  },
 });
