@@ -63,5 +63,20 @@ export function sumMoney(values: readonly Money[], currency: CurrencyCode): Mone
   return values.reduce(addMoney, zeroMoney(currency));
 }
 
-// NOTE: subtraction, allocation/proration across installments, and any
-// forecast/budget-smoothing math land with the §7 calculation work, not here.
+/**
+ * Split `total` into `n` parts that sum back to it exactly, working in minor
+ * units. The remainder is spread one minor unit at a time across the first
+ * parts, so €100 / 3 → 33.34, 33.33, 33.33. Used for BNPL installment plans.
+ */
+export function splitMoney(total: Money, n: number): Money[] {
+  if (n < 1) throw new RangeError(`Cannot split money into ${n} parts`);
+  const base = Math.floor(total.amount / n);
+  const remainder = total.amount - base * n;
+  return Array.from({ length: n }, (_, i) => ({
+    amount: base + (i < remainder ? 1 : 0),
+    currency: total.currency,
+  }));
+}
+
+// NOTE: subtraction and forecast/budget-smoothing math land with the §7
+// calculation work, not here.

@@ -4,10 +4,12 @@ import {
   calendarDate,
   fromMajor,
   isRecurringSchedule,
+  makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   now,
   recordRecurringPayment,
   RECURRENCE_PRESETS,
+  sumMoney,
 } from "../index";
 import type { NewRecurringInput } from "../index";
 
@@ -88,5 +90,42 @@ describe("accrueDueOccurrences (automatic catch-up)", () => {
 
     expect(occurrences).toHaveLength(0);
     expect(same).toBe(item); // untouched
+  });
+});
+
+describe("makeInstallmentPaymentItem (BNPL)", () => {
+  const ids = () => {
+    let n = 0;
+    return () => `inst-${++n}`;
+  };
+
+  it("generates N installments that step by the recurrence and sum to the total", () => {
+    const item = makeInstallmentPaymentItem(
+      {
+        name: "iPhone (Klarna 3x)",
+        totalAmount: fromMajor(300, "EUR"),
+        numberOfInstallments: 3,
+        recurrence: RECURRENCE_PRESETS.MONTHLY,
+        firstInstallmentDate: calendarDate("2026-01-10"),
+        provider: "klarna",
+        settlementMode: "manual",
+      },
+      { id: "plan-1", now: now(), makeId: ids() },
+    );
+
+    expect(item.scheduleType).toBe("INSTALLMENT");
+    if (item.schedule.kind !== "INSTALLMENT") throw new Error("expected installment");
+    const s = item.schedule;
+
+    expect(s.installments.map((i) => i.dueDate)).toEqual([
+      "2026-01-10",
+      "2026-02-10",
+      "2026-03-10",
+    ]);
+    expect(s.installments.map((i) => i.index)).toEqual([1, 2, 3]);
+    expect(s.installments.every((i) => i.status === "upcoming")).toBe(true);
+    expect(s.installments.every((i) => i.installmentScheduleId === "plan-1")).toBe(true);
+    expect(sumMoney(s.installments.map((i) => i.amount), "EUR")).toEqual(s.totalAmount);
+    expect(s.provider).toBe("klarna");
   });
 });

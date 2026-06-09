@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { addMoney, formatMoney, fromMajor, money, sumMoney, toMajor } from "../index";
+import {
+  addMoney,
+  formatMoney,
+  fromMajor,
+  money,
+  splitMoney,
+  sumMoney,
+  toMajor,
+} from "../index";
 
 describe("Money", () => {
   it("converts major units to integer minor units", () => {
@@ -46,5 +54,30 @@ describe("Money arithmetic", () => {
 
   it("throws on a currency mismatch rather than producing nonsense", () => {
     expect(() => addMoney(fromMajor(1, "EUR"), fromMajor(1, "USD"))).toThrow(TypeError);
+  });
+});
+
+describe("splitMoney", () => {
+  it("splits evenly when it divides cleanly", () => {
+    expect(splitMoney(fromMajor(300, "EUR"), 3)).toEqual([
+      { amount: 10000, currency: "EUR" },
+      { amount: 10000, currency: "EUR" },
+      { amount: 10000, currency: "EUR" },
+    ]);
+  });
+
+  it("spreads the remainder across the first parts and sums back exactly", () => {
+    const parts = splitMoney(fromMajor(100, "EUR"), 3); // 10000 / 3
+    expect(parts.map((p) => p.amount)).toEqual([3334, 3333, 3333]);
+    expect(sumMoney(parts, "EUR")).toEqual({ amount: 10000, currency: "EUR" });
+  });
+
+  it("handles n = 1 and 0-decimal currencies", () => {
+    expect(splitMoney(fromMajor(42, "EUR"), 1)).toEqual([{ amount: 4200, currency: "EUR" }]);
+    expect(splitMoney(fromMajor(500, "JPY"), 3).map((p) => p.amount)).toEqual([167, 167, 166]);
+  });
+
+  it("rejects fewer than one part", () => {
+    expect(() => splitMoney(fromMajor(10, "EUR"), 0)).toThrow(RangeError);
   });
 });
