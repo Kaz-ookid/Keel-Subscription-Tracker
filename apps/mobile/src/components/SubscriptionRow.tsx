@@ -2,7 +2,9 @@ import {
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
+  isInstallmentSchedule,
   isRecurringSchedule,
+  summarizeInstallmentPlan,
   type PaymentItem,
 } from "@keel/core";
 import { useMemo } from "react";
@@ -22,8 +24,30 @@ export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
 
   // Badge colour is the subscription's own colour, else the brand accent.
   const accent = item.color ?? colors.accent;
-  const isManual = item.settlementMode === "manual";
-  const schedule = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
+
+  // Derive the row's display per schedule kind.
+  const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
+  const installment = isInstallmentSchedule(item.schedule) ? item.schedule : undefined;
+  const isManual = recurring ? item.settlementMode === "manual" : false;
+
+  let subLine: string | undefined;
+  let amount: string | undefined;
+  let tag = "";
+  let tagColor = colors.mutedText;
+
+  if (recurring) {
+    subLine = `${describeRecurrence(recurring.recurrence)} · next ${formatCalendarDate(recurring.nextChargeDate)}`;
+    amount = formatMoney(recurring.amount);
+    tag = isManual ? "Manual" : "Automatic";
+    tagColor = isManual ? tones.warning : tones.info;
+  } else if (installment) {
+    const s = summarizeInstallmentPlan(installment);
+    const next = s.nextDue;
+    subLine = `${s.totalCount}× · ${s.paidCount} of ${s.totalCount} paid${next ? ` · next ${formatCalendarDate(next.dueDate)}` : ""}`;
+    amount = formatMoney(next ? next.amount : s.totalAmount);
+    tag = "Pay in X";
+    tagColor = colors.accent;
+  }
 
   const confirmDelete = () =>
     Alert.alert("Delete subscription", `Remove “${item.name}”?`, [
@@ -41,19 +65,16 @@ export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
         <Text style={styles.name} numberOfLines={1}>
           {item.name}
         </Text>
-        {schedule && (
+        {subLine && (
           <Text style={styles.sub} numberOfLines={1}>
-            {describeRecurrence(schedule.recurrence)} · next{" "}
-            {formatCalendarDate(schedule.nextChargeDate)}
+            {subLine}
           </Text>
         )}
-        <Text style={[styles.tag, { color: isManual ? tones.warning : tones.info }]}>
-          {isManual ? "Manual" : "Automatic"}
-        </Text>
+        {tag ? <Text style={[styles.tag, { color: tagColor }]}>{tag}</Text> : null}
       </View>
 
       <View style={styles.right}>
-        {schedule && <Text style={styles.amount}>{formatMoney(schedule.amount)}</Text>}
+        {amount && <Text style={styles.amount}>{amount}</Text>}
         {isManual && (
           <Pressable onPress={onMarkPaid} style={styles.payButton}>
             <Text style={styles.payText}>Mark paid</Text>
