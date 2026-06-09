@@ -235,12 +235,15 @@ export default function AddScreen() {
       </View>
 
       {isInstallment && (
-        <View style={styles.rowField}>
-          <Text style={styles.label}>Amount is</Text>
-          <View style={styles.rowControl}>
-            <Segmented options={AMOUNT_MODE_OPTIONS} value={amountMode} onChange={setAmountMode} />
+        <>
+          <View style={styles.rowField}>
+            <Text style={styles.label}>Amount is</Text>
+            <View style={styles.rowControl}>
+              <Segmented options={AMOUNT_MODE_OPTIONS} value={amountMode} onChange={setAmountMode} />
+            </View>
           </View>
-        </View>
+          {installmentPreview ? <Text style={styles.preview}>{installmentPreview}</Text> : null}
+        </>
       )}
 
       <View style={styles.field}>
@@ -295,8 +298,6 @@ export default function AddScreen() {
             value={BNPL_PROVIDERS[provider].label}
             onPress={() => setSheet("provider")}
           />
-
-          {installmentPreview ? <Text style={styles.preview}>{installmentPreview}</Text> : null}
         </>
       ) : (
         <>
