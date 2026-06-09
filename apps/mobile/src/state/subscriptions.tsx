@@ -13,11 +13,13 @@ import {
   accrueDueOccurrences,
   calendarDate,
   DEFAULT_CATEGORIES,
+  makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   now,
   recordRecurringPayment,
   type CalendarDate,
   type Category,
+  type NewInstallmentInput,
   type NewRecurringInput,
   type PaymentItem,
   type PaymentOccurrence,
@@ -40,6 +42,8 @@ interface SubscriptionsContextValue {
   categories: Category[];
   loading: boolean;
   addSubscription: (input: NewRecurringInput) => void;
+  /** Create a BNPL "Pay in X" installment plan. */
+  addInstallmentPlan: (input: NewInstallmentInput) => void;
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
@@ -94,6 +98,15 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     if (accrued.length > 0) setOccurrences((prev) => [...prev, ...accrued]);
   };
 
+  const addInstallmentPlan = (input: NewInstallmentInput) => {
+    const item = makeInstallmentPaymentItem(input, {
+      id: randomUUID(),
+      now: now(),
+      makeId: randomUUID,
+    });
+    setItems((prev) => [item, ...prev]);
+  };
+
   const removeSubscription = (id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
@@ -124,6 +137,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         categories: [...BUILTIN_CATEGORIES, ...customCategories],
         loading,
         addSubscription,
+        addInstallmentPlan,
         removeSubscription,
         markPaid,
         addCategory,

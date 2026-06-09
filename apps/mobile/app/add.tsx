@@ -1,11 +1,17 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import {
+  addRecurrence,
+  BNPL_PROVIDERS,
   calendarDate,
   CURRENCIES,
   formatCalendarDate,
+  formatMoney,
   fromMajor,
+  splitMoney,
+  type BnplProviderId,
   type CurrencyCode,
+  type NewInstallmentInput,
   type NewRecurringInput,
   type ReminderRule,
   type SettlementMode,
@@ -33,6 +39,14 @@ const Picker = RNPicker as unknown as ComponentType<{
 }> & { Item: typeof RNPicker.Item };
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
+const PROVIDER_IDS = Object.keys(BNPL_PROVIDERS) as BnplProviderId[];
+
+type PlanType = "subscription" | "installment";
+
+const PLAN_TYPES: { value: PlanType; label: string }[] = [
+  { value: "subscription", label: "Subscription" },
+  { value: "installment", label: "Pay in X" },
+];
 
 // A curated spectrum for the subscription colour. A fixed palette is reliable
 // and crash-free (the previous full-spectrum picker crashed on selection).
@@ -67,19 +81,30 @@ function reminderFromKey(key: string): ReminderRule | undefined {
   return key === "never" ? undefined : { daysBefore: Number(key) };
 }
 
-type OpenSheet = "currency" | "date" | "endDate" | "reminder" | "category" | "color" | null;
+type OpenSheet =
+  | "currency"
+  | "date"
+  | "endDate"
+  | "reminder"
+  | "category"
+  | "color"
+  | "provider"
+  | null;
 
 export default function AddScreen() {
   const router = useRouter();
   const { colors, scheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { addSubscription, categories } = useSubscriptions();
+  const { addSubscription, addInstallmentPlan, categories } = useSubscriptions();
 
+  const [planType, setPlanType] = useState<PlanType>("subscription");
   const [name, setName] = useState("");
   const [amountText, setAmountText] = useState("");
   const [currency, setCurrency] = useState<CurrencyCode>("EUR");
   const [intervalText, setIntervalText] = useState("1");
   const [unit, setUnit] = useState<TimeUnit>("month");
+  const [installmentsText, setInstallmentsText] = useState("3");
+  const [provider, setProvider] = useState<BnplProviderId>("other");
   const [firstDate, setFirstDate] = useState(new Date());
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [settlementMode, setSettlementMode] = useState<SettlementMode>("automatic");
@@ -89,7 +114,9 @@ export default function AddScreen() {
   const [notes, setNotes] = useState("");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
+  const isInstallment = planType === "installment";
   const amountValue = parseFloat(amountText.replace(",", "."));
+  const installmentCount = Math.max(1, parseInt(installmentsText, 10) || 1);
   const canSubmit = name.trim().length > 0 && amountValue > 0;
 
   const firstDateCal = calendarDate(firstDate.toISOString().slice(0, 10));
@@ -97,21 +124,47 @@ export default function AddScreen() {
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
 
+  // Live preview for the installment plan: per-payment amount + final due date.
+  const installmentPreview = (() => {
+    if (!isInstallment || !(amountValue > 0)) return null;
+    const per = splitMoney(fromMajor(amountValue, currency), installmentCount)[0];
+    let finish = firstDateCal;
+    for (let i = 1; i < installmentCount; i++) finish = addRecurrence(finish, { unit, interval: 1 });
+    return `${installmentCount}× ≈ ${formatMoney(per)} · ends ${formatCalendarDate(finish)}`;
+  })();
+
   const submit = () => {
     if (!canSubmit) return;
-    const input: NewRecurringInput = {
-      name: name.trim(),
-      amount: fromMajor(amountValue, currency),
-      recurrence: { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) },
-      firstChargeDate: firstDateCal,
-      endDate: endDateCal,
-      settlementMode,
-      categoryId,
-      color,
-      reminder: reminderFromKey(reminderKey),
-      notes: notes.trim() || undefined,
-    };
-    addSubscription(input);
+    if (isInstallment) {
+      const input: NewInstallmentInput = {
+        name: name.trim(),
+        totalAmount: fromMajor(amountValue, currency),
+        numberOfInstallments: installmentCount,
+        recurrence: { unit, interval: 1 },
+        firstInstallmentDate: firstDateCal,
+        provider,
+        settlementMode,
+        categoryId,
+        color,
+        reminder: reminderFromKey(reminderKey),
+        notes: notes.trim() || undefined,
+      };
+      addInstallmentPlan(input);
+    } else {
+      const input: NewRecurringInput = {
+        name: name.trim(),
+        amount: fromMajor(amountValue, currency),
+        recurrence: { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) },
+        firstChargeDate: firstDateCal,
+        endDate: endDateCal,
+        settlementMode,
+        categoryId,
+        color,
+        reminder: reminderFromKey(reminderKey),
+        notes: notes.trim() || undefined,
+      };
+      addSubscription(input);
+    }
     router.back();
   };
 
@@ -128,6 +181,21 @@ export default function AddScreen() {
           ),
         }}
       />
+
+      <View style={styles.modeSwitch}>
+        {PLAN_TYPES.map((m) => {
+          const active = planType === m.value;
+          return (
+            <Pressable
+              key={m.value}
+              onPress={() => setPlanType(m.value)}
+              style={[styles.modePill, active && styles.modePillActive]}
+            >
+              <Text style={[styles.modeText, active && styles.modeTextActive]}>{m.label}</Text>
+            </Pressable>
+          );
+        })}
+      </View>
 
       {/* Amount + currency */}
       <View style={styles.amountCard}>
@@ -168,30 +236,67 @@ export default function AddScreen() {
         />
       </View>
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Cycle — every</Text>
-        <View style={styles.cycleRow}>
-          <TextInput
-            style={[styles.input, styles.intervalInput]}
-            value={intervalText}
-            onChangeText={setIntervalText}
-            keyboardType="number-pad"
+      {isInstallment ? (
+        <>
+          <View style={styles.rowField}>
+            <Text style={styles.label}>Number of payments</Text>
+            <TextInput
+              style={[styles.input, styles.intervalInput]}
+              value={installmentsText}
+              onChangeText={setInstallmentsText}
+              keyboardType="number-pad"
+            />
+          </View>
+
+          <View style={styles.rowField}>
+            <Text style={styles.label}>Frequency</Text>
+            <View style={styles.rowControl}>
+              <Segmented options={UNIT_OPTIONS} value={unit} onChange={setUnit} />
+            </View>
+          </View>
+
+          <FieldButton
+            label="First payment"
+            value={formatCalendarDate(firstDateCal)}
+            onPress={() => setSheet("date")}
           />
-          <Segmented options={UNIT_OPTIONS} value={unit} onChange={setUnit} />
-        </View>
-      </View>
 
-      <FieldButton
-        label="First billing"
-        value={formatCalendarDate(firstDateCal)}
-        onPress={() => setSheet("date")}
-      />
+          <FieldButton
+            label="Provider"
+            value={BNPL_PROVIDERS[provider].label}
+            onPress={() => setSheet("provider")}
+          />
 
-      <FieldButton
-        label="Ends"
-        value={endDateCal ? formatCalendarDate(endDateCal) : "Never"}
-        onPress={() => setSheet("endDate")}
-      />
+          {installmentPreview ? <Text style={styles.preview}>{installmentPreview}</Text> : null}
+        </>
+      ) : (
+        <>
+          <View style={styles.field}>
+            <Text style={styles.label}>Cycle — every</Text>
+            <View style={styles.cycleRow}>
+              <TextInput
+                style={[styles.input, styles.intervalInput]}
+                value={intervalText}
+                onChangeText={setIntervalText}
+                keyboardType="number-pad"
+              />
+              <Segmented options={UNIT_OPTIONS} value={unit} onChange={setUnit} />
+            </View>
+          </View>
+
+          <FieldButton
+            label="First billing"
+            value={formatCalendarDate(firstDateCal)}
+            onPress={() => setSheet("date")}
+          />
+
+          <FieldButton
+            label="Ends"
+            value={endDateCal ? formatCalendarDate(endDateCal) : "Never"}
+            onPress={() => setSheet("endDate")}
+          />
+        </>
+      )}
 
       <View style={styles.rowField}>
         <Text style={styles.label}>Settlement</Text>
@@ -280,6 +385,14 @@ export default function AddScreen() {
         </Picker>
       </WheelSheet>
 
+      <WheelSheet visible={sheet === "provider"} title="Provider" onClose={() => setSheet(null)}>
+        <Picker selectedValue={provider} onValueChange={(v) => setProvider(v as BnplProviderId)}>
+          {PROVIDER_IDS.map((id) => (
+            <Picker.Item key={id} label={BNPL_PROVIDERS[id].label} value={id} color={colors.text} />
+          ))}
+        </Picker>
+      </WheelSheet>
+
       <CategorySheet
         visible={sheet === "category"}
         onClose={() => setSheet(null)}
@@ -313,6 +426,25 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.md, paddingBottom: spacing.xl },
+    modeSwitch: {
+      flexDirection: "row",
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 3,
+      gap: 3,
+      marginBottom: spacing.md,
+    },
+    modePill: { flex: 1, alignItems: "center", paddingVertical: spacing.sm, borderRadius: radius.sm },
+    modePillActive: { backgroundColor: colors.navy },
+    modeText: { ...typography.label, color: colors.mutedText },
+    modeTextActive: { color: colors.white },
+    preview: {
+      ...typography.caption,
+      color: colors.mutedText,
+      paddingTop: spacing.sm,
+    },
     headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
     amountCard: {
