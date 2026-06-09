@@ -23,3 +23,5 @@ npm-debug.log*
 .vscode/
 *.swp
 
+# local working notes
+PROJECT_BRIEF.md
