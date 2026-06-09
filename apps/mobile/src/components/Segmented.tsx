@@ -1,6 +1,7 @@
+import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors, radius, spacing, typography } from "../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 export interface SegmentedOption<T> {
   value: T;
@@ -15,6 +16,8 @@ interface Props<T> {
 
 /** A simple wrap-around pill selector — no native picker, no dependency. */
 export function Segmented<T extends string | number>({ options, value, onChange }: Props<T>) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.row}>
       {options.map((opt) => {
@@ -33,31 +36,33 @@ export function Segmented<T extends string | number>({ options, value, onChange 
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    justifyContent: "flex-end",
-  },
-  pill: {
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  pillActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
-  },
-  label: {
-    ...typography.caption,
-    color: colors.text,
-  },
-  labelActive: {
-    color: colors.white,
-    fontWeight: "600",
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      justifyContent: "flex-end",
+    },
+    pill: {
+      paddingVertical: spacing.xs + 2,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+    },
+    pillActive: {
+      backgroundColor: colors.navy,
+      borderColor: colors.navy,
+    },
+    label: {
+      ...typography.caption,
+      color: colors.text,
+    },
+    labelActive: {
+      color: colors.white,
+      fontWeight: "600",
+    },
+  });
+}

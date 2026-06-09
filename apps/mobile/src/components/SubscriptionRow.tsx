@@ -5,9 +5,10 @@ import {
   isRecurringSchedule,
   type PaymentItem,
 } from "@keel/core";
+import { useMemo } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors, radius, spacing, tones, typography } from "../theme";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
   item: PaymentItem;
@@ -16,10 +17,12 @@ interface Props {
 }
 
 export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   // Badge colour is the subscription's own colour, else the brand accent.
   const accent = item.color ?? colors.accent;
   const isManual = item.settlementMode === "manual";
-
   const schedule = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
 
   const confirmDelete = () =>
@@ -61,60 +64,62 @@ export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
-  },
-  badge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  badgeText: {
-    color: colors.white,
-    fontSize: 20,
-    fontWeight: "700",
-  },
-  middle: {
-    flex: 1,
-    gap: 2,
-  },
-  name: {
-    ...typography.label,
-    color: colors.text,
-  },
-  sub: {
-    ...typography.caption,
-    color: colors.mutedText,
-  },
-  tag: {
-    ...typography.caption,
-    fontWeight: "600",
-  },
-  right: {
-    alignItems: "flex-end",
-    gap: spacing.sm,
-  },
-  amount: {
-    ...typography.label,
-    color: colors.text,
-  },
-  payButton: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    borderRadius: radius.sm,
-    backgroundColor: colors.navy,
-  },
-  payText: {
-    ...typography.caption,
-    color: colors.white,
-    fontWeight: "600",
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.md,
+    },
+    badge: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    badgeText: {
+      color: colors.white,
+      fontSize: 20,
+      fontWeight: "700",
+    },
+    middle: {
+      flex: 1,
+      gap: 2,
+    },
+    name: {
+      ...typography.label,
+      color: colors.text,
+    },
+    sub: {
+      ...typography.caption,
+      color: colors.mutedText,
+    },
+    tag: {
+      ...typography.caption,
+      fontWeight: "600",
+    },
+    right: {
+      alignItems: "flex-end",
+      gap: spacing.sm,
+    },
+    amount: {
+      ...typography.label,
+      color: colors.text,
+    },
+    payButton: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: colors.navy,
+    },
+    payText: {
+      ...typography.caption,
+      color: colors.white,
+      fontWeight: "600",
+    },
+  });
+}

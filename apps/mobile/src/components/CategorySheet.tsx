@@ -1,9 +1,9 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useSubscriptions } from "../state/subscriptions";
-import { colors, radius, spacing, typography } from "../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { Sheet } from "./Sheet";
 
 type SymbolName = SymbolViewProps["name"];
@@ -24,6 +24,8 @@ interface Props {
 
 /** Secondary card to pick a category — built-in + custom — or create a new one. */
 export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, addCategory } = useSubscriptions();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
@@ -47,7 +49,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable style={styles.row} onPress={() => pick(undefined)}>
           <Text style={styles.rowText}>None</Text>
-          {!selectedId && <SymbolView name="checkmark" size={16} tintColor={colors.navy} />}
+          {!selectedId && <SymbolView name="checkmark" size={16} tintColor={colors.accent} />}
         </Pressable>
 
         {categories.map((c) => (
@@ -61,7 +63,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
               <Text style={styles.rowText}>{c.name}</Text>
             </View>
             {selectedId === c.id && (
-              <SymbolView name="checkmark" size={16} tintColor={colors.navy} />
+              <SymbolView name="checkmark" size={16} tintColor={colors.accent} />
             )}
           </Pressable>
         ))}
@@ -98,8 +100,8 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
         ) : (
           <Pressable style={styles.row} onPress={() => setAdding(true)}>
             <View style={styles.left}>
-              <SymbolView name="plus.circle.fill" size={20} tintColor={colors.navy} />
-              <Text style={[styles.rowText, { color: colors.navy }]}>Add category</Text>
+              <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
+              <Text style={[styles.rowText, { color: colors.accent }]}>Add category</Text>
             </View>
           </Pressable>
         )}
@@ -108,68 +110,70 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    padding: spacing.md,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  left: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-  },
-  rowText: {
-    ...typography.body,
-    color: colors.text,
-  },
-  addBox: {
-    paddingVertical: spacing.md,
-    gap: spacing.md,
-  },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    ...typography.body,
-    color: colors.text,
-  },
-  swatchRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-  },
-  iconChoice: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.md,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  iconChoiceActive: {
-    backgroundColor: colors.navy,
-    borderColor: colors.navy,
-  },
-  addBtn: {
-    backgroundColor: colors.navy,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-  },
-  addBtnText: {
-    ...typography.label,
-    color: colors.white,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    content: {
+      padding: spacing.md,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    left: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    rowText: {
+      ...typography.body,
+      color: colors.text,
+    },
+    addBox: {
+      paddingVertical: spacing.md,
+      gap: spacing.md,
+    },
+    input: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.sm,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      ...typography.body,
+      color: colors.text,
+    },
+    swatchRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+    },
+    iconChoice: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    iconChoiceActive: {
+      backgroundColor: colors.navy,
+      borderColor: colors.navy,
+    },
+    addBtn: {
+      backgroundColor: colors.navy,
+      borderRadius: radius.sm,
+      paddingVertical: spacing.sm,
+      alignItems: "center",
+    },
+    addBtnText: {
+      ...typography.label,
+      color: colors.white,
+    },
+  });
+}

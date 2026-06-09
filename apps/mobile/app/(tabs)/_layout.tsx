@@ -1,8 +1,8 @@
 import { Tabs, useRouter } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 
-import { colors } from "../../src/theme";
+import { useTheme } from "../../src/theme";
 
 type SymbolName = SymbolViewProps["name"];
 
@@ -12,8 +12,6 @@ type SymbolName = SymbolViewProps["name"];
 const TABS: { name: string; title: string; sf: string; action?: boolean }[] = [
   { name: "index", title: "Subscriptions", sf: "creditcard.fill" },
   { name: "upcoming", title: "Upcoming", sf: "calendar" },
-  // Center ＋ slot — opens the /add modal; named "new" so it doesn't collide
-  // with the modal route at app/add.tsx (which owns "/add").
   { name: "new", title: "", sf: "plus.circle.fill", action: true },
   { name: "accounts", title: "Accounts", sf: "building.columns.fill" },
   { name: "settings", title: "Settings", sf: "gearshape.fill" },
@@ -21,11 +19,12 @@ const TABS: { name: string; title: string; sf: string; action?: boolean }[] = [
 
 export default function TabsLayout() {
   const router = useRouter();
+  const { colors } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.navy,
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.mutedText,
         headerStyle: { backgroundColor: colors.navy },
         headerTintColor: colors.white,
@@ -43,7 +42,7 @@ export default function TabsLayout() {
                   style={styles.addButton}
                   accessibilityLabel="Add subscription"
                 >
-                  <SymbolView name={tab.sf as SymbolName} size={40} tintColor={colors.navy} />
+                  <SymbolView name={tab.sf as SymbolName} size={40} tintColor={colors.accent} />
                 </Pressable>
               ),
             }}

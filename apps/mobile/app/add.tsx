@@ -13,7 +13,7 @@ import {
 } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Stack, useRouter } from "expo-router";
-import { useState, type ComponentType, type ReactNode } from "react";
+import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { CategorySheet } from "../src/components/CategorySheet";
@@ -22,7 +22,7 @@ import { Segmented, type SegmentedOption } from "../src/components/Segmented";
 import { Sheet } from "../src/components/Sheet";
 import { WheelSheet } from "../src/components/WheelSheet";
 import { useSubscriptions } from "../src/state/subscriptions";
-import { colors, radius, spacing, typography } from "../src/theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 // @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
 // JSX types; alias to a children-accepting component (runtime is unaffected).
@@ -71,6 +71,8 @@ type OpenSheet = "currency" | "date" | "reminder" | "category" | "color" | null;
 
 export default function AddScreen() {
   const router = useRouter();
+  const { colors, scheme } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { addSubscription, categories } = useSubscriptions();
 
   const [name, setName] = useState("");
@@ -219,6 +221,7 @@ export default function AddScreen() {
               key={code}
               label={`${CURRENCIES[code].flag}  ${code} — ${CURRENCIES[code].name}`}
               value={code}
+              color={colors.text}
             />
           ))}
         </Picker>
@@ -229,6 +232,8 @@ export default function AddScreen() {
           value={firstDate}
           mode="date"
           display="spinner"
+          themeVariant={scheme}
+          textColor={colors.text}
           onChange={(_, d) => {
             if (d) setFirstDate(d);
           }}
@@ -238,7 +243,7 @@ export default function AddScreen() {
       <WheelSheet visible={sheet === "reminder"} title="Reminder" onClose={() => setSheet(null)}>
         <Picker selectedValue={reminderKey} onValueChange={(v) => setReminderKey(String(v))}>
           {REMINDER_OPTIONS.map((o) => (
-            <Picker.Item key={o.value} label={o.label} value={o.value} />
+            <Picker.Item key={o.value} label={o.label} value={o.value} color={colors.text} />
           ))}
         </Picker>
       </WheelSheet>
@@ -272,64 +277,66 @@ export default function AddScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background },
-  content: { padding: spacing.md, paddingBottom: spacing.xl },
-  headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
-  headerActionDisabled: { opacity: 0.4 },
-  amountCard: {
-    backgroundColor: colors.surface,
-    borderRadius: radius.md,
-    padding: spacing.md,
-    gap: spacing.md,
-    marginBottom: spacing.md,
-    alignItems: "center",
-  },
-  currencyChip: {
-    paddingVertical: spacing.xs + 2,
-    paddingHorizontal: spacing.md,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  currencyChipText: { ...typography.label, color: colors.text },
-  amountInput: { ...typography.title, color: colors.text, textAlign: "center", minWidth: 160 },
-  field: {
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-    gap: spacing.sm,
-  },
-  label: { ...typography.label, color: colors.text },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.sm,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-    ...typography.body,
-    color: colors.text,
-  },
-  cycleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
-  intervalInput: { width: 64, textAlign: "center" },
-  notesInput: { minHeight: 60, textAlignVertical: "top" },
-  dot: { width: 20, height: 20, borderRadius: 10 },
-  swatchGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
-    padding: spacing.lg,
-    justifyContent: "center",
-  },
-  colorSwatch: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    borderWidth: 3,
-    borderColor: "transparent",
-  },
-  colorSwatchActive: {
-    borderColor: colors.text,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.md, paddingBottom: spacing.xl },
+    headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
+    headerActionDisabled: { opacity: 0.4 },
+    amountCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.md,
+      marginBottom: spacing.md,
+      alignItems: "center",
+    },
+    currencyChip: {
+      paddingVertical: spacing.xs + 2,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    currencyChipText: { ...typography.label, color: colors.text },
+    amountInput: { ...typography.title, color: colors.text, textAlign: "center", minWidth: 160 },
+    field: {
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+      gap: spacing.sm,
+    },
+    label: { ...typography.label, color: colors.text },
+    input: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.sm,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      ...typography.body,
+      color: colors.text,
+    },
+    cycleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
+    intervalInput: { width: 64, textAlign: "center" },
+    notesInput: { minHeight: 60, textAlignVertical: "top" },
+    dot: { width: 20, height: 20, borderRadius: 10 },
+    swatchGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.md,
+      padding: spacing.lg,
+      justifyContent: "center",
+    },
+    colorSwatch: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      borderWidth: 3,
+      borderColor: "transparent",
+    },
+    colorSwatchActive: {
+      borderColor: colors.text,
+    },
+  });
+}

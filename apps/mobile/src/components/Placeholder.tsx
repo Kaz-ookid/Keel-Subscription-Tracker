@@ -1,10 +1,13 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors, spacing, typography } from "../theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 /** A "coming soon" screen for tabs whose real content lands later. */
 export function Placeholder({ sf, title }: { sf: string; title: string }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.container}>
       <SymbolView name={sf as SymbolViewProps["name"]} size={48} tintColor={colors.accent} />
@@ -14,21 +17,23 @@ export function Placeholder({ sf, title }: { sf: string; title: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  title: {
-    ...typography.subtitle,
-    fontWeight: "600",
-    color: colors.text,
-  },
-  hint: {
-    ...typography.body,
-    color: colors.mutedText,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.background,
+    },
+    title: {
+      ...typography.subtitle,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    hint: {
+      ...typography.body,
+      color: colors.mutedText,
+    },
+  });
+}

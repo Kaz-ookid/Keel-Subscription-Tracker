@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { colors, spacing, typography } from "../theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
   visible: boolean;
@@ -13,6 +13,8 @@ interface Props {
 /** A secondary "card" window using the native iOS page sheet (stops short of the
  *  top — no full-screen claustrophobia). Used for category + colour pickers. */
 export function Sheet({ visible, title, onClose, children }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Modal
       visible={visible}
@@ -33,30 +35,32 @@ export function Sheet({ visible, title, onClose, children }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border,
-  },
-  title: {
-    ...typography.label,
-    color: colors.text,
-    fontSize: 17,
-  },
-  done: {
-    ...typography.label,
-    color: colors.navy,
-  },
-  body: {
-    flex: 1,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    title: {
+      ...typography.label,
+      color: colors.text,
+      fontSize: 17,
+    },
+    done: {
+      ...typography.label,
+      color: colors.accent,
+    },
+    body: {
+      flex: 1,
+    },
+  });
+}

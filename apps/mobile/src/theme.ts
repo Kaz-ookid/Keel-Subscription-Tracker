@@ -1,23 +1,53 @@
 import type { SemanticTone } from "@keel/core";
+import { useColorScheme } from "react-native";
 
-export const colors = {
+export interface ThemeColors {
   // Brand
+  navy: string;
+  accent: string;
+  white: string;
+  // Surfaces / text (adapt to light vs dark)
+  background: string;
+  surface: string;
+  border: string;
+  text: string;
+  mutedText: string;
+}
+
+const light: ThemeColors = {
   navy: "#0B1E3F",
   accent: "#7FB8B0",
   white: "#FFFFFF",
-  // Neutrals (light UI surfaces for lists & forms)
   background: "#F2F2F7",
   surface: "#FFFFFF",
   border: "#E3E3E8",
   text: "#11181C",
   mutedText: "#6B7280",
-} as const;
+};
 
-// The platform's mapping of the core's semantic tones → actual colours.
-// `@keel/core` only knows a status is (say) "danger"; this is where danger
-// becomes red. Keeping it here is what lets the core stay UI-agnostic.
+const dark: ThemeColors = {
+  navy: "#0B1E3F",
+  accent: "#7FB8B0",
+  white: "#FFFFFF",
+  background: "#000000",
+  surface: "#1C1C1E",
+  border: "#38383A",
+  text: "#F2F2F7",
+  mutedText: "#9BA1A6",
+};
+
+export type ColorScheme = "light" | "dark";
+
+/** Active colours + scheme, following the device's system appearance. */
+export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
+  const scheme: ColorScheme = useColorScheme() === "dark" ? "dark" : "light";
+  return { colors: scheme === "dark" ? dark : light, scheme };
+}
+
+// The platform's mapping of the core's semantic tones → actual colours. These
+// read acceptably on both light and dark backgrounds, so they stay static.
 export const tones: Record<SemanticTone, string> = {
-  neutral: "#6B7280",
+  neutral: "#8E8E93",
   info: "#3B82F6",
   success: "#22C55E",
   warning: "#F59E0B",
@@ -39,21 +69,9 @@ export const radius = {
 } as const;
 
 export const typography = {
-  title: {
-    fontSize: 32,
-    fontWeight: "700",
-  },
-  subtitle: {
-    fontSize: 16,
-  },
-  body: {
-    fontSize: 16,
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: "600",
-  },
-  caption: {
-    fontSize: 13,
-  },
+  title: { fontSize: 32, fontWeight: "700" },
+  subtitle: { fontSize: 16 },
+  body: { fontSize: 16 },
+  label: { fontSize: 15, fontWeight: "600" },
+  caption: { fontSize: 13 },
 } as const;

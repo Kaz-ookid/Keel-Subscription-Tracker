@@ -1,16 +1,19 @@
-import { FlatList, ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { useMemo } from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
 import { SubscriptionRow } from "../../src/components/SubscriptionRow";
 import { useSubscriptions } from "../../src/state/subscriptions";
-import { colors, spacing, typography } from "../../src/theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 export default function SubscriptionsScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, loading, removeSubscription, markPaid } = useSubscriptions();
 
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator color={colors.navy} />
+        <ActivityIndicator color={colors.accent} />
       </View>
     );
   }
@@ -41,29 +44,31 @@ export default function SubscriptionsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  list: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  listContent: {
-    padding: spacing.md,
-    gap: spacing.sm,
-  },
-  center: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: spacing.sm,
-    backgroundColor: colors.background,
-  },
-  emptyTitle: {
-    ...typography.subtitle,
-    color: colors.text,
-    fontWeight: "600",
-  },
-  emptyHint: {
-    ...typography.body,
-    color: colors.mutedText,
-  },
-});
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    list: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    listContent: {
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    center: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.background,
+    },
+    emptyTitle: {
+      ...typography.subtitle,
+      color: colors.text,
+      fontWeight: "600",
+    },
+    emptyHint: {
+      ...typography.body,
+      color: colors.mutedText,
+    },
+  });
+}

@@ -1,29 +1,35 @@
+import { DarkTheme, DefaultTheme, ThemeProvider } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { SubscriptionsProvider } from "../src/state/subscriptions";
-import { colors } from "../src/theme";
+import { useTheme } from "../src/theme";
 
 export default function RootLayout() {
+  const { colors, scheme } = useTheme();
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SubscriptionsProvider>
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: colors.navy },
-            headerTintColor: colors.white,
-            contentStyle: { backgroundColor: colors.background },
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen
-            name="add"
-            options={{ presentation: "modal", title: "New subscription" }}
-          />
-        </Stack>
-        <StatusBar style="light" />
-      </SubscriptionsProvider>
+      <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
+        <SubscriptionsProvider>
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: colors.navy },
+              headerTintColor: colors.white,
+              contentStyle: { backgroundColor: colors.background },
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen
+              name="add"
+              options={{ presentation: "modal", title: "New subscription" }}
+            />
+          </Stack>
+          {/* Header is navy in both schemes, so light status-bar content reads well. */}
+          <StatusBar style="light" />
+        </SubscriptionsProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }
