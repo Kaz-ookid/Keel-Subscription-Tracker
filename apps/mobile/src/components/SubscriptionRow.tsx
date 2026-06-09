@@ -1,5 +1,4 @@
 import {
-  DEFAULT_CATEGORIES,
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
@@ -17,9 +16,8 @@ interface Props {
 }
 
 export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
-  const category = DEFAULT_CATEGORIES.find((c) => c.id === item.categoryId);
-  // Prefer the user's chosen colour, then a built-in category's tone, then brand.
-  const accent = item.color ?? (category ? tones[category.tone] : colors.accent);
+  // Badge colour is the subscription's own colour, else the brand accent.
+  const accent = item.color ?? colors.accent;
   const isManual = item.settlementMode === "manual";
 
   const schedule = isRecurringSchedule(item.schedule) ? item.schedule : undefined;

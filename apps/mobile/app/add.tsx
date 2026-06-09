@@ -11,6 +11,7 @@ import {
   type SettlementMode,
   type TimeUnit,
 } from "@keel/core";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Stack, useRouter } from "expo-router";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -173,8 +174,12 @@ export default function AddScreen() {
         label="Category"
         value={selectedCategory?.name ?? "None"}
         accessory={
-          selectedCategory ? (
-            <View style={[styles.dot, { backgroundColor: selectedCategory.color ?? colors.accent }]} />
+          selectedCategory?.icon ? (
+            <SymbolView
+              name={selectedCategory.icon as SymbolViewProps["name"]}
+              size={20}
+              tintColor={colors.mutedText}
+            />
           ) : undefined
         }
         onPress={() => setSheet("category")}

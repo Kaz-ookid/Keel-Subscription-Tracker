@@ -24,15 +24,12 @@ import {
 } from "@keel/core";
 
 import { loadState, saveState } from "../lib/storage";
-import { tones } from "../theme";
 
-// Built-in seed categories presented as full Category records (the seed list is
-// icon/tone metadata; map the tone to a concrete colour for the UI dot).
+// Built-in seed categories presented as full Category records.
 const BUILTIN_CATEGORIES: Category[] = DEFAULT_CATEGORIES.map((c) => ({
   id: c.id,
   name: c.name,
   icon: c.icon,
-  color: tones[c.tone],
 }));
 
 interface SubscriptionsContextValue {
@@ -47,7 +44,7 @@ interface SubscriptionsContextValue {
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
   /** Create a custom category; returns it so the caller can select it. */
-  addCategory: (name: string, color: string) => Category;
+  addCategory: (name: string, icon: string) => Category;
 }
 
 const SubscriptionsContext = createContext<SubscriptionsContextValue | null>(null);
@@ -113,8 +110,8 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     setOccurrences((prev) => [...prev, occurrence]);
   };
 
-  const addCategory = (name: string, color: string): Category => {
-    const category: Category = { id: randomUUID(), name: name.trim(), color };
+  const addCategory = (name: string, icon: string): Category => {
+    const category: Category = { id: randomUUID(), name: name.trim(), icon };
     setCustomCategories((prev) => [...prev, category]);
     return category;
   };

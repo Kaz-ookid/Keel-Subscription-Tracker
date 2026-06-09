@@ -1,4 +1,4 @@
-import { SymbolView } from "expo-symbols";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -6,9 +6,13 @@ import { useSubscriptions } from "../state/subscriptions";
 import { colors, radius, spacing, typography } from "../theme";
 import { Sheet } from "./Sheet";
 
-const SWATCHES = [
-  "#0B1E3F", "#7FB8B0", "#3B82F6", "#22C55E", "#F59E0B",
-  "#EF4444", "#8B5CF6", "#EC4899", "#14B8A6", "#6B7280",
+type SymbolName = SymbolViewProps["name"];
+
+// SF Symbols offered when creating a custom category.
+const ICON_CHOICES = [
+  "star.fill", "tag.fill", "creditcard.fill", "cart.fill", "gift.fill",
+  "gamecontroller.fill", "music.note", "film.fill", "book.fill", "airplane",
+  "fork.knife", "dumbbell.fill", "pawprint.fill", "wrench.and.screwdriver.fill", "globe",
 ];
 
 interface Props {
@@ -23,7 +27,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
   const { categories, addCategory } = useSubscriptions();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
-  const [swatch, setSwatch] = useState(SWATCHES[0]);
+  const [icon, setIcon] = useState(ICON_CHOICES[0]);
 
   const pick = (id: string | undefined) => {
     onSelect(id);
@@ -32,7 +36,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
 
   const submitNew = () => {
     if (!name.trim()) return;
-    const category = addCategory(name.trim(), swatch);
+    const category = addCategory(name.trim(), icon);
     setName("");
     setAdding(false);
     pick(category.id);
@@ -49,7 +53,11 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
         {categories.map((c) => (
           <Pressable key={c.id} style={styles.row} onPress={() => pick(c.id)}>
             <View style={styles.left}>
-              <View style={[styles.dot, { backgroundColor: c.color ?? colors.accent }]} />
+              <SymbolView
+                name={(c.icon ?? "tag.fill") as SymbolName}
+                size={22}
+                tintColor={colors.text}
+              />
               <Text style={styles.rowText}>{c.name}</Text>
             </View>
             {selectedId === c.id && (
@@ -69,12 +77,18 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
               autoFocus
             />
             <View style={styles.swatchRow}>
-              {SWATCHES.map((s) => (
+              {ICON_CHOICES.map((choice) => (
                 <Pressable
-                  key={s}
-                  onPress={() => setSwatch(s)}
-                  style={[styles.swatch, { backgroundColor: s }, swatch === s && styles.swatchActive]}
-                />
+                  key={choice}
+                  onPress={() => setIcon(choice)}
+                  style={[styles.iconChoice, icon === choice && styles.iconChoiceActive]}
+                >
+                  <SymbolView
+                    name={choice as SymbolName}
+                    size={22}
+                    tintColor={icon === choice ? colors.white : colors.text}
+                  />
+                </Pressable>
               ))}
             </View>
             <Pressable style={styles.addBtn} onPress={submitNew}>
@@ -111,11 +125,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.sm,
   },
-  dot: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-  },
   rowText: {
     ...typography.body,
     color: colors.text,
@@ -139,15 +148,19 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.sm,
   },
-  swatch: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: "transparent",
+  iconChoice: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  swatchActive: {
-    borderColor: colors.text,
+  iconChoiceActive: {
+    backgroundColor: colors.navy,
+    borderColor: colors.navy,
   },
   addBtn: {
     backgroundColor: colors.navy,
