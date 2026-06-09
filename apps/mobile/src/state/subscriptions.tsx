@@ -1,0 +1,144 @@
+// App state for subscriptions + the payment-event ledger. Holds both in React
+// state, hydrates from the device on mount, and re-persists on change. All
+// domain logic (building an item, recording/accruing payments) is delegated to
+// @keel/core — this layer only wires storage + React + id/clock to that logic.
+//
+// The ledger is the basis for future analytics: manual payments are logged when
+// the user ticks them off; automatic payments are caught up (logged for every
+// due date that has arrived) on load and on creation.
+
+import { randomUUID } from "expo-crypto";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  accrueDueOccurrences,
+  calendarDate,
+  DEFAULT_CATEGORIES,
+  makeRecurringPaymentItem,
+  now,
+  recordRecurringPayment,
+  type CalendarDate,
+  type Category,
+  type NewRecurringInput,
+  type PaymentItem,
+  type PaymentOccurrence,
+} from "@keel/core";
+
+import { loadState, saveState } from "../lib/storage";
+import { tones } from "../theme";
+
+// Built-in seed categories presented as full Category records (the seed list is
+// icon/tone metadata; map the tone to a concrete colour for the UI dot).
+const BUILTIN_CATEGORIES: Category[] = DEFAULT_CATEGORIES.map((c) => ({
+  id: c.id,
+  name: c.name,
+  icon: c.icon,
+  color: tones[c.tone],
+}));
+
+interface SubscriptionsContextValue {
+  items: PaymentItem[];
+  /** Append-only ledger of actual payment events (for the future analytics tab). */
+  occurrences: PaymentOccurrence[];
+  /** Built-in + user-created categories, for pickers. */
+  categories: Category[];
+  loading: boolean;
+  addSubscription: (input: NewRecurringInput) => void;
+  removeSubscription: (id: string) => void;
+  /** Manual tick-off: log the running payment and advance the next due date. */
+  markPaid: (id: string) => void;
+  /** Create a custom category; returns it so the caller can select it. */
+  addCategory: (name: string, color: string) => Category;
+}
+
+const SubscriptionsContext = createContext<SubscriptionsContextValue | null>(null);
+
+function today(): CalendarDate {
+  return calendarDate(new Date().toISOString().slice(0, 10));
+}
+
+/** Catch an automatic item up to today, logging any charges that have come due. */
+function catchUp(item: PaymentItem): { item: PaymentItem; occurrences: PaymentOccurrence[] } {
+  if (item.status !== "active" || item.settlementMode !== "automatic") {
+    return { item, occurrences: [] };
+  }
+  return accrueDueOccurrences(item, today(), { now: now(), makeId: randomUUID });
+}
+
+export function SubscriptionsProvider({ children }: { children: ReactNode }) {
+  const [items, setItems] = useState<PaymentItem[]>([]);
+  const [occurrences, setOccurrences] = useState<PaymentOccurrence[]>([]);
+  const [customCategories, setCustomCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadState().then((state) => {
+      const accrued: PaymentOccurrence[] = [];
+      const caughtUp = state.items.map((item) => {
+        const result = catchUp(item);
+        accrued.push(...result.occurrences);
+        return result.item;
+      });
+      setItems(caughtUp);
+      setOccurrences([...state.occurrences, ...accrued]);
+      setCustomCategories(state.categories);
+      setLoading(false);
+    });
+  }, []);
+
+  // Persist after the initial hydration completes.
+  useEffect(() => {
+    if (!loading) void saveState({ items, occurrences, categories: customCategories });
+  }, [items, occurrences, customCategories, loading]);
+
+  const addSubscription = (input: NewRecurringInput) => {
+    const created = makeRecurringPaymentItem(input, { id: randomUUID(), now: now() });
+    const { item, occurrences: accrued } = catchUp(created);
+    setItems((prev) => [item, ...prev]);
+    if (accrued.length > 0) setOccurrences((prev) => [...prev, ...accrued]);
+  };
+
+  const removeSubscription = (id: string) => {
+    setItems((prev) => prev.filter((i) => i.id !== id));
+  };
+
+  const markPaid = (id: string) => {
+    const item = items.find((i) => i.id === id);
+    if (!item || item.schedule.kind !== "RECURRING") return;
+    const { item: advanced, occurrence } = recordRecurringPayment(item, {
+      id: randomUUID(),
+      paidDate: today(),
+      now: now(),
+    });
+    setItems((prev) => prev.map((i) => (i.id === id ? advanced : i)));
+    setOccurrences((prev) => [...prev, occurrence]);
+  };
+
+  const addCategory = (name: string, color: string): Category => {
+    const category: Category = { id: randomUUID(), name: name.trim(), color };
+    setCustomCategories((prev) => [...prev, category]);
+    return category;
+  };
+
+  return (
+    <SubscriptionsContext.Provider
+      value={{
+        items,
+        occurrences,
+        categories: [...BUILTIN_CATEGORIES, ...customCategories],
+        loading,
+        addSubscription,
+        removeSubscription,
+        markPaid,
+        addCategory,
+      }}
+    >
+      {children}
+    </SubscriptionsContext.Provider>
+  );
+}
+
+export function useSubscriptions(): SubscriptionsContextValue {
+  const ctx = useContext(SubscriptionsContext);
+  if (!ctx) throw new Error("useSubscriptions must be used within SubscriptionsProvider");
+  return ctx;
+}

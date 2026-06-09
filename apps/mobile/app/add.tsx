@@ -1,0 +1,301 @@
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Picker as RNPicker } from "@react-native-picker/picker";
+import {
+  calendarDate,
+  CURRENCIES,
+  formatCalendarDate,
+  fromMajor,
+  type CurrencyCode,
+  type NewRecurringInput,
+  type ReminderRule,
+  type SettlementMode,
+  type TimeUnit,
+} from "@keel/core";
+import { Stack, useRouter } from "expo-router";
+import { useState, type ComponentType, type ReactNode } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import ColorPicker, { HueSlider, Panel1, Preview } from "reanimated-color-picker";
+
+import { CategorySheet } from "../src/components/CategorySheet";
+import { FieldButton } from "../src/components/FieldButton";
+import { Segmented, type SegmentedOption } from "../src/components/Segmented";
+import { Sheet } from "../src/components/Sheet";
+import { WheelSheet } from "../src/components/WheelSheet";
+import { useSubscriptions } from "../src/state/subscriptions";
+import { colors, radius, spacing, typography } from "../src/theme";
+
+// @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
+// JSX types; alias to a children-accepting component (runtime is unaffected).
+const Picker = RNPicker as unknown as ComponentType<{
+  selectedValue: string;
+  onValueChange: (value: string) => void;
+  children: ReactNode;
+}> & { Item: typeof RNPicker.Item };
+
+const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
+
+const UNIT_OPTIONS: SegmentedOption<TimeUnit>[] = [
+  { value: "day", label: "Day" },
+  { value: "week", label: "Week" },
+  { value: "month", label: "Month" },
+  { value: "year", label: "Year" },
+];
+
+const SETTLEMENT_OPTIONS: SegmentedOption<SettlementMode>[] = [
+  { value: "manual", label: "Manual" },
+  { value: "automatic", label: "Automatic" },
+];
+
+const REMINDER_OPTIONS = [
+  { value: "never", label: "Never" },
+  { value: "0", label: "On the day" },
+  { value: "1", label: "1 day before" },
+  { value: "2", label: "2 days before" },
+  { value: "7", label: "1 week before" },
+];
+
+function reminderFromKey(key: string): ReminderRule | undefined {
+  return key === "never" ? undefined : { daysBefore: Number(key) };
+}
+
+type OpenSheet = "currency" | "date" | "reminder" | "category" | "color" | null;
+
+export default function AddScreen() {
+  const router = useRouter();
+  const { addSubscription, categories } = useSubscriptions();
+
+  const [name, setName] = useState("");
+  const [amountText, setAmountText] = useState("");
+  const [currency, setCurrency] = useState<CurrencyCode>("EUR");
+  const [intervalText, setIntervalText] = useState("1");
+  const [unit, setUnit] = useState<TimeUnit>("month");
+  const [firstDate, setFirstDate] = useState(new Date());
+  const [settlementMode, setSettlementMode] = useState<SettlementMode>("manual");
+  const [reminderKey, setReminderKey] = useState("never");
+  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
+  const [color, setColor] = useState<string | undefined>(undefined);
+  const [notes, setNotes] = useState("");
+  const [sheet, setSheet] = useState<OpenSheet>(null);
+
+  const amountValue = parseFloat(amountText.replace(",", "."));
+  const canSubmit = name.trim().length > 0 && amountValue > 0;
+
+  const firstDateCal = calendarDate(firstDate.toISOString().slice(0, 10));
+  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
+
+  const submit = () => {
+    if (!canSubmit) return;
+    const input: NewRecurringInput = {
+      name: name.trim(),
+      amount: fromMajor(amountValue, currency),
+      recurrence: { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) },
+      firstChargeDate: firstDateCal,
+      settlementMode,
+      categoryId,
+      color,
+      reminder: reminderFromKey(reminderKey),
+      notes: notes.trim() || undefined,
+    };
+    addSubscription(input);
+    router.back();
+  };
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable onPress={submit} disabled={!canSubmit} hitSlop={12}>
+              <Text style={[styles.headerAction, !canSubmit && styles.headerActionDisabled]}>
+                Add
+              </Text>
+            </Pressable>
+          ),
+        }}
+      />
+
+      {/* Amount + currency */}
+      <View style={styles.amountCard}>
+        <Pressable style={styles.currencyChip} onPress={() => setSheet("currency")}>
+          <Text style={styles.currencyChipText}>
+            {CURRENCIES[currency].flag} {currency}
+          </Text>
+        </Pressable>
+        <TextInput
+          style={styles.amountInput}
+          value={amountText}
+          onChangeText={setAmountText}
+          placeholder="0.00"
+          placeholderTextColor={colors.mutedText}
+          keyboardType="decimal-pad"
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Name</Text>
+        <TextInput
+          style={styles.input}
+          value={name}
+          onChangeText={setName}
+          placeholder="e.g. Netflix"
+          placeholderTextColor={colors.mutedText}
+        />
+      </View>
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Cycle — every</Text>
+        <View style={styles.cycleRow}>
+          <TextInput
+            style={[styles.input, styles.intervalInput]}
+            value={intervalText}
+            onChangeText={setIntervalText}
+            keyboardType="number-pad"
+          />
+          <Segmented options={UNIT_OPTIONS} value={unit} onChange={setUnit} />
+        </View>
+      </View>
+
+      <FieldButton
+        label="First billing"
+        value={formatCalendarDate(firstDateCal)}
+        onPress={() => setSheet("date")}
+      />
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Settlement</Text>
+        <Segmented options={SETTLEMENT_OPTIONS} value={settlementMode} onChange={setSettlementMode} />
+      </View>
+
+      <FieldButton label="Reminder" value={reminderLabel} onPress={() => setSheet("reminder")} />
+
+      <FieldButton
+        label="Category"
+        value={selectedCategory?.name ?? "None"}
+        accessory={
+          selectedCategory ? (
+            <View style={[styles.dot, { backgroundColor: selectedCategory.color ?? colors.accent }]} />
+          ) : undefined
+        }
+        onPress={() => setSheet("category")}
+      />
+
+      <FieldButton
+        label="Colour"
+        accessory={<View style={[styles.dot, { backgroundColor: color ?? colors.border }]} />}
+        onPress={() => setSheet("color")}
+      />
+
+      <View style={styles.field}>
+        <Text style={styles.label}>Notes</Text>
+        <TextInput
+          style={[styles.input, styles.notesInput]}
+          value={notes}
+          onChangeText={setNotes}
+          placeholder="Optional"
+          placeholderTextColor={colors.mutedText}
+          multiline
+        />
+      </View>
+
+      {/* --- Sheets --- */}
+      <WheelSheet visible={sheet === "currency"} title="Currency" onClose={() => setSheet(null)}>
+        <Picker selectedValue={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
+          {CURRENCY_CODES.map((code) => (
+            <Picker.Item
+              key={code}
+              label={`${CURRENCIES[code].flag}  ${code} — ${CURRENCIES[code].name}`}
+              value={code}
+            />
+          ))}
+        </Picker>
+      </WheelSheet>
+
+      <WheelSheet visible={sheet === "date"} title="First billing" onClose={() => setSheet(null)}>
+        <DateTimePicker
+          value={firstDate}
+          mode="date"
+          display="spinner"
+          onChange={(_, d) => {
+            if (d) setFirstDate(d);
+          }}
+        />
+      </WheelSheet>
+
+      <WheelSheet visible={sheet === "reminder"} title="Reminder" onClose={() => setSheet(null)}>
+        <Picker selectedValue={reminderKey} onValueChange={(v) => setReminderKey(String(v))}>
+          {REMINDER_OPTIONS.map((o) => (
+            <Picker.Item key={o.value} label={o.label} value={o.value} />
+          ))}
+        </Picker>
+      </WheelSheet>
+
+      <CategorySheet
+        visible={sheet === "category"}
+        onClose={() => setSheet(null)}
+        selectedId={categoryId}
+        onSelect={setCategoryId}
+      />
+
+      <Sheet visible={sheet === "color"} title="Colour" onClose={() => setSheet(null)}>
+        <View style={styles.colorPicker}>
+          <ColorPicker
+            style={{ gap: spacing.lg }}
+            value={color ?? colors.accent}
+            onComplete={({ hex }: { hex: string }) => setColor(hex)}
+          >
+            <Preview />
+            <Panel1 />
+            <HueSlider />
+          </ColorPicker>
+        </View>
+      </Sheet>
+    </ScrollView>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: spacing.md, paddingBottom: spacing.xl },
+  headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
+  headerActionDisabled: { opacity: 0.4 },
+  amountCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: spacing.md,
+    marginBottom: spacing.md,
+    alignItems: "center",
+  },
+  currencyChip: {
+    paddingVertical: spacing.xs + 2,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  currencyChipText: { ...typography.label, color: colors.text },
+  amountInput: { ...typography.title, color: colors.text, textAlign: "center", minWidth: 160 },
+  field: {
+    paddingVertical: spacing.md,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.border,
+    gap: spacing.sm,
+  },
+  label: { ...typography.label, color: colors.text },
+  input: {
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.sm,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    ...typography.body,
+    color: colors.text,
+  },
+  cycleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
+  intervalInput: { width: 64, textAlign: "center" },
+  notesInput: { minHeight: 60, textAlignVertical: "top" },
+  dot: { width: 20, height: 20, borderRadius: 10 },
+  colorPicker: { padding: spacing.lg },
+});
