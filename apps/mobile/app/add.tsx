@@ -51,8 +51,8 @@ const UNIT_OPTIONS: SegmentedOption<TimeUnit>[] = [
 ];
 
 const SETTLEMENT_OPTIONS: SegmentedOption<SettlementMode>[] = [
-  { value: "manual", label: "Manual" },
   { value: "automatic", label: "Automatic" },
+  { value: "manual", label: "Manual" },
 ];
 
 const REMINDER_OPTIONS = [
@@ -67,7 +67,7 @@ function reminderFromKey(key: string): ReminderRule | undefined {
   return key === "never" ? undefined : { daysBefore: Number(key) };
 }
 
-type OpenSheet = "currency" | "date" | "reminder" | "category" | "color" | null;
+type OpenSheet = "currency" | "date" | "endDate" | "reminder" | "category" | "color" | null;
 
 export default function AddScreen() {
   const router = useRouter();
@@ -81,7 +81,8 @@ export default function AddScreen() {
   const [intervalText, setIntervalText] = useState("1");
   const [unit, setUnit] = useState<TimeUnit>("month");
   const [firstDate, setFirstDate] = useState(new Date());
-  const [settlementMode, setSettlementMode] = useState<SettlementMode>("manual");
+  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [settlementMode, setSettlementMode] = useState<SettlementMode>("automatic");
   const [reminderKey, setReminderKey] = useState("never");
   const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
   const [color, setColor] = useState<string | undefined>(undefined);
@@ -92,6 +93,7 @@ export default function AddScreen() {
   const canSubmit = name.trim().length > 0 && amountValue > 0;
 
   const firstDateCal = calendarDate(firstDate.toISOString().slice(0, 10));
+  const endDateCal = endDate ? calendarDate(endDate.toISOString().slice(0, 10)) : undefined;
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
 
@@ -102,6 +104,7 @@ export default function AddScreen() {
       amount: fromMajor(amountValue, currency),
       recurrence: { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) },
       firstChargeDate: firstDateCal,
+      endDate: endDateCal,
       settlementMode,
       categoryId,
       color,
@@ -155,6 +158,17 @@ export default function AddScreen() {
       </View>
 
       <View style={styles.field}>
+        <Text style={styles.label}>Description</Text>
+        <TextInput
+          style={styles.input}
+          value={notes}
+          onChangeText={setNotes}
+          placeholder="Optional"
+          placeholderTextColor={colors.mutedText}
+        />
+      </View>
+
+      <View style={styles.field}>
         <Text style={styles.label}>Cycle — every</Text>
         <View style={styles.cycleRow}>
           <TextInput
@@ -171,6 +185,12 @@ export default function AddScreen() {
         label="First billing"
         value={formatCalendarDate(firstDateCal)}
         onPress={() => setSheet("date")}
+      />
+
+      <FieldButton
+        label="Ends"
+        value={endDateCal ? formatCalendarDate(endDateCal) : "Never"}
+        onPress={() => setSheet("endDate")}
       />
 
       <View style={styles.field}>
@@ -201,18 +221,6 @@ export default function AddScreen() {
         onPress={() => setSheet("color")}
       />
 
-      <View style={styles.field}>
-        <Text style={styles.label}>Notes</Text>
-        <TextInput
-          style={[styles.input, styles.notesInput]}
-          value={notes}
-          onChangeText={setNotes}
-          placeholder="Optional"
-          placeholderTextColor={colors.mutedText}
-          multiline
-        />
-      </View>
-
       {/* --- Sheets --- */}
       <WheelSheet visible={sheet === "currency"} title="Currency" onClose={() => setSheet(null)}>
         <Picker selectedValue={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
@@ -236,6 +244,28 @@ export default function AddScreen() {
           textColor={colors.text}
           onChange={(_, d) => {
             if (d) setFirstDate(d);
+          }}
+        />
+      </WheelSheet>
+
+      <WheelSheet visible={sheet === "endDate"} title="Ends" onClose={() => setSheet(null)}>
+        <Pressable
+          style={styles.clearRow}
+          onPress={() => {
+            setEndDate(null);
+            setSheet(null);
+          }}
+        >
+          <Text style={styles.clearText}>No end date</Text>
+        </Pressable>
+        <DateTimePicker
+          value={endDate ?? firstDate}
+          mode="date"
+          display="spinner"
+          themeVariant={scheme}
+          textColor={colors.text}
+          onChange={(_, d) => {
+            if (d) setEndDate(d);
           }}
         />
       </WheelSheet>
@@ -319,7 +349,8 @@ function createStyles(colors: ThemeColors) {
     },
     cycleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
     intervalInput: { width: 64, textAlign: "center" },
-    notesInput: { minHeight: 60, textAlignVertical: "top" },
+    clearRow: { alignItems: "center", paddingVertical: spacing.sm },
+    clearText: { ...typography.label, color: colors.accent },
     dot: { width: 20, height: 20, borderRadius: 10 },
     swatchGrid: {
       flexDirection: "row",
