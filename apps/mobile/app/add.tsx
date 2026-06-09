@@ -314,12 +314,13 @@ function createStyles(colors: ThemeColors) {
     headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
     amountCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
       backgroundColor: colors.surface,
       borderRadius: radius.md,
       padding: spacing.md,
-      gap: spacing.md,
       marginBottom: spacing.md,
-      alignItems: "center",
     },
     currencyChip: {
       paddingVertical: spacing.xs + 2,
@@ -329,7 +330,7 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     currencyChipText: { ...typography.label, color: colors.text },
-    amountInput: { ...typography.title, color: colors.text, textAlign: "center", minWidth: 160 },
+    amountInput: { ...typography.title, color: colors.text, flex: 1, textAlign: "right" },
     field: {
       paddingVertical: spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
