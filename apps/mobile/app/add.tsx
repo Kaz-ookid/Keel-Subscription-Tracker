@@ -193,9 +193,11 @@ export default function AddScreen() {
         onPress={() => setSheet("endDate")}
       />
 
-      <View style={styles.field}>
+      <View style={styles.rowField}>
         <Text style={styles.label}>Settlement</Text>
-        <Segmented options={SETTLEMENT_OPTIONS} value={settlementMode} onChange={setSettlementMode} />
+        <View style={styles.rowControl}>
+          <Segmented options={SETTLEMENT_OPTIONS} value={settlementMode} onChange={setSettlementMode} />
+        </View>
       </View>
 
       <FieldButton label="Reminder" value={reminderLabel} onPress={() => setSheet("reminder")} />
@@ -337,6 +339,16 @@ function createStyles(colors: ThemeColors) {
       borderBottomColor: colors.border,
       gap: spacing.sm,
     },
+    rowField: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: spacing.md,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+      gap: spacing.sm,
+    },
+    rowControl: { flex: 1 },
     label: { ...typography.label, color: colors.text },
     input: {
       backgroundColor: colors.surface,
