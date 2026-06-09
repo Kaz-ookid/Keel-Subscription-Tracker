@@ -48,6 +48,15 @@ const PLAN_TYPES: { value: PlanType; label: string }[] = [
   { value: "installment", label: "Pay in X" },
 ];
 
+// In Pay-in-X mode the entered amount is either the full price (divided across
+// the payments) or the already-computed per-payment amount (× the count).
+type AmountMode = "total" | "perPayment";
+
+const AMOUNT_MODE_OPTIONS: SegmentedOption<AmountMode>[] = [
+  { value: "total", label: "Total" },
+  { value: "perPayment", label: "Per payment" },
+];
+
 // A curated spectrum for the subscription colour. A fixed palette is reliable
 // and crash-free (the previous full-spectrum picker crashed on selection).
 const COLOR_SWATCHES = [
@@ -104,6 +113,7 @@ export default function AddScreen() {
   const [intervalText, setIntervalText] = useState("1");
   const [unit, setUnit] = useState<TimeUnit>("month");
   const [installmentsText, setInstallmentsText] = useState("3");
+  const [amountMode, setAmountMode] = useState<AmountMode>("total");
   const [provider, setProvider] = useState<BnplProviderId>("other");
   const [firstDate, setFirstDate] = useState(new Date());
   const [endDate, setEndDate] = useState<Date | null>(null);
@@ -124,13 +134,23 @@ export default function AddScreen() {
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
 
-  // Live preview for the installment plan: per-payment amount + final due date.
+  // Compute total ⇄ per-payment depending on how the user entered the amount.
+  const installmentTotal =
+    amountMode === "total"
+      ? fromMajor(amountValue, currency)
+      : { amount: fromMajor(amountValue, currency).amount * installmentCount, currency };
+
+  // Live preview: shows whichever value was NOT entered, plus the final due date.
   const installmentPreview = (() => {
     if (!isInstallment || !(amountValue > 0)) return null;
-    const per = splitMoney(fromMajor(amountValue, currency), installmentCount)[0];
     let finish = firstDateCal;
     for (let i = 1; i < installmentCount; i++) finish = addRecurrence(finish, { unit, interval: 1 });
-    return `${installmentCount}× ≈ ${formatMoney(per)} · ends ${formatCalendarDate(finish)}`;
+    const ends = formatCalendarDate(finish);
+    if (amountMode === "total") {
+      const per = splitMoney(installmentTotal, installmentCount)[0];
+      return `${installmentCount} payments · ≈ ${formatMoney(per)} each · ends ${ends}`;
+    }
+    return `total ${formatMoney(installmentTotal)} · ${installmentCount} payments · ends ${ends}`;
   })();
 
   const submit = () => {
@@ -138,7 +158,7 @@ export default function AddScreen() {
     if (isInstallment) {
       const input: NewInstallmentInput = {
         name: name.trim(),
-        totalAmount: fromMajor(amountValue, currency),
+        totalAmount: installmentTotal,
         numberOfInstallments: installmentCount,
         recurrence: { unit, interval: 1 },
         firstInstallmentDate: firstDateCal,
@@ -213,6 +233,15 @@ export default function AddScreen() {
           keyboardType="decimal-pad"
         />
       </View>
+
+      {isInstallment && (
+        <View style={styles.rowField}>
+          <Text style={styles.label}>Amount is</Text>
+          <View style={styles.rowControl}>
+            <Segmented options={AMOUNT_MODE_OPTIONS} value={amountMode} onChange={setAmountMode} />
+          </View>
+        </View>
+      )}
 
       <View style={styles.field}>
         <Text style={styles.label}>Name</Text>
