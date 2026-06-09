@@ -1,0 +1,8 @@
+{
+  "name": "keel",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ]
+}
