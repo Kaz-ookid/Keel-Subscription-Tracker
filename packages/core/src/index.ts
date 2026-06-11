@@ -15,6 +15,7 @@ export * from "./models/installment";
 export * from "./models/installment-plan";
 export * from "./models/payment-item";
 export * from "./models/payment-item-factory";
+export * from "./models/payment-item-mutations";
 export * from "./models/payment-item-status";
 export * from "./models/payment-occurrence";
 export * from "./models/receipt-capture";
