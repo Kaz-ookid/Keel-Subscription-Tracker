@@ -73,6 +73,14 @@ export function listOccurrenceDates(
   return dates;
 }
 
+/** The last day of `date`'s month — e.g. 2026-02-10 → 2026-02-28. */
+export function endOfMonth(date: CalendarDate): CalendarDate {
+  const [y, m] = date.split("-").map(Number);
+  // Day 0 of the next month is the last day of this one.
+  const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
+  return calendarDate(`${y}-${pad(m)}-${pad(lastDay)}`);
+}
+
 /**
  * Snap `date` onto the schedule's occurrence grid: the latest occurrence that
  * is ≤ `date`. A `date` before `first` clamps to `first` (an end date before

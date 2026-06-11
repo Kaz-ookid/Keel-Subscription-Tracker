@@ -18,3 +18,7 @@ export * from "./models/payment-item-factory";
 export * from "./models/payment-item-status";
 export * from "./models/payment-occurrence";
 export * from "./models/receipt-capture";
+
+// Forecast / budget calculations (PROJECT_BRIEF §7) — pure projections of
+// future money movement from the schedules above.
+export * from "./calculations/forecast";

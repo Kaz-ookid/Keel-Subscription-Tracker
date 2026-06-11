@@ -64,6 +64,21 @@ export function sumMoney(values: readonly Money[], currency: CurrencyCode): Mone
 }
 
 /**
+ * Sum a mixed-currency list into one total per currency, in first-seen order.
+ * Cross-currency totals must stay separate — collapsing them into one number
+ * would be a lie. (v1 users are effectively single-currency, so callers
+ * usually get a one-element result.)
+ */
+export function sumByCurrency(values: readonly Money[]): Money[] {
+  const totals = new Map<CurrencyCode, Money>();
+  for (const value of values) {
+    const current = totals.get(value.currency);
+    totals.set(value.currency, current ? addMoney(current, value) : value);
+  }
+  return Array.from(totals.values());
+}
+
+/**
  * Split `total` into `n` parts that sum back to it exactly, working in minor
  * units. The remainder is spread one minor unit at a time across the first
  * parts, so €100 / 3 → 33.34, 33.33, 33.33. Used for BNPL installment plans.
