@@ -83,11 +83,10 @@ describe("accrueDueOccurrences (automatic catch-up)", () => {
   it("emits one occurrence per due date that has arrived and advances the schedule", () => {
     // First charge 2026-01-15, monthly, caught up as of 2026-03-20 → Jan, Feb, Mar.
     const item = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
-    const { item: advanced, occurrences } = accrueDueOccurrences(
-      item,
-      calendarDate("2026-03-20"),
-      { now: now(), makeId: ids() },
-    );
+    const { item: advanced, occurrences } = accrueDueOccurrences(item, calendarDate("2026-03-20"), {
+      now: now(),
+      makeId: ids(),
+    });
 
     expect(occurrences.map((o) => o.dueDate)).toEqual(["2026-01-15", "2026-02-15", "2026-03-15"]);
     expect(occurrences.every((o) => o.status === "charged")).toBe(true);
@@ -118,11 +117,7 @@ describe("accrueDueOccurrences (automatic catch-up)", () => {
     });
 
     // Charges on Jan/Feb/Mar 15; Apr 15 is past the end date, so it's dropped.
-    expect(occurrences.map((o) => o.dueDate)).toEqual([
-      "2026-01-15",
-      "2026-02-15",
-      "2026-03-15",
-    ]);
+    expect(occurrences.map((o) => o.dueDate)).toEqual(["2026-01-15", "2026-02-15", "2026-03-15"]);
     expect(done.status).toBe("completed");
   });
 });
@@ -159,7 +154,12 @@ describe("makeInstallmentPaymentItem (BNPL)", () => {
     expect(s.installments.map((i) => i.index)).toEqual([1, 2, 3]);
     expect(s.installments.every((i) => i.status === "upcoming")).toBe(true);
     expect(s.installments.every((i) => i.installmentScheduleId === "plan-1")).toBe(true);
-    expect(sumMoney(s.installments.map((i) => i.amount), "EUR")).toEqual(s.totalAmount);
+    expect(
+      sumMoney(
+        s.installments.map((i) => i.amount),
+        "EUR",
+      ),
+    ).toEqual(s.totalAmount);
     expect(s.provider).toBe("klarna");
   });
 });
@@ -246,9 +246,12 @@ describe("update helpers", () => {
     expect(edited.createdAt).toBe(original.createdAt);
     if (!isInstallmentSchedule(edited.schedule)) throw new Error("expected installment");
     expect(edited.schedule.installments).toHaveLength(4);
-    expect(sumMoney(edited.schedule.installments.map((i) => i.amount), "EUR")).toEqual(
-      edited.schedule.totalAmount,
-    );
+    expect(
+      sumMoney(
+        edited.schedule.installments.map((i) => i.amount),
+        "EUR",
+      ),
+    ).toEqual(edited.schedule.totalAmount);
   });
 
   it("keeps paid installments (and ids) through a no-change save", () => {
@@ -337,8 +340,11 @@ describe("completion lifecycle", () => {
       { id: "r3", now: now() },
     );
     const pay = (n: number) =>
-      recordRecurringPayment(item, { id: `occ-${n}`, paidDate: calendarDate("2026-01-20"), now: now() })
-        .item;
+      recordRecurringPayment(item, {
+        id: `occ-${n}`,
+        paidDate: calendarDate("2026-01-20"),
+        now: now(),
+      }).item;
 
     item = pay(1);
     item = pay(2);

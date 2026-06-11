@@ -41,8 +41,8 @@ export default function AccountsScreen() {
         <View style={styles.center}>
           <Text style={styles.emptyTitle}>No accounts yet</Text>
           <Text style={styles.emptyHint}>
-            Add the accounts your payments are charged to — each subscription can then show
-            which account it hits.
+            Add the accounts your payments are charged to — each subscription can then show which
+            account it hits.
           </Text>
           {addRow}
         </View>

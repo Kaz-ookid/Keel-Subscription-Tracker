@@ -150,7 +150,12 @@ describe("summarizeCommitments", () => {
   it("normalises live recurring spend and sums BNPL remainder", () => {
     const sub = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
     const yearly = makeRecurringPaymentItem(
-      { ...netflix, name: "Licence", amount: fromMajor(120, "EUR"), recurrence: RECURRENCE_PRESETS.YEARLY },
+      {
+        ...netflix,
+        name: "Licence",
+        amount: fromMajor(120, "EUR"),
+        recurrence: RECURRENCE_PRESETS.YEARLY,
+      },
       { id: "r2", now: now() },
     );
     let plan = makeInstallmentPaymentItem(kPlan, { id: "p1", now: now(), makeId: ids("i") });
@@ -162,7 +167,11 @@ describe("summarizeCommitments", () => {
 
     // An ended subscription drops out of the commitment.
     const ended = makeRecurringPaymentItem(
-      { ...netflix, endDate: calendarDate("2026-01-31"), firstChargeDate: calendarDate("2025-06-15") },
+      {
+        ...netflix,
+        endDate: calendarDate("2026-01-31"),
+        firstChargeDate: calendarDate("2025-06-15"),
+      },
       { id: "r3", now: now() },
     );
     const without = summarizeCommitments([sub, ended], calendarDate("2026-06-12"));

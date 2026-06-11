@@ -24,7 +24,9 @@ export function FieldButton({ label, value, accessory, hint, onPress }: Props) {
     <Pressable onPress={onPress} style={styles.row}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.right}>
-        {value ? <Text style={[styles.value, hint && { color: tones.warning }]}>{value}</Text> : null}
+        {value ? (
+          <Text style={[styles.value, hint && { color: tones.warning }]}>{value}</Text>
+        ) : null}
         {accessory}
         <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
       </View>

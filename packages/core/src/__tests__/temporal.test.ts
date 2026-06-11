@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  calendarDate,
-  formatCalendarDate,
-  isCalendarDate,
-  isTimestamp,
-  timestamp,
-} from "../index";
+import { calendarDate, formatCalendarDate, isCalendarDate, isTimestamp, timestamp } from "../index";
 
 describe("CalendarDate", () => {
   it("accepts a valid YYYY-MM-DD day", () => {

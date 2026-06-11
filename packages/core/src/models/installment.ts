@@ -22,10 +22,7 @@ export const INSTALLMENT_STATUSES: DescriptorMap<InstallmentStatus> = {
 };
 
 /** Statuses that count as "covered" — no money is still owed for them. */
-export const COVERED_INSTALLMENT_STATUSES: readonly InstallmentStatus[] = [
-  "paid",
-  "settled_early",
-];
+export const COVERED_INSTALLMENT_STATUSES: readonly InstallmentStatus[] = ["paid", "settled_early"];
 
 export interface Installment {
   id: string;

@@ -90,10 +90,15 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
 }
 
 /** All charges still owed across `items` up to `until`, chronologically. */
-export function projectCharges(items: readonly PaymentItem[], until: CalendarDate): ProjectedCharge[] {
+export function projectCharges(
+  items: readonly PaymentItem[],
+  until: CalendarDate,
+): ProjectedCharge[] {
   return items
     .flatMap((item) => projectItemCharges(item, until))
-    .sort((a, b) => (a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : a.name.localeCompare(b.name)));
+    .sort((a, b) =>
+      a.dueDate < b.dueDate ? -1 : a.dueDate > b.dueDate ? 1 : a.name.localeCompare(b.name),
+    );
 }
 
 // Average occurrences per year for each recurrence unit (calendar averages,

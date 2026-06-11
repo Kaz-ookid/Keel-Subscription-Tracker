@@ -24,11 +24,7 @@ function makePlan(installments: Installment[]): InstallmentSchedule {
   };
 }
 
-const base = (
-  index: number,
-  due: string,
-  major: number,
-): Installment => ({
+const base = (index: number, due: string, major: number): Installment => ({
   id: `inst-${index}`,
   installmentScheduleId: "plan-1",
   index,

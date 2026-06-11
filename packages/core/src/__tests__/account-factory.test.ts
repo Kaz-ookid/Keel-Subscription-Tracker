@@ -29,7 +29,14 @@ describe("makeAccount", () => {
 
   it("drops an empty institution rather than storing whitespace", () => {
     const account = makeAccount(
-      { name: "Cash", type: "other", currency: "EUR", institution: "  ", color: "#111", icon: "wallet.bifold.fill" },
+      {
+        name: "Cash",
+        type: "other",
+        currency: "EUR",
+        institution: "  ",
+        color: "#111",
+        icon: "wallet.bifold.fill",
+      },
       { id: "acc-2" },
     );
     expect(account.institution).toBeUndefined();

@@ -10,9 +10,21 @@ type SymbolName = SymbolViewProps["name"];
 
 // SF Symbols offered when creating a custom category.
 const ICON_CHOICES = [
-  "star.fill", "tag.fill", "creditcard.fill", "cart.fill", "gift.fill",
-  "gamecontroller.fill", "music.note", "film.fill", "book.fill", "airplane",
-  "fork.knife", "dumbbell.fill", "pawprint.fill", "wrench.and.screwdriver.fill", "globe",
+  "star.fill",
+  "tag.fill",
+  "creditcard.fill",
+  "cart.fill",
+  "gift.fill",
+  "gamecontroller.fill",
+  "music.note",
+  "film.fill",
+  "book.fill",
+  "airplane",
+  "fork.knife",
+  "dumbbell.fill",
+  "pawprint.fill",
+  "wrench.and.screwdriver.fill",
+  "globe",
 ];
 
 interface Props {

@@ -6,10 +6,7 @@
 
 import { sumMoney, type Money } from "../primitives/money";
 import type { CalendarDate } from "../primitives/temporal";
-import {
-  COVERED_INSTALLMENT_STATUSES,
-  type Installment,
-} from "./installment";
+import { COVERED_INSTALLMENT_STATUSES, type Installment } from "./installment";
 import type { InstallmentSchedule } from "./payment-item";
 
 export interface InstallmentPlanSummary {
@@ -41,9 +38,7 @@ function isCovered(installment: Installment): boolean {
  * (a larger down-payment) report correctly. Throws if the plan has no
  * installments — an installment plan must have at least one.
  */
-export function summarizeInstallmentPlan(
-  schedule: InstallmentSchedule,
-): InstallmentPlanSummary {
+export function summarizeInstallmentPlan(schedule: InstallmentSchedule): InstallmentPlanSummary {
   const { installments, totalAmount } = schedule;
   if (installments.length === 0) {
     throw new RangeError("Installment plan has no installments");
@@ -69,9 +64,18 @@ export function summarizeInstallmentPlan(
     totalCount: installments.length,
     paidCount: covered.length,
     remainingCount: remaining.length,
-    totalAmount: sumMoney(installments.map((i) => i.amount), currency),
-    paidAmount: sumMoney(covered.map((i) => i.amount), currency),
-    remainingAmount: sumMoney(remaining.map((i) => i.amount), currency),
+    totalAmount: sumMoney(
+      installments.map((i) => i.amount),
+      currency,
+    ),
+    paidAmount: sumMoney(
+      covered.map((i) => i.amount),
+      currency,
+    ),
+    remainingAmount: sumMoney(
+      remaining.map((i) => i.amount),
+      currency,
+    ),
     finalDueDate,
     nextDue,
     isComplete: remaining.length === 0,

@@ -23,11 +23,7 @@ export function isCalendarDate(value: string): value is CalendarDate {
   // Round-trip through Date to reject impossible days like 2026-02-30.
   const [y, m, d] = value.split("-").map(Number);
   const date = new Date(Date.UTC(y, m - 1, d));
-  return (
-    date.getUTCFullYear() === y &&
-    date.getUTCMonth() === m - 1 &&
-    date.getUTCDate() === d
-  );
+  return date.getUTCFullYear() === y && date.getUTCMonth() === m - 1 && date.getUTCDate() === d;
 }
 
 /** Smart constructor — validates format, then brands. Throws on bad input. */

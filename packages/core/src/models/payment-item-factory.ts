@@ -43,10 +43,7 @@ export interface MakeContext {
 }
 
 /** Build a valid, active RECURRING PaymentItem from form input. */
-export function makeRecurringPaymentItem(
-  input: NewRecurringInput,
-  ctx: MakeContext,
-): PaymentItem {
+export function makeRecurringPaymentItem(input: NewRecurringInput, ctx: MakeContext): PaymentItem {
   const schedule: RecurringSchedule = {
     kind: "RECURRING",
     recurrence: input.recurrence,

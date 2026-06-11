@@ -129,7 +129,9 @@ export default function AddScreen() {
     editInst ? "installment" : "subscription",
   );
   const [name, setName] = useState(() => editItem?.name ?? "");
-  const [amountText, setAmountText] = useState(() => (editAmount ? String(toMajor(editAmount)) : ""));
+  const [amountText, setAmountText] = useState(() =>
+    editAmount ? String(toMajor(editAmount)) : "",
+  );
   const [currency, setCurrency] = useState<CurrencyCode>(() => editAmount?.currency ?? "EUR");
   const [intervalText, setIntervalText] = useState(() =>
     editRec ? String(editRec.recurrence.interval) : "1",
@@ -200,7 +202,8 @@ export default function AddScreen() {
   const installmentPreview = (() => {
     if (!isInstallment || !(amountValue > 0)) return null;
     let finish = firstDateCal;
-    for (let i = 1; i < installmentCount; i++) finish = addRecurrence(finish, { unit, interval: 1 });
+    for (let i = 1; i < installmentCount; i++)
+      finish = addRecurrence(finish, { unit, interval: 1 });
     const ends = formatCalendarDate(finish);
     if (amountMode === "total") {
       const per = splitMoney(installmentTotal, installmentCount)[0];
@@ -306,7 +309,11 @@ export default function AddScreen() {
           <View style={styles.rowField}>
             <Text style={styles.label}>Amount is</Text>
             <View style={styles.rowControl}>
-              <Segmented options={AMOUNT_MODE_OPTIONS} value={amountMode} onChange={setAmountMode} />
+              <Segmented
+                options={AMOUNT_MODE_OPTIONS}
+                value={amountMode}
+                onChange={setAmountMode}
+              />
             </View>
           </View>
           {installmentPreview ? <Text style={styles.preview}>{installmentPreview}</Text> : null}
@@ -398,7 +405,11 @@ export default function AddScreen() {
       <View style={styles.rowField}>
         <Text style={styles.label}>Settlement</Text>
         <View style={styles.rowControl}>
-          <Segmented options={SETTLEMENT_OPTIONS} value={settlementMode} onChange={setSettlementMode} />
+          <Segmented
+            options={SETTLEMENT_OPTIONS}
+            value={settlementMode}
+            onChange={setSettlementMode}
+          />
         </View>
       </View>
 
@@ -554,7 +565,12 @@ function createStyles(colors: ThemeColors) {
       gap: 3,
       marginBottom: spacing.md,
     },
-    modePill: { flex: 1, alignItems: "center", paddingVertical: spacing.sm, borderRadius: radius.sm },
+    modePill: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: spacing.sm,
+      borderRadius: radius.sm,
+    },
     modePillActive: { backgroundColor: colors.navy },
     modeText: { ...typography.label, color: colors.mutedText },
     modeTextActive: { color: colors.white },

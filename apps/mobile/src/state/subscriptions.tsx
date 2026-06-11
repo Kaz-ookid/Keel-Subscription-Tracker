@@ -194,7 +194,9 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
 
   const updateAccount = (id: string, input: NewAccountInput) => {
     setAccounts((prev) =>
-      prev.map((a) => (a.id === id ? { ...makeAccount(input, { id }), isArchived: a.isArchived } : a)),
+      prev.map((a) =>
+        a.id === id ? { ...makeAccount(input, { id }), isArchived: a.isArchived } : a,
+      ),
     );
   };
 

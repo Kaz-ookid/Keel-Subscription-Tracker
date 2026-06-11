@@ -67,9 +67,7 @@ export default function SubscriptionsScreen() {
           item={item}
           onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
           onMarkPaid={() =>
-            isInstallmentSchedule(item.schedule)
-              ? markInstallmentPaid(item.id)
-              : markPaid(item.id)
+            isInstallmentSchedule(item.schedule) ? markInstallmentPaid(item.id) : markPaid(item.id)
           }
           onDelete={() => removeSubscription(item.id)}
         />

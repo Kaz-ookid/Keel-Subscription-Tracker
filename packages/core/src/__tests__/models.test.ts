@@ -56,9 +56,7 @@ describe("@keel/core models", () => {
       amount: fromMajor(9.99, "EUR"),
       firstChargeDate: calendarDate("2026-01-01"),
       nextChargeDate: calendarDate("2026-07-01"),
-      priceHistory: [
-        { amount: fromMajor(9.99, "EUR"), effectiveFrom: calendarDate("2026-01-01") },
-      ],
+      priceHistory: [{ amount: fromMajor(9.99, "EUR"), effectiveFrom: calendarDate("2026-01-01") }],
     };
 
     expect(isRecurringSchedule(schedule)).toBe(true);

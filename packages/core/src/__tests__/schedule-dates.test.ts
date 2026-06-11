@@ -36,9 +36,7 @@ describe("addRecurrence", () => {
     expect(addRecurrence(calendarDate("2026-11-15"), RECURRENCE_PRESETS.QUARTERLY)).toBe(
       "2027-02-15",
     );
-    expect(addRecurrence(calendarDate("2026-06-08"), RECURRENCE_PRESETS.YEARLY)).toBe(
-      "2027-06-08",
-    );
+    expect(addRecurrence(calendarDate("2026-06-08"), RECURRENCE_PRESETS.YEARLY)).toBe("2027-06-08");
   });
 });
 
