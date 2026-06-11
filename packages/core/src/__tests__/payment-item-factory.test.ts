@@ -251,6 +251,63 @@ describe("update helpers", () => {
     );
   });
 
+  it("keeps paid installments (and ids) through a no-change save", () => {
+    const ids = (prefix: string) => {
+      let n = 0;
+      return () => `${prefix}-${++n}`;
+    };
+    const plan: NewInstallmentInput = {
+      name: "Sofa",
+      totalAmount: fromMajor(300, "EUR"),
+      numberOfInstallments: 3,
+      recurrence: RECURRENCE_PRESETS.MONTHLY,
+      firstInstallmentDate: calendarDate("2026-01-10"),
+      settlementMode: "manual",
+    };
+    let item = makeInstallmentPaymentItem(plan, { id: "plan-1", now: now(), makeId: ids("a") });
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-01-10"), now: now() });
+
+    const saved = updateInstallmentPaymentItem(item, plan, { now: now(), makeId: ids("b") });
+    if (!isInstallmentSchedule(saved.schedule)) throw new Error("expected installment");
+    if (!isInstallmentSchedule(item.schedule)) throw new Error("expected installment");
+    expect(saved.schedule.installments).toEqual(item.schedule.installments);
+  });
+
+  it("keeps payments already made when the plan grows or shrinks", () => {
+    const ids = (prefix: string) => {
+      let n = 0;
+      return () => `${prefix}-${++n}`;
+    };
+    const plan: NewInstallmentInput = {
+      name: "Phone",
+      totalAmount: fromMajor(400, "EUR"),
+      numberOfInstallments: 4,
+      recurrence: RECURRENCE_PRESETS.MONTHLY,
+      firstInstallmentDate: calendarDate("2026-01-10"),
+      settlementMode: "manual",
+    };
+    let item = makeInstallmentPaymentItem(plan, { id: "p1", now: now(), makeId: ids("a") });
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-01-10"), now: now() });
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-02-10"), now: now() });
+
+    // Grow 4 → 6: the two payments made stay made.
+    const grown = updateInstallmentPaymentItem(
+      item,
+      { ...plan, numberOfInstallments: 6 },
+      { now: now(), makeId: ids("b") },
+    );
+    if (!isInstallmentSchedule(grown.schedule)) throw new Error("expected installment");
+    expect(grown.schedule.installments.filter((i) => i.status === "paid")).toHaveLength(2);
+    expect(grown.schedule.installments[0].paidDate).toBe("2026-01-10");
+
+    // Shrink 4 → 2 with 2 already paid: the plan reads as complete.
+    const shrunk = updateInstallmentPaymentItem(
+      item,
+      { ...plan, numberOfInstallments: 2 },
+      { now: now(), makeId: ids("c") },
+    );
+    expect(isPaymentItemComplete(shrunk, calendarDate("2026-02-15"))).toBe(true);
+  });
 });
 
 describe("completion lifecycle", () => {

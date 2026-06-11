@@ -223,9 +223,13 @@ export interface UpdateInstallmentContext {
 }
 
 /**
- * Apply edits to an INSTALLMENT item, preserving `id` + `createdAt`. The schedule
- * and its installments are regenerated from the new input (fine while no
- * installment is marked paid). Throws if `existing` isn't an installment plan.
+ * Apply edits to an INSTALLMENT item, preserving `id` + `createdAt`. The
+ * schedule and its installments are regenerated from the new input, then
+ * merged with the old installments by index: ids are kept stable, and a
+ * payment already made stays made (status/paidDate/paidFromAccountId carry
+ * over). A no-change save round-trips identically. Shrinking the count below
+ * the number already paid drops the excess — the derived summary then reads
+ * the plan as complete. Throws if `existing` isn't an installment plan.
  */
 export function updateInstallmentPaymentItem(
   existing: PaymentItem,
@@ -235,12 +239,36 @@ export function updateInstallmentPaymentItem(
   if (existing.schedule.kind !== "INSTALLMENT") {
     throw new TypeError("updateInstallmentPaymentItem expects an INSTALLMENT item");
   }
+  const previous = existing.schedule.installments;
   const rebuilt = makeInstallmentPaymentItem(input, {
     id: existing.id,
     now: ctx.now,
     makeId: ctx.makeId,
   });
-  return { ...rebuilt, createdAt: existing.createdAt };
+  if (rebuilt.schedule.kind !== "INSTALLMENT") {
+    throw new TypeError("rebuilt item is not an installment plan"); // unreachable
+  }
+
+  const installments: Installment[] = rebuilt.schedule.installments.map((inst, i) => {
+    const old = previous[i];
+    if (!old) return inst;
+    const covered = COVERED_INSTALLMENT_STATUSES.includes(old.status);
+    return {
+      ...inst,
+      id: old.id,
+      ...(covered && {
+        status: old.status,
+        paidDate: old.paidDate,
+        paidFromAccountId: old.paidFromAccountId,
+      }),
+    };
+  });
+
+  return {
+    ...rebuilt,
+    createdAt: existing.createdAt,
+    schedule: { ...rebuilt.schedule, installments },
+  };
 }
 
 export interface MarkInstallmentContext {
