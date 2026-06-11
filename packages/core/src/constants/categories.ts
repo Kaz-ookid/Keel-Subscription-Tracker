@@ -13,6 +13,7 @@ export interface SeedCategory {
 
 export const DEFAULT_CATEGORIES: readonly SeedCategory[] = [
   { id: "streaming", name: "Streaming", icon: "play.rectangle.fill" },
+  { id: "communications", name: "Communications", icon: "antenna.radiowaves.left.and.right" },
   { id: "utilities", name: "Utilities", icon: "bolt.fill" },
   { id: "education", name: "Education", icon: "graduationcap.fill" },
   { id: "software", name: "Software", icon: "laptopcomputer" },
