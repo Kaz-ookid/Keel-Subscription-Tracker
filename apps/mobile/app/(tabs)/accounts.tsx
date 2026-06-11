@@ -1,9 +1,10 @@
 import { ACCOUNT_TYPES, type Account } from "@keel/core";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AccountEditSheet } from "../../src/components/AccountSheet";
+import { IconBadge } from "../../src/components/IconBadge";
 import { useSubscriptions } from "../../src/state/subscriptions";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
@@ -59,13 +60,7 @@ export default function AccountsScreen() {
               onPress={() => open(item)}
               onLongPress={() => confirmArchive(item)}
             >
-              <View style={[styles.badge, { backgroundColor: item.color }]}>
-                <SymbolView
-                  name={item.icon as SymbolViewProps["name"]}
-                  size={22}
-                  tintColor={colors.white}
-                />
-              </View>
+              <IconBadge icon={item.icon} color={item.color} />
               <View style={styles.middle}>
                 <Text style={styles.name} numberOfLines={1}>
                   {item.name}
@@ -128,13 +123,6 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       padding: spacing.md,
       gap: spacing.md,
-    },
-    badge: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: "center",
-      justifyContent: "center",
     },
     middle: {
       flex: 1,

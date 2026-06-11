@@ -6,17 +6,16 @@ import {
   type CurrencyCode,
   type NewAccountInput,
 } from "@keel/core";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { COLOR_SWATCHES } from "../constants";
 import { useSubscriptions } from "../state/subscriptions";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { IconBadge } from "./IconBadge";
 import { Segmented, type SegmentedOption } from "./Segmented";
 import { Sheet } from "./Sheet";
-
-type SymbolName = SymbolViewProps["name"];
 
 /** SF Symbol per account type (the core descriptor icons are abstract names). */
 export const ACCOUNT_TYPE_SYMBOLS: Record<AccountType, string> = {
@@ -123,9 +122,7 @@ function AccountLine({ account, colors }: { account: Account; colors: ThemeColor
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.left}>
-      <View style={[styles.badge, { backgroundColor: account.color }]}>
-        <SymbolView name={account.icon as SymbolName} size={16} tintColor={colors.white} />
-      </View>
+      <IconBadge icon={account.icon} color={account.color} size={32} />
       <View>
         <Text style={styles.rowText}>{account.name}</Text>
         {account.institution ? <Text style={styles.rowSub}>{account.institution}</Text> : null}
@@ -247,13 +244,6 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-    },
-    badge: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      alignItems: "center",
-      justifyContent: "center",
     },
     rowText: {
       ...typography.body,

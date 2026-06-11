@@ -52,6 +52,12 @@ export function now(): Timestamp {
   return new Date().toISOString() as Timestamp;
 }
 
+/** The current day as a `CalendarDate` — the impure sibling of `now()`. Pure
+ *  calculation code takes an `asOf` parameter instead of calling this. */
+export function today(): CalendarDate {
+  return new Date().toISOString().slice(0, 10) as CalendarDate;
+}
+
 /** Format a calendar date for display in European style: "2026-06-08" → "08.06.2026".
  *  Storage stays ISO `YYYY-MM-DD`; this is presentation only. */
 export function formatCalendarDate(date: CalendarDate): string {

@@ -1,5 +1,4 @@
 import {
-  calendarDate,
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
@@ -7,14 +6,15 @@ import {
   isPaymentItemComplete,
   isRecurringSchedule,
   summarizeInstallmentPlan,
+  today,
   type PaymentItem,
 } from "@keel/core";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useSubscriptions } from "../state/subscriptions";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { IconBadge } from "./IconBadge";
 
 interface Props {
   item: PaymentItem;
@@ -33,8 +33,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   // Badge colour is the subscription's own colour, else the brand accent.
   const accent = item.color ?? colors.accent;
 
-  const today = calendarDate(new Date().toISOString().slice(0, 10));
-  const complete = isPaymentItemComplete(item, today);
+  const complete = isPaymentItemComplete(item, today());
 
   // Derive the row's display per schedule kind.
   const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
@@ -87,17 +86,11 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
       onLongPress={confirmDelete}
       style={[styles.row, complete && styles.rowComplete]}
     >
-      <View style={[styles.badge, { backgroundColor: accent }]}>
-        {category?.icon ? (
-          <SymbolView
-            name={category.icon as SymbolViewProps["name"]}
-            size={22}
-            tintColor={colors.white}
-          />
-        ) : (
-          <Text style={styles.badgeText}>{item.name.charAt(0).toUpperCase()}</Text>
-        )}
-      </View>
+      <IconBadge
+        icon={category?.icon}
+        fallback={item.name.charAt(0).toUpperCase()}
+        color={accent}
+      />
 
       <View style={styles.middle}>
         <Text style={styles.name} numberOfLines={1}>
@@ -140,18 +133,6 @@ function createStyles(colors: ThemeColors) {
     },
     rowComplete: {
       opacity: 0.55,
-    },
-    badge: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    badgeText: {
-      color: colors.white,
-      fontSize: 20,
-      fontWeight: "700",
     },
     middle: {
       flex: 1,

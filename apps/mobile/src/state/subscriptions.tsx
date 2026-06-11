@@ -11,7 +11,6 @@ import { randomUUID } from "expo-crypto";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import {
   accrueDueOccurrences,
-  calendarDate,
   DEFAULT_CATEGORIES,
   isPaymentItemComplete,
   makeAccount,
@@ -20,6 +19,7 @@ import {
   markNextInstallmentPaid,
   now,
   recordRecurringPayment,
+  today,
   updateInstallmentPaymentItem,
   updateRecurringPaymentItem,
   type Account,
@@ -73,10 +73,6 @@ interface SubscriptionsContextValue {
 }
 
 const SubscriptionsContext = createContext<SubscriptionsContextValue | null>(null);
-
-function today(): CalendarDate {
-  return calendarDate(new Date().toISOString().slice(0, 10));
-}
 
 /** Catch an automatic item up to today, logging any charges that have come due. */
 function catchUp(item: PaymentItem): { item: PaymentItem; occurrences: PaymentOccurrence[] } {

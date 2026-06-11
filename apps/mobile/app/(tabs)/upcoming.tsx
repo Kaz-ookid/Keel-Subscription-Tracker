@@ -1,13 +1,12 @@
 import {
   addRecurrence,
-  calendarDate,
   endOfMonth,
   formatCalendarDate,
-  formatMoney,
+  formatMoneyList,
   projectCharges,
   sumByCurrency,
+  today,
   type CalendarDate,
-  type Money,
   type ProjectedCharge,
 } from "@keel/core";
 import { useRouter } from "expo-router";
@@ -22,6 +21,7 @@ import {
   View,
 } from "react-native";
 
+import { HeroCard } from "../../src/components/HeroCard";
 import { UpcomingRow } from "../../src/components/UpcomingRow";
 import { useSubscriptions } from "../../src/state/subscriptions";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -42,10 +42,6 @@ const MONTHS = [
   "December",
 ];
 
-function today(): CalendarDate {
-  return calendarDate(new Date().toISOString().slice(0, 10));
-}
-
 /** "Today" / "Tomorrow" / "Mon 15.06" — the window is short, so no year. */
 function dayLabel(date: CalendarDate, asOf: CalendarDate): string {
   if (date === asOf) return "Today";
@@ -57,8 +53,6 @@ function dayLabel(date: CalendarDate, asOf: CalendarDate): string {
 function monthName(date: CalendarDate): string {
   return MONTHS[Number(date.slice(5, 7)) - 1];
 }
-
-const formatTotals = (totals: Money[]) => totals.map(formatMoney).join(" + ");
 
 interface Section {
   key: string;
@@ -136,18 +130,16 @@ export default function UpcomingScreen() {
   const heroSub = selectedAccount
     ? `by ${formatCalendarDate(monthEnd)}`
     : dueNextMonth.length > 0
-      ? `then ${formatTotals(dueNextMonth)} in ${monthName(windowEnd)}`
+      ? `then ${formatMoneyList(dueNextMonth)} in ${monthName(windowEnd)}`
       : `nothing in ${monthName(windowEnd)}`;
 
   const header = (
     <View style={styles.header}>
-      <View style={styles.hero}>
-        <Text style={styles.heroLabel}>{heroLabel}</Text>
-        <Text style={styles.heroAmount}>
-          {dueThisMonth.length > 0 ? formatTotals(dueThisMonth) : "Nothing due"}
-        </Text>
-        <Text style={styles.heroSub}>{heroSub}</Text>
-      </View>
+      <HeroCard
+        label={heroLabel}
+        amount={dueThisMonth.length > 0 ? formatMoneyList(dueThisMonth) : "Nothing due"}
+        sub={heroSub}
+      />
 
       {accounts.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -201,7 +193,7 @@ export default function UpcomingScreen() {
             {section.title}
           </Text>
           <Text style={styles.sectionTotal}>
-            {formatTotals(sumByCurrency(section.data.map((c) => c.amount)))}
+            {formatMoneyList(sumByCurrency(section.data.map((c) => c.amount)))}
           </Text>
         </View>
       )}
@@ -246,28 +238,6 @@ function createStyles(colors: ThemeColors) {
     header: {
       gap: spacing.md,
       marginBottom: spacing.sm,
-    },
-    hero: {
-      backgroundColor: colors.navy,
-      borderRadius: radius.lg,
-      padding: spacing.lg,
-      gap: spacing.xs,
-    },
-    heroLabel: {
-      ...typography.caption,
-      color: colors.white,
-      opacity: 0.75,
-      textTransform: "uppercase",
-      letterSpacing: 0.6,
-    },
-    heroAmount: {
-      ...typography.title,
-      color: colors.white,
-    },
-    heroSub: {
-      ...typography.caption,
-      color: colors.white,
-      opacity: 0.75,
     },
     chipRow: {
       flexDirection: "row",

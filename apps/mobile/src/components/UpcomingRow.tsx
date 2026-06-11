@@ -1,10 +1,10 @@
 import { formatMoney, type ProjectedCharge } from "@keel/core";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useSubscriptions } from "../state/subscriptions";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { IconBadge } from "./IconBadge";
 
 interface Props {
   charge: ProjectedCharge;
@@ -35,17 +35,12 @@ export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid
 
   return (
     <Pressable onPress={onPress} style={styles.row}>
-      <View style={[styles.badge, { backgroundColor: accent }]}>
-        {category?.icon ? (
-          <SymbolView
-            name={category.icon as SymbolViewProps["name"]}
-            size={18}
-            tintColor={colors.white}
-          />
-        ) : (
-          <Text style={styles.badgeText}>{charge.name.charAt(0).toUpperCase()}</Text>
-        )}
-      </View>
+      <IconBadge
+        icon={category?.icon}
+        fallback={charge.name.charAt(0).toUpperCase()}
+        color={accent}
+        size={36}
+      />
 
       <View style={styles.middle}>
         <Text style={styles.name} numberOfLines={1}>
@@ -80,18 +75,6 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm + 2,
       paddingHorizontal: spacing.md,
       gap: spacing.md,
-    },
-    badge: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    badgeText: {
-      color: colors.white,
-      fontSize: 16,
-      fontWeight: "700",
     },
     middle: {
       flex: 1,

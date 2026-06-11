@@ -43,6 +43,11 @@ export function formatMoney(value: Money): string {
   return `${withComma} ${info.symbol}`;
 }
 
+/** Render a list of per-currency totals: "12,50 € + 5,00 $". */
+export function formatMoneyList(values: readonly Money[]): string {
+  return values.map(formatMoney).join(" + ");
+}
+
 /** Zero in a given currency — the identity for summing. */
 export function zeroMoney(currency: CurrencyCode): Money {
   return { amount: 0, currency };
