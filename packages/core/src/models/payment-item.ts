@@ -110,6 +110,12 @@ export interface PaymentItem {
   schedule: Schedule;
   status: PaymentItemStatus;
   notes?: string;
+  /** Audit-only bookkeeping (decided 2026-06-12): when the RECORD was made,
+   *  not when the commitment started. Analytics/spending-ramp work anchors on
+   *  `firstChargeDate`/`firstInstallmentDate` instead — a sub entered today
+   *  may have been billing for years. `updatedAt` additionally earns its keep
+   *  later as the conflict-resolution key once multi-device sync exists.
+   *  Never surface these in UI or calculations. */
   createdAt: Timestamp;
   updatedAt: Timestamp;
   sourceCaptureId?: string;

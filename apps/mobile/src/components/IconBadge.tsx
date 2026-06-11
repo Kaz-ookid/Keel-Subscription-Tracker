@@ -35,9 +35,7 @@ export function IconBadge({ icon, fallback, color, size = 44 }: Props) {
           tintColor={colors.white}
         />
       ) : (
-        <Text
-          style={{ color: colors.white, fontSize: Math.round(size * 0.45), fontWeight: "700" }}
-        >
+        <Text style={{ color: colors.white, fontSize: Math.round(size * 0.45), fontWeight: "700" }}>
           {fallback}
         </Text>
       )}

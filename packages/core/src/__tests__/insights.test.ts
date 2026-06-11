@@ -77,9 +77,7 @@ describe("forecastByMonth", () => {
     );
 
     const buckets = forecastByMonth([plan], calendarDate("2026-06-12"), 6);
-    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([
-      0, 10000, 10000, 10000, 0, 0,
-    ]);
+    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([0, 10000, 10000, 10000, 0, 0]);
   });
 });
 
@@ -105,10 +103,17 @@ describe("groupByCadence", () => {
 
   it("excludes ended and paused items", () => {
     const ended = makeRecurringPaymentItem(
-      { ...netflix, firstChargeDate: calendarDate("2025-01-15"), endDate: calendarDate("2026-01-15") },
+      {
+        ...netflix,
+        firstChargeDate: calendarDate("2025-01-15"),
+        endDate: calendarDate("2026-01-15"),
+      },
       { id: "r1", now: now() },
     );
-    const paused = { ...makeRecurringPaymentItem(netflix, { id: "r2", now: now() }), status: "paused" as const };
+    const paused = {
+      ...makeRecurringPaymentItem(netflix, { id: "r2", now: now() }),
+      status: "paused" as const,
+    };
     expect(groupByCadence([ended, paused], calendarDate("2026-06-12"))).toEqual([]);
   });
 });
