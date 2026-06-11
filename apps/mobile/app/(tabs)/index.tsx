@@ -1,11 +1,19 @@
-import { isInstallmentSchedule } from "@keel/core";
+import {
+  calendarDate,
+  formatMoney,
+  isInstallmentSchedule,
+  summarizeCommitments,
+  type Money,
+} from "@keel/core";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
 import { SubscriptionRow } from "../../src/components/SubscriptionRow";
 import { useSubscriptions } from "../../src/state/subscriptions";
-import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+
+const formatTotals = (totals: Money[]) => totals.map(formatMoney).join(" + ");
 
 export default function SubscriptionsScreen() {
   const router = useRouter();
@@ -30,12 +38,30 @@ export default function SubscriptionsScreen() {
     );
   }
 
+  const today = calendarDate(new Date().toISOString().slice(0, 10));
+  const commitments = summarizeCommitments(items, today);
+
   return (
     <FlatList
       style={styles.list}
       data={items}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
+      ListHeaderComponent={
+        commitments.monthly.length > 0 || commitments.bnplOutstanding.length > 0 ? (
+          <View style={styles.summary}>
+            <Text style={styles.summaryLabel}>Committed monthly</Text>
+            <Text style={styles.summaryAmount}>
+              {commitments.monthly.length > 0 ? formatTotals(commitments.monthly) : "Nothing yet"}
+            </Text>
+            {commitments.bnplOutstanding.length > 0 && (
+              <Text style={styles.summarySub}>
+                Pay-in-X still owed: {formatTotals(commitments.bnplOutstanding)}
+              </Text>
+            )}
+          </View>
+        ) : null
+      }
       renderItem={({ item }) => (
         <SubscriptionRow
           item={item}
@@ -61,6 +87,30 @@ function createStyles(colors: ThemeColors) {
     listContent: {
       padding: spacing.md,
       gap: spacing.sm,
+    },
+    // The headline number, in the same hero language as the Upcoming tab.
+    summary: {
+      backgroundColor: colors.navy,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
+      gap: spacing.xs,
+      marginBottom: spacing.sm,
+    },
+    summaryLabel: {
+      ...typography.caption,
+      color: colors.white,
+      opacity: 0.75,
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+    },
+    summaryAmount: {
+      ...typography.title,
+      color: colors.white,
+    },
+    summarySub: {
+      ...typography.caption,
+      color: colors.white,
+      opacity: 0.75,
     },
     center: {
       flex: 1,
