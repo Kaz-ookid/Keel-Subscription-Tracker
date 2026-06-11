@@ -149,6 +149,61 @@ export function makeInstallmentPaymentItem(
   };
 }
 
+export interface UpdateContext {
+  now: Timestamp;
+}
+
+/**
+ * Apply edits to a RECURRING item, preserving its `id`, `createdAt` and the live
+ * `nextChargeDate` (so automatic accrual isn't reset and the ledger isn't
+ * re-duplicated on next load). Throws if `existing` isn't recurring.
+ */
+export function updateRecurringPaymentItem(
+  existing: PaymentItem,
+  input: NewRecurringInput,
+  ctx: UpdateContext,
+): PaymentItem {
+  if (existing.schedule.kind !== "RECURRING") {
+    throw new TypeError("updateRecurringPaymentItem expects a RECURRING item");
+  }
+  const nextChargeDate = existing.schedule.nextChargeDate;
+  const rebuilt = makeRecurringPaymentItem(input, { id: existing.id, now: ctx.now });
+  if (rebuilt.schedule.kind !== "RECURRING") {
+    throw new TypeError("rebuilt item is not recurring"); // unreachable
+  }
+  return {
+    ...rebuilt,
+    createdAt: existing.createdAt,
+    schedule: { ...rebuilt.schedule, nextChargeDate },
+  };
+}
+
+export interface UpdateInstallmentContext {
+  now: Timestamp;
+  makeId: () => string;
+}
+
+/**
+ * Apply edits to an INSTALLMENT item, preserving `id` + `createdAt`. The schedule
+ * and its installments are regenerated from the new input (fine while no
+ * installment is marked paid). Throws if `existing` isn't an installment plan.
+ */
+export function updateInstallmentPaymentItem(
+  existing: PaymentItem,
+  input: NewInstallmentInput,
+  ctx: UpdateInstallmentContext,
+): PaymentItem {
+  if (existing.schedule.kind !== "INSTALLMENT") {
+    throw new TypeError("updateInstallmentPaymentItem expects an INSTALLMENT item");
+  }
+  const rebuilt = makeInstallmentPaymentItem(input, {
+    id: existing.id,
+    now: ctx.now,
+    makeId: ctx.makeId,
+  });
+  return { ...rebuilt, createdAt: existing.createdAt };
+}
+
 export interface RecordPaymentContext {
   id: string;
   paidDate: CalendarDate;

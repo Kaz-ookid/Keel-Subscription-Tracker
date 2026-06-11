@@ -3,6 +3,7 @@ import {
   accrueDueOccurrences,
   calendarDate,
   fromMajor,
+  isInstallmentSchedule,
   isRecurringSchedule,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
@@ -10,8 +11,10 @@ import {
   recordRecurringPayment,
   RECURRENCE_PRESETS,
   sumMoney,
+  updateInstallmentPaymentItem,
+  updateRecurringPaymentItem,
 } from "../index";
-import type { NewRecurringInput } from "../index";
+import type { NewInstallmentInput, NewRecurringInput } from "../index";
 
 const input: NewRecurringInput = {
   name: "Netflix",
@@ -127,5 +130,60 @@ describe("makeInstallmentPaymentItem (BNPL)", () => {
     expect(s.installments.every((i) => i.installmentScheduleId === "plan-1")).toBe(true);
     expect(sumMoney(s.installments.map((i) => i.amount), "EUR")).toEqual(s.totalAmount);
     expect(s.provider).toBe("klarna");
+  });
+});
+
+describe("update helpers", () => {
+  it("edits a recurring item while preserving id, createdAt and nextChargeDate", () => {
+    const original = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    if (!isRecurringSchedule(original.schedule)) throw new Error("expected recurring");
+    // Simulate the live cursor having advanced past the first charge.
+    const advanced = {
+      ...original,
+      schedule: { ...original.schedule, nextChargeDate: calendarDate("2026-05-15") },
+      createdAt: original.createdAt,
+    };
+
+    const edited = updateRecurringPaymentItem(
+      advanced,
+      { ...input, amount: fromMajor(19.99, "EUR") },
+      { now: now() },
+    );
+
+    expect(edited.id).toBe("item-1");
+    expect(edited.createdAt).toBe(advanced.createdAt);
+    if (!isRecurringSchedule(edited.schedule)) throw new Error("expected recurring");
+    expect(edited.schedule.amount).toEqual({ amount: 1999, currency: "EUR" });
+    expect(edited.schedule.nextChargeDate).toBe("2026-05-15"); // preserved, not reset
+  });
+
+  it("edits an installment plan, regenerating installments, keeping id + createdAt", () => {
+    const ids = () => {
+      let n = 0;
+      return () => `inst-${++n}`;
+    };
+    const plan: NewInstallmentInput = {
+      name: "Sofa",
+      totalAmount: fromMajor(300, "EUR"),
+      numberOfInstallments: 3,
+      recurrence: RECURRENCE_PRESETS.MONTHLY,
+      firstInstallmentDate: calendarDate("2026-01-10"),
+      settlementMode: "manual",
+    };
+    const original = makeInstallmentPaymentItem(plan, { id: "plan-1", now: now(), makeId: ids() });
+
+    const edited = updateInstallmentPaymentItem(
+      original,
+      { ...plan, numberOfInstallments: 4 },
+      { now: now(), makeId: ids() },
+    );
+
+    expect(edited.id).toBe("plan-1");
+    expect(edited.createdAt).toBe(original.createdAt);
+    if (!isInstallmentSchedule(edited.schedule)) throw new Error("expected installment");
+    expect(edited.schedule.installments).toHaveLength(4);
+    expect(sumMoney(edited.schedule.installments.map((i) => i.amount), "EUR")).toEqual(
+      edited.schedule.totalAmount,
+    );
   });
 });
