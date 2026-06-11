@@ -58,6 +58,8 @@ interface Section {
   key: string;
   title: string;
   overdue?: boolean;
+  /** Set on the first day of a new month — rendered as a banderole. */
+  monthLabel?: string;
   data: ProjectedCharge[];
 }
 
@@ -119,8 +121,12 @@ export function UpcomingView() {
     if (bucket) bucket.push(c);
     else byDay.set(c.dueDate, [c]);
   }
+  let lastMonth = asOf.slice(0, 7);
   byDay.forEach((data, date) => {
-    sections.push({ key: date, title: dayLabel(date, asOf), data });
+    const month = date.slice(0, 7);
+    const monthLabel = month !== lastMonth ? `${monthName(date)} ${date.slice(0, 4)}` : undefined;
+    lastMonth = month;
+    sections.push({ key: date, title: dayLabel(date, asOf), monthLabel, data });
   });
 
   const heroLabel = selectedAccount
@@ -189,13 +195,22 @@ export function UpcomingView() {
         </View>
       }
       renderSectionHeader={({ section }) => (
-        <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, section.overdue && { color: tones.warning }]}>
-            {section.title}
-          </Text>
-          <Text style={styles.sectionTotal}>
-            {formatMoneyList(sumByCurrency(section.data.map((c) => c.amount)))}
-          </Text>
+        <View style={styles.sectionHeaderWrap}>
+          {section.monthLabel && (
+            <View style={styles.monthBreak}>
+              <View style={styles.monthLine} />
+              <Text style={styles.monthText}>{section.monthLabel}</Text>
+              <View style={styles.monthLine} />
+            </View>
+          )}
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, section.overdue && { color: tones.warning }]}>
+              {section.title}
+            </Text>
+            <Text style={styles.sectionTotal}>
+              {formatMoneyList(sumByCurrency(section.data.map((c) => c.amount)))}
+            </Text>
+          </View>
         </View>
       )}
       renderItem={({ item }) => (
@@ -272,11 +287,32 @@ function createStyles(colors: ThemeColors) {
     chipTextActive: {
       color: colors.white,
     },
+    sectionHeaderWrap: {
+      backgroundColor: colors.background,
+    },
+    // Light but unmistakable month boundary: NAME between two hairlines.
+    monthBreak: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingTop: spacing.lg,
+    },
+    monthLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.mutedText,
+    },
+    monthText: {
+      ...typography.caption,
+      color: colors.mutedText,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 1,
+    },
     sectionHeader: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      backgroundColor: colors.background,
       paddingTop: spacing.md,
       paddingBottom: spacing.sm,
     },
