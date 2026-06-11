@@ -17,6 +17,8 @@ import {
   makeRecurringPaymentItem,
   now,
   recordRecurringPayment,
+  updateInstallmentPaymentItem,
+  updateRecurringPaymentItem,
   type CalendarDate,
   type Category,
   type NewInstallmentInput,
@@ -44,6 +46,10 @@ interface SubscriptionsContextValue {
   addSubscription: (input: NewRecurringInput) => void;
   /** Create a BNPL "Pay in X" installment plan. */
   addInstallmentPlan: (input: NewInstallmentInput) => void;
+  /** Edit an existing recurring subscription. */
+  updateSubscription: (id: string, input: NewRecurringInput) => void;
+  /** Edit an existing installment plan. */
+  updateInstallmentPlan: (id: string, input: NewInstallmentInput) => void;
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
@@ -107,6 +113,22 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     setItems((prev) => [item, ...prev]);
   };
 
+  const updateSubscription = (id: string, input: NewRecurringInput) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? updateRecurringPaymentItem(i, input, { now: now() }) : i)),
+    );
+  };
+
+  const updateInstallmentPlan = (id: string, input: NewInstallmentInput) => {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === id
+          ? updateInstallmentPaymentItem(i, input, { now: now(), makeId: randomUUID })
+          : i,
+      ),
+    );
+  };
+
   const removeSubscription = (id: string) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
   };
@@ -138,6 +160,8 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         loading,
         addSubscription,
         addInstallmentPlan,
+        updateSubscription,
+        updateInstallmentPlan,
         removeSubscription,
         markPaid,
         addCategory,

@@ -8,7 +8,10 @@ import {
   formatCalendarDate,
   formatMoney,
   fromMajor,
+  isInstallmentSchedule,
+  isRecurringSchedule,
   splitMoney,
+  toMajor,
   type BnplProviderId,
   type CurrencyCode,
   type NewInstallmentInput,
@@ -18,7 +21,7 @@ import {
   type TimeUnit,
 } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -102,26 +105,60 @@ type OpenSheet =
 
 export default function AddScreen() {
   const router = useRouter();
+  const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors, scheme } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { addSubscription, addInstallmentPlan, categories } = useSubscriptions();
+  const {
+    items,
+    addSubscription,
+    addInstallmentPlan,
+    updateSubscription,
+    updateInstallmentPlan,
+    categories,
+  } = useSubscriptions();
 
-  const [planType, setPlanType] = useState<PlanType>("subscription");
-  const [name, setName] = useState("");
-  const [amountText, setAmountText] = useState("");
-  const [currency, setCurrency] = useState<CurrencyCode>("EUR");
-  const [intervalText, setIntervalText] = useState("1");
-  const [unit, setUnit] = useState<TimeUnit>("month");
-  const [installmentsText, setInstallmentsText] = useState("3");
+  // When an `id` is passed we're editing an existing item; pre-fill from it.
+  const editItem = id ? items.find((i) => i.id === id) : undefined;
+  const isEditing = !!editItem;
+  const editRec =
+    editItem && isRecurringSchedule(editItem.schedule) ? editItem.schedule : undefined;
+  const editInst =
+    editItem && isInstallmentSchedule(editItem.schedule) ? editItem.schedule : undefined;
+  const editAmount = editRec?.amount ?? editInst?.totalAmount;
+  const editFirstDate = editRec?.firstChargeDate ?? editInst?.firstInstallmentDate;
+
+  const [planType, setPlanType] = useState<PlanType>(() =>
+    editInst ? "installment" : "subscription",
+  );
+  const [name, setName] = useState(() => editItem?.name ?? "");
+  const [amountText, setAmountText] = useState(() => (editAmount ? String(toMajor(editAmount)) : ""));
+  const [currency, setCurrency] = useState<CurrencyCode>(() => editAmount?.currency ?? "EUR");
+  const [intervalText, setIntervalText] = useState(() =>
+    editRec ? String(editRec.recurrence.interval) : "1",
+  );
+  const [unit, setUnit] = useState<TimeUnit>(
+    () => editRec?.recurrence.unit ?? editInst?.recurrence.unit ?? "month",
+  );
+  const [installmentsText, setInstallmentsText] = useState(() =>
+    editInst ? String(editInst.numberOfInstallments) : "3",
+  );
   const [amountMode, setAmountMode] = useState<AmountMode>("total");
-  const [provider, setProvider] = useState<BnplProviderId>("other");
-  const [firstDate, setFirstDate] = useState(new Date());
-  const [endDate, setEndDate] = useState<Date | null>(null);
-  const [settlementMode, setSettlementMode] = useState<SettlementMode>("automatic");
-  const [reminderKey, setReminderKey] = useState("never");
-  const [categoryId, setCategoryId] = useState<string | undefined>(undefined);
-  const [color, setColor] = useState<string | undefined>(undefined);
-  const [notes, setNotes] = useState("");
+  const [provider, setProvider] = useState<BnplProviderId>(() => editInst?.provider ?? "other");
+  const [firstDate, setFirstDate] = useState(() =>
+    editFirstDate ? new Date(editFirstDate) : new Date(),
+  );
+  const [endDate, setEndDate] = useState<Date | null>(() =>
+    editRec?.endDate ? new Date(editRec.endDate) : null,
+  );
+  const [settlementMode, setSettlementMode] = useState<SettlementMode>(
+    () => editItem?.settlementMode ?? "automatic",
+  );
+  const [reminderKey, setReminderKey] = useState(() =>
+    editItem?.reminder ? String(editItem.reminder.daysBefore) : "never",
+  );
+  const [categoryId, setCategoryId] = useState<string | undefined>(() => editItem?.categoryId);
+  const [color, setColor] = useState<string | undefined>(() => editItem?.color);
+  const [notes, setNotes] = useState(() => editItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
   const isInstallment = planType === "installment";
@@ -169,7 +206,8 @@ export default function AddScreen() {
         reminder: reminderFromKey(reminderKey),
         notes: notes.trim() || undefined,
       };
-      addInstallmentPlan(input);
+      if (editItem) updateInstallmentPlan(editItem.id, input);
+      else addInstallmentPlan(input);
     } else {
       const input: NewRecurringInput = {
         name: name.trim(),
@@ -183,7 +221,8 @@ export default function AddScreen() {
         reminder: reminderFromKey(reminderKey),
         notes: notes.trim() || undefined,
       };
-      addSubscription(input);
+      if (editItem) updateSubscription(editItem.id, input);
+      else addSubscription(input);
     }
     router.back();
   };
@@ -192,30 +231,33 @@ export default function AddScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Stack.Screen
         options={{
+          title: isEditing ? "Edit" : "New subscription",
           headerRight: () => (
             <Pressable onPress={submit} disabled={!canSubmit} hitSlop={12}>
               <Text style={[styles.headerAction, !canSubmit && styles.headerActionDisabled]}>
-                Add
+                {isEditing ? "Save" : "Add"}
               </Text>
             </Pressable>
           ),
         }}
       />
 
-      <View style={styles.modeSwitch}>
-        {PLAN_TYPES.map((m) => {
-          const active = planType === m.value;
-          return (
-            <Pressable
-              key={m.value}
-              onPress={() => setPlanType(m.value)}
-              style={[styles.modePill, active && styles.modePillActive]}
-            >
-              <Text style={[styles.modeText, active && styles.modeTextActive]}>{m.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {!isEditing && (
+        <View style={styles.modeSwitch}>
+          {PLAN_TYPES.map((m) => {
+            const active = planType === m.value;
+            return (
+              <Pressable
+                key={m.value}
+                onPress={() => setPlanType(m.value)}
+                style={[styles.modePill, active && styles.modePillActive]}
+              >
+                <Text style={[styles.modeText, active && styles.modeTextActive]}>{m.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
 
       {/* Amount + currency */}
       <View style={styles.amountCard}>
@@ -321,7 +363,7 @@ export default function AddScreen() {
           />
 
           <FieldButton
-            label="Ends"
+            label="Last billing"
             value={endDateCal ? formatCalendarDate(endDateCal) : "Never"}
             onPress={() => setSheet("endDate")}
           />

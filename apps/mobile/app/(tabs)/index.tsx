@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
@@ -6,6 +7,7 @@ import { useSubscriptions } from "../../src/state/subscriptions";
 import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 export default function SubscriptionsScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, loading, removeSubscription, markPaid } = useSubscriptions();
@@ -36,6 +38,7 @@ export default function SubscriptionsScreen() {
       renderItem={({ item }) => (
         <SubscriptionRow
           item={item}
+          onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
           onMarkPaid={() => markPaid(item.id)}
           onDelete={() => removeSubscription(item.id)}
         />

@@ -14,11 +14,12 @@ import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "
 
 interface Props {
   item: PaymentItem;
+  onPress: () => void;
   onMarkPaid: () => void;
   onDelete: () => void;
 }
 
-export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
+export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -56,7 +57,7 @@ export function SubscriptionRow({ item, onMarkPaid, onDelete }: Props) {
     ]);
 
   return (
-    <Pressable onLongPress={confirmDelete} style={styles.row}>
+    <Pressable onPress={onPress} onLongPress={confirmDelete} style={styles.row}>
       <View style={[styles.badge, { backgroundColor: accent }]}>
         <Text style={styles.badgeText}>{item.name.charAt(0).toUpperCase()}</Text>
       </View>
