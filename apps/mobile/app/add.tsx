@@ -31,7 +31,7 @@ import { Segmented, type SegmentedOption } from "../src/components/Segmented";
 import { Sheet } from "../src/components/Sheet";
 import { WheelSheet } from "../src/components/WheelSheet";
 import { useSubscriptions } from "../src/state/subscriptions";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
 
 // @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
 // JSX types; alias to a children-accepting component (runtime is unaffected).
@@ -260,7 +260,7 @@ export default function AddScreen() {
       )}
 
       {/* Amount + currency */}
-      <View style={styles.amountCard}>
+      <View style={[styles.amountCard, !(amountValue > 0) && styles.requiredMissing]}>
         <Pressable style={styles.currencyChip} onPress={() => setSheet("currency")}>
           <Text style={styles.currencyChipText}>
             {CURRENCIES[currency].flag} {currency}
@@ -291,7 +291,7 @@ export default function AddScreen() {
       <View style={styles.field}>
         <Text style={styles.label}>Name</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, !name.trim() && styles.requiredMissing]}
           value={name}
           onChangeText={setName}
           placeholder="e.g. Netflix"
@@ -525,8 +525,14 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.md,
       backgroundColor: colors.surface,
       borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: "transparent",
       padding: spacing.md,
       marginBottom: spacing.md,
+    },
+    // Subtle hint for an empty required field (name / amount).
+    requiredMissing: {
+      borderColor: tones.warning,
     },
     currencyChip: {
       paddingVertical: spacing.xs + 2,
