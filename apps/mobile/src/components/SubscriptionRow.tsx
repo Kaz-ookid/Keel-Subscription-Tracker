@@ -9,9 +9,11 @@ import {
   summarizeInstallmentPlan,
   type PaymentItem,
 } from "@keel/core";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { useSubscriptions } from "../state/subscriptions";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
@@ -24,6 +26,8 @@ interface Props {
 export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { categories } = useSubscriptions();
+  const category = categories.find((c) => c.id === item.categoryId);
 
   // Badge colour is the subscription's own colour, else the brand accent.
   const accent = item.color ?? colors.accent;
@@ -78,7 +82,15 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
       style={[styles.row, complete && styles.rowComplete]}
     >
       <View style={[styles.badge, { backgroundColor: accent }]}>
-        <Text style={styles.badgeText}>{item.name.charAt(0).toUpperCase()}</Text>
+        {category?.icon ? (
+          <SymbolView
+            name={category.icon as SymbolViewProps["name"]}
+            size={22}
+            tintColor={colors.white}
+          />
+        ) : (
+          <Text style={styles.badgeText}>{item.name.charAt(0).toUpperCase()}</Text>
+        )}
       </View>
 
       <View style={styles.middle}>
