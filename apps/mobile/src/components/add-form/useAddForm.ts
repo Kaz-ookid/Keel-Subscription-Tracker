@@ -57,6 +57,21 @@ function reminderFromKey(key: string): ReminderRule | undefined {
   return key === "never" ? undefined : { daysBefore: Number(key) };
 }
 
+/** The picker returns a Date at LOCAL midnight — format with local parts.
+ *  (`toISOString` converts to UTC first, which shifted "16 June" to the 15th
+ *  for anyone east of Greenwich.) */
+function toCalendarDate(d: Date): CalendarDate {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return calendarDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
+}
+
+/** Parse a stored calendar date to LOCAL midnight for the native picker
+ *  (`new Date("YYYY-MM-DD")` parses as UTC, the same shift the other way). */
+function fromCalendarDate(date: CalendarDate): Date {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 export type AddForm = ReturnType<typeof useAddForm>;
 
 export function useAddForm() {
@@ -102,7 +117,7 @@ export function useAddForm() {
   const [amountMode, setAmountMode] = useState<AmountMode>("total");
   const [provider, setProvider] = useState<BnplProviderId>(() => editInst?.provider ?? "other");
   const [firstDate, setFirstDate] = useState(() =>
-    editFirstDate ? new Date(editFirstDate) : new Date(),
+    editFirstDate ? fromCalendarDate(editFirstDate) : new Date(),
   );
   const [endDate, setEndDate] = useState<CalendarDate | null>(() => editRec?.endDate ?? null);
   const [settlementMode, setSettlementMode] = useState<SettlementMode>(
@@ -122,7 +137,7 @@ export function useAddForm() {
   const installmentCount = Math.max(1, parseInt(installmentsText, 10) || 1);
   const canSubmit = name.trim().length > 0 && amountValue > 0;
 
-  const firstDateCal = calendarDate(firstDate.toISOString().slice(0, 10));
+  const firstDateCal = toCalendarDate(firstDate);
   const recurrence = { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) };
   // The end date is a *last billing* date: keep it snapped onto the billing
   // grid even if the cycle or first billing changes after it was picked.
