@@ -13,6 +13,7 @@ import {
   accrueDueOccurrences,
   calendarDate,
   DEFAULT_CATEGORIES,
+  isPaymentItemComplete,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   markNextInstallmentPaid,
@@ -147,6 +148,8 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const markPaid = (id: string) => {
     const item = items.find((i) => i.id === id);
     if (!item || item.schedule.kind !== "RECURRING") return;
+    // Never pay past the end of an already-finished subscription.
+    if (isPaymentItemComplete(item, today())) return;
     const { item: advanced, occurrence } = recordRecurringPayment(item, {
       id: randomUUID(),
       paidDate: today(),

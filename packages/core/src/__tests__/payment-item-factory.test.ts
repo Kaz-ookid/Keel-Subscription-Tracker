@@ -40,6 +40,7 @@ describe("makeRecurringPaymentItem", () => {
       { amount: { amount: 1599, currency: "EUR" }, effectiveFrom: "2026-01-15" },
     ]);
   });
+
 });
 
 describe("recordRecurringPayment", () => {
@@ -240,6 +241,7 @@ describe("update helpers", () => {
       edited.schedule.totalAmount,
     );
   });
+
 });
 
 describe("completion lifecycle", () => {
@@ -260,6 +262,26 @@ describe("completion lifecycle", () => {
   it("never completes a recurring item without an end date", () => {
     const item = makeRecurringPaymentItem(input, { id: "r2", now: now() });
     expect(isPaymentItemComplete(item, calendarDate("2030-01-01"))).toBe(false);
+  });
+
+  it("completes once the last billing is paid, even before the end date arrives", () => {
+    // Monthly on the 15th, ending 2026-03-15 → three billings: Jan, Feb, Mar.
+    let item = makeRecurringPaymentItem(
+      { ...input, endDate: calendarDate("2026-03-15") },
+      { id: "r3", now: now() },
+    );
+    const pay = (n: number) =>
+      recordRecurringPayment(item, { id: `occ-${n}`, paidDate: calendarDate("2026-01-20"), now: now() })
+        .item;
+
+    item = pay(1);
+    item = pay(2);
+    expect(isPaymentItemComplete(item, calendarDate("2026-03-01"))).toBe(false);
+
+    item = pay(3); // the March 15 billing — cursor moves past the end date
+    if (!isRecurringSchedule(item.schedule)) throw new Error("expected recurring");
+    expect(item.schedule.nextChargeDate).toBe("2026-04-15");
+    expect(isPaymentItemComplete(item, calendarDate("2026-03-01"))).toBe(true);
   });
 
   it("marks the next installment paid and completes the plan after the last", () => {

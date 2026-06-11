@@ -47,7 +47,12 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   let showMarkPaid = false;
 
   if (recurring) {
-    subLine = `${describeRecurrence(recurring.recurrence)} · next ${formatCalendarDate(recurring.nextChargeDate)}`;
+    // A finished sub has no next billing — say when it ended instead.
+    const when =
+      complete && recurring.endDate
+        ? `ended ${formatCalendarDate(recurring.endDate)}`
+        : `next ${formatCalendarDate(recurring.nextChargeDate)}`;
+    subLine = `${describeRecurrence(recurring.recurrence)} · ${when}`;
     amount = formatMoney(recurring.amount);
     tag = isManual ? "Manual" : "Automatic";
     tagColor = isManual ? tones.warning : tones.info;
