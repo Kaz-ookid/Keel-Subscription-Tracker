@@ -7,7 +7,7 @@ import type { BnplProviderId } from "../constants/bnpl-providers";
 import { splitMoney, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
-import { addRecurrence, nextDueDate } from "../primitives/schedule-dates";
+import { addRecurrence, alignToOccurrence, nextDueDate } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate, type Timestamp } from "../primitives/temporal";
 import {
   COVERED_INSTALLMENT_STATUSES,
@@ -54,7 +54,12 @@ export function makeRecurringPaymentItem(
     firstChargeDate: input.firstChargeDate,
     // The first charge hasn't happened yet, so the next one due IS the first.
     nextChargeDate: input.firstChargeDate,
-    endDate: input.endDate,
+    // The end date is a *last billing* date, so it must sit on the billing
+    // grid — snap it to the latest occurrence ≤ the supplied date. Updates
+    // rebuild through here, so editing the cycle realigns a stored end date.
+    endDate: input.endDate
+      ? alignToOccurrence(input.firstChargeDate, input.recurrence, input.endDate)
+      : undefined,
     // Seed price history with the opening amount so later changes stay accurate.
     priceHistory: [{ amount: input.amount, effectiveFrom: input.firstChargeDate }],
   };

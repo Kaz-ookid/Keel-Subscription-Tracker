@@ -2,6 +2,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import {
   addRecurrence,
+  alignToOccurrence,
   BNPL_PROVIDERS,
   calendarDate,
   CURRENCIES,
@@ -10,9 +11,11 @@ import {
   fromMajor,
   isInstallmentSchedule,
   isRecurringSchedule,
+  listOccurrenceDates,
   splitMoney,
   toMajor,
   type BnplProviderId,
+  type CalendarDate,
   type CurrencyCode,
   type NewInstallmentInput,
   type NewRecurringInput,
@@ -147,9 +150,7 @@ export default function AddScreen() {
   const [firstDate, setFirstDate] = useState(() =>
     editFirstDate ? new Date(editFirstDate) : new Date(),
   );
-  const [endDate, setEndDate] = useState<Date | null>(() =>
-    editRec?.endDate ? new Date(editRec.endDate) : null,
-  );
+  const [endDate, setEndDate] = useState<CalendarDate | null>(() => editRec?.endDate ?? null);
   const [settlementMode, setSettlementMode] = useState<SettlementMode>(
     () => editItem?.settlementMode ?? "automatic",
   );
@@ -167,7 +168,19 @@ export default function AddScreen() {
   const canSubmit = name.trim().length > 0 && amountValue > 0;
 
   const firstDateCal = calendarDate(firstDate.toISOString().slice(0, 10));
-  const endDateCal = endDate ? calendarDate(endDate.toISOString().slice(0, 10)) : undefined;
+  const recurrence = { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) };
+  // The end date is a *last billing* date: keep it snapped onto the billing
+  // grid even if the cycle or first billing changes after it was picked.
+  const endDateCal = endDate ? alignToOccurrence(firstDateCal, recurrence, endDate) : undefined;
+  // Options for the "Ends" wheel — only real billing dates are selectable.
+  const endDateOptions = (() => {
+    const dates = listOccurrenceDates(firstDateCal, recurrence, 120);
+    // An end date beyond the window (e.g. from an edited item) must stay selectable.
+    while (endDateCal && dates[dates.length - 1] < endDateCal) {
+      dates.push(addRecurrence(dates[dates.length - 1], recurrence));
+    }
+    return dates;
+  })();
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
 
@@ -212,7 +225,7 @@ export default function AddScreen() {
       const input: NewRecurringInput = {
         name: name.trim(),
         amount: fromMajor(amountValue, currency),
-        recurrence: { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) },
+        recurrence,
         firstChargeDate: firstDateCal,
         endDate: endDateCal,
         settlementMode,
@@ -428,25 +441,20 @@ export default function AddScreen() {
       </WheelSheet>
 
       <WheelSheet visible={sheet === "endDate"} title="Ends" onClose={() => setSheet(null)}>
-        <Pressable
-          style={styles.clearRow}
-          onPress={() => {
-            setEndDate(null);
-            setSheet(null);
-          }}
+        <Picker
+          selectedValue={endDateCal ?? "never"}
+          onValueChange={(v) => setEndDate(v === "never" ? null : calendarDate(v))}
         >
-          <Text style={styles.clearText}>No end date</Text>
-        </Pressable>
-        <DateTimePicker
-          value={endDate ?? firstDate}
-          mode="date"
-          display="spinner"
-          themeVariant={scheme}
-          textColor={colors.text}
-          onChange={(_, d) => {
-            if (d) setEndDate(d);
-          }}
-        />
+          <Picker.Item label="Never" value="never" color={colors.text} />
+          {endDateOptions.map((d, i) => (
+            <Picker.Item
+              key={d}
+              label={`${formatCalendarDate(d)} · ${i + 1} payment${i > 0 ? "s" : ""}`}
+              value={d}
+              color={colors.text}
+            />
+          ))}
+        </Picker>
       </WheelSheet>
 
       <WheelSheet visible={sheet === "reminder"} title="Reminder" onClose={() => setSheet(null)}>
@@ -572,8 +580,6 @@ function createStyles(colors: ThemeColors) {
     },
     cycleRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, flexWrap: "wrap" },
     intervalInput: { width: 64, textAlign: "center" },
-    clearRow: { alignItems: "center", paddingVertical: spacing.sm },
-    clearText: { ...typography.label, color: colors.accent },
     dot: { width: 20, height: 20, borderRadius: 10 },
     swatchGrid: {
       flexDirection: "row",

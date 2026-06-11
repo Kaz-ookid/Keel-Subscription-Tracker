@@ -41,6 +41,15 @@ describe("makeRecurringPaymentItem", () => {
     ]);
   });
 
+  it("snaps an off-grid end date down to the latest billing date", () => {
+    // Bills monthly on the 15th — the 20th isn't a billing date.
+    const item = makeRecurringPaymentItem(
+      { ...input, endDate: calendarDate("2026-04-20") },
+      { id: "item-1", now: now() },
+    );
+    if (!isRecurringSchedule(item.schedule)) throw new Error("expected recurring");
+    expect(item.schedule.endDate).toBe("2026-04-15");
+  });
 });
 
 describe("recordRecurringPayment", () => {

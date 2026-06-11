@@ -54,3 +54,40 @@ export function nextDueDate(
   }
   return due;
 }
+
+/**
+ * The first `count` occurrence dates of a schedule: `first`, then stepping by
+ * `rule`. The grid every due/end date of a schedule must sit on.
+ */
+export function listOccurrenceDates(
+  first: CalendarDate,
+  rule: RecurrenceRule,
+  count: number,
+): CalendarDate[] {
+  const dates: CalendarDate[] = [];
+  let due = first;
+  for (let i = 0; i < count; i++) {
+    dates.push(due);
+    due = addRecurrence(due, rule);
+  }
+  return dates;
+}
+
+/**
+ * Snap `date` onto the schedule's occurrence grid: the latest occurrence that
+ * is ≤ `date`. A `date` before `first` clamps to `first` (an end date before
+ * the first billing means a single payment, not "never ends").
+ */
+export function alignToOccurrence(
+  first: CalendarDate,
+  rule: RecurrenceRule,
+  date: CalendarDate,
+): CalendarDate {
+  if (date <= first) return first;
+  let current = first;
+  for (;;) {
+    const next = addRecurrence(current, rule);
+    if (next > date) return current;
+    current = next;
+  }
+}
