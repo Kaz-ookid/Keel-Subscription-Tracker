@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { COLOR_SWATCHES } from "../constants";
-import { useSubscriptions } from "../state/subscriptions";
+import { useAppState } from "../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 import { IconBadge } from "./IconBadge";
 import { Segmented, type SegmentedOption } from "./Segmented";
@@ -142,7 +142,7 @@ interface PickerProps {
 export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: PickerProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, addAccount } = useSubscriptions();
+  const { accounts, addAccount } = useAppState();
   const [adding, setAdding] = useState(false);
 
   const pick = (id: string | undefined) => {
@@ -203,7 +203,7 @@ interface EditProps {
 export function AccountEditSheet({ visible, onClose, account }: EditProps) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { addAccount, updateAccount } = useSubscriptions();
+  const { addAccount, updateAccount } = useAppState();
 
   return (
     <Sheet visible={visible} title={account ? "Edit account" : "New account"} onClose={onClose}>

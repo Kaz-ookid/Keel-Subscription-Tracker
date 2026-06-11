@@ -2,7 +2,7 @@ import { formatMoney, type ProjectedCharge } from "@keel/core";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useSubscriptions } from "../state/subscriptions";
+import { useAppState } from "../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 import { IconBadge } from "./IconBadge";
 
@@ -20,7 +20,7 @@ interface Props {
 export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { categories, accounts } = useSubscriptions();
+  const { categories, accounts } = useAppState();
 
   const category = categories.find((c) => c.id === charge.categoryId);
   const account = accounts.find((a) => a.id === charge.accountId);

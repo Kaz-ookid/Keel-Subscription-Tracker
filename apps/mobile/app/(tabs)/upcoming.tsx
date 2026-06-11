@@ -23,7 +23,7 @@ import {
 
 import { HeroCard } from "../../src/components/HeroCard";
 import { UpcomingRow } from "../../src/components/UpcomingRow";
-import { useSubscriptions } from "../../src/state/subscriptions";
+import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -65,7 +65,7 @@ export default function UpcomingScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, accounts, loading, markPaid, markInstallmentPaid } = useSubscriptions();
+  const { items, accounts, loading, markPaid, markInstallmentPaid } = useAppState();
   // "all" | "none" (no account) | an account id.
   const [filter, setFilter] = useState("all");
 

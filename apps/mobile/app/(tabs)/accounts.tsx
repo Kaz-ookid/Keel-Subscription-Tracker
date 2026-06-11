@@ -5,13 +5,13 @@ import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native
 
 import { AccountEditSheet } from "../../src/components/AccountSheet";
 import { IconBadge } from "../../src/components/IconBadge";
-import { useSubscriptions } from "../../src/state/subscriptions";
+import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 export default function AccountsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, archiveAccount } = useSubscriptions();
+  const { accounts, archiveAccount } = useAppState();
   const [editing, setEditing] = useState<Account | undefined>();
   const [sheetOpen, setSheetOpen] = useState(false);
   // Bumped on every open so the form remounts with fresh state.

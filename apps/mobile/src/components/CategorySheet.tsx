@@ -2,7 +2,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { useSubscriptions } from "../state/subscriptions";
+import { useAppState } from "../state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { Sheet } from "./Sheet";
 
@@ -38,7 +38,7 @@ interface Props {
 export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { categories, addCategory } = useSubscriptions();
+  const { categories, addCategory } = useAppState();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState(ICON_CHOICES[0]);

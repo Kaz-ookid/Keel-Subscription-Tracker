@@ -35,7 +35,7 @@ import { FieldButton } from "../src/components/FieldButton";
 import { Segmented, type SegmentedOption } from "../src/components/Segmented";
 import { Sheet } from "../src/components/Sheet";
 import { WheelSheet } from "../src/components/WheelSheet";
-import { useSubscriptions } from "../src/state/subscriptions";
+import { useAppState } from "../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
 
 // @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
@@ -113,7 +113,7 @@ export default function AddScreen() {
     updateInstallmentPlan,
     categories,
     accounts,
-  } = useSubscriptions();
+  } = useAppState();
 
   // When an `id` is passed we're editing an existing item; pre-fill from it.
   const editItem = id ? items.find((i) => i.id === id) : undefined;

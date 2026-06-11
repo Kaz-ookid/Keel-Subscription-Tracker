@@ -5,14 +5,14 @@ import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-nativ
 
 import { HeroCard } from "../../src/components/HeroCard";
 import { SubscriptionRow } from "../../src/components/SubscriptionRow";
-import { useSubscriptions } from "../../src/state/subscriptions";
+import { useAppState } from "../../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 export default function SubscriptionsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, loading, removeSubscription, markPaid, markInstallmentPaid } = useSubscriptions();
+  const { items, loading, removeSubscription, markPaid, markInstallmentPaid } = useAppState();
 
   if (loading) {
     return (

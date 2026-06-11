@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
-import { SubscriptionsProvider } from "../src/state/subscriptions";
+import { AppStateProvider } from "../src/state/app-state";
 import { useTheme } from "../src/theme";
 
 export default function RootLayout() {
@@ -12,7 +12,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
-        <SubscriptionsProvider>
+        <AppStateProvider>
           <Stack
             screenOptions={{
               headerStyle: { backgroundColor: colors.navy },
@@ -28,7 +28,7 @@ export default function RootLayout() {
           </Stack>
           {/* Header is navy in both schemes, so light status-bar content reads well. */}
           <StatusBar style="light" />
-        </SubscriptionsProvider>
+        </AppStateProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
