@@ -69,7 +69,8 @@ export default function UpcomingScreen() {
   const monthEnd = endOfMonth(asOf);
   const windowEnd = endOfMonth(addRecurrence(asOf, { unit: "month", interval: 1 }));
 
-  const allCharges = useMemo(() => projectCharges(items, windowEnd), [items, windowEnd]);
+  // Cheap at this scale (a few dozen items × a 2-month window) — recompute.
+  const allCharges = projectCharges(items, windowEnd);
 
   if (loading) {
     return (

@@ -1,0 +1,6 @@
+node_modules/
+.expo/
+dist/
+package-lock.json
+*.md
+apps/mobile/expo-env.d.ts
