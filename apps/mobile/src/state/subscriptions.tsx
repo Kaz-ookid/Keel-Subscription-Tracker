@@ -15,6 +15,7 @@ import {
   DEFAULT_CATEGORIES,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
+  markNextInstallmentPaid,
   now,
   recordRecurringPayment,
   updateInstallmentPaymentItem,
@@ -53,6 +54,8 @@ interface SubscriptionsContextValue {
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
+  /** Mark the next due installment of a BNPL plan as paid. */
+  markInstallmentPaid: (id: string) => void;
   /** Create a custom category; returns it so the caller can select it. */
   addCategory: (name: string, icon: string) => Category;
 }
@@ -153,6 +156,14 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     setOccurrences((prev) => [...prev, occurrence]);
   };
 
+  const markInstallmentPaid = (id: string) => {
+    setItems((prev) =>
+      prev.map((i) =>
+        i.id === id ? markNextInstallmentPaid(i, { paidDate: today(), now: now() }) : i,
+      ),
+    );
+  };
+
   const addCategory = (name: string, icon: string): Category => {
     const category: Category = { id: randomUUID(), name: name.trim(), icon };
     setCustomCategories((prev) => [...prev, category]);
@@ -172,6 +183,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         updateInstallmentPlan,
         removeSubscription,
         markPaid,
+        markInstallmentPaid,
         addCategory,
       }}
     >

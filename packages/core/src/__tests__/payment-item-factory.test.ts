@@ -4,9 +4,11 @@ import {
   calendarDate,
   fromMajor,
   isInstallmentSchedule,
+  isPaymentItemComplete,
   isRecurringSchedule,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
+  markNextInstallmentPaid,
   now,
   recordRecurringPayment,
   RECURRENCE_PRESETS,
@@ -237,5 +239,52 @@ describe("update helpers", () => {
     expect(sumMoney(edited.schedule.installments.map((i) => i.amount), "EUR")).toEqual(
       edited.schedule.totalAmount,
     );
+  });
+});
+
+describe("completion lifecycle", () => {
+  const ids = () => {
+    let n = 0;
+    return () => `i-${++n}`;
+  };
+
+  it("marks a recurring item complete once its end date has passed", () => {
+    const item = makeRecurringPaymentItem(
+      { ...input, endDate: calendarDate("2026-03-31") },
+      { id: "r1", now: now() },
+    );
+    expect(isPaymentItemComplete(item, calendarDate("2026-03-15"))).toBe(false);
+    expect(isPaymentItemComplete(item, calendarDate("2026-04-01"))).toBe(true);
+  });
+
+  it("never completes a recurring item without an end date", () => {
+    const item = makeRecurringPaymentItem(input, { id: "r2", now: now() });
+    expect(isPaymentItemComplete(item, calendarDate("2030-01-01"))).toBe(false);
+  });
+
+  it("marks the next installment paid and completes the plan after the last", () => {
+    const plan: NewInstallmentInput = {
+      name: "TV",
+      totalAmount: fromMajor(300, "EUR"),
+      numberOfInstallments: 3,
+      recurrence: RECURRENCE_PRESETS.MONTHLY,
+      firstInstallmentDate: calendarDate("2026-01-10"),
+      settlementMode: "manual",
+    };
+    let item = makeInstallmentPaymentItem(plan, { id: "p1", now: now(), makeId: ids() });
+    const today = calendarDate("2026-06-01");
+    expect(isPaymentItemComplete(item, today)).toBe(false);
+
+    item = markNextInstallmentPaid(item, { paidDate: today, now: now() });
+    if (!isInstallmentSchedule(item.schedule)) throw new Error("expected installment");
+    expect(item.schedule.installments.filter((i) => i.status === "paid")).toHaveLength(1);
+
+    item = markNextInstallmentPaid(item, { paidDate: today, now: now() });
+    item = markNextInstallmentPaid(item, { paidDate: today, now: now() });
+    expect(isPaymentItemComplete(item, today)).toBe(true);
+
+    // A further mark is a no-op once everything is covered.
+    const same = markNextInstallmentPaid(item, { paidDate: today, now: now() });
+    expect(same).toBe(item);
   });
 });

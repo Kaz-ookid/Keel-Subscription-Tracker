@@ -1,8 +1,10 @@
 import {
+  calendarDate,
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
   isInstallmentSchedule,
+  isPaymentItemComplete,
   isRecurringSchedule,
   summarizeInstallmentPlan,
   type PaymentItem,
@@ -26,6 +28,9 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   // Badge colour is the subscription's own colour, else the brand accent.
   const accent = item.color ?? colors.accent;
 
+  const today = calendarDate(new Date().toISOString().slice(0, 10));
+  const complete = isPaymentItemComplete(item, today);
+
   // Derive the row's display per schedule kind.
   const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
   const installment = isInstallmentSchedule(item.schedule) ? item.schedule : undefined;
@@ -35,12 +40,14 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   let amount: string | undefined;
   let tag = "";
   let tagColor = colors.mutedText;
+  let showMarkPaid = false;
 
   if (recurring) {
     subLine = `${describeRecurrence(recurring.recurrence)} · next ${formatCalendarDate(recurring.nextChargeDate)}`;
     amount = formatMoney(recurring.amount);
     tag = isManual ? "Manual" : "Automatic";
     tagColor = isManual ? tones.warning : tones.info;
+    showMarkPaid = isManual;
   } else if (installment) {
     const s = summarizeInstallmentPlan(installment);
     const next = s.nextDue;
@@ -48,6 +55,14 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     amount = formatMoney(next ? next.amount : s.totalAmount);
     tag = "Pay in X";
     tagColor = colors.accent;
+    showMarkPaid = true;
+  }
+
+  // A finished item: greyed, labelled, no action.
+  if (complete) {
+    tag = recurring ? "Ended" : "Done";
+    tagColor = colors.mutedText;
+    showMarkPaid = false;
   }
 
   const confirmDelete = () =>
@@ -57,7 +72,11 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     ]);
 
   return (
-    <Pressable onPress={onPress} onLongPress={confirmDelete} style={styles.row}>
+    <Pressable
+      onPress={onPress}
+      onLongPress={confirmDelete}
+      style={[styles.row, complete && styles.rowComplete]}
+    >
       <View style={[styles.badge, { backgroundColor: accent }]}>
         <Text style={styles.badgeText}>{item.name.charAt(0).toUpperCase()}</Text>
       </View>
@@ -76,7 +95,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
 
       <View style={styles.right}>
         {amount && <Text style={styles.amount}>{amount}</Text>}
-        {isManual && (
+        {showMarkPaid && (
           <Pressable onPress={onMarkPaid} style={styles.payButton}>
             <Text style={styles.payText}>Mark paid</Text>
           </Pressable>
@@ -95,6 +114,9 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       padding: spacing.md,
       gap: spacing.md,
+    },
+    rowComplete: {
+      opacity: 0.55,
     },
     badge: {
       width: 44,

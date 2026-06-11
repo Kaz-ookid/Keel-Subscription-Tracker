@@ -9,7 +9,11 @@ import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
 import { addRecurrence, nextDueDate } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate, type Timestamp } from "../primitives/temporal";
-import type { Installment } from "./installment";
+import {
+  COVERED_INSTALLMENT_STATUSES,
+  type Installment,
+  type InstallmentStatus,
+} from "./installment";
 import type {
   InstallmentSchedule,
   PaymentItem,
@@ -232,6 +236,43 @@ export function updateInstallmentPaymentItem(
     makeId: ctx.makeId,
   });
   return { ...rebuilt, createdAt: existing.createdAt };
+}
+
+export interface MarkInstallmentContext {
+  paidDate: CalendarDate;
+  now: Timestamp;
+  paidFromAccountId?: string;
+}
+
+/**
+ * Mark the earliest not-yet-covered installment of a plan as `paid`. Returns the
+ * item unchanged if it isn't an installment plan or every installment is already
+ * covered. (Payment lives on the installment itself; `summarizeInstallmentPlan`
+ * and `isPaymentItemComplete` read it.)
+ */
+export function markNextInstallmentPaid(
+  item: PaymentItem,
+  ctx: MarkInstallmentContext,
+): PaymentItem {
+  if (item.schedule.kind !== "INSTALLMENT") return item;
+  const schedule = item.schedule;
+  const idx = schedule.installments.findIndex(
+    (i) => !COVERED_INSTALLMENT_STATUSES.includes(i.status),
+  );
+  if (idx === -1) return item;
+
+  const installments: Installment[] = schedule.installments.map((inst, i) =>
+    i === idx
+      ? {
+          ...inst,
+          status: "paid" as InstallmentStatus,
+          paidDate: ctx.paidDate,
+          paidFromAccountId: ctx.paidFromAccountId ?? inst.paidFromAccountId,
+        }
+      : inst,
+  );
+
+  return { ...item, updatedAt: ctx.now, schedule: { ...schedule, installments } };
 }
 
 export interface RecordPaymentContext {

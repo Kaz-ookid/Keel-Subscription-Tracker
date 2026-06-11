@@ -1,3 +1,4 @@
+import { isInstallmentSchedule } from "@keel/core";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
@@ -10,7 +11,7 @@ export default function SubscriptionsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, loading, removeSubscription, markPaid } = useSubscriptions();
+  const { items, loading, removeSubscription, markPaid, markInstallmentPaid } = useSubscriptions();
 
   if (loading) {
     return (
@@ -39,7 +40,11 @@ export default function SubscriptionsScreen() {
         <SubscriptionRow
           item={item}
           onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
-          onMarkPaid={() => markPaid(item.id)}
+          onMarkPaid={() =>
+            isInstallmentSchedule(item.schedule)
+              ? markInstallmentPaid(item.id)
+              : markPaid(item.id)
+          }
           onDelete={() => removeSubscription(item.id)}
         />
       )}
