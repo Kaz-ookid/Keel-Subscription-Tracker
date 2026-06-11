@@ -106,7 +106,7 @@ export function useAddForm() {
   );
   const [currency, setCurrency] = useState<CurrencyCode>(() => editAmount?.currency ?? "EUR");
   const [intervalText, setIntervalText] = useState(() =>
-    editRec ? String(editRec.recurrence.interval) : "1",
+    String(editRec?.recurrence.interval ?? editInst?.recurrence.interval ?? 1),
   );
   const [unit, setUnit] = useState<TimeUnit>(
     () => editRec?.recurrence.unit ?? editInst?.recurrence.unit ?? "month",
@@ -174,8 +174,7 @@ export function useAddForm() {
   const installmentPreview = (() => {
     if (!isInstallment || !(amountValue > 0)) return null;
     let finish = firstDateCal;
-    for (let i = 1; i < installmentCount; i++)
-      finish = addRecurrence(finish, { unit, interval: 1 });
+    for (let i = 1; i < installmentCount; i++) finish = addRecurrence(finish, recurrence);
     const ends = formatCalendarDate(finish);
     if (amountMode === "total") {
       const per = splitMoney(installmentTotal, installmentCount)[0];
@@ -198,7 +197,7 @@ export function useAddForm() {
         name: name.trim(),
         totalAmount: installmentTotal,
         numberOfInstallments: installmentCount,
-        recurrence: { unit, interval: 1 },
+        recurrence,
         firstInstallmentDate: firstDateCal,
         provider,
         settlementMode,

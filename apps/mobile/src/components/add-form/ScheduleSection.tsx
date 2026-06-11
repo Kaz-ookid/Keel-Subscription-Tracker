@@ -32,9 +32,15 @@ export function ScheduleSection({ form }: { form: AddForm }) {
           />
         </View>
 
-        <View style={styles.rowField}>
-          <Text style={styles.label}>Frequency</Text>
-          <View style={styles.rowControl}>
+        <View style={styles.field}>
+          <Text style={styles.label}>Cycle — every</Text>
+          <View style={styles.cycleRow}>
+            <TextInput
+              style={[styles.input, styles.intervalInput]}
+              value={form.intervalText}
+              onChangeText={form.setIntervalText}
+              keyboardType="number-pad"
+            />
             <Segmented options={UNIT_OPTIONS} value={form.unit} onChange={form.setUnit} />
           </View>
         </View>
