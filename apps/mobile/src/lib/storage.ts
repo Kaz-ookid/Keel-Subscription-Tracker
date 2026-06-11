@@ -5,7 +5,7 @@
 // swapping to SQLite later changes just this file.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Category, PaymentItem, PaymentOccurrence } from "@keel/core";
+import type { Account, Category, PaymentItem, PaymentOccurrence } from "@keel/core";
 
 const STORAGE_KEY = "keel.subscriptions.v1";
 
@@ -15,9 +15,11 @@ export interface PersistedState {
   occurrences: PaymentOccurrence[];
   /** User-created categories (built-in DEFAULT_CATEGORIES are not stored). */
   categories: Category[];
+  /** Bank accounts/cards payments are assigned to (archived ones included). */
+  accounts: Account[];
 }
 
-const EMPTY: PersistedState = { items: [], occurrences: [], categories: [] };
+const EMPTY: PersistedState = { items: [], occurrences: [], categories: [], accounts: [] };
 
 export async function loadState(): Promise<PersistedState> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -26,12 +28,13 @@ export async function loadState(): Promise<PersistedState> {
     const parsed = JSON.parse(raw);
     // Back-compat: an earlier build stored a bare PaymentItem[] array.
     if (Array.isArray(parsed)) {
-      return { items: parsed as PaymentItem[], occurrences: [], categories: [] };
+      return { items: parsed as PaymentItem[], occurrences: [], categories: [], accounts: [] };
     }
     return {
       items: Array.isArray(parsed.items) ? parsed.items : [],
       occurrences: Array.isArray(parsed.occurrences) ? parsed.occurrences : [],
       categories: Array.isArray(parsed.categories) ? parsed.categories : [],
+      accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
     };
   } catch {
     // Corrupt blob — start clean rather than crash the app on launch.

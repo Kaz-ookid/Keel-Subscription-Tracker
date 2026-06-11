@@ -14,6 +14,7 @@ import {
   calendarDate,
   DEFAULT_CATEGORIES,
   isPaymentItemComplete,
+  makeAccount,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   markNextInstallmentPaid,
@@ -21,8 +22,10 @@ import {
   recordRecurringPayment,
   updateInstallmentPaymentItem,
   updateRecurringPaymentItem,
+  type Account,
   type CalendarDate,
   type Category,
+  type NewAccountInput,
   type NewInstallmentInput,
   type NewRecurringInput,
   type PaymentItem,
@@ -44,6 +47,8 @@ interface SubscriptionsContextValue {
   occurrences: PaymentOccurrence[];
   /** Built-in + user-created categories, for pickers. */
   categories: Category[];
+  /** Active (non-archived) bank accounts, for assignment + the Accounts tab. */
+  accounts: Account[];
   loading: boolean;
   addSubscription: (input: NewRecurringInput) => void;
   /** Create a BNPL "Pay in X" installment plan. */
@@ -59,6 +64,12 @@ interface SubscriptionsContextValue {
   markInstallmentPaid: (id: string) => void;
   /** Create a custom category; returns it so the caller can select it. */
   addCategory: (name: string, icon: string) => Category;
+  /** Create an account; returns it so the caller can select it. */
+  addAccount: (input: NewAccountInput) => Account;
+  /** Edit an existing account. */
+  updateAccount: (id: string, input: NewAccountInput) => void;
+  /** Soft delete — keeps history pointing at it, hides it everywhere. */
+  archiveAccount: (id: string) => void;
 }
 
 const SubscriptionsContext = createContext<SubscriptionsContextValue | null>(null);
@@ -79,6 +90,7 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<PaymentItem[]>([]);
   const [occurrences, setOccurrences] = useState<PaymentOccurrence[]>([]);
   const [customCategories, setCustomCategories] = useState<Category[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -92,14 +104,15 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
       setItems(caughtUp);
       setOccurrences([...state.occurrences, ...accrued]);
       setCustomCategories(state.categories);
+      setAccounts(state.accounts);
       setLoading(false);
     });
   }, []);
 
   // Persist after the initial hydration completes.
   useEffect(() => {
-    if (!loading) void saveState({ items, occurrences, categories: customCategories });
-  }, [items, occurrences, customCategories, loading]);
+    if (!loading) void saveState({ items, occurrences, categories: customCategories, accounts });
+  }, [items, occurrences, customCategories, accounts, loading]);
 
   const addSubscription = (input: NewRecurringInput) => {
     const created = makeRecurringPaymentItem(input, { id: randomUUID(), now: now() });
@@ -173,12 +186,29 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
     return category;
   };
 
+  const addAccount = (input: NewAccountInput): Account => {
+    const account = makeAccount(input, { id: randomUUID() });
+    setAccounts((prev) => [...prev, account]);
+    return account;
+  };
+
+  const updateAccount = (id: string, input: NewAccountInput) => {
+    setAccounts((prev) =>
+      prev.map((a) => (a.id === id ? { ...makeAccount(input, { id }), isArchived: a.isArchived } : a)),
+    );
+  };
+
+  const archiveAccount = (id: string) => {
+    setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, isArchived: true } : a)));
+  };
+
   return (
     <SubscriptionsContext.Provider
       value={{
         items,
         occurrences,
         categories: [...BUILTIN_CATEGORIES, ...customCategories],
+        accounts: accounts.filter((a) => !a.isArchived),
         loading,
         addSubscription,
         addInstallmentPlan,
@@ -188,6 +218,9 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
         markPaid,
         markInstallmentPaid,
         addCategory,
+        addAccount,
+        updateAccount,
+        archiveAccount,
       }}
     >
       {children}
