@@ -9,6 +9,7 @@ export * from "./constants";
 // Calculation logic (forecasts, budget smoothing) lands after the data-model
 // walkthrough validates these types — see PROJECT_BRIEF.md §7.
 export * from "./models/account";
+export * from "./models/account-factory";
 export * from "./models/category";
 export * from "./models/installment";
 export * from "./models/installment-plan";
