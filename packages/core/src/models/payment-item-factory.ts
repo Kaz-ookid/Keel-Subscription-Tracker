@@ -7,8 +7,8 @@ import type { BnplProviderId } from "../constants/bnpl-providers";
 import { splitMoney, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
-import { addRecurrence } from "../primitives/schedule-dates";
-import type { CalendarDate, Timestamp } from "../primitives/temporal";
+import { addRecurrence, nextDueDate } from "../primitives/schedule-dates";
+import { calendarDate, type CalendarDate, type Timestamp } from "../primitives/temporal";
 import type { Installment } from "./installment";
 import type {
   InstallmentSchedule,
@@ -151,12 +151,19 @@ export function makeInstallmentPaymentItem(
 
 export interface UpdateContext {
   now: Timestamp;
+  /**
+   * Latest recorded charge date for this item (max `dueDate` from the occurrence
+   * ledger). Anchors the recomputed `nextChargeDate` so it never regresses behind
+   * a charge that already happened. Omit when nothing has been charged yet.
+   */
+  lastChargedDate?: CalendarDate;
 }
 
 /**
- * Apply edits to a RECURRING item, preserving its `id`, `createdAt` and the live
- * `nextChargeDate` (so automatic accrual isn't reset and the ledger isn't
- * re-duplicated on next load). Throws if `existing` isn't recurring.
+ * Apply edits to a RECURRING item, preserving its `id`/`createdAt` and keeping
+ * its derived/linked values consistent: the cached `nextChargeDate` cursor is
+ * recomputed from the (possibly new) schedule, and `priceHistory` gains an entry
+ * only when the amount actually changed. Throws if `existing` isn't recurring.
  */
 export function updateRecurringPaymentItem(
   existing: PaymentItem,
@@ -166,15 +173,38 @@ export function updateRecurringPaymentItem(
   if (existing.schedule.kind !== "RECURRING") {
     throw new TypeError("updateRecurringPaymentItem expects a RECURRING item");
   }
-  const nextChargeDate = existing.schedule.nextChargeDate;
+  const previous = existing.schedule;
   const rebuilt = makeRecurringPaymentItem(input, { id: existing.id, now: ctx.now });
   if (rebuilt.schedule.kind !== "RECURRING") {
     throw new TypeError("rebuilt item is not recurring"); // unreachable
   }
+
+  // Recompute the "next charge" cursor: the next occurrence after the last
+  // recorded charge, or the first charge itself if nothing has been charged.
+  // Recorded charges sit on the schedule grid, so an unchanged schedule yields
+  // the same value (no spurious shift) while a changed recurrence/first-date
+  // moves it correctly — and it never regresses behind a recorded charge.
+  const nextChargeDate = ctx.lastChargedDate
+    ? nextDueDate(input.firstChargeDate, input.recurrence, ctx.lastChargedDate)
+    : input.firstChargeDate;
+
+  // Keep the price history; append only when the amount changed.
+  const lastPrice = previous.priceHistory[previous.priceHistory.length - 1]?.amount;
+  const amountChanged =
+    !lastPrice ||
+    lastPrice.amount !== input.amount.amount ||
+    lastPrice.currency !== input.amount.currency;
+  const priceHistory = amountChanged
+    ? [
+        ...previous.priceHistory,
+        { amount: input.amount, effectiveFrom: calendarDate(ctx.now.slice(0, 10)) },
+      ]
+    : previous.priceHistory;
+
   return {
     ...rebuilt,
     createdAt: existing.createdAt,
-    schedule: { ...rebuilt.schedule, nextChargeDate },
+    schedule: { ...rebuilt.schedule, nextChargeDate, priceHistory },
   };
 }
 
@@ -272,10 +302,13 @@ export function accrueDueOccurrences(
   }
 
   let schedule = item.schedule;
+  const { endDate } = schedule;
+  // Never accrue past the subscription's end date.
+  const limit = endDate && endDate < asOf ? endDate : asOf;
   const occurrences: PaymentOccurrence[] = [];
 
   // CalendarDate is YYYY-MM-DD, so string comparison is chronological.
-  while (schedule.nextChargeDate <= asOf) {
+  while (schedule.nextChargeDate <= limit) {
     const due = schedule.nextChargeDate;
     occurrences.push({
       id: ctx.makeId(),
@@ -291,9 +324,20 @@ export function accrueDueOccurrences(
     schedule = { ...schedule, nextChargeDate: addRecurrence(due, schedule.recurrence) };
   }
 
-  if (occurrences.length === 0) {
+  // The plan is finished once the cursor has moved past its end date.
+  const completed = endDate !== undefined && schedule.nextChargeDate > endDate;
+
+  if (occurrences.length === 0 && !completed) {
     return { item, occurrences };
   }
 
-  return { item: { ...item, schedule, updatedAt: ctx.now }, occurrences };
+  return {
+    item: {
+      ...item,
+      schedule,
+      updatedAt: ctx.now,
+      status: completed ? "completed" : item.status,
+    },
+    occurrences,
+  };
 }

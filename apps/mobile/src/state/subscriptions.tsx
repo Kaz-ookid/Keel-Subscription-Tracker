@@ -114,8 +114,16 @@ export function SubscriptionsProvider({ children }: { children: ReactNode }) {
   };
 
   const updateSubscription = (id: string, input: NewRecurringInput) => {
+    // The latest recorded charge anchors the recomputed next-charge cursor so it
+    // never regresses behind a charge that already happened.
+    const lastChargedDate = occurrences.reduce<CalendarDate | undefined>(
+      (max, o) => (o.paymentItemId === id && (!max || o.dueDate > max) ? o.dueDate : max),
+      undefined,
+    );
     setItems((prev) =>
-      prev.map((i) => (i.id === id ? updateRecurringPaymentItem(i, input, { now: now() }) : i)),
+      prev.map((i) =>
+        i.id === id ? updateRecurringPaymentItem(i, input, { now: now(), lastChargedDate }) : i,
+      ),
     );
   };
 

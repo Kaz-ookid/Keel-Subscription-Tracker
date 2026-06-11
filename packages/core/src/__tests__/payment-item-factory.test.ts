@@ -94,6 +94,25 @@ describe("accrueDueOccurrences (automatic catch-up)", () => {
     expect(occurrences).toHaveLength(0);
     expect(same).toBe(item); // untouched
   });
+
+  it("stops accruing at endDate and marks the item completed", () => {
+    const item = makeRecurringPaymentItem(
+      { ...input, settlementMode: "automatic", endDate: calendarDate("2026-03-31") },
+      { id: "item-1", now: now() },
+    );
+    const { item: done, occurrences } = accrueDueOccurrences(item, calendarDate("2026-12-31"), {
+      now: now(),
+      makeId: ids(),
+    });
+
+    // Charges on Jan/Feb/Mar 15; Apr 15 is past the end date, so it's dropped.
+    expect(occurrences.map((o) => o.dueDate)).toEqual([
+      "2026-01-15",
+      "2026-02-15",
+      "2026-03-15",
+    ]);
+    expect(done.status).toBe("completed");
+  });
 });
 
 describe("makeInstallmentPaymentItem (BNPL)", () => {
@@ -134,27 +153,60 @@ describe("makeInstallmentPaymentItem (BNPL)", () => {
 });
 
 describe("update helpers", () => {
-  it("edits a recurring item while preserving id, createdAt and nextChargeDate", () => {
-    const original = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
-    if (!isRecurringSchedule(original.schedule)) throw new Error("expected recurring");
-    // Simulate the live cursor having advanced past the first charge.
-    const advanced = {
-      ...original,
-      schedule: { ...original.schedule, nextChargeDate: calendarDate("2026-05-15") },
-      createdAt: original.createdAt,
-    };
+  // input: Netflix, 15.99 EUR, monthly, first charge 2026-01-15, manual.
 
+  it("keeps nextChargeDate (and id/createdAt) when the schedule is unchanged", () => {
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
     const edited = updateRecurringPaymentItem(
-      advanced,
+      existing,
+      { ...input, name: "Renamed" },
+      { now: now(), lastChargedDate: calendarDate("2026-04-15") },
+    );
+    expect(edited.id).toBe("item-1");
+    expect(edited.createdAt).toBe(existing.createdAt);
+    if (!isRecurringSchedule(edited.schedule)) throw new Error("expected recurring");
+    expect(edited.schedule.nextChargeDate).toBe("2026-05-15"); // first monthly after last charge
+  });
+
+  it("moves nextChargeDate when the recurrence changes", () => {
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    const edited = updateRecurringPaymentItem(
+      existing,
+      { ...input, recurrence: RECURRENCE_PRESETS.WEEKLY },
+      { now: now(), lastChargedDate: calendarDate("2026-03-15") },
+    );
+    if (!isRecurringSchedule(edited.schedule)) throw new Error("expected recurring");
+    expect(edited.schedule.nextChargeDate).toBe("2026-03-19"); // next weekly slot after last charge
+  });
+
+  it("sets nextChargeDate to the new first billing when nothing has been charged", () => {
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    const edited = updateRecurringPaymentItem(
+      existing,
+      { ...input, firstChargeDate: calendarDate("2026-08-01") },
+      { now: now() },
+    );
+    if (!isRecurringSchedule(edited.schedule)) throw new Error("expected recurring");
+    expect(edited.schedule.nextChargeDate).toBe("2026-08-01");
+  });
+
+  it("appends a price-history entry only when the amount changes", () => {
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    if (!isRecurringSchedule(existing.schedule)) throw new Error("expected recurring");
+    expect(existing.schedule.priceHistory).toHaveLength(1);
+
+    const renamed = updateRecurringPaymentItem(existing, { ...input, name: "x" }, { now: now() });
+    if (!isRecurringSchedule(renamed.schedule)) throw new Error("expected recurring");
+    expect(renamed.schedule.priceHistory).toHaveLength(1);
+
+    const repriced = updateRecurringPaymentItem(
+      existing,
       { ...input, amount: fromMajor(19.99, "EUR") },
       { now: now() },
     );
-
-    expect(edited.id).toBe("item-1");
-    expect(edited.createdAt).toBe(advanced.createdAt);
-    if (!isRecurringSchedule(edited.schedule)) throw new Error("expected recurring");
-    expect(edited.schedule.amount).toEqual({ amount: 1999, currency: "EUR" });
-    expect(edited.schedule.nextChargeDate).toBe("2026-05-15"); // preserved, not reset
+    if (!isRecurringSchedule(repriced.schedule)) throw new Error("expected recurring");
+    expect(repriced.schedule.priceHistory).toHaveLength(2);
+    expect(repriced.schedule.priceHistory[1].amount).toEqual({ amount: 1999, currency: "EUR" });
   });
 
   it("edits an installment plan, regenerating installments, keeping id + createdAt", () => {
