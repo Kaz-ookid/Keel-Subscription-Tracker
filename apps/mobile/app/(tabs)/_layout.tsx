@@ -10,8 +10,8 @@ type SymbolName = SymbolViewProps["name"];
 // updates. `action: true` is the center ＋ — it opens the Add modal instead of
 // switching tab. Each non-action entry needs a matching file in this folder.
 const TABS: { name: string; title: string; sf: string; action?: boolean }[] = [
-  { name: "index", title: "Subscriptions", sf: "creditcard.fill" },
-  { name: "upcoming", title: "Upcoming", sf: "calendar" },
+  { name: "index", title: "Payments", sf: "creditcard.fill" },
+  { name: "insights", title: "Insights", sf: "chart.bar.fill" },
   { name: "new", title: "", sf: "plus.circle.fill", action: true },
   { name: "accounts", title: "Accounts", sf: "building.columns.fill" },
   { name: "settings", title: "Settings", sf: "gearshape.fill" },

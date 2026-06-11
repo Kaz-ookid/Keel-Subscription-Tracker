@@ -21,10 +21,10 @@ import {
   View,
 } from "react-native";
 
-import { HeroCard } from "../../src/components/HeroCard";
-import { UpcomingRow } from "../../src/components/UpcomingRow";
-import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { useAppState } from "../../state/app-state";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import { HeroCard } from "../HeroCard";
+import { UpcomingRow } from "../UpcomingRow";
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = [
@@ -61,7 +61,8 @@ interface Section {
   data: ProjectedCharge[];
 }
 
-export default function UpcomingScreen() {
+/** The cash-flow timeline: hero, account chips, charges day by day. */
+export function UpcomingView() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);

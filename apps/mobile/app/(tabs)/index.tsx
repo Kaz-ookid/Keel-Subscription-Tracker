@@ -1,100 +1,77 @@
-import { formatMoneyList, isInstallmentSchedule, summarizeCommitments, today } from "@keel/core";
-import { useRouter } from "expo-router";
-import { useMemo } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+// The first tab: one screen, two zooms. "Upcoming" is the cash-flow timeline
+// (what hits, when, from which account); "All" is the catalog of every item,
+// including ended/paused ones a timeline can't show.
 
-import { HeroCard } from "../../src/components/HeroCard";
-import { SubscriptionRow } from "../../src/components/SubscriptionRow";
-import { useAppState } from "../../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { useMemo, useState } from "react";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
-export default function SubscriptionsScreen() {
-  const router = useRouter();
+import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
+import { UpcomingView } from "../../src/components/payments/UpcomingView";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+
+type PaymentsView = "upcoming" | "all";
+
+const VIEWS: { value: PaymentsView; label: string }[] = [
+  { value: "upcoming", label: "Upcoming" },
+  { value: "all", label: "All" },
+];
+
+export default function PaymentsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, loading, removeSubscription, markPaid, markInstallmentPaid } = useAppState();
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
-  }
-
-  if (items.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyTitle}>No subscriptions yet</Text>
-        <Text style={styles.emptyHint}>Tap ＋ to add your first one.</Text>
-      </View>
-    );
-  }
-
-  const commitments = summarizeCommitments(items, today());
+  const [view, setView] = useState<PaymentsView>("upcoming");
 
   return (
-    <FlatList
-      style={styles.list}
-      data={items}
-      keyExtractor={(item) => item.id}
-      contentContainerStyle={styles.listContent}
-      ListHeaderComponent={
-        commitments.monthly.length > 0 || commitments.bnplOutstanding.length > 0 ? (
-          <HeroCard
-            label="Committed monthly"
-            amount={
-              commitments.monthly.length > 0
-                ? formatMoneyList(commitments.monthly)
-                : "Nothing yet"
-            }
-            sub={
-              commitments.bnplOutstanding.length > 0
-                ? `Pay-in-X still owed: ${formatMoneyList(commitments.bnplOutstanding)}`
-                : undefined
-            }
-          />
-        ) : null
-      }
-      renderItem={({ item }) => (
-        <SubscriptionRow
-          item={item}
-          onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
-          onMarkPaid={() =>
-            isInstallmentSchedule(item.schedule) ? markInstallmentPaid(item.id) : markPaid(item.id)
-          }
-          onDelete={() => removeSubscription(item.id)}
-        />
-      )}
-    />
+    <View style={styles.screen}>
+      <View style={styles.switchWrap}>
+        <View style={styles.switch}>
+          {VIEWS.map((v) => {
+            const active = view === v.value;
+            return (
+              <Pressable
+                key={v.value}
+                onPress={() => setView(v.value)}
+                style={[styles.pill, active && styles.pillActive]}
+              >
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>{v.label}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+
+      {view === "upcoming" ? <UpcomingView /> : <SubscriptionsView />}
+    </View>
   );
 }
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    list: {
+    screen: {
       flex: 1,
       backgroundColor: colors.background,
     },
-    listContent: {
-      padding: spacing.md,
-      gap: spacing.sm,
+    switchWrap: {
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.md,
     },
-    center: {
+    switch: {
+      flexDirection: "row",
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 3,
+      gap: 3,
+    },
+    pill: {
       flex: 1,
       alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.sm,
-      backgroundColor: colors.background,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.sm,
     },
-    emptyTitle: {
-      ...typography.subtitle,
-      color: colors.text,
-      fontWeight: "600",
-    },
-    emptyHint: {
-      ...typography.body,
-      color: colors.mutedText,
-    },
+    pillActive: { backgroundColor: colors.navy },
+    pillText: { ...typography.label, color: colors.mutedText },
+    pillTextActive: { color: colors.white },
   });
 }
