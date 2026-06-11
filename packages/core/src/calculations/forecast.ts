@@ -110,14 +110,19 @@ const OCCURRENCES_PER_YEAR: Record<RecurrenceRule["unit"], number> = {
   year: 1,
 };
 
+/** How many times a rule fires in an average year — the shared basis of the
+ *  monthly/yearly equivalents. */
+export function occurrencesPerYear(rule: RecurrenceRule): number {
+  return OCCURRENCES_PER_YEAR[rule.unit] / rule.interval;
+}
+
 /**
  * Normalise a recurring amount to its per-month equivalent — the basis of the
- * "committed €X/month" headline and the M3 budget-smoothing view. Exact for
+ * "committed €X/month" headline and the Insights theory view. Exact for
  * plain monthly; calendar-average rounding elsewhere.
  */
 export function monthlyEquivalent(amount: Money, rule: RecurrenceRule): Money {
-  const perYear = OCCURRENCES_PER_YEAR[rule.unit] / rule.interval;
-  return money(Math.round((amount.amount * perYear) / 12), amount.currency);
+  return money(Math.round((amount.amount * occurrencesPerYear(rule)) / 12), amount.currency);
 }
 
 export interface CommitmentSummary {
