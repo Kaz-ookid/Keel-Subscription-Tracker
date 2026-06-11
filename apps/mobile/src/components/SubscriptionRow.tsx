@@ -26,8 +26,9 @@ interface Props {
 export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { categories } = useSubscriptions();
+  const { categories, accounts } = useSubscriptions();
   const category = categories.find((c) => c.id === item.categoryId);
+  const account = accounts.find((a) => a.id === item.accountId);
 
   // Badge colour is the subscription's own colour, else the brand accent.
   const accent = item.color ?? colors.accent;
@@ -107,7 +108,12 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
             {subLine}
           </Text>
         )}
-        {tag ? <Text style={[styles.tag, { color: tagColor }]}>{tag}</Text> : null}
+        {tag ? (
+          <Text style={[styles.tag, { color: tagColor }]} numberOfLines={1}>
+            {tag}
+            {account ? <Text style={styles.tagAccount}> · {account.name}</Text> : null}
+          </Text>
+        ) : null}
       </View>
 
       <View style={styles.right}>
@@ -162,6 +168,12 @@ function createStyles(colors: ThemeColors) {
     tag: {
       ...typography.caption,
       fontWeight: "600",
+    },
+    // "Which account does this hit" — quieter than the settlement tag itself.
+    tagAccount: {
+      ...typography.caption,
+      fontWeight: "400",
+      color: colors.mutedText,
     },
     right: {
       alignItems: "flex-end",

@@ -2,7 +2,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
   label: string;
@@ -10,19 +10,21 @@ interface Props {
   value?: string;
   /** Optional element shown just before the chevron (e.g. an icon). */
   accessory?: ReactNode;
+  /** Subtle "this still needs attention" tint on the value text. */
+  hint?: boolean;
   onPress: () => void;
 }
 
 /** A tappable form row: label · value/accessory · chevron — the iOS "drill in"
  *  affordance used by currency, category, colour, reminder and date. */
-export function FieldButton({ label, value, accessory, onPress }: Props) {
+export function FieldButton({ label, value, accessory, hint, onPress }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable onPress={onPress} style={styles.row}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.right}>
-        {value ? <Text style={styles.value}>{value}</Text> : null}
+        {value ? <Text style={[styles.value, hint && { color: tones.warning }]}>{value}</Text> : null}
         {accessory}
         <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
       </View>

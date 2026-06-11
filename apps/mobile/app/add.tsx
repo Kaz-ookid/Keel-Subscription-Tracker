@@ -28,7 +28,9 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { AccountPickerSheet } from "../src/components/AccountSheet";
 import { CategorySheet } from "../src/components/CategorySheet";
+import { COLOR_SWATCHES } from "../src/constants";
 import { FieldButton } from "../src/components/FieldButton";
 import { Segmented, type SegmentedOption } from "../src/components/Segmented";
 import { Sheet } from "../src/components/Sheet";
@@ -63,15 +65,6 @@ const AMOUNT_MODE_OPTIONS: SegmentedOption<AmountMode>[] = [
   { value: "perPayment", label: "Per payment" },
 ];
 
-// A curated spectrum for the subscription colour. A fixed palette is reliable
-// and crash-free (the previous full-spectrum picker crashed on selection).
-const COLOR_SWATCHES = [
-  "#EF4444", "#F87171", "#EC4899", "#F472B6", "#F59E0B", "#FB923C", "#FBBF24",
-  "#FACC15", "#22C55E", "#4ADE80", "#16A34A", "#10B981", "#14B8A6", "#06B6D4",
-  "#2DD4BF", "#3B82F6", "#60A5FA", "#2563EB", "#0EA5E9", "#8B5CF6", "#A78BFA",
-  "#6366F1", "#0B1E3F", "#7FB8B0", "#6B7280", "#9CA3AF", "#111827", "#78350F",
-];
-
 const UNIT_OPTIONS: SegmentedOption<TimeUnit>[] = [
   { value: "day", label: "Day" },
   { value: "week", label: "Week" },
@@ -102,6 +95,7 @@ type OpenSheet =
   | "endDate"
   | "reminder"
   | "category"
+  | "account"
   | "color"
   | "provider"
   | null;
@@ -118,6 +112,7 @@ export default function AddScreen() {
     updateSubscription,
     updateInstallmentPlan,
     categories,
+    accounts,
   } = useSubscriptions();
 
   // When an `id` is passed we're editing an existing item; pre-fill from it.
@@ -158,6 +153,7 @@ export default function AddScreen() {
     editItem?.reminder ? String(editItem.reminder.daysBefore) : "never",
   );
   const [categoryId, setCategoryId] = useState<string | undefined>(() => editItem?.categoryId);
+  const [accountId, setAccountId] = useState<string | undefined>(() => editItem?.accountId);
   const [color, setColor] = useState<string | undefined>(() => editItem?.color);
   const [notes, setNotes] = useState(() => editItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
@@ -184,11 +180,21 @@ export default function AddScreen() {
   const selectedCategory = categories.find((c) => c.id === categoryId);
   const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
 
+  // Manual payments are deliberately not pre-linked to an account (brief §8).
+  const isAutomatic = settlementMode === "automatic";
+  const selectedAccount = isAutomatic ? accounts.find((a) => a.id === accountId) : undefined;
+  // v1 rule: a payment charged to an account uses that account's currency —
+  // while an account is selected it wins over the manually-picked currency.
+  const effectiveCurrency = selectedAccount?.currency ?? currency;
+
   // Compute total ⇄ per-payment depending on how the user entered the amount.
   const installmentTotal =
     amountMode === "total"
-      ? fromMajor(amountValue, currency)
-      : { amount: fromMajor(amountValue, currency).amount * installmentCount, currency };
+      ? fromMajor(amountValue, effectiveCurrency)
+      : {
+          amount: fromMajor(amountValue, effectiveCurrency).amount * installmentCount,
+          currency: effectiveCurrency,
+        };
 
   // Live preview: shows whichever value was NOT entered, plus the final due date.
   const installmentPreview = (() => {
@@ -214,6 +220,7 @@ export default function AddScreen() {
         firstInstallmentDate: firstDateCal,
         provider,
         settlementMode,
+        accountId: isAutomatic ? accountId : undefined,
         categoryId,
         color,
         reminder: reminderFromKey(reminderKey),
@@ -224,11 +231,12 @@ export default function AddScreen() {
     } else {
       const input: NewRecurringInput = {
         name: name.trim(),
-        amount: fromMajor(amountValue, currency),
+        amount: fromMajor(amountValue, effectiveCurrency),
         recurrence,
         firstChargeDate: firstDateCal,
         endDate: endDateCal,
         settlementMode,
+        accountId: isAutomatic ? accountId : undefined,
         categoryId,
         color,
         reminder: reminderFromKey(reminderKey),
@@ -274,9 +282,13 @@ export default function AddScreen() {
 
       {/* Amount + currency */}
       <View style={[styles.amountCard, !(amountValue > 0) && styles.requiredMissing]}>
-        <Pressable style={styles.currencyChip} onPress={() => setSheet("currency")}>
+        <Pressable
+          style={[styles.currencyChip, selectedAccount && styles.currencyChipLocked]}
+          onPress={() => setSheet("currency")}
+          disabled={!!selectedAccount}
+        >
           <Text style={styles.currencyChipText}>
-            {CURRENCIES[currency].flag} {currency}
+            {CURRENCIES[effectiveCurrency].flag} {effectiveCurrency}
           </Text>
         </Pressable>
         <TextInput
@@ -390,6 +402,20 @@ export default function AddScreen() {
         </View>
       </View>
 
+      {isAutomatic && (
+        <FieldButton
+          label="Account"
+          value={selectedAccount?.name ?? (accountId ? "Archived account" : "Choose")}
+          hint={!selectedAccount}
+          accessory={
+            selectedAccount ? (
+              <View style={[styles.dot, { backgroundColor: selectedAccount.color }]} />
+            ) : undefined
+          }
+          onPress={() => setSheet("account")}
+        />
+      )}
+
       <FieldButton label="Reminder" value={reminderLabel} onPress={() => setSheet("reminder")} />
 
       <FieldButton
@@ -480,6 +506,18 @@ export default function AddScreen() {
         onSelect={setCategoryId}
       />
 
+      <AccountPickerSheet
+        visible={sheet === "account"}
+        onClose={() => setSheet(null)}
+        selectedId={accountId}
+        onSelect={(id) => {
+          setAccountId(id);
+          // Keep the manual currency in sync so unselecting stays coherent.
+          const account = accounts.find((a) => a.id === id);
+          if (account) setCurrency(account.currency);
+        }}
+      />
+
       <Sheet visible={sheet === "color"} title="Colour" onClose={() => setSheet(null)}>
         <ScrollView contentContainerStyle={styles.swatchGrid}>
           {COLOR_SWATCHES.map((c) => (
@@ -550,6 +588,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     currencyChipText: { ...typography.label, color: colors.text },
+    // Currency follows the selected account (one currency per account, v1).
+    currencyChipLocked: { opacity: 0.5 },
     amountInput: { ...typography.title, color: colors.text, flex: 1, textAlign: "right" },
     field: {
       paddingVertical: spacing.md,
