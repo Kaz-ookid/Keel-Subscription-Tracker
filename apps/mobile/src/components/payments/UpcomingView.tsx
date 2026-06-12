@@ -1,6 +1,6 @@
 import {
   addRecurrence,
-  canMarkNextInstallmentPaid,
+  canMarkPaid,
   endOfMonth,
   formatCalendarDate,
   formatMoneyList,
@@ -105,15 +105,12 @@ export function UpcomingView() {
   }
   const itemsById = new Map(items.map((i) => [i.id, i]));
 
-  // Manual subscriptions tick off once due; installments any time within
-  // their current cycle (you often pay BNPL a few days early).
+  // One shared rule for both payment types (current month only), and only on
+  // an item's earliest charge so the action always hits the right payment.
   const canMark = (charge: ProjectedCharge): boolean => {
     if (earliest.get(charge.paymentItemId) !== charge) return false;
-    if (charge.scheduleType === "INSTALLMENT") {
-      const item = itemsById.get(charge.paymentItemId);
-      return item !== undefined && canMarkNextInstallmentPaid(item, asOf);
-    }
-    return charge.settlementMode === "manual" && charge.dueDate <= asOf;
+    const item = itemsById.get(charge.paymentItemId);
+    return item !== undefined && canMarkPaid(item, asOf);
   };
 
   const selectedAccount = accounts.find((a) => a.id === filter);

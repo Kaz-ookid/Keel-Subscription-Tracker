@@ -1,5 +1,5 @@
 import {
-  canMarkNextInstallmentPaid,
+  canMarkPaid,
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
@@ -47,6 +47,9 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   let tagColor = colors.mutedText;
   let showMarkPaid = false;
 
+  // One shared rule for both payment types: current month only.
+  const canMark = canMarkPaid(item, today());
+
   if (recurring) {
     // A finished sub has no next billing — say when it ended instead.
     const when =
@@ -57,15 +60,17 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     amount = formatMoney(recurring.amount);
     tag = isManual ? "Manual" : "Automatic";
     tagColor = isManual ? tones.warning : tones.info;
-    showMarkPaid = isManual;
+    showMarkPaid = canMark;
+    // Ticked off for this month: say so instead of offering the button.
+    if (isManual && !canMark && !complete && recurring.nextChargeDate > recurring.firstChargeDate) {
+      tag = "Paid this cycle";
+      tagColor = tones.success;
+    }
   } else if (installment) {
     const s = summarizeInstallmentPlan(installment);
     const next = s.nextDue;
     subLine = `${s.totalCount}× · ${s.paidCount} of ${s.totalCount} paid${next ? ` · next ${formatCalendarDate(next.dueDate)}` : ""}`;
     amount = formatMoney(next ? next.amount : s.totalAmount);
-    // Only the current cycle's installment can be ticked off; once it is,
-    // the row says so instead of offering a button that would race ahead.
-    const canMark = canMarkNextInstallmentPaid(item, today());
     showMarkPaid = canMark;
     if (!canMark && s.paidCount > 0 && !s.isComplete) {
       tag = "Paid this cycle";

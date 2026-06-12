@@ -281,6 +281,26 @@ export function recordRecurringPayment(
 }
 
 /**
+ * Step a recurring item's charge cursor back to `toDueDate` — the undo of a
+ * mistaken tick-off or skip. The caller removes the matching ledger occurrence
+ * in the same motion (otherwise that month would double-count: once from the
+ * ledger and once from the re-opened projection). Refuses to move forward.
+ */
+export function rewindRecurringPayment(
+  item: PaymentItem,
+  ctx: { toDueDate: CalendarDate; now: Timestamp },
+): PaymentItem {
+  if (item.schedule.kind !== "RECURRING") return item;
+  const schedule = item.schedule;
+  if (ctx.toDueDate >= schedule.nextChargeDate) return item;
+  return {
+    ...item,
+    updatedAt: ctx.now,
+    schedule: { ...schedule, nextChargeDate: ctx.toDueDate },
+  };
+}
+
+/**
  * Deliberately sit out the running occurrence of a recurring item ("not
  * investing this month"): advances `nextChargeDate` one cycle exactly like a
  * payment, but logs a `skipped` occurrence — audit-trailed, never counted as

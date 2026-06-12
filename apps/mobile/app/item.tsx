@@ -4,7 +4,7 @@
 // detail can never accidentally change one.
 
 import {
-  canMarkNextInstallmentPaid,
+  canMarkPaid,
   COVERED_INSTALLMENT_STATUSES,
   describeRecurrence,
   formatCalendarDate,
@@ -42,10 +42,12 @@ export default function ItemScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     items,
+    occurrences,
     accounts,
     categories,
     markPaid,
     skipPayment,
+    undoPaid,
     markInstallmentPaid,
     undoInstallmentPaid,
     pauseSubscription,
@@ -75,12 +77,23 @@ export default function ItemScreen() {
     : `Pay in ${plan?.totalCount} · ${item.settlementMode === "manual" ? "Manual" : "Automatic"}`;
 
   const paused = item.status === "paused";
-  const canMarkPaid = installment
-    ? canMarkNextInstallmentPaid(item, asOf)
-    : !complete && !paused && item.settlementMode === "manual";
+  // One shared rule for both payment types: current month only.
+  const markable = canMarkPaid(item, asOf);
   // Already ticked for the current cycle — say so instead of hiding the button.
   const paidThisCycle =
-    installment !== undefined && !canMarkPaid && !complete && !paused && (plan?.paidCount ?? 0) > 0;
+    !markable &&
+    !complete &&
+    !paused &&
+    (installment
+      ? (plan?.paidCount ?? 0) > 0
+      : item.settlementMode === "manual" &&
+        recurring !== undefined &&
+        recurring.nextChargeDate > recurring.firstChargeDate);
+  const nextAfterCycle = installment ? plan?.nextDue?.dueDate : recurring?.nextChargeDate;
+  // The item's own ledger, newest first — the undoable trail.
+  const history = occurrences
+    .filter((o) => o.paymentItemId === item.id)
+    .sort((a, b) => (a.dueDate < b.dueDate ? 1 : -1));
 
   const confirmDelete = () =>
     Alert.alert("Delete subscription", `Remove “${item.name}”? This cannot be undone.`, [
@@ -221,6 +234,44 @@ export default function ItemScreen() {
         </View>
       )}
 
+      {/* The recurring counterpart of the installments list: what was paid or
+          skipped, newest first — and the place to undo a mistaken tick. */}
+      {recurring && history.length > 0 && (
+        <View style={styles.card}>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>History</Text>
+            {item.settlementMode === "manual" && (
+              <Pressable onPress={() => undoPaid(item.id)} hitSlop={8}>
+                <Text style={styles.undoText}>Undo last</Text>
+              </Pressable>
+            )}
+          </View>
+          {history.map((o) => (
+            <View key={o.id} style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{formatCalendarDate(o.dueDate)}</Text>
+              <View style={styles.installmentRight}>
+                <Text
+                  style={[
+                    styles.infoValue,
+                    o.status === "skipped" && {
+                      color: colors.mutedText,
+                      textDecorationLine: "line-through",
+                    },
+                  ]}
+                >
+                  {formatMoney(o.amount)}
+                </Text>
+                <SymbolView
+                  name={o.status === "skipped" ? "arrow.right.to.line" : "checkmark.circle.fill"}
+                  size={16}
+                  tintColor={o.status === "skipped" ? colors.mutedText : tones.success}
+                />
+              </View>
+            </View>
+          ))}
+        </View>
+      )}
+
       {/* Price changes over time (edge case #1) — only when there were any. */}
       {recurring && recurring.priceHistory.length > 1 && (
         <View style={styles.card}>
@@ -236,7 +287,7 @@ export default function ItemScreen() {
         </View>
       )}
 
-      {canMarkPaid && (
+      {markable && (
         <Pressable
           style={styles.primaryBtn}
           onPress={() => (installment ? markInstallmentPaid(item.id) : markPaid(item.id))}
@@ -246,7 +297,7 @@ export default function ItemScreen() {
       )}
       {/* Flexible commitments ("monthly investing") can sit a cycle out —
           skipped, not paid: the month stays honest in the analytics. */}
-      {canMarkPaid && recurring && (
+      {markable && recurring && (
         <Pressable style={styles.secondaryBtn} onPress={() => skipPayment(item.id)}>
           <Text style={styles.secondaryBtnText}>
             Skip this cycle · {formatCalendarDate(recurring.nextChargeDate)}
@@ -257,7 +308,7 @@ export default function ItemScreen() {
         <View style={styles.disabledBtn}>
           <Text style={styles.disabledBtnText}>
             Paid for this cycle
-            {plan?.nextDue ? ` · next ${formatCalendarDate(plan.nextDue.dueDate)}` : ""}
+            {nextAfterCycle ? ` · next ${formatCalendarDate(nextAfterCycle)}` : ""}
           </Text>
         </View>
       )}

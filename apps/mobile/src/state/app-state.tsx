@@ -11,7 +11,7 @@ import { randomUUID } from "expo-crypto";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   accrueDueOccurrences,
-  canMarkNextInstallmentPaid,
+  canMarkPaid,
   DEFAULT_CATEGORIES,
   isPaymentItemComplete,
   makeAccount,
@@ -22,6 +22,7 @@ import {
   pausePaymentItem,
   recordRecurringPayment,
   resumePaymentItem,
+  rewindRecurringPayment,
   skipRecurringPayment,
   today,
   unmarkLastInstallmentPaid,
@@ -68,6 +69,9 @@ interface AppStateValue {
   /** Deliberately sit out the running cycle: advances the date, logged as
    *  skipped, never counted as spending. */
   skipPayment: (id: string) => void;
+  /** Undo the most recent manual tick-off or skip: removes the ledger entry
+   *  and steps the billing date back one cycle. */
+  undoPaid: (id: string) => void;
   /** Mark the next due installment of a BNPL plan as paid (current cycle only). */
   markInstallmentPaid: (id: string) => void;
   /** Undo the most recent installment payment. */
@@ -174,9 +178,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     const markPaid = (id: string) => {
       const item = items.find((i) => i.id === id);
-      if (!item || item.schedule.kind !== "RECURRING" || item.status !== "active") return;
-      // Never pay past the end of an already-finished subscription.
-      if (isPaymentItemComplete(item, today())) return;
+      // One shared rule for both payment types: current month only.
+      if (!item || item.schedule.kind !== "RECURRING" || !canMarkPaid(item, today())) return;
       const { item: advanced, occurrence } = recordRecurringPayment(item, {
         id: randomUUID(),
         paidDate: today(),
@@ -201,10 +204,34 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const markInstallmentPaid = (id: string) => {
       setItems((prev) =>
         prev.map((i) =>
-          // Cycle cap: only the installment of the current cycle can be ticked.
-          i.id === id && canMarkNextInstallmentPaid(i, today())
+          // One shared rule for both payment types: current month only.
+          i.id === id && canMarkPaid(i, today())
             ? markNextInstallmentPaid(i, { paidDate: today(), now: now() })
             : i,
+        ),
+      );
+    };
+
+    const undoPaid = (id: string) => {
+      const item = items.find((i) => i.id === id);
+      if (!item || item.schedule.kind !== "RECURRING" || item.settlementMode !== "manual") return;
+      // The most recent hand-recorded event (paid or skipped) for this item.
+      const last = occurrences.reduce<PaymentOccurrence | undefined>(
+        (latest, o) =>
+          o.paymentItemId === id &&
+          (o.status === "charged" || o.status === "skipped") &&
+          (!latest || o.dueDate > latest.dueDate)
+            ? o
+            : latest,
+        undefined,
+      );
+      if (!last) return;
+      // Remove the ledger entry AND step the cursor back in one motion —
+      // otherwise that month would double-count.
+      setOccurrences((prev) => prev.filter((o) => o.id !== last.id));
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? rewindRecurringPayment(i, { toDueDate: last.dueDate, now: now() }) : i,
         ),
       );
     };
@@ -262,6 +289,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       removeSubscription,
       markPaid,
       skipPayment,
+      undoPaid,
       markInstallmentPaid,
       undoInstallmentPaid,
       pauseSubscription,

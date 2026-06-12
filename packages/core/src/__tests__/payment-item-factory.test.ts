@@ -3,6 +3,7 @@ import {
   accrueDueOccurrences,
   calendarDate,
   canMarkNextInstallmentPaid,
+  canMarkPaid,
   fromMajor,
   isInstallmentSchedule,
   isPaymentItemComplete,
@@ -15,6 +16,7 @@ import {
   recordRecurringPayment,
   RECURRENCE_PRESETS,
   resumePaymentItem,
+  rewindRecurringPayment,
   sumMoney,
   unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
@@ -401,19 +403,20 @@ describe("canMarkNextInstallmentPaid (current-cycle cap)", () => {
     settlementMode: "manual" as const,
   };
 
-  it("allows due, overdue and within-one-cycle payments — but never the cycle after", () => {
+  it("allows due, overdue and same-month payments — never a later month", () => {
     let item = makeInstallmentPaymentItem(plan, { id: "p1", now: now(), makeId: ids() });
 
-    // Early in the month, the 10th is within one cycle → markable.
+    // Early in the month, the 10th is later this same month → markable.
     expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-01"))).toBe(true);
     // Overdue → still markable.
     expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-20"))).toBe(true);
 
-    // Pay June: July's installment is a full cycle away on June 1st…
+    // Pay June: July's installment belongs to next month…
     item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-06-01"), now: now() });
     expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-01"))).toBe(false);
-    // …but becomes markable as July approaches within one cycle.
-    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-15"))).toBe(true);
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-30"))).toBe(false);
+    // …and unlocks once July starts.
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-07-01"))).toBe(true);
   });
 
   it("is false for complete plans, paused items and recurring items", () => {
@@ -432,6 +435,70 @@ describe("canMarkNextInstallmentPaid (current-cycle cap)", () => {
 
     const sub = makeRecurringPaymentItem(input, { id: "r1", now: now() });
     expect(canMarkNextInstallmentPaid(sub, calendarDate("2026-06-01"))).toBe(false);
+  });
+});
+
+describe("canMarkPaid (unified cycle cap)", () => {
+  it("caps manual recurring subscriptions exactly like installments", () => {
+    // Manual, monthly on the 15th.
+    const item = makeRecurringPaymentItem(input, { id: "r1", now: now() });
+
+    // Later this month, or overdue → markable.
+    expect(canMarkPaid(item, calendarDate("2026-01-02"))).toBe(true);
+    expect(canMarkPaid(item, calendarDate("2026-02-01"))).toBe(true);
+
+    // Pay January: February's billing is a later month for the rest of January…
+    const { item: paid } = recordRecurringPayment(item, {
+      id: "occ-1",
+      paidDate: calendarDate("2026-01-15"),
+      now: now(),
+    });
+    expect(canMarkPaid(paid, calendarDate("2026-01-16"))).toBe(false);
+    expect(canMarkPaid(paid, calendarDate("2026-01-31"))).toBe(false);
+    // …and unlocks once February starts.
+    expect(canMarkPaid(paid, calendarDate("2026-02-01"))).toBe(true);
+  });
+
+  it("never allows automatic, paused or ended items", () => {
+    const auto = makeRecurringPaymentItem(
+      { ...input, settlementMode: "automatic" },
+      { id: "r2", now: now() },
+    );
+    expect(canMarkPaid(auto, calendarDate("2026-01-02"))).toBe(false);
+
+    const paused = pausePaymentItem(makeRecurringPaymentItem(input, { id: "r3", now: now() }), {
+      now: now(),
+    });
+    expect(canMarkPaid(paused, calendarDate("2026-01-02"))).toBe(false);
+
+    const ended = makeRecurringPaymentItem(
+      { ...input, endDate: calendarDate("2026-02-15") },
+      { id: "r4", now: now() },
+    );
+    expect(canMarkPaid(ended, calendarDate("2026-03-01"))).toBe(false);
+  });
+});
+
+describe("rewindRecurringPayment", () => {
+  it("steps the cursor back to the undone due date, never forward", () => {
+    const item = makeRecurringPaymentItem(input, { id: "r1", now: now() });
+    const { item: paid } = recordRecurringPayment(item, {
+      id: "occ-1",
+      paidDate: calendarDate("2026-01-15"),
+      now: now(),
+    });
+
+    const undone = rewindRecurringPayment(paid, {
+      toDueDate: calendarDate("2026-01-15"),
+      now: now(),
+    });
+    if (!isRecurringSchedule(undone.schedule)) throw new Error("expected recurring");
+    expect(undone.schedule.nextChargeDate).toBe("2026-01-15");
+
+    // Forward "rewinds" are refused.
+    expect(
+      rewindRecurringPayment(paid, { toDueDate: calendarDate("2026-06-15"), now: now() }),
+    ).toBe(paid);
   });
 });
 

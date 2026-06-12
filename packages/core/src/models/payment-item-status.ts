@@ -1,4 +1,3 @@
-import { addRecurrence } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import { summarizeInstallmentPlan } from "./installment-plan";
 import { isInstallmentSchedule, isRecurringSchedule, type PaymentItem } from "./payment-item";
@@ -22,14 +21,35 @@ export function isPaymentItemComplete(item: PaymentItem, asOf: CalendarDate): bo
   return false;
 }
 
+/** Due, overdue, or due later within `asOf`'s calendar month. */
+function withinCurrentMonth(dueDate: CalendarDate, asOf: CalendarDate): boolean {
+  return dueDate <= asOf || dueDate.slice(0, 7) === asOf.slice(0, 7);
+}
+
 /**
- * Whether the plan's next installment may be marked paid right now: only the
- * one falling within the current billing cycle — due, overdue, or coming up
- * within one recurrence step of `asOf`. Caps repeated taps from racing months
- * ahead (works for weekly/quarterly plans too, not just monthly).
+ * Whether the plan's next installment may be marked paid right now: only one
+ * that is due, overdue, or due later this same month. Caps repeated taps from
+ * racing into future months.
  */
 export function canMarkNextInstallmentPaid(item: PaymentItem, asOf: CalendarDate): boolean {
   if (item.status !== "active" || !isInstallmentSchedule(item.schedule)) return false;
   const next = summarizeInstallmentPlan(item.schedule).nextDue;
-  return next !== undefined && next.dueDate < addRecurrence(asOf, item.schedule.recurrence);
+  return next !== undefined && withinCurrentMonth(next.dueDate, asOf);
+}
+
+/**
+ * The ONE rule for "can this item's running payment be ticked off now",
+ * shared by recurring manual subscriptions and Pay-in-X plans alike (what
+ * applies to one must apply to the other): the payment must be due, overdue,
+ * or due later in the current calendar month — never a later month.
+ * Automatic recurring items are never hand-ticked.
+ */
+export function canMarkPaid(item: PaymentItem, asOf: CalendarDate): boolean {
+  if (item.status !== "active" || isPaymentItemComplete(item, asOf)) return false;
+  if (isInstallmentSchedule(item.schedule)) return canMarkNextInstallmentPaid(item, asOf);
+  if (isRecurringSchedule(item.schedule)) {
+    if (item.settlementMode !== "manual") return false;
+    return withinCurrentMonth(item.schedule.nextChargeDate, asOf);
+  }
+  return false;
 }
