@@ -2,9 +2,12 @@
 // management, which is set up once and then mostly left alone (that's why it
 // lives here rather than occupying a whole tab).
 
-import { CURRENCIES, currencyLabel, type CurrencyCode } from "@keel/core";
+import { CURRENCIES, currencyLabel, today, type CurrencyCode } from "@keel/core";
+import * as DocumentPicker from "expo-document-picker";
+import { File, Paths } from "expo-file-system";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { Alert, AppState, Linking, Pressable, StyleSheet, Text, View } from "react-native";
@@ -14,7 +17,22 @@ import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { APP_NAME } from "../../src/constants";
 import { WheelSheet } from "../../src/components/WheelSheet";
 import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
+import {
+  radius,
+  spacing,
+  tones,
+  typography,
+  useTheme,
+  useThemeMode,
+  type ThemeColors,
+  type ThemeMode,
+} from "../../src/theme";
+
+const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
+  { value: "system", label: "Match device" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
 
 // Same React-19 children alias as the Add form's pickers.
 const Picker = RNPicker as unknown as ComponentType<{
@@ -29,9 +47,19 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, displayCurrency, setDisplayCurrency, rates, clearAllData, loadSampleData } =
-    useAppState();
+  const {
+    accounts,
+    displayCurrency,
+    setDisplayCurrency,
+    rates,
+    clearAllData,
+    loadSampleData,
+    exportData,
+    importData,
+  } = useAppState();
+  const { mode, setMode } = useThemeMode();
   const [currencySheet, setCurrencySheet] = useState(false);
+  const [themeSheet, setThemeSheet] = useState(false);
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
 
   // Reflect the OS notification permission (re-check when returning from iOS
@@ -61,6 +89,40 @@ export default function SettingsScreen() {
       { text: "Replace", style: "destructive", onPress: loadSampleData },
     ]);
 
+  const exportBackup = async () => {
+    try {
+      const file = new File(Paths.cache, `keel-backup-${today()}.json`);
+      if (file.exists) file.delete();
+      file.create();
+      file.write(JSON.stringify(exportData(), null, 2));
+      await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
+    } catch {
+      Alert.alert("Export failed", "Could not create the backup file.");
+    }
+  };
+
+  const importBackup = async () => {
+    try {
+      const picked = await DocumentPicker.getDocumentAsync({ type: "application/json" });
+      if (picked.canceled || !picked.assets[0]) return;
+      const content = new File(picked.assets[0].uri).textSync();
+      Alert.alert("Restore backup", "This replaces everything currently in the app.", [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Replace",
+          style: "destructive",
+          onPress: () => {
+            if (!importData(content)) {
+              Alert.alert("Import failed", "That file doesn't look like a Keel backup.");
+            }
+          },
+        },
+      ]);
+    } catch {
+      Alert.alert("Import failed", "Could not read that file.");
+    }
+  };
+
   return (
     <View style={styles.screen}>
       <View style={styles.card}>
@@ -76,6 +138,12 @@ export default function SettingsScreen() {
           <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setThemeSheet(true)}>
+          <SymbolView name="circle.lefthalf.filled" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Appearance</Text>
+          <Text style={styles.rowValue}>{THEME_OPTIONS.find((o) => o.value === mode)?.label}</Text>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
         {/* Reminders ride the OS permission; when off, the row opens Settings. */}
         <Pressable
           style={[styles.row, styles.rowDivider]}
@@ -88,6 +156,18 @@ export default function SettingsScreen() {
           <Text style={styles.rowValue}>
             {remindersOn === null ? "" : remindersOn ? "On" : "Off in iOS Settings"}
           </Text>
+        </Pressable>
+      </View>
+
+      {/* The escape hatch: real finances deserve a way out of one local blob. */}
+      <View style={styles.card}>
+        <Pressable style={styles.row} onPress={() => void exportBackup()}>
+          <SymbolView name="square.and.arrow.up" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Export backup</Text>
+        </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void importBackup()}>
+          <SymbolView name="square.and.arrow.down" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Restore backup</Text>
         </Pressable>
       </View>
 
@@ -107,6 +187,14 @@ export default function SettingsScreen() {
         {APP_NAME}
         {rates ? ` · rates ${rates.date} (ECB)` : ""}
       </Text>
+
+      <WheelSheet visible={themeSheet} title="Appearance" onClose={() => setThemeSheet(false)}>
+        <Picker selectedValue={mode} onValueChange={(v) => setMode(v as ThemeMode)}>
+          {THEME_OPTIONS.map((o) => (
+            <Picker.Item key={o.value} label={o.label} value={o.value} color={colors.text} />
+          ))}
+        </Picker>
+      </WheelSheet>
 
       <WheelSheet
         visible={currencySheet}

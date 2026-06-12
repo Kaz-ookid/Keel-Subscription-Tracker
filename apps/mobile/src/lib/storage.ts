@@ -37,17 +37,19 @@ const EMPTY: PersistedState = {
   displayCurrency: DEFAULT_CURRENCY,
 };
 
-export async function loadState(): Promise<PersistedState> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (!raw) return EMPTY;
+/** Lenient parse of a persisted blob (storage or an imported backup file).
+ *  Null when the JSON doesn't even resemble our shape. */
+export function parsePersistedState(raw: string): PersistedState | null {
   try {
     const parsed = JSON.parse(raw);
     // Back-compat: an earlier build stored a bare PaymentItem[] array.
     if (Array.isArray(parsed)) {
       return { ...EMPTY, items: parsed as PaymentItem[] };
     }
+    if (typeof parsed !== "object" || parsed === null) return null;
+    if (!Array.isArray(parsed.items)) return null;
     return {
-      items: Array.isArray(parsed.items) ? parsed.items : [],
+      items: parsed.items,
       occurrences: Array.isArray(parsed.occurrences) ? parsed.occurrences : [],
       categories: Array.isArray(parsed.categories) ? parsed.categories : [],
       accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
@@ -57,9 +59,15 @@ export async function loadState(): Promise<PersistedState> {
           : DEFAULT_CURRENCY,
     };
   } catch {
-    // Corrupt blob — start clean rather than crash the app on launch.
-    return EMPTY;
+    return null;
   }
+}
+
+export async function loadState(): Promise<PersistedState> {
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (!raw) return EMPTY;
+  // Corrupt blob — start clean rather than crash the app on launch.
+  return parsePersistedState(raw) ?? EMPTY;
 }
 
 export async function saveState(state: PersistedState): Promise<void> {

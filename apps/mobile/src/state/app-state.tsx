@@ -44,7 +44,7 @@ import {
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { syncReminders } from "../lib/notifications";
 import { buildSampleData } from "../lib/sample-data";
-import { loadState, saveState } from "../lib/storage";
+import { loadState, parsePersistedState, saveState, type PersistedState } from "../lib/storage";
 
 // Built-in seed categories presented as full Category records.
 const BUILTIN_CATEGORIES: Category[] = DEFAULT_CATEGORIES.map((c) => ({
@@ -103,6 +103,10 @@ interface AppStateValue {
   clearAllData: () => void;
   /** Debug/testing: replace everything with a realistic seeded household. */
   loadSampleData: () => void;
+  /** Backup: the exact persisted shape, ready to serialise and share. */
+  exportData: () => PersistedState;
+  /** Restore a backup (replaces everything); false when the JSON is invalid. */
+  importData: (json: string) => boolean;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -337,6 +341,25 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts(sample.accounts);
     };
 
+    const exportData = (): PersistedState => ({
+      items,
+      occurrences,
+      categories: customCategories,
+      accounts,
+      displayCurrency,
+    });
+
+    const importData = (json: string): boolean => {
+      const state = parsePersistedState(json);
+      if (!state) return false;
+      setItems(state.items);
+      setOccurrences(state.occurrences);
+      setCustomCategories(state.categories);
+      setAccounts(state.accounts);
+      setDisplayCurrency(state.displayCurrency);
+      return true;
+    };
+
     return {
       items,
       occurrences,
@@ -364,6 +387,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       archiveAccount,
       clearAllData,
       loadSampleData,
+      exportData,
+      importData,
     };
   }, [items, occurrences, customCategories, accounts, displayCurrency, rates, loading]);
 
