@@ -1,4 +1,5 @@
 import { formatCalendarDate, formatMoney, type ProjectedCharge } from "@keel/core";
+import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -12,12 +13,27 @@ interface Props {
   overdue: boolean;
   /** Offer the inline "Mark paid" action (manual/installment, due, earliest). */
   showMarkPaid: boolean;
+  /** Already settled this month — rendered quiet, kept for completeness. */
+  paid?: boolean;
+  /** Deliberately sat out — quiet, struck through. */
+  skipped?: boolean;
+  /** When present (on the most recent settlement), a small Undo appears. */
+  onUndo?: () => void;
   onPress: () => void;
   onMarkPaid: () => void;
 }
 
 /** One charge in the Upcoming timeline — same card language as the list. */
-export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid }: Props) {
+export function UpcomingRow({
+  charge,
+  overdue,
+  showMarkPaid,
+  paid,
+  skipped,
+  onUndo,
+  onPress,
+  onMarkPaid,
+}: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, accounts } = useAppState();
@@ -25,6 +41,7 @@ export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid
   const category = categories.find((c) => c.id === charge.categoryId);
   const account = accounts.find((a) => a.id === charge.accountId);
   const accent = charge.color ?? colors.accent;
+  const settled = paid || skipped;
 
   // Context line: BNPL progress first, then where the money comes from.
   const parts: string[] = [];
@@ -32,9 +49,10 @@ export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid
     parts.push(`${charge.installmentIndex} of ${charge.installmentCount}`);
   }
   parts.push(account?.name ?? (charge.settlementMode === "manual" ? "Manual" : "Automatic"));
+  if (skipped) parts.push("skipped");
 
   return (
-    <Pressable onPress={onPress} style={styles.row}>
+    <Pressable onPress={onPress} style={[styles.row, settled && styles.rowSettled]}>
       <IconBadge
         icon={category?.icon}
         fallback={charge.name.charAt(0).toUpperCase()}
@@ -58,12 +76,27 @@ export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid
       </View>
 
       <View style={styles.right}>
-        <Text style={[styles.amount, overdue && { color: tones.warning }]}>
-          {formatMoney(charge.amount)}
-        </Text>
+        <View style={styles.amountRow}>
+          {paid && <SymbolView name="checkmark.circle.fill" size={14} tintColor={tones.success} />}
+          <Text
+            style={[
+              styles.amount,
+              overdue && !settled && { color: tones.warning },
+              settled && { color: colors.mutedText },
+              skipped && { textDecorationLine: "line-through" },
+            ]}
+          >
+            {formatMoney(charge.amount)}
+          </Text>
+        </View>
         {showMarkPaid && (
           <Pressable onPress={onMarkPaid} style={styles.payButton} hitSlop={6}>
             <Text style={styles.payText}>Mark paid</Text>
+          </Pressable>
+        )}
+        {settled && onUndo && (
+          <Pressable onPress={onUndo} hitSlop={8}>
+            <Text style={styles.undoText}>Undo</Text>
           </Pressable>
         )}
       </View>
@@ -81,6 +114,20 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm + 2,
       paddingHorizontal: spacing.md,
       gap: spacing.md,
+    },
+    // Settled rows stay for completeness but don't catch the eye.
+    rowSettled: {
+      opacity: 0.5,
+    },
+    amountRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
+    undoText: {
+      ...typography.caption,
+      color: colors.accent,
+      fontWeight: "600",
     },
     middle: {
       flex: 1,

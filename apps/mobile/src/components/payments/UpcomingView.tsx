@@ -1,9 +1,12 @@
 import {
   addRecurrence,
+  calendarDate,
   canMarkPaid,
+  COVERED_INSTALLMENT_STATUSES,
   endOfMonth,
   formatCalendarDate,
   formatMoneyList,
+  isInstallmentSchedule,
   projectCharges,
   sumByCurrency,
   today,
@@ -56,6 +59,9 @@ function monthName(date: CalendarDate): string {
   return MONTHS[Number(date.slice(5, 7)) - 1];
 }
 
+/** A timeline row: a projected charge, or a settled one kept for completeness. */
+type Entry = ProjectedCharge & { paid?: boolean; skipped?: boolean; undoable?: boolean };
+
 interface Section {
   key: string;
   title: string;
@@ -63,7 +69,7 @@ interface Section {
   /** A month banderole that expands/collapses the sections after it. */
   monthLabel?: string;
   toggle?: boolean;
-  data: ProjectedCharge[];
+  data: Entry[];
 }
 
 /** The cash-flow timeline: hero, account chips, charges day by day. */
@@ -71,7 +77,16 @@ export function UpcomingView() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, accounts, loading, markPaid, markInstallmentPaid } = useAppState();
+  const {
+    items,
+    occurrences,
+    accounts,
+    loading,
+    markPaid,
+    markInstallmentPaid,
+    undoPaid,
+    undoInstallmentPaid,
+  } = useAppState();
   // "all" | "none" (no account) | an account id.
   const [filter, setFilter] = useState("all");
   // Next month stays one tap away — the daily view is about THIS month.
@@ -107,11 +122,70 @@ export function UpcomingView() {
 
   // One shared rule for both payment types (current month only), and only on
   // an item's earliest charge so the action always hits the right payment.
-  const canMark = (charge: ProjectedCharge): boolean => {
+  const canMark = (charge: Entry): boolean => {
+    if (charge.paid || charge.skipped) return false;
     if (earliest.get(charge.paymentItemId) !== charge) return false;
     const item = itemsById.get(charge.paymentItemId);
     return item !== undefined && canMarkPaid(item, asOf);
   };
+
+  // Settled payments of the window stay in the timeline — quiet, complete.
+  const monthStart = calendarDate(`${asOf.slice(0, 7)}-01`);
+  const settled: Entry[] = [];
+  for (const o of occurrences) {
+    if (o.status !== "charged" && o.status !== "skipped") continue;
+    if (o.dueDate < monthStart || o.dueDate > windowEnd) continue;
+    const item = itemsById.get(o.paymentItemId);
+    if (!item || item.settlementMode !== "manual" || item.schedule.kind !== "RECURRING") continue;
+    settled.push({
+      paymentItemId: item.id,
+      name: item.name,
+      dueDate: o.dueDate,
+      amount: o.amount,
+      accountId: item.accountId,
+      categoryId: item.categoryId,
+      color: item.color,
+      settlementMode: item.settlementMode,
+      scheduleType: item.scheduleType,
+      paid: o.status === "charged",
+      skipped: o.status === "skipped",
+    });
+  }
+  for (const item of items) {
+    if (!isInstallmentSchedule(item.schedule)) continue;
+    const insts = item.schedule.installments;
+    for (const inst of insts) {
+      if (!COVERED_INSTALLMENT_STATUSES.includes(inst.status)) continue;
+      if (inst.dueDate < monthStart || inst.dueDate > windowEnd) continue;
+      settled.push({
+        paymentItemId: item.id,
+        name: item.name,
+        dueDate: inst.dueDate,
+        amount: inst.amount,
+        accountId: item.accountId,
+        categoryId: item.categoryId,
+        color: item.color,
+        settlementMode: item.settlementMode,
+        scheduleType: item.scheduleType,
+        installmentIndex: inst.index,
+        installmentCount: insts.length,
+        paid: true,
+      });
+    }
+  }
+  // Undo only ever reverts an item's MOST RECENT settlement — offer it there.
+  const latestSettled = new Map<string, Entry>();
+  for (const e of settled) {
+    const cur = latestSettled.get(e.paymentItemId);
+    if (!cur || e.dueDate > cur.dueDate) latestSettled.set(e.paymentItemId, e);
+  }
+  latestSettled.forEach((e) => {
+    e.undoable = true;
+  });
+  const settledFiltered =
+    filter === "all"
+      ? settled
+      : settled.filter((c) => (filter === "none" ? !c.accountId : c.accountId === filter));
 
   const selectedAccount = accounts.find((a) => a.id === filter);
   const dueThisMonth = sumByCurrency(
@@ -128,20 +202,29 @@ export function UpcomingView() {
   if (overdueCharges.length > 0) {
     sections.push({ key: "overdue", title: "Overdue", overdue: true, data: overdueCharges });
   }
-  const byDay = new Map<CalendarDate, ProjectedCharge[]>();
+  const byDay = new Map<CalendarDate, Entry[]>();
+  const addToDay = (e: Entry) => {
+    const bucket = byDay.get(e.dueDate);
+    if (bucket) bucket.push(e);
+    else byDay.set(e.dueDate, [e]);
+  };
   for (const c of filtered) {
     if (c.dueDate < asOf) continue;
-    const bucket = byDay.get(c.dueDate);
-    if (bucket) bucket.push(c);
-    else byDay.set(c.dueDate, [c]);
+    addToDay(c);
   }
+  // Settled rows join their due day — including days already behind us.
+  for (const e of settledFiltered) addToDay(e);
+
   const thisMonth = asOf.slice(0, 7);
   const nextSections: Section[] = [];
-  byDay.forEach((data, date) => {
+  for (const date of Array.from(byDay.keys()).sort()) {
+    const data = byDay.get(date)!;
+    // Within a day, what still needs attention comes before what's settled.
+    data.sort((a, b) => Number(!!(a.paid || a.skipped)) - Number(!!(b.paid || b.skipped)));
     const section: Section = { key: date, title: dayLabel(date, asOf), data };
     if (date.slice(0, 7) === thisMonth) sections.push(section);
     else nextSections.push(section);
-  });
+  }
   if (nextSections.length > 0) {
     const label = `${monthName(windowEnd)} ${windowEnd.slice(0, 4)}`;
     const nextTotal = formatMoneyList(
@@ -213,7 +296,9 @@ export function UpcomingView() {
       contentContainerStyle={styles.listContent}
       sections={sections}
       stickySectionHeadersEnabled
-      keyExtractor={(c) => `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`}
+      keyExtractor={(c) =>
+        `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}-${c.paid ? "p" : c.skipped ? "s" : "u"}`
+      }
       ListHeaderComponent={header}
       ListEmptyComponent={
         <View style={styles.empty}>
@@ -254,8 +339,18 @@ export function UpcomingView() {
       renderItem={({ item }) => (
         <UpcomingRow
           charge={item}
-          overdue={item.dueDate < asOf}
+          overdue={item.dueDate < asOf && !item.paid && !item.skipped}
           showMarkPaid={canMark(item)}
+          paid={item.paid}
+          skipped={item.skipped}
+          onUndo={
+            item.undoable
+              ? () =>
+                  item.scheduleType === "INSTALLMENT"
+                    ? undoInstallmentPaid(item.paymentItemId)
+                    : undoPaid(item.paymentItemId)
+              : undefined
+          }
           onPress={() => router.push({ pathname: "/item", params: { id: item.paymentItemId } })}
           onMarkPaid={() =>
             item.scheduleType === "INSTALLMENT"
