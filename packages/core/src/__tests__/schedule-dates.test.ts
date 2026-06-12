@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 import {
   addRecurrence,
   alignToOccurrence,
+  anchorFromDate,
   calendarDate,
+  describeRecurrence,
   listOccurrenceDates,
   nextDueDate,
+  nthWeekdayOfMonth,
   RECURRENCE_PRESETS,
+  type RecurrenceRule,
 } from "../index";
 
 describe("addRecurrence", () => {
@@ -72,6 +76,65 @@ describe("listOccurrenceDates", () => {
       "2026-02-28",
       "2026-03-28",
     ]);
+  });
+});
+
+describe("weekday-anchored monthly rules", () => {
+  // June 2026: the 1st is a Monday; first Thursday = the 4th; last Thursday = the 25th.
+  const firstThursday: RecurrenceRule = {
+    unit: "month",
+    interval: 1,
+    anchor: { week: 1, weekday: 4 },
+  };
+
+  it("resolves the nth weekday of a month, including 'last'", () => {
+    expect(nthWeekdayOfMonth(calendarDate("2026-06-01"), { week: 1, weekday: 4 })).toBe(
+      "2026-06-04",
+    );
+    expect(nthWeekdayOfMonth(calendarDate("2026-06-15"), { week: 3, weekday: 1 })).toBe(
+      "2026-06-15", // 3rd Monday — any day of the month identifies it
+    );
+    expect(nthWeekdayOfMonth(calendarDate("2026-06-01"), { week: "last", weekday: 4 })).toBe(
+      "2026-06-25",
+    );
+  });
+
+  it("derives the anchor back from a date (5th occurrence → 'last')", () => {
+    expect(anchorFromDate(calendarDate("2026-06-04"))).toEqual({ week: 1, weekday: 4 });
+    expect(anchorFromDate(calendarDate("2026-06-15"))).toEqual({ week: 3, weekday: 1 });
+    // 2026-06-30 is the 5th Tuesday of June.
+    expect(anchorFromDate(calendarDate("2026-06-30"))).toEqual({ week: "last", weekday: 2 });
+  });
+
+  it("steps month to month landing on the anchor, not a clamped day", () => {
+    // 1st Thursday: Jun 4 → Jul 2 → Aug 6 (date-anchored would give 4, 4, 4).
+    const july = addRecurrence(calendarDate("2026-06-04"), firstThursday);
+    expect(july).toBe("2026-07-02");
+    expect(addRecurrence(july, firstThursday)).toBe("2026-08-06");
+
+    // Every 2 months on the last Friday: Jun 26 → Aug 28.
+    expect(
+      addRecurrence(calendarDate("2026-06-26"), {
+        unit: "month",
+        interval: 2,
+        anchor: { week: "last", weekday: 5 },
+      }),
+    ).toBe("2026-08-28");
+  });
+
+  it("threads the anchor through the occurrence grid", () => {
+    expect(listOccurrenceDates(calendarDate("2026-06-04"), firstThursday, 3)).toEqual([
+      "2026-06-04",
+      "2026-07-02",
+      "2026-08-06",
+    ]);
+  });
+
+  it("words anchored rules naturally", () => {
+    expect(describeRecurrence(firstThursday)).toBe("every 1st Thursday");
+    expect(
+      describeRecurrence({ unit: "month", interval: 2, anchor: { week: "last", weekday: 5 } }),
+    ).toBe("every 2 months on the last Friday");
   });
 });
 

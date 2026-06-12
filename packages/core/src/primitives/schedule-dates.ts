@@ -3,11 +3,40 @@
 // deliberately just *stepping* — finding the next due date — not forecasting or
 // budget-smoothing, which stay deferred to the §7 calculation milestone.
 
-import type { RecurrenceRule } from "./recurrence";
+import type { MonthlyAnchor, RecurrenceRule } from "./recurrence";
 import { calendarDate, type CalendarDate } from "./temporal";
 
 function pad(n: number): string {
   return String(n).padStart(2, "0");
+}
+
+function weekdayOf(date: CalendarDate): number {
+  const [y, m, d] = date.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
+/** Resolve an anchor inside a given month: "1st Thursday of 2026-06". */
+export function nthWeekdayOfMonth(monthOf: CalendarDate, anchor: MonthlyAnchor): CalendarDate {
+  const [y, m] = monthOf.split("-").map(Number);
+  if (anchor.week === "last") {
+    const lastDay = new Date(Date.UTC(y, m, 0)); // day 0 of next month
+    const back = (lastDay.getUTCDay() - anchor.weekday + 7) % 7;
+    return calendarDate(`${y}-${pad(m)}-${pad(lastDay.getUTCDate() - back)}`);
+  }
+  const first = new Date(Date.UTC(y, m - 1, 1));
+  const forward = (anchor.weekday - first.getUTCDay() + 7) % 7;
+  return calendarDate(`${y}-${pad(m)}-${pad(1 + forward + (anchor.week - 1) * 7)}`);
+}
+
+/** Which weekday-of-its-month a date is — the inverse of `nthWeekdayOfMonth`.
+ *  A 5th occurrence derives as "last" (there is no "5th Thursday" anchor). */
+export function anchorFromDate(date: CalendarDate): MonthlyAnchor {
+  const day = Number(date.slice(8, 10));
+  const occurrence = Math.ceil(day / 7);
+  return {
+    week: occurrence >= 5 ? "last" : (occurrence as 1 | 2 | 3 | 4),
+    weekday: weekdayOf(date) as MonthlyAnchor["weekday"],
+  };
 }
 
 /**
@@ -31,6 +60,16 @@ export function addRecurrence(date: CalendarDate, rule: RecurrenceRule): Calenda
   const totalMonths = m - 1 + monthsToAdd;
   const targetYear = y + Math.floor(totalMonths / 12);
   const targetMonth = totalMonths % 12; // 0-based
+
+  // Weekday-anchored monthly rules resolve "1st Thursday" in the target
+  // month instead of clamping a day number.
+  if (rule.unit === "month" && rule.anchor) {
+    return nthWeekdayOfMonth(
+      calendarDate(`${targetYear}-${pad(targetMonth + 1)}-01`),
+      rule.anchor,
+    );
+  }
+
   // Day 0 of the *next* month gives the last day of the target month.
   const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
   const clampedDay = Math.min(d, daysInTargetMonth);

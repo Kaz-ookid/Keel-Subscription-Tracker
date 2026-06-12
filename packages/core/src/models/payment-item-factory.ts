@@ -8,8 +8,16 @@ import type { BnplProviderId } from "../constants/bnpl-providers";
 import { splitMoney, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
-import { addRecurrence, alignToOccurrence } from "../primitives/schedule-dates";
+import { addRecurrence, alignToOccurrence, nthWeekdayOfMonth } from "../primitives/schedule-dates";
 import type { CalendarDate, Timestamp } from "../primitives/temporal";
+
+/** A weekday-anchored rule's grid must START on the anchor — snap the chosen
+ *  first date to its month's anchored day (a no-op when already matching). */
+function snapToAnchor(first: CalendarDate, recurrence: RecurrenceRule): CalendarDate {
+  return recurrence.unit === "month" && recurrence.anchor
+    ? nthWeekdayOfMonth(first, recurrence.anchor)
+    : first;
+}
 import type { Installment } from "./installment";
 import type {
   InstallmentSchedule,
@@ -40,21 +48,22 @@ export interface MakeContext {
 
 /** Build a valid, active RECURRING PaymentItem from form input. */
 export function makeRecurringPaymentItem(input: NewRecurringInput, ctx: MakeContext): PaymentItem {
+  const firstChargeDate = snapToAnchor(input.firstChargeDate, input.recurrence);
   const schedule: RecurringSchedule = {
     kind: "RECURRING",
     recurrence: input.recurrence,
     amount: input.amount,
-    firstChargeDate: input.firstChargeDate,
+    firstChargeDate,
     // The first charge hasn't happened yet, so the next one due IS the first.
-    nextChargeDate: input.firstChargeDate,
+    nextChargeDate: firstChargeDate,
     // The end date is a *last billing* date, so it must sit on the billing
     // grid — snap it to the latest occurrence ≤ the supplied date. Updates
     // rebuild through here, so editing the cycle realigns a stored end date.
     endDate: input.endDate
-      ? alignToOccurrence(input.firstChargeDate, input.recurrence, input.endDate)
+      ? alignToOccurrence(firstChargeDate, input.recurrence, input.endDate)
       : undefined,
     // Seed price history with the opening amount so later changes stay accurate.
-    priceHistory: [{ amount: input.amount, effectiveFrom: input.firstChargeDate }],
+    priceHistory: [{ amount: input.amount, effectiveFrom: firstChargeDate }],
   };
 
   return {
@@ -110,8 +119,9 @@ export function makeInstallmentPaymentItem(
   const n = Math.max(1, Math.floor(input.numberOfInstallments));
   const parts = splitMoney(input.totalAmount, n);
 
+  const firstInstallmentDate = snapToAnchor(input.firstInstallmentDate, input.recurrence);
   const installments: Installment[] = [];
-  let due = input.firstInstallmentDate;
+  let due = firstInstallmentDate;
   for (let i = 0; i < n; i++) {
     installments.push({
       id: ctx.makeId(),
@@ -129,7 +139,7 @@ export function makeInstallmentPaymentItem(
     totalAmount: input.totalAmount,
     numberOfInstallments: n,
     recurrence: input.recurrence,
-    firstInstallmentDate: input.firstInstallmentDate,
+    firstInstallmentDate,
     installments,
     provider: input.provider,
   };
