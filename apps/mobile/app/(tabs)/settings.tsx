@@ -5,17 +5,27 @@
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { APP_NAME } from "../../src/constants";
 import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts } = useAppState();
+  const { accounts, clearAllData } = useAppState();
+
+  const confirmClear = () =>
+    Alert.alert(
+      "Clear all data",
+      "Every subscription, payment, category and account will be deleted. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete everything", style: "destructive", onPress: clearAllData },
+      ],
+    );
 
   return (
     <View style={styles.screen}>
@@ -25,6 +35,14 @@ export default function SettingsScreen() {
           <Text style={styles.rowText}>Accounts</Text>
           <Text style={styles.rowValue}>{accounts.length || ""}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+      </View>
+
+      {/* Debug, for dogfooding: a clean slate in one (well-guarded) tap. */}
+      <View style={styles.card}>
+        <Pressable style={styles.row} onPress={confirmClear}>
+          <SymbolView name="trash.fill" size={20} tintColor={tones.danger} />
+          <Text style={[styles.rowText, styles.dangerText]}>Clear all data</Text>
         </Pressable>
       </View>
 
@@ -60,6 +78,9 @@ function createStyles(colors: ThemeColors) {
     rowValue: {
       ...typography.body,
       color: colors.mutedText,
+    },
+    dangerText: {
+      color: tones.danger,
     },
     footer: {
       ...typography.caption,

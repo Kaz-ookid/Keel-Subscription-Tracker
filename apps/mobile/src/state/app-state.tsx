@@ -88,6 +88,8 @@ interface AppStateValue {
   updateAccount: (id: string, input: NewAccountInput) => void;
   /** Soft delete — keeps history pointing at it, hides it everywhere. */
   archiveAccount: (id: string) => void;
+  /** Debug/testing: wipe every item, ledger entry, category and account. */
+  clearAllData: () => void;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -276,6 +278,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, isArchived: true } : a)));
     };
 
+    const clearAllData = () => {
+      setItems([]);
+      setOccurrences([]);
+      setCustomCategories([]);
+      setAccounts([]);
+    };
+
     return {
       items,
       occurrences,
@@ -298,6 +307,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addAccount,
       updateAccount,
       archiveAccount,
+      clearAllData,
     };
   }, [items, occurrences, customCategories, accounts, loading]);
 
