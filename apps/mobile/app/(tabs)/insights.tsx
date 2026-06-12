@@ -1,29 +1,34 @@
-// Insights: the full picture. REAL money (what actually leaves, month by
-// month) is never conflated with THEORY (what life costs once yearly and
-// quarterly items are spread out) — every number is labelled as one or the
-// other. All math comes from @keel/core; this screen only formats.
+// Insights: the full picture. Unlabelled numbers are real money; only the
+// THEORY side (averages that spread yearly/quarterly items) is marked as
+// such. All math comes from @keel/core; this screen only formats.
 
 import {
   calendarDate,
   describeRecurrence,
+  endOfMonth,
+  formatCalendarDate,
   formatMoney,
   formatMoneyList,
   groupByCadence,
   money,
+  projectCharges,
   spendingByMonth,
   summarizeCommitments,
   sumByCurrency,
   today,
   yearlyCommitment,
+  type CalendarDate,
   type CurrencyCode,
+  type Money,
 } from "@keel/core";
-import { useMemo } from "react";
+import { SymbolView } from "expo-symbols";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../../src/components/HeroCard";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 const MONTH_SHORT = [
   "Jan",
@@ -54,14 +59,35 @@ const MONTH_FULL = [
   "December",
 ];
 
+// The chart's slide range: two years back, two years ahead. Plenty of runway
+// in both directions while staying a cheap, plain-View render.
+const MONTHS_BACK = 24;
+const MONTHS_AHEAD = 24;
+
+function monthShifted(asOf: CalendarDate, delta: number): CalendarDate {
+  const total = Number(asOf.slice(0, 4)) * 12 + (Number(asOf.slice(5, 7)) - 1) + delta;
+  const y = Math.floor(total / 12);
+  const m = (total % 12) + 1;
+  return calendarDate(`${y}-${String(m).padStart(2, "0")}-01`);
+}
+
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+interface MonthDetail {
+  key: string;
+  name: string;
+  dueDate: CalendarDate;
+  amount: Money;
+  kind: "paid" | "upcoming" | "overdue";
 }
 
 export default function InsightsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, loading } = useAppState();
+  const [selected, setSelected] = useState(MONTHS_BACK);
 
   if (loading) {
     return (
@@ -72,22 +98,25 @@ export default function InsightsScreen() {
   }
 
   const asOf = today();
-  // The calendar year: past months from the payment ledger (what was actually
-  // paid — survives pausing), future months projected, unpaid overdue charges
-  // still standing in the month they were due.
-  const todayIndex = Number(asOf.slice(5, 7)) - 1;
-  const buckets = spendingByMonth(
-    items,
-    occurrences,
-    calendarDate(`${asOf.slice(0, 4)}-01-01`),
-    12,
-  );
+  const windowStart = monthShifted(asOf, -MONTHS_BACK);
+  const windowMonths = MONTHS_BACK + 1 + MONTHS_AHEAD;
+  const windowEnd = endOfMonth(monthShifted(asOf, MONTHS_AHEAD));
+
+  // Past months read from the payment ledger (what was actually paid — it
+  // survives pausing and editing); the future is projected; an unpaid charge
+  // stays standing in the month it was due until it's ticked off or skipped.
+  const buckets = spendingByMonth(items, occurrences, windowStart, windowMonths);
+  const todayIndex = MONTHS_BACK;
+
   const commitments = summarizeCommitments(items, asOf);
   const yearlyTheory = yearlyCommitment(items, asOf);
   const cadences = groupByCadence(items, asOf);
 
-  // REAL: the whole year — actuals so far plus everything still to come.
-  const yearReal = sumByCurrency(buckets.flatMap((b) => b.totals));
+  // The headline stays the calendar year, carved out of the wide window.
+  const year = asOf.slice(0, 4);
+  const yearReal = sumByCurrency(
+    buckets.filter((b) => b.monthStart.slice(0, 4) === year).flatMap((b) => b.totals),
+  );
 
   if (yearReal.length === 0 && yearlyTheory.length === 0) {
     return (
@@ -109,7 +138,8 @@ export default function InsightsScreen() {
     const m = Number(b.monthStart.slice(5, 7)) - 1;
     const amount = inPrimary(b.totals);
     return {
-      label: MONTH_SHORT[m],
+      // Januaries carry a year hint so sliding never loses the reader.
+      label: m === 0 ? `${MONTH_SHORT[0]} ${b.monthStart.slice(2, 4)}` : MONTH_SHORT[m],
       name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
       amount,
       formatted: formatMoney(money(amount, primary)),
@@ -121,10 +151,37 @@ export default function InsightsScreen() {
   const thisMonthReal = buckets[todayIndex].totals;
   const yearlyTotalPrimary = Math.max(inPrimary(yearlyTheory), 1);
 
+  // The selected month's payments, one light card — ledger entries plus
+  // projections, each with its due date (overdue ones marked as such).
+  const itemNames = new Map(items.map((i) => [i.id, i.name]));
+  const projected = projectCharges(items, windowEnd);
+  const selectedKey = buckets[selected]?.monthStart.slice(0, 7);
+  const details: MonthDetail[] = [
+    ...occurrences
+      .filter((o) => o.status === "charged" && o.dueDate.slice(0, 7) === selectedKey)
+      .map((o) => ({
+        key: o.id,
+        name: itemNames.get(o.paymentItemId) ?? "(removed)",
+        dueDate: o.dueDate,
+        amount: o.amount,
+        kind: "paid" as const,
+      })),
+    ...projected
+      .filter((c) => c.dueDate.slice(0, 7) === selectedKey)
+      .map((c) => ({
+        key: `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
+        name: c.name,
+        dueDate: c.dueDate,
+        amount: c.amount,
+        kind: (c.dueDate < asOf ? "overdue" : "upcoming") as MonthDetail["kind"],
+      })),
+  ].sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
+  const DETAIL_CAP = 8;
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
-        label={asOf.slice(0, 4)}
+        label={year}
         amount={yearReal.length > 0 ? formatMoneyList(yearReal) : "Nothing planned"}
         sub={
           yearlyTheory.length > 0
@@ -156,7 +213,49 @@ export default function InsightsScreen() {
         average={averageTheory}
         averageFormatted={formatMoney(money(averageTheory, primary))}
         todayIndex={todayIndex}
+        selected={selected}
+        onSelect={setSelected}
       />
+
+      {/* The tapped month's payments — light, in place, no extra screen. */}
+      {details.length > 0 && (
+        <View style={styles.detailCard}>
+          {details.slice(0, DETAIL_CAP).map((d) => (
+            <View key={d.key} style={styles.detailRow}>
+              <SymbolView
+                name={
+                  d.kind === "paid"
+                    ? "checkmark.circle.fill"
+                    : d.kind === "overdue"
+                      ? "exclamationmark.circle"
+                      : "clock"
+                }
+                size={14}
+                tintColor={
+                  d.kind === "paid"
+                    ? tones.success
+                    : d.kind === "overdue"
+                      ? tones.warning
+                      : colors.mutedText
+                }
+              />
+              <Text style={styles.detailName} numberOfLines={1}>
+                {d.name}
+              </Text>
+              <Text style={[styles.detailDate, d.kind === "overdue" && { color: tones.warning }]}>
+                {d.kind === "overdue"
+                  ? `due ${formatCalendarDate(d.dueDate)}`
+                  : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
+              </Text>
+              <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
+            </View>
+          ))}
+          {details.length > DETAIL_CAP && (
+            <Text style={styles.detailMore}>+ {details.length - DETAIL_CAP} more</Text>
+          )}
+        </View>
+      )}
+
       {otherCurrencies.length > 0 && (
         <Text style={styles.note}>+ {formatMoneyList(otherCurrencies)} this year not charted</Text>
       )}
@@ -252,6 +351,40 @@ function createStyles(colors: ThemeColors) {
     statHint: {
       ...typography.caption,
       color: colors.mutedText,
+    },
+    detailCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+    },
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    detailName: {
+      ...typography.caption,
+      color: colors.text,
+      flex: 1,
+    },
+    detailDate: {
+      ...typography.caption,
+      color: colors.mutedText,
+    },
+    detailAmount: {
+      ...typography.caption,
+      color: colors.text,
+      fontWeight: "600",
+    },
+    detailMore: {
+      ...typography.caption,
+      color: colors.mutedText,
+      textAlign: "center",
+      paddingVertical: spacing.sm,
     },
     note: {
       ...typography.caption,

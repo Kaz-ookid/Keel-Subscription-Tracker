@@ -1,10 +1,10 @@
-import { useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useMemo } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 
 export interface YearChartMonth {
-  /** Short label under the bar, e.g. "Jun". */
+  /** Short label under the bar, e.g. "Jun" (Januaries carry a year hint). */
   label: string;
   /** Full name for the readout, e.g. "June 2026". */
   name: string;
@@ -19,26 +19,41 @@ interface Props {
   /** The theoretical monthly average in minor units — drawn as a dashed line. */
   average: number;
   averageFormatted: string;
-  /** Bars before this index are the past (already paid) — drawn muted. */
-  todayIndex?: number;
+  /** Index of the current month — a thin "now" landmark sits after its bar:
+   *  everything right of it is calculated future, left is the past. */
+  todayIndex: number;
+  selected: number;
+  onSelect: (index: number) => void;
 }
 
 const CHART_HEIGHT = 140;
+const COL_WIDTH = 30;
+const COL_GAP = 4;
+const SLOT = COL_WIDTH + COL_GAP;
 
 /**
- * Twelve bars of REAL monthly outflow with a dashed line at the THEORY
- * average. Past months (muted) show what was actually paid; calm future
- * months sit under the line and the bar spiking above it is the yearly fee.
- * Tap a bar to read the exact month.
+ * A horizontally scrollable run of months — slide freely through past and
+ * future. Real outflow as bars, the theory average as a dashed line, and a
+ * thin "now" landmark separating what happened from what is calculated.
+ * Tap a bar to inspect that month.
  */
-export function YearChart({ months, average, averageFormatted, todayIndex = 0 }: Props) {
+export function YearChart({
+  months,
+  average,
+  averageFormatted,
+  todayIndex,
+  selected,
+  onSelect,
+}: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [selected, setSelected] = useState(todayIndex);
 
   const max = Math.max(average, ...months.map((m) => m.amount), 1);
   const averageY = (average / max) * CHART_HEIGHT;
   const current = months[selected];
+  const contentWidth = months.length * SLOT;
+  // Open with the current month in view, a little history to its left.
+  const initialX = Math.max(0, (todayIndex - 4) * SLOT);
 
   return (
     <View style={styles.card}>
@@ -47,54 +62,66 @@ export function YearChart({ months, average, averageFormatted, todayIndex = 0 }:
         <Text style={styles.readoutAmount}>{current?.formatted}</Text>
       </View>
 
-      <View style={styles.chartArea}>
-        {/* Dashed theory-average line (drawn as segments — reliable everywhere). */}
-        {average > 0 && (
-          <View style={[styles.averageLine, { bottom: averageY }]} pointerEvents="none">
-            {Array.from({ length: 24 }, (_, i) => (
-              <View key={i} style={styles.dash} />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentOffset={{ x: initialX, y: 0 }}
+      >
+        <View style={{ width: contentWidth }}>
+          <View style={styles.chartArea}>
+            {/* Dashed theory-average line (drawn as segments — reliable everywhere). */}
+            {average > 0 && (
+              <View style={[styles.averageLine, { bottom: averageY }]} pointerEvents="none">
+                {Array.from({ length: months.length * 3 }, (_, i) => (
+                  <View key={i} style={styles.dash} />
+                ))}
+              </View>
+            )}
+
+            {/* The "now" landmark: future lies to the right of this line. */}
+            <View
+              style={[styles.todayLine, { left: (todayIndex + 1) * SLOT - COL_GAP / 2 - 1 }]}
+              pointerEvents="none"
+            />
+
+            <View style={styles.bars}>
+              {months.map((m, i) => {
+                const height = Math.max((m.amount / max) * CHART_HEIGHT, m.amount > 0 ? 3 : 2);
+                const spiking = average > 0 && m.amount > average;
+                return (
+                  <Pressable key={m.name} style={styles.column} onPress={() => onSelect(i)}>
+                    <View
+                      style={[
+                        styles.bar,
+                        {
+                          height,
+                          backgroundColor: spiking ? tones.warning : colors.accent,
+                          opacity: i === selected ? 1 : 0.55,
+                        },
+                      ]}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.labels}>
+            {months.map((m, i) => (
+              <Text
+                key={m.name}
+                style={[
+                  styles.label,
+                  i === selected && { color: colors.text, fontWeight: "700" },
+                  i === todayIndex && { color: colors.accent, fontWeight: "700" },
+                ]}
+              >
+                {m.label}
+              </Text>
             ))}
           </View>
-        )}
-
-        <View style={styles.bars}>
-          {months.map((m, i) => {
-            const height = Math.max((m.amount / max) * CHART_HEIGHT, m.amount > 0 ? 3 : 2);
-            const spiking = average > 0 && m.amount > average;
-            // The past is fact: muted, never warning-tinted.
-            const past = i < todayIndex;
-            return (
-              <Pressable key={m.name} style={styles.column} onPress={() => setSelected(i)}>
-                <View
-                  style={[
-                    styles.bar,
-                    {
-                      height,
-                      backgroundColor: past
-                        ? colors.mutedText
-                        : spiking
-                          ? tones.warning
-                          : colors.accent,
-                      opacity: i === selected ? 1 : 0.55,
-                    },
-                  ]}
-                />
-              </Pressable>
-            );
-          })}
         </View>
-      </View>
-
-      <View style={styles.labels}>
-        {months.map((m, i) => (
-          <Text
-            key={m.name}
-            style={[styles.label, i === selected && { color: colors.text, fontWeight: "700" }]}
-          >
-            {m.label}
-          </Text>
-        ))}
-      </View>
+      </ScrollView>
 
       <View style={styles.legend}>
         <View style={styles.legendDashes}>
@@ -103,12 +130,8 @@ export function YearChart({ months, average, averageFormatted, todayIndex = 0 }:
           ))}
         </View>
         <Text style={styles.legendText}>theory average · {averageFormatted}/mo</Text>
-        {todayIndex > 0 && (
-          <>
-            <View style={[styles.legendSwatch, { backgroundColor: colors.mutedText }]} />
-            <Text style={styles.legendText}>paid</Text>
-          </>
-        )}
+        <View style={styles.legendTodayLine} />
+        <Text style={styles.legendText}>now</Text>
       </View>
     </View>
   );
@@ -142,11 +165,11 @@ function createStyles(colors: ThemeColors) {
     bars: {
       flexDirection: "row",
       alignItems: "flex-end",
-      gap: 4,
+      gap: COL_GAP,
       height: CHART_HEIGHT,
     },
     column: {
-      flex: 1,
+      width: COL_WIDTH,
       height: CHART_HEIGHT,
       justifyContent: "flex-end",
     },
@@ -161,6 +184,15 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       zIndex: 1,
     },
+    todayLine: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      width: 2,
+      borderRadius: 1,
+      backgroundColor: colors.mutedText,
+      opacity: 0.45,
+    },
     dash: {
       width: 8,
       height: 2,
@@ -169,10 +201,10 @@ function createStyles(colors: ThemeColors) {
     },
     labels: {
       flexDirection: "row",
-      gap: 4,
+      gap: COL_GAP,
     },
     label: {
-      flex: 1,
+      width: COL_WIDTH,
       textAlign: "center",
       fontSize: 9,
       color: colors.mutedText,
@@ -186,10 +218,12 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       gap: 3,
     },
-    legendSwatch: {
-      width: 8,
-      height: 8,
-      borderRadius: 2,
+    legendTodayLine: {
+      width: 2,
+      height: 10,
+      borderRadius: 1,
+      backgroundColor: colors.mutedText,
+      opacity: 0.45,
       marginLeft: spacing.sm,
     },
     legendText: {
