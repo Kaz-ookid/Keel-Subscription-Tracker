@@ -1,9 +1,11 @@
 // Debug seed: a realistic household of commitments with REAL history and
 // future, built through the same core functions the app uses (accrual fills
 // the automatic ledger; manual months are paid/skipped one by one; BNPL plans
-// are part-paid). Exercises every state the UI can show: overdue, paid fold,
-// skip, pause, ended, finished plan, yearly spikes past and future, and a
-// second currency.
+// are part-paid). Most entries come straight from the brand bank — so logos,
+// brand colors and domains exercise the BrandBadge everywhere — plus a few
+// custom ones (the letter-badge path). Covers every state the UI can show:
+// overdue, paid fold, skip, pause, ended, finished plan, yearly spikes past
+// and future, and a second currency.
 
 import {
   accrueDueOccurrences,
@@ -17,6 +19,7 @@ import {
   pausePaymentItem,
   recordRecurringPayment,
   skipRecurringPayment,
+  SUGGESTED_COMMITMENTS,
   today,
   type Account,
   type CalendarDate,
@@ -39,6 +42,14 @@ function monthShift(asOf: CalendarDate, delta: number, day: number): CalendarDat
   const m = String((total % 12) + 1).padStart(2, "0");
   const last = Number(endOfMonth(calendarDate(`${y}-${m}-01`)).slice(8, 10));
   return calendarDate(`${y}-${m}-${String(Math.min(day, last)).padStart(2, "0")}`);
+}
+
+/** Name, category, brand color and domain straight from the bank — sample
+ *  items created from it look exactly like ones picked in the real flow. */
+function bank(id: string) {
+  const s = SUGGESTED_COMMITMENTS.find((b) => b.id === id);
+  if (!s) throw new Error(`sample data references unknown bank id "${id}"`);
+  return { name: s.name, categoryId: s.categoryId, color: s.color, domain: s.domain };
 }
 
 export function buildSampleData(): SampleData {
@@ -108,78 +119,88 @@ export function buildSampleData(): SampleData {
   const monthly = { unit: "month" as const, interval: 1 };
   const yearly = { unit: "year" as const, interval: 1 };
 
+  // ── From the bank (logos + brand colors) ─────────────────────────────
   addAuto({
-    name: "Netflix",
+    ...bank("netflix"),
     amount: chf(18.9),
     recurrence: monthly,
     firstChargeDate: monthShift(asOf, -14, 14),
     settlementMode: "automatic",
     accountId: bcv.id,
-    categoryId: "streaming",
-    color: "#EF4444",
   });
 
   addAuto({
-    name: "Halle Fitness",
+    ...bank("swisscom"),
+    amount: chf(49.9),
+    recurrence: monthly,
+    firstChargeDate: monthShift(asOf, -11, 2),
+    settlementMode: "automatic",
+    accountId: bcv.id,
+  });
+
+  addAuto({
+    ...bank("activ-fitness"),
     amount: chf(49),
     recurrence: monthly,
     firstChargeDate: monthShift(asOf, -10, 1),
     settlementMode: "automatic",
     accountId: bcv.id,
-    categoryId: "health",
-    color: "#22C55E",
   });
 
   // Yearly, anniversary two months ago → a PAST spike in the chart.
   addAuto({
-    name: "Serafe",
+    ...bank("serafe"),
     amount: chf(335),
     recurrence: yearly,
     firstChargeDate: monthShift(asOf, -14, 20),
     settlementMode: "automatic",
     accountId: bcv.id,
-    categoryId: "utilities",
-    color: "#F59E0B",
   });
 
   // Yearly, due in three months → a FUTURE spike.
   addAuto({
-    name: "Adobe Lightroom",
-    amount: chf(65),
+    ...bank("amazon-prime"),
+    amount: chf(55),
     recurrence: yearly,
     firstChargeDate: monthShift(asOf, 3, 8),
     settlementMode: "automatic",
     accountId: bcv.id,
-    categoryId: "software",
-    color: "#8B5CF6",
   });
 
   // Second currency, on the EUR account.
   addAuto({
-    name: "iCloud+",
+    ...bank("icloud"),
     amount: eur(2.99),
     recurrence: monthly,
     firstChargeDate: monthShift(asOf, -12, 7),
     settlementMode: "automatic",
     accountId: revolut.id,
-    categoryId: "software",
-    color: "#60A5FA",
   });
 
   // Manual, paid every month so far except the current one → due/overdue now.
   addManual(
     {
-      name: "Spotify",
+      ...bank("spotify"),
       amount: chf(10.9),
       recurrence: monthly,
       firstChargeDate: monthShift(asOf, -8, 3),
       settlementMode: "manual",
-      categoryId: "streaming",
-      color: "#10B981",
     },
     ["pay", "pay", "pay", "pay", "pay", "pay", "pay", "pay"],
   );
 
+  // Ended two months ago: accrual logs its run, then completes it.
+  addAuto({
+    ...bank("canal-plus"),
+    amount: chf(29.95),
+    recurrence: monthly,
+    firstChargeDate: monthShift(asOf, -9, 25),
+    endDate: monthShift(asOf, -2, 25),
+    settlementMode: "automatic",
+    accountId: bcv.id,
+  });
+
+  // ── Custom commitments (the letter-badge path) ───────────────────────
   // The flexible commitment: mostly paid, one month deliberately skipped.
   addManual(
     {
@@ -188,7 +209,7 @@ export function buildSampleData(): SampleData {
       recurrence: monthly,
       firstChargeDate: monthShift(asOf, -6, 28),
       settlementMode: "manual",
-      categoryId: "other",
+      categoryId: "finance",
       color: "#0B1E3F",
     },
     ["pay", "pay", "skip", "pay", "pay"],
@@ -234,7 +255,7 @@ export function buildSampleData(): SampleData {
   items.push(sofa);
 
   // Paused: kept, parked, excluded from forecasts.
-  const gym = makeRecurringPaymentItem(
+  const yoga = makeRecurringPaymentItem(
     {
       name: "Yoga studio",
       amount: chf(39),
@@ -246,20 +267,7 @@ export function buildSampleData(): SampleData {
     },
     { id: randomUUID(), now: now() },
   );
-  items.push(pausePaymentItem(gym, { now: now() }));
-
-  // Ended two months ago: accrual logs its run, then completes it.
-  addAuto({
-    name: "Canal+",
-    amount: chf(29.95),
-    recurrence: monthly,
-    firstChargeDate: monthShift(asOf, -9, 25),
-    endDate: monthShift(asOf, -2, 25),
-    settlementMode: "automatic",
-    accountId: bcv.id,
-    categoryId: "streaming",
-    color: "#6B7280",
-  });
+  items.push(pausePaymentItem(yoga, { now: now() }));
 
   return { items, occurrences, accounts: [bcv, revolut] };
 }
