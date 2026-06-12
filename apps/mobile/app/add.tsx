@@ -1,8 +1,12 @@
-// The Add/Edit modal: pure composition. All state, derived values and submit
-// logic live in useAddForm; the sections and sheets render the same `form`.
+// The Add/Edit modal. A fresh add starts on a chooser — pick from the brand
+// bank (pre-fills name, category, brand color, logo, cadence) or start from
+// scratch. Editing and the To-complete flow skip straight to the form. The
+// form itself is pure composition: all state, derived values and submit logic
+// live in useAddForm; the sections and sheets render the same `form`.
 
-import { Stack } from "expo-router";
-import { useMemo } from "react";
+import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AmountSection } from "../src/components/add-form/AmountSection";
@@ -10,6 +14,8 @@ import { DetailsSection, MetaSection } from "../src/components/add-form/DetailsS
 import { FormSheets } from "../src/components/add-form/FormSheets";
 import { ScheduleSection } from "../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../src/components/add-form/useAddForm";
+import { SuggestionPicker } from "../src/components/SuggestionPicker";
+import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const PLAN_TYPES: { value: PlanType; label: string }[] = [
@@ -18,9 +24,61 @@ const PLAN_TYPES: { value: PlanType; label: string }[] = [
 ];
 
 export default function AddScreen() {
+  const { id, suggestionId } = useLocalSearchParams<{ id?: string; suggestionId?: string }>();
+  // Editing and the To-complete flow arrive with the answer already known.
+  const direct = !!id || !!suggestionId;
+  const [chosen, setChosen] = useState<SuggestedCommitment | undefined>(undefined);
+  const [phase, setPhase] = useState<"choose" | "form">(direct ? "form" : "choose");
+
+  if (phase === "choose") {
+    return (
+      <ChoosePhase
+        onPick={(s) => {
+          setChosen(s);
+          setPhase("form");
+        }}
+        onCustom={() => setPhase("form")}
+      />
+    );
+  }
+  // Mounted only after the choice — the form hook initialises its state once.
+  return <FormPhase prefill={chosen} />;
+}
+
+/** Pick a known brand, or bail out to a blank form. Already-tracked names are
+ *  hidden (no accidental duplicates); pending ones stay — saving clears them. */
+function ChoosePhase({
+  onPick,
+  onCustom,
+}: {
+  onPick: (s: SuggestedCommitment) => void;
+  onCustom: () => void;
+}) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const form = useAddForm();
+  const { items } = useAppState();
+
+  const bank = useMemo(() => {
+    const taken = new Set(items.map((i) => i.name.trim().toLowerCase()));
+    return SUGGESTED_COMMITMENTS.filter((s) => !taken.has(s.name.toLowerCase()));
+  }, [items]);
+
+  return (
+    <View style={styles.screen}>
+      <Stack.Screen options={{ title: "New commitment", headerRight: undefined }} />
+      <Pressable style={styles.customRow} onPress={onCustom}>
+        <Text style={styles.customText}>Start from scratch</Text>
+        <Text style={styles.customHint}>type everything yourself</Text>
+      </Pressable>
+      <SuggestionPicker suggestions={bank} onPick={onPick} />
+    </View>
+  );
+}
+
+function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const form = useAddForm(prefill);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -67,6 +125,27 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.md, paddingBottom: spacing.xl },
+    customRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: spacing.sm,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+      margin: spacing.md,
+      marginBottom: spacing.sm,
+    },
+    customText: {
+      ...typography.label,
+      color: colors.text,
+    },
+    customHint: {
+      ...typography.caption,
+      color: colors.mutedText,
+    },
     modeSwitch: {
       flexDirection: "row",
       backgroundColor: colors.surface,

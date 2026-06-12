@@ -76,9 +76,24 @@ function fromCalendarDate(date: CalendarDate): Date {
 
 export type AddForm = ReturnType<typeof useAddForm>;
 
-export function useAddForm() {
+/** A brand-bank entry's pre-fillable fields — route params (the To-complete
+ *  flow) and an in-screen pick (the Add flow's chooser) share this shape. */
+export interface SuggestionPrefill {
+  readonly id?: string;
+  readonly name?: string;
+  readonly categoryId?: string;
+  readonly unit?: string;
+  readonly color?: string;
+  readonly domain?: string;
+}
+
+export function useAddForm(prefill?: SuggestionPrefill) {
   const router = useRouter();
-  const { id, suggestionId, ...suggested } = useLocalSearchParams<{
+  const {
+    id,
+    suggestionId: suggestionIdParam,
+    ...suggested
+  } = useLocalSearchParams<{
     id?: string;
     // Set when arriving from the To-complete list: pre-fill, then clear the
     // pending entry on a successful save.
@@ -103,7 +118,14 @@ export function useAddForm() {
   // When an `id` is passed we're editing an existing item; pre-fill from it.
   const editItem = id ? items.find((i) => i.id === id) : undefined;
   const isEditing = !!editItem;
-  const suggestion = !editItem && suggestionId ? suggested : undefined;
+  // Route params (To-complete flow) win over an in-screen pick; neither
+  // applies when editing. Saving clears any matching pending entry.
+  const suggestion: SuggestionPrefill | undefined = editItem
+    ? undefined
+    : suggestionIdParam
+      ? suggested
+      : prefill;
+  const suggestionId = editItem ? undefined : (suggestionIdParam ?? prefill?.id);
   const editRec =
     editItem && isRecurringSchedule(editItem.schedule) ? editItem.schedule : undefined;
   const editInst =
@@ -263,8 +285,9 @@ export function useAddForm() {
       if (editItem) updateSubscription(editItem.id, input);
       else addSubscription(input);
     }
-    // The suggestion is now a real commitment — its To-complete row retires.
-    if (suggestion && suggestionId) removePendingSuggestion(suggestionId);
+    // The suggestion is now a real commitment — its To-complete row retires
+    // (a no-op when it was never pending, e.g. picked in the Add flow).
+    if (suggestionId) removePendingSuggestion(suggestionId);
     router.back();
   };
 

@@ -21,8 +21,11 @@ import { BrandBadge } from "./BrandBadge";
 interface Props {
   /** Already deduped against tracked items + pending entries by the caller. */
   suggestions: readonly SuggestedCommitment[];
-  /** Fired with everything checked when the user confirms. */
-  onAdd: (selected: SuggestedCommitment[]) => void;
+  /** Checklist mode: fired with everything checked when the user confirms. */
+  onAdd?: (selected: SuggestedCommitment[]) => void;
+  /** Single-select mode (the Add flow): a row tap picks immediately —
+   *  no checkmarks, no confirm button. Takes precedence over onAdd. */
+  onPick?: (suggestion: SuggestedCommitment) => void;
 }
 
 interface Section {
@@ -41,7 +44,7 @@ function matches(s: SuggestedCommitment, query: string): boolean {
   );
 }
 
-export function SuggestionPicker({ suggestions, onAdd }: Props) {
+export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
@@ -79,7 +82,7 @@ export function SuggestionPicker({ suggestions, onAdd }: Props) {
 
   const confirm = () => {
     const selected = suggestions.filter((s) => checked.has(s.id));
-    if (selected.length > 0) onAdd(selected);
+    if (selected.length > 0) onAdd?.(selected);
   };
 
   return (
@@ -116,7 +119,7 @@ export function SuggestionPicker({ suggestions, onAdd }: Props) {
         renderItem={({ item }) => {
           const isChecked = checked.has(item.id);
           return (
-            <Pressable style={styles.row} onPress={() => toggle(item.id)}>
+            <Pressable style={styles.row} onPress={() => (onPick ? onPick(item) : toggle(item.id))}>
               <BrandBadge
                 domain={item.domain}
                 icon={item.color ? undefined : CATEGORY_ICONS.get(item.categoryId ?? "")}
@@ -132,27 +135,33 @@ export function SuggestionPicker({ suggestions, onAdd }: Props) {
                   usually {item.unit === "month" ? "monthly" : "yearly"}
                 </Text>
               </View>
-              <SymbolView
-                name={isChecked ? "checkmark.circle.fill" : "circle"}
-                size={24}
-                tintColor={isChecked ? colors.accent : colors.border}
-              />
+              {onPick ? (
+                <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+              ) : (
+                <SymbolView
+                  name={isChecked ? "checkmark.circle.fill" : "circle"}
+                  size={24}
+                  tintColor={isChecked ? colors.accent : colors.border}
+                />
+              )}
             </Pressable>
           );
         }}
       />
 
-      <View style={styles.footer}>
-        <Pressable
-          style={[styles.cta, checked.size === 0 && styles.ctaDisabled]}
-          disabled={checked.size === 0}
-          onPress={confirm}
-        >
-          <Text style={styles.ctaText}>
-            {checked.size === 0 ? "Tap what you pay for" : `Add ${checked.size} to my list`}
-          </Text>
-        </Pressable>
-      </View>
+      {!onPick && (
+        <View style={styles.footer}>
+          <Pressable
+            style={[styles.cta, checked.size === 0 && styles.ctaDisabled]}
+            disabled={checked.size === 0}
+            onPress={confirm}
+          >
+            <Text style={styles.ctaText}>
+              {checked.size === 0 ? "Tap what you pay for" : `Add ${checked.size} to my list`}
+            </Text>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
