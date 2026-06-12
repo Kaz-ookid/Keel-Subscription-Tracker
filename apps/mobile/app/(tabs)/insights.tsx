@@ -87,7 +87,8 @@ export default function InsightsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, loading } = useAppState();
-  const [selected, setSelected] = useState(MONTHS_BACK);
+  // null = nothing selected (tapping the selected bar again deselects it).
+  const [selected, setSelected] = useState<number | null>(MONTHS_BACK);
 
   if (loading) {
     return (
@@ -138,11 +139,12 @@ export default function InsightsScreen() {
     const m = Number(b.monthStart.slice(5, 7)) - 1;
     const amount = inPrimary(b.totals);
     return {
-      // Januaries carry a year hint so sliding never loses the reader.
-      label: m === 0 ? `${MONTH_SHORT[0]} ${b.monthStart.slice(2, 4)}` : MONTH_SHORT[m],
+      label: MONTH_SHORT[m],
       name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
       amount,
       formatted: formatMoney(money(amount, primary)),
+      // Januaries carry the year milestone so sliding never loses the reader.
+      yearStart: m === 0 ? b.monthStart.slice(0, 4) : undefined,
     };
   });
   const averageTheory = inPrimary(commitments.monthly);
@@ -155,7 +157,7 @@ export default function InsightsScreen() {
   // projections, each with its due date (overdue ones marked as such).
   const itemNames = new Map(items.map((i) => [i.id, i.name]));
   const projected = projectCharges(items, windowEnd);
-  const selectedKey = buckets[selected]?.monthStart.slice(0, 7);
+  const selectedKey = selected !== null ? buckets[selected]?.monthStart.slice(0, 7) : undefined;
   const details: MonthDetail[] = [
     ...occurrences
       .filter((o) => o.status === "charged" && o.dueDate.slice(0, 7) === selectedKey)
@@ -176,7 +178,6 @@ export default function InsightsScreen() {
         kind: (c.dueDate < asOf ? "overdue" : "upcoming") as MonthDetail["kind"],
       })),
   ].sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
-  const DETAIL_CAP = 8;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -214,13 +215,14 @@ export default function InsightsScreen() {
         averageFormatted={formatMoney(money(averageTheory, primary))}
         todayIndex={todayIndex}
         selected={selected}
-        onSelect={setSelected}
+        onSelect={(i) => setSelected((prev) => (prev === i ? null : i))}
       />
 
-      {/* The tapped month's payments — light, in place, no extra screen. */}
+      {/* The tapped month's payments — light, in place, no extra screen.
+          About five rows visible; the rest scroll inside the card. */}
       {details.length > 0 && (
-        <View style={styles.detailCard}>
-          {details.slice(0, DETAIL_CAP).map((d) => (
+        <ScrollView style={styles.detailCard} nestedScrollEnabled>
+          {details.map((d) => (
             <View key={d.key} style={styles.detailRow}>
               <SymbolView
                 name={
@@ -250,10 +252,7 @@ export default function InsightsScreen() {
               <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
             </View>
           ))}
-          {details.length > DETAIL_CAP && (
-            <Text style={styles.detailMore}>+ {details.length - DETAIL_CAP} more</Text>
-          )}
-        </View>
+        </ScrollView>
       )}
 
       {otherCurrencies.length > 0 && (
@@ -357,6 +356,8 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.xs,
+      // ~5 rows; beyond that the card scrolls internally.
+      maxHeight: 190,
     },
     detailRow: {
       flexDirection: "row",
@@ -379,12 +380,6 @@ function createStyles(colors: ThemeColors) {
       ...typography.caption,
       color: colors.text,
       fontWeight: "600",
-    },
-    detailMore: {
-      ...typography.caption,
-      color: colors.mutedText,
-      textAlign: "center",
-      paddingVertical: spacing.sm,
     },
     note: {
       ...typography.caption,

@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 
 export interface YearChartMonth {
-  /** Short label under the bar, e.g. "Jun" (Januaries carry a year hint). */
+  /** Short label under the bar, e.g. "Jun". */
   label: string;
   /** Full name for the readout, e.g. "June 2026". */
   name: string;
@@ -12,6 +12,8 @@ export interface YearChartMonth {
   amount: number;
   /** Pre-formatted amount for the readout. */
   formatted: string;
+  /** Set on Januaries: the year this month opens — drawn as a milestone. */
+  yearStart?: string;
 }
 
 interface Props {
@@ -22,7 +24,8 @@ interface Props {
   /** Index of the current month — a thin "now" landmark sits after its bar:
    *  everything right of it is calculated future, left is the past. */
   todayIndex: number;
-  selected: number;
+  /** Selected month index, or null when nothing is selected. */
+  selected: number | null;
   onSelect: (index: number) => void;
 }
 
@@ -50,7 +53,7 @@ export function YearChart({
 
   const max = Math.max(average, ...months.map((m) => m.amount), 1);
   const averageY = (average / max) * CHART_HEIGHT;
-  const current = months[selected];
+  const current = selected !== null ? months[selected] : undefined;
   const contentWidth = months.length * SLOT;
   // Open with the current month in view, a little history to its left.
   const initialX = Math.max(0, (todayIndex - 4) * SLOT);
@@ -58,8 +61,14 @@ export function YearChart({
   return (
     <View style={styles.card}>
       <View style={styles.readout}>
-        <Text style={styles.readoutMonth}>{current?.name}</Text>
-        <Text style={styles.readoutAmount}>{current?.formatted}</Text>
+        {current ? (
+          <>
+            <Text style={styles.readoutMonth}>{current.name}</Text>
+            <Text style={styles.readoutAmount}>{current.formatted}</Text>
+          </>
+        ) : (
+          <Text style={styles.readoutHint}>Tap a month for its payments</Text>
+        )}
       </View>
 
       <ScrollView
@@ -76,6 +85,20 @@ export function YearChart({
                   <View key={i} style={styles.dash} />
                 ))}
               </View>
+            )}
+
+            {/* Year milestones: a hairline + vertical year at each January. */}
+            {months.map((m, i) =>
+              m.yearStart && i > 0 ? (
+                <View
+                  key={`year-${m.yearStart}`}
+                  style={[styles.yearMark, { left: i * SLOT - COL_GAP / 2 - 1 }]}
+                  pointerEvents="none"
+                >
+                  <View style={styles.yearLine} />
+                  <Text style={styles.yearText}>{m.yearStart}</Text>
+                </View>
+              ) : null,
             )}
 
             {/* The "now" landmark: future lies to the right of this line. */}
@@ -158,6 +181,10 @@ function createStyles(colors: ThemeColors) {
       ...typography.label,
       color: colors.text,
     },
+    readoutHint: {
+      ...typography.caption,
+      color: colors.mutedText,
+    },
     chartArea: {
       height: CHART_HEIGHT,
       justifyContent: "flex-end",
@@ -192,6 +219,29 @@ function createStyles(colors: ThemeColors) {
       borderRadius: 1,
       backgroundColor: colors.mutedText,
       opacity: 0.45,
+    },
+    // Quieter than the "now" landmark: a hairline with the year written
+    // vertically along it, marking each January like a roadside milestone.
+    yearMark: {
+      position: "absolute",
+      top: 0,
+      bottom: 0,
+      width: 1,
+    },
+    yearLine: {
+      flex: 1,
+      width: 1,
+      backgroundColor: colors.border,
+    },
+    yearText: {
+      position: "absolute",
+      top: 16,
+      left: -16,
+      width: 32,
+      textAlign: "center",
+      fontSize: 9,
+      color: colors.mutedText,
+      transform: [{ rotate: "90deg" }],
     },
     dash: {
       width: 8,
