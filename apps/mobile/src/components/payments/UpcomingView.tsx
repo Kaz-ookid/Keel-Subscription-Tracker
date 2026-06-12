@@ -150,7 +150,8 @@ export function UpcomingView() {
     sections.push({
       key: "next-month",
       title: "",
-      monthLabel: nextMonthOpen ? label : `${label} · ${nextTotal}`,
+      // Same text open or closed — the total doesn't vanish on expand.
+      monthLabel: `${label} · ${nextTotal}`,
       toggle: true,
       data: [],
     });
