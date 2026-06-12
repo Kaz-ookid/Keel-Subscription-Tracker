@@ -45,6 +45,7 @@ export default function ItemScreen() {
     accounts,
     categories,
     markPaid,
+    skipPayment,
     markInstallmentPaid,
     undoInstallmentPaid,
     pauseSubscription,
@@ -241,6 +242,15 @@ export default function ItemScreen() {
           onPress={() => (installment ? markInstallmentPaid(item.id) : markPaid(item.id))}
         >
           <Text style={styles.primaryBtnText}>Mark paid</Text>
+        </Pressable>
+      )}
+      {/* Flexible commitments ("monthly investing") can sit a cycle out —
+          skipped, not paid: the month stays honest in the analytics. */}
+      {canMarkPaid && recurring && (
+        <Pressable style={styles.secondaryBtn} onPress={() => skipPayment(item.id)}>
+          <Text style={styles.secondaryBtnText}>
+            Skip this cycle · {formatCalendarDate(recurring.nextChargeDate)}
+          </Text>
         </Pressable>
       )}
       {paidThisCycle && (

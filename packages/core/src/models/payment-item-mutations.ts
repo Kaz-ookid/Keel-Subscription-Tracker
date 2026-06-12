@@ -280,6 +280,42 @@ export function recordRecurringPayment(
   return { item: advanced, occurrence };
 }
 
+/**
+ * Deliberately sit out the running occurrence of a recurring item ("not
+ * investing this month"): advances `nextChargeDate` one cycle exactly like a
+ * payment, but logs a `skipped` occurrence — audit-trailed, never counted as
+ * money spent. Throws if the item isn't recurring.
+ */
+export function skipRecurringPayment(
+  item: PaymentItem,
+  ctx: { id: string; now: Timestamp },
+): { item: PaymentItem; occurrence: PaymentOccurrence } {
+  if (item.schedule.kind !== "RECURRING") {
+    throw new TypeError("skipRecurringPayment expects a RECURRING item");
+  }
+  const schedule = item.schedule;
+
+  const occurrence: PaymentOccurrence = {
+    id: ctx.id,
+    paymentItemId: item.id,
+    dueDate: schedule.nextChargeDate,
+    recordedAt: ctx.now,
+    amount: schedule.amount,
+    status: "skipped",
+  };
+
+  const advanced: PaymentItem = {
+    ...item,
+    updatedAt: ctx.now,
+    schedule: {
+      ...schedule,
+      nextChargeDate: addRecurrence(schedule.nextChargeDate, schedule.recurrence),
+    },
+  };
+
+  return { item: advanced, occurrence };
+}
+
 export interface AccrueContext {
   now: Timestamp;
   /** Produces a fresh unique id for each generated occurrence. */

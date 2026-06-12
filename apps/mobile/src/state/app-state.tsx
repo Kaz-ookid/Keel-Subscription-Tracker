@@ -22,6 +22,7 @@ import {
   pausePaymentItem,
   recordRecurringPayment,
   resumePaymentItem,
+  skipRecurringPayment,
   today,
   unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
@@ -64,6 +65,9 @@ interface AppStateValue {
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
+  /** Deliberately sit out the running cycle: advances the date, logged as
+   *  skipped, never counted as spending. */
+  skipPayment: (id: string) => void;
   /** Mark the next due installment of a BNPL plan as paid (current cycle only). */
   markInstallmentPaid: (id: string) => void;
   /** Undo the most recent installment payment. */
@@ -182,6 +186,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setOccurrences((prev) => [...prev, occurrence]);
     };
 
+    const skipPayment = (id: string) => {
+      const item = items.find((i) => i.id === id);
+      if (!item || item.schedule.kind !== "RECURRING" || item.status !== "active") return;
+      if (isPaymentItemComplete(item, today())) return;
+      const { item: advanced, occurrence } = skipRecurringPayment(item, {
+        id: randomUUID(),
+        now: now(),
+      });
+      setItems((prev) => prev.map((i) => (i.id === id ? advanced : i)));
+      setOccurrences((prev) => [...prev, occurrence]);
+    };
+
     const markInstallmentPaid = (id: string) => {
       setItems((prev) =>
         prev.map((i) =>
@@ -245,6 +261,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       updateInstallmentPlan,
       removeSubscription,
       markPaid,
+      skipPayment,
       markInstallmentPaid,
       undoInstallmentPaid,
       pauseSubscription,
