@@ -1,4 +1,6 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SemanticTone } from "@keel/core";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useColorScheme } from "react-native";
 
 export interface ThemeColors {
@@ -38,9 +40,48 @@ const dark: ThemeColors = {
 
 export type ColorScheme = "light" | "dark";
 
-/** Active colours + scheme, following the device's system appearance. */
+/** The user's appearance preference; "system" follows the device. */
+export type ThemeMode = "system" | "light" | "dark";
+
+const THEME_KEY = "keel.theme-mode.v1";
+
+const ThemeModeContext = createContext<{ mode: ThemeMode; setMode: (mode: ThemeMode) => void }>({
+  mode: "system",
+  setMode: () => {},
+});
+
+/** Mounted at the very root (above everything that calls useTheme); persists
+ *  the preference independently of the data blob. */
+export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
+  const [mode, setModeState] = useState<ThemeMode>("system");
+
+  useEffect(() => {
+    void AsyncStorage.getItem(THEME_KEY).then((stored) => {
+      if (stored === "light" || stored === "dark" || stored === "system") setModeState(stored);
+    });
+  }, []);
+
+  const setMode = (next: ThemeMode) => {
+    setModeState(next);
+    void AsyncStorage.setItem(THEME_KEY, next);
+  };
+
+  return (
+    <ThemeModeContext.Provider value={{ mode, setMode }}>{children}</ThemeModeContext.Provider>
+  );
+}
+
+/** Read/write the appearance preference (the Settings screen's hook). */
+export function useThemeMode() {
+  return useContext(ThemeModeContext);
+}
+
+/** Active colours + scheme: the user's preference, or the device's when
+ *  following the system. */
 export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
-  const scheme: ColorScheme = useColorScheme() === "dark" ? "dark" : "light";
+  const { mode } = useContext(ThemeModeContext);
+  const system = useColorScheme();
+  const scheme: ColorScheme = mode === "system" ? (system === "dark" ? "dark" : "light") : mode;
   return { colors: scheme === "dark" ? dark : light, scheme };
 }
 

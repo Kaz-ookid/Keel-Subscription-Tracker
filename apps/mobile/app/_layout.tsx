@@ -6,9 +6,18 @@ import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import { AppStateProvider } from "../src/state/app-state";
-import { useTheme } from "../src/theme";
+import { ThemePreferenceProvider, useTheme } from "../src/theme";
 
 export default function RootLayout() {
+  return (
+    // Above everything that calls useTheme, so the preference applies app-wide.
+    <ThemePreferenceProvider>
+      <RootNavigator />
+    </ThemePreferenceProvider>
+  );
+}
+
+function RootNavigator() {
   const { colors, scheme } = useTheme();
   const router = useRouter();
 
