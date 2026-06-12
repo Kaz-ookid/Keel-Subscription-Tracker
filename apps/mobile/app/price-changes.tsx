@@ -1,0 +1,154 @@
+// Price creep: how far each commitment drifted from what you signed up for.
+// The data is the priceHistory every amount edit appends to — this screen is
+// the first reader of it. Drift is shown in budget terms (per month) because
+// that's the number that quietly grows.
+
+import {
+  formatCalendarDate,
+  formatMoney,
+  formatMoneyList,
+  money,
+  summarizePriceChanges,
+  sumByCurrency,
+  today,
+} from "@keel/core";
+import { useMemo } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+
+import { HeroCard } from "../src/components/HeroCard";
+import { IconBadge } from "../src/components/IconBadge";
+import { useAppState } from "../src/state/app-state";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+
+export default function PriceChangesScreen() {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { items, categories } = useAppState();
+
+  const changes = summarizePriceChanges(items, today());
+  const creep = sumByCurrency(
+    changes.map((c) =>
+      money(c.monthlyCurrent.amount - c.monthlyOriginal.amount, c.monthlyCurrent.currency),
+    ),
+  ).filter((m) => m.amount !== 0);
+
+  if (changes.length === 0) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.emptyTitle}>No price changes yet</Text>
+        <Text style={styles.emptyHint}>
+          When a commitment's price is edited, its history lands here — and you'll see exactly how
+          far it drifted from what you signed up for.
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <HeroCard
+        label="Price creep"
+        amount={creep.length > 0 ? `+${formatMoneyList(creep)}/mo` : "No drift"}
+        sub="more per month than at signup, across everything that changed"
+      />
+
+      {changes.map((c) => {
+        const up = c.changeRatio > 0;
+        const pct = Math.round(Math.abs(c.changeRatio) * 100);
+        const category = categories.find((cat) => cat.id === c.categoryId);
+        return (
+          <View key={c.paymentItemId} style={styles.card}>
+            <View style={styles.cardHeader}>
+              <IconBadge
+                icon={category?.icon}
+                fallback={c.name.charAt(0).toUpperCase()}
+                color={c.color ?? colors.accent}
+                size={32}
+              />
+              <View style={styles.cardTitleBlock}>
+                <Text style={styles.cardTitle} numberOfLines={1}>
+                  {c.name}
+                </Text>
+                <Text style={styles.cardSub}>
+                  since {formatCalendarDate(c.since)} · {c.changes} change
+                  {c.changes > 1 ? "s" : ""}
+                </Text>
+              </View>
+              <Text style={[styles.pct, { color: up ? tones.warning : tones.success }]}>
+                {up ? "+" : "−"}
+                {pct}%
+              </Text>
+            </View>
+
+            <View style={styles.driftRow}>
+              <Text style={styles.driftFrom}>{formatMoney(c.original)}</Text>
+              <Text style={styles.driftArrow}>→</Text>
+              <Text style={styles.driftTo}>{formatMoney(c.current)}</Text>
+            </View>
+
+            {c.history.map((entry, i) => (
+              <View key={`${entry.effectiveFrom}-${i}`} style={styles.historyRow}>
+                <Text style={styles.historyDate}>
+                  {i === 0 ? "signed up" : "changed"} · {formatCalendarDate(entry.effectiveFrom)}
+                </Text>
+                <Text style={styles.historyAmount}>{formatMoney(entry.amount)}</Text>
+              </View>
+            ))}
+          </View>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    center: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.background,
+      padding: spacing.lg,
+    },
+    emptyTitle: { ...typography.subtitle, color: colors.text, fontWeight: "600" },
+    emptyHint: { ...typography.body, color: colors.mutedText, textAlign: "center" },
+    card: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      gap: spacing.sm,
+    },
+    cardHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    cardTitleBlock: { flex: 1, gap: 1 },
+    cardTitle: { ...typography.label, color: colors.text },
+    cardSub: { ...typography.caption, color: colors.mutedText },
+    pct: { ...typography.label, fontSize: 18 },
+    driftRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: spacing.sm,
+    },
+    driftFrom: {
+      ...typography.body,
+      color: colors.mutedText,
+      textDecorationLine: "line-through",
+    },
+    driftArrow: { ...typography.body, color: colors.mutedText },
+    driftTo: { ...typography.label, fontSize: 18, color: colors.text },
+    historyRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingTop: spacing.xs,
+    },
+    historyDate: { ...typography.caption, color: colors.mutedText },
+    historyAmount: { ...typography.caption, color: colors.text },
+  });
+}
