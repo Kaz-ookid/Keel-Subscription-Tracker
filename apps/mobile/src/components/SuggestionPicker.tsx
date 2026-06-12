@@ -1,9 +1,9 @@
-// The onboarding picker: the brand bank as a category-grouped checklist. Tap
-// what you pay for, one button files everything checked into the To-complete
-// list. Scanning beats swiping at ~200 entries — you only act on what you
-// have, and the category headers themselves jog the memory ("Transport…
-// right, my transit pass"). Search covers ALL regions; the unsearched list
-// shows only region-free entries plus the device's own region.
+// The brand-bank list, used by onboarding (checklist mode) and the Add flow
+// (single-select mode). One big alphabetical list — predictable to scan — with
+// a chip row to narrow to a category (the chips double as memory prompts:
+// "Transport… right, my transit pass"). Search covers ALL regions and ignores
+// the chip; the browsed list shows only region-free entries plus the device's
+// own region.
 
 import {
   DEFAULT_CATEGORIES,
@@ -13,7 +13,7 @@ import {
 import { getLocales } from "expo-localization";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
-import { Pressable, SectionList, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
@@ -26,12 +26,6 @@ interface Props {
   /** Single-select mode (the Add flow): a row tap picks immediately —
    *  no checkmarks, no confirm button. Takes precedence over onAdd. */
   onPick?: (suggestion: SuggestedCommitment) => void;
-}
-
-interface Section {
-  key: string;
-  title: string;
-  data: SuggestedCommitment[];
 }
 
 const CATEGORY_NAMES = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.name]));
@@ -48,29 +42,35 @@ export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
+  const [category, setCategory] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
   const region = useMemo(() => getLocales()[0]?.regionCode ?? undefined, []);
 
-  const sections = useMemo<Section[]>(() => {
+  // What's browsable without searching: region-free + the device's region.
+  const browsable = useMemo(
+    () => suggestions.filter((s) => !s.regions || (region != null && s.regions.includes(region))),
+    [suggestions, region],
+  );
+
+  // Chips for every category that actually has browsable entries, in the
+  // usual likelihood order, behind a leading "All".
+  const chips = useMemo(() => {
+    const present = new Set(browsable.map((s) => s.categoryId ?? "other"));
+    return SUGGESTION_CATEGORY_ORDER.filter((id) => present.has(id));
+  }, [browsable]);
+
+  const visible = useMemo(() => {
     const trimmed = query.trim();
-    const visible = suggestions.filter((s) => {
-      if (trimmed) return matches(s, trimmed);
-      return !s.regions || (region != null && s.regions.includes(region));
-    });
-    const byCategory = new Map<string, SuggestedCommitment[]>();
-    for (const s of visible) {
-      const key = s.categoryId ?? "other";
-      const list = byCategory.get(key);
-      if (list) list.push(s);
-      else byCategory.set(key, [s]);
-    }
-    return SUGGESTION_CATEGORY_ORDER.filter((id) => byCategory.has(id)).map((id) => ({
-      key: id,
-      title: CATEGORY_NAMES.get(id) ?? id,
-      data: byCategory.get(id) ?? [],
-    }));
-  }, [suggestions, query, region]);
+    // Typing searches the whole bank (all regions, all categories) — when you
+    // know the name, no filter should hide it.
+    const base = trimmed
+      ? suggestions.filter((s) => matches(s, trimmed))
+      : category
+        ? browsable.filter((s) => (s.categoryId ?? "other") === category)
+        : browsable;
+    return [...base].sort((a, b) => a.name.localeCompare(b.name));
+  }, [suggestions, browsable, query, category]);
 
   const toggle = (id: string) =>
     setChecked((prev) => {
@@ -101,16 +101,43 @@ export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
         />
       </View>
 
-      <SectionList
+      {/* Hidden while searching — search already spans everything. */}
+      {!query.trim() && (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipsRow}
+          contentContainerStyle={styles.chipsContent}
+        >
+          <Pressable
+            onPress={() => setCategory(null)}
+            style={[styles.chip, category === null && styles.chipActive]}
+          >
+            <Text style={[styles.chipText, category === null && styles.chipTextActive]}>All</Text>
+          </Pressable>
+          {chips.map((id) => {
+            const active = category === id;
+            return (
+              <Pressable
+                key={id}
+                onPress={() => setCategory(active ? null : id)}
+                style={[styles.chip, active && styles.chipActive]}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>
+                  {CATEGORY_NAMES.get(id) ?? id}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
+
+      <FlatList
         style={styles.list}
-        sections={sections}
+        data={visible}
         keyExtractor={(s) => s.id}
-        stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
-        renderSectionHeader={({ section }) => (
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-        )}
         ListEmptyComponent={
           <Text style={styles.empty}>
             {query.trim() ? "No brand matches that — you can still add it by hand later." : ""}
@@ -132,7 +159,9 @@ export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
                   {item.name}
                 </Text>
                 <Text style={styles.caption}>
-                  usually {item.unit === "month" ? "monthly" : "yearly"}
+                  {/* Without the section headers, each row says its category. */}
+                  {CATEGORY_NAMES.get(item.categoryId ?? "") ?? "Other"} · usually{" "}
+                  {item.unit === "month" ? "monthly" : "yearly"}
                 </Text>
               </View>
               {onPick ? (
@@ -189,21 +218,40 @@ function createStyles(colors: ThemeColors) {
       ...typography.body,
       color: colors.text,
     },
+    chipsRow: {
+      flexGrow: 0,
+      marginBottom: spacing.sm,
+    },
+    chipsContent: {
+      paddingHorizontal: spacing.md,
+      gap: spacing.sm,
+    },
+    chip: {
+      paddingVertical: spacing.xs + 2,
+      paddingHorizontal: spacing.sm + 4,
+      borderRadius: radius.lg,
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    chipActive: {
+      backgroundColor: colors.navy,
+      borderColor: colors.navy,
+    },
+    chipText: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.text,
+    },
+    chipTextActive: {
+      color: colors.white,
+    },
     list: {
       flex: 1,
     },
     listContent: {
       paddingHorizontal: spacing.md,
       paddingBottom: spacing.md,
-    },
-    sectionTitle: {
-      ...typography.caption,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      letterSpacing: 0.6,
-      color: colors.mutedText,
-      paddingTop: spacing.md,
-      paddingBottom: spacing.xs,
     },
     row: {
       flexDirection: "row",
