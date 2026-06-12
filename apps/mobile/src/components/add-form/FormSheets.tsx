@@ -49,7 +49,7 @@ export function FormSheets({ form }: { form: AddForm }) {
           {CURRENCY_CODES.map((code) => (
             <Picker.Item
               key={code}
-              label={`${CURRENCIES[code].flag}  ${code} — ${CURRENCIES[code].name}`}
+              label={`${CURRENCIES[code].symbol} — ${CURRENCIES[code].name}`}
               value={code}
               color={colors.text}
             />

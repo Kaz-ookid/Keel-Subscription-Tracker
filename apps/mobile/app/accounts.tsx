@@ -1,4 +1,4 @@
-import { type Account } from "@keel/core";
+import { CURRENCIES, type Account } from "@keel/core";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
@@ -71,7 +71,7 @@ export default function AccountsScreen() {
                   </Text>
                 ) : null}
               </View>
-              <Text style={styles.currency}>{item.currency}</Text>
+              <Text style={styles.currency}>{CURRENCIES[item.currency].symbol}</Text>
             </Pressable>
           )}
         />

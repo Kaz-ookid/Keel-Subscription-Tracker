@@ -104,8 +104,9 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
               onPress={() => setCurrency(code)}
               style={[styles.chip, currency === code && styles.chipActive]}
             >
+              {/* Symbol + name: "$" alone can't tell USD, CAD and AUD apart. */}
               <Text style={[styles.chipText, currency === code && styles.chipTextActive]}>
-                {CURRENCIES[code].flag} {code}
+                {CURRENCIES[code].symbol} {CURRENCIES[code].name}
               </Text>
             </Pressable>
           ))}
@@ -182,7 +183,7 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
           <Pressable key={a.id} style={styles.row} onPress={() => pick(a.id)}>
             <AccountLine account={a} colors={colors} />
             <View style={styles.right}>
-              <Text style={styles.rowSub}>{a.currency}</Text>
+              <Text style={styles.rowSub}>{CURRENCIES[a.currency].symbol}</Text>
               {selectedId === a.id && (
                 <SymbolView name="checkmark" size={16} tintColor={colors.accent} />
               )}

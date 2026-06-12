@@ -59,9 +59,7 @@ export default function SettingsScreen() {
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
           <SymbolView name="coloncurrencysign.circle" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>Display currency</Text>
-          <Text style={styles.rowValue}>
-            {CURRENCIES[displayCurrency].flag} {displayCurrency}
-          </Text>
+          <Text style={styles.rowValue}>{CURRENCIES[displayCurrency].symbol}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
       </View>
@@ -95,7 +93,7 @@ export default function SettingsScreen() {
           {CURRENCY_CODES.map((code) => (
             <Picker.Item
               key={code}
-              label={`${CURRENCIES[code].flag}  ${code} — ${CURRENCIES[code].name}`}
+              label={`${CURRENCIES[code].symbol} — ${CURRENCIES[code].name}`}
               value={code}
               color={colors.text}
             />

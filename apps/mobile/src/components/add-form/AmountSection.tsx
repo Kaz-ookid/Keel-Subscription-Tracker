@@ -25,9 +25,7 @@ export function AmountSection({ form }: { form: AddForm }) {
           onPress={() => form.setSheet("currency")}
           disabled={!!form.selectedAccount}
         >
-          <Text style={styles.currencyChipText}>
-            {CURRENCIES[form.effectiveCurrency].flag} {form.effectiveCurrency}
-          </Text>
+          <Text style={styles.currencyChipText}>{CURRENCIES[form.effectiveCurrency].symbol}</Text>
         </Pressable>
         <TextInput
           style={styles.amountInput}
