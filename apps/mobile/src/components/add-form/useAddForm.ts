@@ -5,7 +5,9 @@
 import {
   addRecurrence,
   alignToOccurrence,
+  anchorFromDate,
   calendarDate,
+  describeAnchor,
   formatCalendarDate,
   formatMoney,
   fromMajor,
@@ -115,6 +117,10 @@ export function useAddForm() {
     editInst ? String(editInst.numberOfInstallments) : "3",
   );
   const [amountMode, setAmountMode] = useState<AmountMode>("total");
+  // Niche: monthly cycles can repeat "every 1st Thursday" instead of "the 4th".
+  const [anchorMode, setAnchorMode] = useState(
+    () => (editRec?.recurrence.anchor ?? editInst?.recurrence.anchor) != null,
+  );
   const [provider, setProvider] = useState<BnplProviderId>(() => editInst?.provider ?? "other");
   const [firstDate, setFirstDate] = useState(() =>
     editFirstDate ? fromCalendarDate(editFirstDate) : new Date(),
@@ -138,7 +144,15 @@ export function useAddForm() {
   const canSubmit = name.trim().length > 0 && amountValue > 0;
 
   const firstDateCal = toCalendarDate(firstDate);
-  const recurrence = { unit, interval: Math.max(1, parseInt(intervalText, 10) || 1) };
+  // Both interpretations of the picked date — the "Repeats on" toggle's labels.
+  const anchor = anchorFromDate(firstDateCal);
+  const dayLabel = `the ${Number(firstDateCal.slice(8, 10))}`;
+  const anchorLabel = describeAnchor(anchor);
+  const recurrence = {
+    unit,
+    interval: Math.max(1, parseInt(intervalText, 10) || 1),
+    ...(anchorMode && unit === "month" ? { anchor } : {}),
+  };
   // The end date is a *last billing* date: keep it snapped onto the billing
   // grid even if the cycle or first billing changes after it was picked.
   const endDateCal = endDate ? alignToOccurrence(firstDateCal, recurrence, endDate) : undefined;
@@ -253,6 +267,10 @@ export function useAddForm() {
     setInstallmentsText,
     amountMode,
     setAmountMode,
+    anchorMode,
+    setAnchorMode,
+    dayLabel,
+    anchorLabel,
     provider,
     setProvider,
     firstDate,

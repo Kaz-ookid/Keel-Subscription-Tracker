@@ -64,10 +64,7 @@ export function addRecurrence(date: CalendarDate, rule: RecurrenceRule): Calenda
   // Weekday-anchored monthly rules resolve "1st Thursday" in the target
   // month instead of clamping a day number.
   if (rule.unit === "month" && rule.anchor) {
-    return nthWeekdayOfMonth(
-      calendarDate(`${targetYear}-${pad(targetMonth + 1)}-01`),
-      rule.anchor,
-    );
+    return nthWeekdayOfMonth(calendarDate(`${targetYear}-${pad(targetMonth + 1)}-01`), rule.anchor);
   }
 
   // Day 0 of the *next* month gives the last day of the target month.

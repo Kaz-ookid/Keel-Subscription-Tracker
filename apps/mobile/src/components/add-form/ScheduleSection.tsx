@@ -13,6 +13,28 @@ const UNIT_OPTIONS: SegmentedOption<TimeUnit>[] = [
   { value: "year", label: "Year" },
 ];
 
+/** Niche but discoverable: monthly cycles can repeat by weekday instead of
+ *  by date — two interpretations of the date already picked, nothing more. */
+function RepeatsOnRow({ form }: { form: AddForm }) {
+  const styles = useFormStyles();
+  if (form.unit !== "month") return null;
+  return (
+    <View style={styles.rowField}>
+      <Text style={styles.label}>Repeats on</Text>
+      <View style={styles.rowControl}>
+        <Segmented
+          options={[
+            { value: "date", label: form.dayLabel },
+            { value: "weekday", label: form.anchorLabel },
+          ]}
+          value={form.anchorMode ? "weekday" : "date"}
+          onChange={(v) => form.setAnchorMode(v === "weekday")}
+        />
+      </View>
+    </View>
+  );
+}
+
 /** The plan-type-specific rows: cycle/first/last billing for subscriptions,
  *  count/frequency/first payment/provider for Pay-in-X. (M3's Annual variant
  *  slots in here as a third branch.) */
@@ -51,6 +73,8 @@ export function ScheduleSection({ form }: { form: AddForm }) {
           onPress={() => form.setSheet("date")}
         />
 
+        <RepeatsOnRow form={form} />
+
         <FieldButton
           label="Provider"
           value={BNPL_PROVIDERS[form.provider].label}
@@ -80,6 +104,8 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         value={formatCalendarDate(form.firstDateCal)}
         onPress={() => form.setSheet("date")}
       />
+
+      <RepeatsOnRow form={form} />
 
       <FieldButton
         label="Last billing"
