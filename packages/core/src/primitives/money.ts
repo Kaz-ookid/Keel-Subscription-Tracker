@@ -5,7 +5,7 @@
 // so even though v1 locks one currency per account, a later multi-currency
 // world needs no shape change here.
 
-import { CURRENCIES, type CurrencyCode } from "../constants/currencies";
+import { CURRENCIES, currencyLabel, type CurrencyCode } from "../constants/currencies";
 
 export interface Money {
   /** Integer amount in the currency's minor unit. 9.99 EUR → 999. */
@@ -33,14 +33,16 @@ export function toMajor(value: Money): number {
 /**
  * Render money for display. Deliberately dependency-free (no `Intl`, whose
  * locale data is unreliable under Hermes) so mobile, web, and the extension
- * all format identically. Symbol-suffixed with a comma decimal separator,
- * matching the EUR-first audience: `{ amount: 999, currency: "EUR" }` → "9,99 €".
+ * all format identically. Suffixed with the unambiguous currency label (the
+ * symbol when unique, the ISO code when shared — "$" alone can't tell USD,
+ * CAD and AUD apart), comma decimal separator for the EUR-first audience:
+ * `{ amount: 999, currency: "EUR" }` → "9,99 €".
  */
 export function formatMoney(value: Money): string {
   const info = CURRENCIES[value.currency];
   const major = toMajor(value).toFixed(info.decimalDigits);
   const withComma = major.replace(".", ",");
-  return `${withComma} ${info.symbol}`;
+  return `${withComma} ${currencyLabel(value.currency)}`;
 }
 
 /** Render a list of per-currency totals: "12,50 € + 5,00 $". */

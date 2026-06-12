@@ -58,7 +58,8 @@ describe("formatTotalsIn", () => {
     expect(formatTotalsIn([fromMajor(5, "EUR"), fromMajor(5, "CHF")], "EUR", null)).toBe(
       "5,00 € + 5,00 CHF",
     );
-    expect(formatTotalsIn([fromMajor(5, "CAD")], "EUR", rates)).toBe("5,00 $");
+    // Shared symbols disambiguate to the ISO code ("$" is USD/CAD/AUD).
+    expect(formatTotalsIn([fromMajor(5, "CAD")], "EUR", rates)).toBe("5,00 CAD");
   });
 
   it("shows a zero in the display currency for an empty list", () => {

@@ -1,4 +1,4 @@
-import { CURRENCIES } from "@keel/core";
+import { currencyLabel } from "@keel/core";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { useTheme } from "../../theme";
@@ -25,7 +25,7 @@ export function AmountSection({ form }: { form: AddForm }) {
           onPress={() => form.setSheet("currency")}
           disabled={!!form.selectedAccount}
         >
-          <Text style={styles.currencyChipText}>{CURRENCIES[form.effectiveCurrency].symbol}</Text>
+          <Text style={styles.currencyChipText}>{currencyLabel(form.effectiveCurrency)}</Text>
         </Pressable>
         <TextInput
           style={styles.amountInput}

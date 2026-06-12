@@ -39,3 +39,14 @@ export const DEFAULT_CURRENCY: CurrencyCode = "EUR";
 export function currencyInfo(code: CurrencyCode): CurrencyInfo {
   return CURRENCIES[code];
 }
+
+/**
+ * The unambiguous display label: the symbol when it's unique across the
+ * supported set ("€", "£"), the ISO code when several currencies share it
+ * ("$" → "USD"/"CAD"/"AUD"). Used everywhere a currency is shown.
+ */
+export function currencyLabel(code: CurrencyCode): string {
+  const symbol = CURRENCIES[code].symbol;
+  const shared = Object.values(CURRENCIES).filter((c) => c.symbol === symbol).length > 1;
+  return shared ? code : symbol;
+}

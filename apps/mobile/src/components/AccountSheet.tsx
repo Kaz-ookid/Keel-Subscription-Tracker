@@ -1,4 +1,10 @@
-import { CURRENCIES, type Account, type CurrencyCode, type NewAccountInput } from "@keel/core";
+import {
+  CURRENCIES,
+  currencyLabel,
+  type Account,
+  type CurrencyCode,
+  type NewAccountInput,
+} from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -104,9 +110,8 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
               onPress={() => setCurrency(code)}
               style={[styles.chip, currency === code && styles.chipActive]}
             >
-              {/* Symbol + name: "$" alone can't tell USD, CAD and AUD apart. */}
               <Text style={[styles.chipText, currency === code && styles.chipTextActive]}>
-                {CURRENCIES[code].symbol} {CURRENCIES[code].name}
+                {currencyLabel(code)}
               </Text>
             </Pressable>
           ))}
@@ -183,7 +188,7 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
           <Pressable key={a.id} style={styles.row} onPress={() => pick(a.id)}>
             <AccountLine account={a} colors={colors} />
             <View style={styles.right}>
-              <Text style={styles.rowSub}>{CURRENCIES[a.currency].symbol}</Text>
+              <Text style={styles.rowSub}>{currencyLabel(a.currency)}</Text>
               {selectedId === a.id && (
                 <SymbolView name="checkmark" size={16} tintColor={colors.accent} />
               )}

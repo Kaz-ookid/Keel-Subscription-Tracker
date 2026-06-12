@@ -2,7 +2,7 @@
 // management, which is set up once and then mostly left alone (that's why it
 // lives here rather than occupying a whole tab).
 
-import { CURRENCIES, type CurrencyCode } from "@keel/core";
+import { CURRENCIES, currencyLabel, type CurrencyCode } from "@keel/core";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -59,7 +59,7 @@ export default function SettingsScreen() {
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
           <SymbolView name="coloncurrencysign.circle" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>Display currency</Text>
-          <Text style={styles.rowValue}>{CURRENCIES[displayCurrency].symbol}</Text>
+          <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
       </View>
@@ -93,7 +93,7 @@ export default function SettingsScreen() {
           {CURRENCY_CODES.map((code) => (
             <Picker.Item
               key={code}
-              label={`${CURRENCIES[code].symbol} — ${CURRENCIES[code].name}`}
+              label={`${currencyLabel(code)} — ${CURRENCIES[code].name}`}
               value={code}
               color={colors.text}
             />

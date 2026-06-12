@@ -4,6 +4,7 @@ import {
   BNPL_PROVIDERS,
   calendarDate,
   CURRENCIES,
+  currencyLabel,
   formatCalendarDate,
   type BnplProviderId,
   type CurrencyCode,
@@ -49,7 +50,7 @@ export function FormSheets({ form }: { form: AddForm }) {
           {CURRENCY_CODES.map((code) => (
             <Picker.Item
               key={code}
-              label={`${CURRENCIES[code].symbol} — ${CURRENCIES[code].name}`}
+              label={`${currencyLabel(code)} — ${CURRENCIES[code].name}`}
               value={code}
               color={colors.text}
             />
