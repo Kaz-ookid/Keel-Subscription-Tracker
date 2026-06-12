@@ -13,6 +13,7 @@ const TABS: { name: string; title: string; sf: string; action?: boolean }[] = [
   { name: "index", title: "Payments", sf: "creditcard.fill" },
   { name: "insights", title: "Insights", sf: "chart.bar.fill" },
   { name: "new", title: "", sf: "plus.circle.fill", action: true },
+  { name: "history", title: "History", sf: "clock.fill" },
   { name: "settings", title: "Settings", sf: "gearshape.fill" },
 ];
 
