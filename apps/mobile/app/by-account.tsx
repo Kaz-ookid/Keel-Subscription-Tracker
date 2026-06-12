@@ -6,9 +6,10 @@ import {
   calendarDate,
   describeRecurrence,
   formatMoney,
-  formatMoneyList,
+  formatTotalsIn,
   isInstallmentSchedule,
   isRecurringSchedule,
+  mergeTotals,
   money,
   spendingByMonth,
   summarizeCommitments,
@@ -69,7 +70,7 @@ function monthShifted(asOf: CalendarDate, delta: number): CalendarDate {
 export default function ByAccountScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, accounts, categories } = useAppState();
+  const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppState();
   // An account id, or "none" for commitments not tied to any account.
   const [selected, setSelected] = useState<string>(accounts[0]?.id ?? "none");
   const [selectedMonth, setSelectedMonth] = useState<number | null>(MONTHS_BACK);
@@ -92,38 +93,45 @@ export default function ByAccountScreen() {
   const buckets = spendingByMonth(scoped, scopedOccurrences, windowStart, windowMonths);
   const commitments = summarizeCommitments(scoped, asOf);
 
-  const primary: CurrencyCode = account?.currency ?? commitments.monthly[0]?.currency ?? "EUR";
-  const inPrimary = (totals: { amount: number; currency: CurrencyCode }[]) =>
-    totals.find((t) => t.currency === primary)?.amount ?? 0;
+  // Every account's chart speaks the same display currency, so the shared
+  // ceiling below makes their bars genuinely comparable.
+  const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
+    formatTotalsIn(values, displayCurrency, rates);
+  const amountIn = (values: { amount: number; currency: CurrencyCode }[]): number => {
+    if (rates) {
+      const merged = mergeTotals(values, displayCurrency, rates);
+      if (merged) return merged.total.amount;
+    }
+    return values.find((t) => t.currency === displayCurrency)?.amount ?? 0;
+  };
 
   // The heaviest month across ALL accounts sets every chart's ceiling, so
   // switching chips compares bar heights honestly instead of re-zooming.
   const globalMax = [...accounts.map((a) => a.id), "none"].reduce((max, group) => {
     const scope = scopeFor(group);
-    const groupAccount = accounts.find((a) => a.id === group);
     const groupCommitments = summarizeCommitments(scope.items, asOf);
-    const groupPrimary: CurrencyCode =
-      groupAccount?.currency ?? groupCommitments.monthly[0]?.currency ?? "EUR";
     const groupBuckets = spendingByMonth(scope.items, scope.occurrences, windowStart, windowMonths);
     const groupTop = Math.max(
-      groupCommitments.monthly.find((t) => t.currency === groupPrimary)?.amount ?? 0,
-      ...groupBuckets.map((b) => b.totals.find((t) => t.currency === groupPrimary)?.amount ?? 0),
+      amountIn(groupCommitments.monthly),
+      ...groupBuckets.map((b) => amountIn(b.totals)),
     );
     return Math.max(max, groupTop);
   }, 1);
 
   const chartMonths: YearChartMonth[] = buckets.map((b) => {
     const m = Number(b.monthStart.slice(5, 7)) - 1;
-    const amount = inPrimary(b.totals);
+    const merged = rates ? mergeTotals(b.totals, displayCurrency, rates) : undefined;
+    const amount = merged?.total.amount ?? amountIn(b.totals);
+    const formatted = formatMoney(money(amount, displayCurrency));
     return {
       label: MONTH_SHORT[m],
       name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
       amount,
-      formatted: formatMoney(money(amount, primary)),
+      formatted: merged?.approximate ? `≈ ${formatted}` : formatted,
       yearStart: m === 0 ? b.monthStart.slice(0, 4) : undefined,
     };
   });
-  const averageTheory = inPrimary(commitments.monthly);
+  const averageTheory = amountIn(commitments.monthly);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -153,13 +161,11 @@ export default function ByAccountScreen() {
       <HeroCard
         label={`${account?.name ?? "No account"} · theory`}
         amount={
-          commitments.monthly.length > 0
-            ? `${formatMoneyList(commitments.monthly)}/mo`
-            : "Nothing ongoing"
+          commitments.monthly.length > 0 ? `${totals(commitments.monthly)}/mo` : "Nothing ongoing"
         }
         sub={
           commitments.bnplOutstanding.length > 0
-            ? `plus ${formatMoneyList(commitments.bnplOutstanding)} of Pay in X still owed`
+            ? `plus ${totals(commitments.bnplOutstanding)} of Pay in X still owed`
             : `${scoped.length} commitment${scoped.length === 1 ? "" : "s"}`
         }
       />
@@ -167,7 +173,7 @@ export default function ByAccountScreen() {
       <YearChart
         months={chartMonths}
         average={averageTheory}
-        averageFormatted={formatMoney(money(averageTheory, primary))}
+        averageFormatted={formatMoney(money(averageTheory, displayCurrency))}
         todayIndex={MONTHS_BACK}
         selected={selectedMonth}
         onSelect={(i) => setSelectedMonth((prev) => (prev === i ? null : i))}

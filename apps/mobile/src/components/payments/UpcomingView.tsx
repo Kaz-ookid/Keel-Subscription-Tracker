@@ -5,7 +5,7 @@ import {
   COVERED_INSTALLMENT_STATUSES,
   endOfMonth,
   formatCalendarDate,
-  formatMoneyList,
+  formatTotalsIn,
   isInstallmentSchedule,
   projectCharges,
   sumByCurrency,
@@ -81,12 +81,17 @@ export function UpcomingView() {
     items,
     occurrences,
     accounts,
+    displayCurrency,
+    rates,
     loading,
     markPaid,
     markInstallmentPaid,
     undoPaid,
     undoInstallmentPaid,
   } = useAppState();
+  // Big numbers merge into the display currency ("≈" when converted).
+  const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
+    formatTotalsIn(values, displayCurrency, rates);
   // "all" | "none" (no account) | an account id.
   const [filter, setFilter] = useState("all");
   // Next month stays one tap away — the daily view is about THIS month.
@@ -210,7 +215,7 @@ export function UpcomingView() {
     .filter((e) => e.dueDate.slice(0, 7) === thisMonth)
     .sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
   if (settledThisMonth.length > 0) {
-    const paidTotal = formatMoneyList(sumByCurrency(settledThisMonth.map((c) => c.amount)));
+    const paidTotal = totals(sumByCurrency(settledThisMonth.map((c) => c.amount)));
     sections.push({
       key: "paid-month",
       title: "",
@@ -253,7 +258,7 @@ export function UpcomingView() {
   }
   if (nextSections.length > 0) {
     const label = `${monthName(windowEnd)} ${windowEnd.slice(0, 4)}`;
-    const nextTotal = formatMoneyList(
+    const nextTotal = totals(
       sumByCurrency(nextSections.flatMap((s) => s.data.map((c) => c.amount))),
     );
     sections.push({
@@ -275,14 +280,14 @@ export function UpcomingView() {
   const heroSub = selectedAccount
     ? `by ${formatCalendarDate(monthEnd)}`
     : dueNextMonth.length > 0
-      ? `then ${formatMoneyList(dueNextMonth)} in ${monthName(windowEnd)}`
+      ? `then ${totals(dueNextMonth)} in ${monthName(windowEnd)}`
       : `nothing in ${monthName(windowEnd)}`;
 
   const header = (
     <View style={styles.header}>
       <HeroCard
         label={heroLabel}
-        amount={dueThisMonth.length > 0 ? formatMoneyList(dueThisMonth) : "Nothing due"}
+        amount={dueThisMonth.length > 0 ? totals(dueThisMonth) : "Nothing due"}
         sub={heroSub}
       />
 
@@ -363,7 +368,7 @@ export function UpcomingView() {
                 {section.title}
               </Text>
               <Text style={styles.sectionTotal}>
-                {formatMoneyList(sumByCurrency(section.data.map((c) => c.amount)))}
+                {totals(sumByCurrency(section.data.map((c) => c.amount)))}
               </Text>
             </View>
           </View>

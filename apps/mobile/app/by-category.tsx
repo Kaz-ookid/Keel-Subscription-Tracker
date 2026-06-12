@@ -5,10 +5,11 @@
 import {
   describeRecurrence,
   formatMoney,
-  formatMoneyList,
+  formatTotalsIn,
   groupByCategory,
   isPaymentItemComplete,
   isRecurringSchedule,
+  mergeTotals,
   summarizeCommitments,
   today,
   yearlyCommitment,
@@ -28,7 +29,7 @@ export default function ByCategoryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, categories } = useAppState();
+  const { items, categories, displayCurrency, rates } = useAppState();
   // The expanded category (its id, or "none" for the uncategorised bucket).
   const [expanded, setExpanded] = useState<string | null>(null);
 
@@ -46,25 +47,29 @@ export default function ByCategoryScreen() {
     );
   }
 
-  const primary: CurrencyCode = yearlyTheory.reduce((a, b) =>
-    b.amount > a.amount ? b : a,
-  ).currency;
-  const inPrimary = (totals: { amount: number; currency: CurrencyCode }[]) =>
-    totals.find((t) => t.currency === primary)?.amount ?? 0;
-  const yearlyTotalPrimary = Math.max(inPrimary(yearlyTheory), 1);
+  const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
+    formatTotalsIn(values, displayCurrency, rates);
+  const amountIn = (values: { amount: number; currency: CurrencyCode }[]): number => {
+    if (rates) {
+      const merged = mergeTotals(values, displayCurrency, rates);
+      if (merged) return merged.total.amount;
+    }
+    return values.find((t) => t.currency === displayCurrency)?.amount ?? 0;
+  };
+  const yearlyTotalPrimary = Math.max(amountIn(yearlyTheory), 1);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
         label="Committed monthly · theory"
-        amount={commitments.monthly.length > 0 ? formatMoneyList(commitments.monthly) : "Nothing"}
-        sub={`${formatMoneyList(yearlyTheory)} a year, split below`}
+        amount={commitments.monthly.length > 0 ? totals(commitments.monthly) : "Nothing"}
+        sub={`${totals(yearlyTheory)} a year, split below`}
       />
 
       {groups.map((g) => {
         const key = g.categoryId ?? "none";
         const open = expanded === key;
-        const share = Math.min(inPrimary(g.yearlyTotal) / yearlyTotalPrimary, 1);
+        const share = Math.min(amountIn(g.yearlyTotal) / yearlyTotalPrimary, 1);
         const category = categories.find((c) => c.id === g.categoryId);
         // The live subscriptions behind this number (matches the group math).
         const members = items.filter(
@@ -84,7 +89,7 @@ export default function ByCategoryScreen() {
                 </Text>
                 <View style={styles.cardRight}>
                   <Text style={styles.cardAmount}>
-                    {formatMoneyList(g.monthlyTotal)}/mo · {formatMoneyList(g.yearlyTotal)}/yr
+                    {totals(g.monthlyTotal)}/mo · {totals(g.yearlyTotal)}/yr
                   </Text>
                   <SymbolView
                     name={open ? "chevron.up" : "chevron.down"}

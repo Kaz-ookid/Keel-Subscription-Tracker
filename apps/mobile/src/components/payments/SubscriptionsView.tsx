@@ -1,5 +1,5 @@
 import {
-  formatMoneyList,
+  formatTotalsIn,
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
@@ -32,7 +32,15 @@ export function SubscriptionsView() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, loading, removeSubscription, markPaid, markInstallmentPaid } = useAppState();
+  const {
+    items,
+    displayCurrency,
+    rates,
+    loading,
+    removeSubscription,
+    markPaid,
+    markInstallmentPaid,
+  } = useAppState();
 
   if (loading) {
     return (
@@ -75,11 +83,13 @@ export function SubscriptionsView() {
           <HeroCard
             label="Committed monthly"
             amount={
-              commitments.monthly.length > 0 ? formatMoneyList(commitments.monthly) : "Nothing yet"
+              commitments.monthly.length > 0
+                ? formatTotalsIn(commitments.monthly, displayCurrency, rates)
+                : "Nothing yet"
             }
             sub={
               commitments.bnplOutstanding.length > 0
-                ? `Pay-in-X still owed: ${formatMoneyList(commitments.bnplOutstanding)}`
+                ? `Pay-in-X still owed: ${formatTotalsIn(commitments.bnplOutstanding, displayCurrency, rates)}`
                 : undefined
             }
           />

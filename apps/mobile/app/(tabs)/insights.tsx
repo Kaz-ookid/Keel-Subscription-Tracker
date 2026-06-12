@@ -9,11 +9,12 @@ import {
   endOfMonth,
   formatCalendarDate,
   formatMoney,
-  formatMoneyList,
+  formatTotalsIn,
   groupByCadence,
   groupByCategory,
   isInstallmentSchedule,
   isPaymentItemComplete,
+  mergeTotals,
   money,
   projectCharges,
   spendingByMonth,
@@ -97,7 +98,7 @@ export default function InsightsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, loading } = useAppState();
+  const { items, occurrences, displayCurrency, rates, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
   const [selected, setSelected] = useState<number | null>(MONTHS_BACK);
 
@@ -147,30 +148,47 @@ export default function InsightsScreen() {
     );
   }
 
-  // The chart speaks one currency — the one carrying the largest yearly total.
-  const primary: CurrencyCode = (yearReal.length > 0 ? yearReal : yearlyTheory).reduce((a, b) =>
-    b.amount > a.amount ? b : a,
-  ).currency;
-  const inPrimary = (totals: { amount: number; currency: CurrencyCode }[]) =>
-    totals.find((t) => t.currency === primary)?.amount ?? 0;
+  // Everything big merges into the display currency; "≈" marks conversion.
+  const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
+    formatTotalsIn(values, displayCurrency, rates);
+  const amountIn = (values: { amount: number; currency: CurrencyCode }[]): number => {
+    if (rates) {
+      const merged = mergeTotals(values, displayCurrency, rates);
+      if (merged) return merged.total.amount;
+    }
+    // No usable rates: chart only what's already in the display currency.
+    return values.find((t) => t.currency === displayCurrency)?.amount ?? 0;
+  };
 
   const chartMonths: YearChartMonth[] = buckets.map((b) => {
     const m = Number(b.monthStart.slice(5, 7)) - 1;
-    const amount = inPrimary(b.totals);
+    const merged = rates ? mergeTotals(b.totals, displayCurrency, rates) : undefined;
+    const amount = merged?.total.amount ?? amountIn(b.totals);
+    const formatted = formatMoney(money(amount, displayCurrency));
     return {
       label: MONTH_SHORT[m],
       name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
       amount,
-      formatted: formatMoney(money(amount, primary)),
+      formatted: merged?.approximate ? `≈ ${formatted}` : formatted,
       // Januaries carry the year milestone so sliding never loses the reader.
       yearStart: m === 0 ? b.monthStart.slice(0, 4) : undefined,
     };
   });
-  const averageTheory = inPrimary(commitments.monthly);
-  const otherCurrencies = yearReal.filter((t) => t.currency !== primary);
+  const averageTheory = amountIn(commitments.monthly);
+  // Only when rates are unavailable does anything stay outside the chart.
+  const otherCurrencies =
+    rates && mergeTotals(yearReal, displayCurrency, rates)
+      ? []
+      : yearReal.filter((t) => t.currency !== displayCurrency);
 
   const thisMonthReal = buckets[todayIndex].totals;
-  const yearlyTotalPrimary = Math.max(inPrimary(yearlyTheory), 1);
+  const yearlyTotalPrimary = Math.max(amountIn(yearlyTheory), 1);
+
+  const creepLabel = (() => {
+    if (creep.length === 0) return priceChanges.length > 0 ? `${priceChanges.length} changed` : "";
+    const text = totals(creep);
+    return text.startsWith("≈ ") ? `≈ +${text.slice(2)}/mo` : `+${text}/mo`;
+  })();
 
   // Pay in X: per-month figures make no sense for a finite plan — what
   // matters is how much is STILL OWED, and how far along the plans are.
@@ -182,9 +200,9 @@ export default function InsightsScreen() {
   const bnplRemaining = sumByCurrency(planSummaries.map((s) => s.remainingAmount));
   const bnplTotal = sumByCurrency(planSummaries.map((s) => s.totalAmount));
   const bnplPaid = sumByCurrency(planSummaries.map((s) => s.paidAmount));
-  const bnplTotalPrimary = inPrimary(bnplTotal);
+  const bnplTotalDisplay = amountIn(bnplTotal);
   const bnplPaidShare =
-    bnplTotalPrimary > 0 ? Math.min(inPrimary(bnplPaid) / bnplTotalPrimary, 1) : 0;
+    bnplTotalDisplay > 0 ? Math.min(amountIn(bnplPaid) / bnplTotalDisplay, 1) : 0;
 
   // The selected month's payments, one light card — ledger entries plus
   // projections, each with its due date (overdue ones marked as such).
@@ -238,11 +256,9 @@ export default function InsightsScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
         label={year}
-        amount={yearReal.length > 0 ? formatMoneyList(yearReal) : "Nothing planned"}
+        amount={yearReal.length > 0 ? totals(yearReal) : "Nothing planned"}
         sub={
-          yearlyTheory.length > 0
-            ? `in theory ${formatMoneyList(yearlyTheory)} a year, ongoing`
-            : undefined
+          yearlyTheory.length > 0 ? `in theory ${totals(yearlyTheory)} a year, ongoing` : undefined
         }
       />
 
@@ -251,14 +267,14 @@ export default function InsightsScreen() {
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>This month</Text>
           <Text style={styles.statValue}>
-            {thisMonthReal.length > 0 ? formatMoneyList(thisMonthReal) : "Nothing"}
+            {thisMonthReal.length > 0 ? totals(thisMonthReal) : "Nothing"}
           </Text>
           <Text style={styles.statHint}>actually leaves</Text>
         </View>
         <View style={styles.statCard}>
           <Text style={styles.statLabel}>Average · theory</Text>
           <Text style={styles.statValue}>
-            {commitments.monthly.length > 0 ? formatMoneyList(commitments.monthly) : "Nothing"}
+            {commitments.monthly.length > 0 ? totals(commitments.monthly) : "Nothing"}
           </Text>
           <Text style={styles.statHint}>yearly costs spread out</Text>
         </View>
@@ -267,7 +283,7 @@ export default function InsightsScreen() {
       <YearChart
         months={chartMonths}
         average={averageTheory}
-        averageFormatted={formatMoney(money(averageTheory, primary))}
+        averageFormatted={formatMoney(money(averageTheory, displayCurrency))}
         todayIndex={todayIndex}
         selected={selected}
         onSelect={(i) => setSelected((prev) => (prev === i ? null : i))}
@@ -320,14 +336,14 @@ export default function InsightsScreen() {
       )}
 
       {otherCurrencies.length > 0 && (
-        <Text style={styles.note}>+ {formatMoneyList(otherCurrencies)} this year not charted</Text>
+        <Text style={styles.note}>+ {totals(otherCurrencies)} this year not charted</Text>
       )}
 
       {(cadences.length > 0 || planSummaries.length > 0) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>By billing cycle · theory</Text>
           {cadences.map((g) => {
-            const share = Math.min(inPrimary(g.yearlyTotal) / yearlyTotalPrimary, 1);
+            const share = Math.min(amountIn(g.yearlyTotal) / yearlyTotalPrimary, 1);
             const label = capitalize(describeRecurrence(g.recurrence));
             return (
               <View key={`${g.recurrence.interval}-${g.recurrence.unit}`} style={styles.cadenceRow}>
@@ -336,7 +352,7 @@ export default function InsightsScreen() {
                     {label} <Text style={styles.cadenceCount}>×{g.count}</Text>
                   </Text>
                   <Text style={styles.cadenceAmount}>
-                    {formatMoneyList(g.monthlyTotal)}/mo · {formatMoneyList(g.yearlyTotal)}/yr
+                    {totals(g.monthlyTotal)}/mo · {totals(g.yearlyTotal)}/yr
                   </Text>
                 </View>
                 <View style={styles.shareTrack}>
@@ -355,14 +371,14 @@ export default function InsightsScreen() {
                 <Text style={styles.cadenceLabel}>
                   Pay in X <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
                 </Text>
-                <Text style={styles.bnplOwed}>{formatMoneyList(bnplRemaining)} still owed</Text>
+                <Text style={styles.bnplOwed}>{totals(bnplRemaining)} still owed</Text>
               </View>
               <View style={styles.shareTrack}>
                 <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
                 <View style={{ flex: 1 - bnplPaidShare }} />
               </View>
               <Text style={styles.statHint}>
-                of {formatMoneyList(bnplTotal)} total · the payments sit inside the bars above
+                of {totals(bnplTotal)} total · the payments sit inside the bars above
               </Text>
             </View>
           )}
@@ -387,13 +403,7 @@ export default function InsightsScreen() {
           >
             <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>Price changes</Text>
-            <Text style={styles.exploreValue}>
-              {creep.length > 0
-                ? `+${formatMoneyList(creep)}/mo`
-                : priceChanges.length > 0
-                  ? `${priceChanges.length} changed`
-                  : ""}
-            </Text>
+            <Text style={styles.exploreValue}>{creepLabel}</Text>
             <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
           </Pressable>
           <Pressable

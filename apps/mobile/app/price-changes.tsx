@@ -6,7 +6,7 @@
 import {
   formatCalendarDate,
   formatMoney,
-  formatMoneyList,
+  formatTotalsIn,
   money,
   summarizePriceChanges,
   sumByCurrency,
@@ -23,7 +23,7 @@ import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "
 export default function PriceChangesScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, categories } = useAppState();
+  const { items, categories, displayCurrency, rates } = useAppState();
 
   const changes = summarizePriceChanges(items, today());
   const creep = sumByCurrency(
@@ -31,6 +31,11 @@ export default function PriceChangesScreen() {
       money(c.monthlyCurrent.amount - c.monthlyOriginal.amount, c.monthlyCurrent.currency),
     ),
   ).filter((m) => m.amount !== 0);
+  const creepLabel = (() => {
+    if (creep.length === 0) return "No drift";
+    const text = formatTotalsIn(creep, displayCurrency, rates);
+    return text.startsWith("≈ ") ? `≈ +${text.slice(2)}/mo` : `+${text}/mo`;
+  })();
 
   if (changes.length === 0) {
     return (
@@ -48,7 +53,7 @@ export default function PriceChangesScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
         label="Price creep"
-        amount={creep.length > 0 ? `+${formatMoneyList(creep)}/mo` : "No drift"}
+        amount={creepLabel}
         sub="more per month than at signup, across everything that changed"
       />
 
