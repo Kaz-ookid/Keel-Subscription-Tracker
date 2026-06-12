@@ -10,10 +10,13 @@ import {
   formatMoney,
   formatMoneyList,
   groupByCadence,
+  isInstallmentSchedule,
+  isPaymentItemComplete,
   money,
   projectCharges,
   spendingByMonth,
   summarizeCommitments,
+  summarizeInstallmentPlan,
   sumByCurrency,
   today,
   yearlyCommitment,
@@ -153,6 +156,20 @@ export default function InsightsScreen() {
   const thisMonthReal = buckets[todayIndex].totals;
   const yearlyTotalPrimary = Math.max(inPrimary(yearlyTheory), 1);
 
+  // Pay in X: per-month figures make no sense for a finite plan — what
+  // matters is how much is STILL OWED, and how far along the plans are.
+  const planSummaries = items.flatMap((i) =>
+    i.status === "active" && isInstallmentSchedule(i.schedule) && !isPaymentItemComplete(i, asOf)
+      ? [summarizeInstallmentPlan(i.schedule)]
+      : [],
+  );
+  const bnplRemaining = sumByCurrency(planSummaries.map((s) => s.remainingAmount));
+  const bnplTotal = sumByCurrency(planSummaries.map((s) => s.totalAmount));
+  const bnplPaid = sumByCurrency(planSummaries.map((s) => s.paidAmount));
+  const bnplTotalPrimary = inPrimary(bnplTotal);
+  const bnplPaidShare =
+    bnplTotalPrimary > 0 ? Math.min(inPrimary(bnplPaid) / bnplTotalPrimary, 1) : 0;
+
   // The selected month's payments, one light card — ledger entries plus
   // projections, each with its due date (overdue ones marked as such).
   const itemNames = new Map(items.map((i) => [i.id, i.name]));
@@ -259,7 +276,7 @@ export default function InsightsScreen() {
         <Text style={styles.note}>+ {formatMoneyList(otherCurrencies)} this year not charted</Text>
       )}
 
-      {cadences.length > 0 && (
+      {(cadences.length > 0 || planSummaries.length > 0) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>By billing cycle · theory</Text>
           {cadences.map((g) => {
@@ -282,14 +299,27 @@ export default function InsightsScreen() {
               </View>
             );
           })}
-        </View>
-      )}
 
-      {commitments.bnplOutstanding.length > 0 && (
-        <Text style={styles.note}>
-          Pay in X: {formatMoneyList(commitments.bnplOutstanding)} still owed — those payments are
-          inside the bars above.
-        </Text>
+          {/* Pay in X earns its own card — its bar is PROGRESS PAID, and the
+              headline is what's still owed (not a meaningless per-month). */}
+          {planSummaries.length > 0 && (
+            <View style={styles.cadenceRow}>
+              <View style={styles.cadenceHeader}>
+                <Text style={styles.cadenceLabel}>
+                  Pay in X <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
+                </Text>
+                <Text style={styles.bnplOwed}>{formatMoneyList(bnplRemaining)} still owed</Text>
+              </View>
+              <View style={styles.shareTrack}>
+                <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
+                <View style={{ flex: 1 - bnplPaidShare }} />
+              </View>
+              <Text style={styles.statHint}>
+                of {formatMoneyList(bnplTotal)} total · the payments sit inside the bars above
+              </Text>
+            </View>
+          )}
+        </View>
       )}
     </ScrollView>
   );
@@ -416,6 +446,11 @@ function createStyles(colors: ThemeColors) {
     cadenceAmount: {
       ...typography.caption,
       color: colors.mutedText,
+    },
+    // The one number that must not read like a footnote.
+    bnplOwed: {
+      ...typography.label,
+      color: colors.text,
     },
     shareTrack: {
       flexDirection: "row",
