@@ -97,7 +97,7 @@ export default function InsightsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, categories, loading } = useAppState();
+  const { items, occurrences, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
   const [selected, setSelected] = useState<number | null>(MONTHS_BACK);
 
@@ -323,34 +323,6 @@ export default function InsightsScreen() {
         <Text style={styles.note}>+ {formatMoneyList(otherCurrencies)} this year not charted</Text>
       )}
 
-      {/* Where the money goes — the split most people actually think in. */}
-      {categoryGroups.length > 0 && (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>By category · theory</Text>
-          {categoryGroups.map((g) => {
-            const share = Math.min(inPrimary(g.yearlyTotal) / yearlyTotalPrimary, 1);
-            const category = categories.find((c) => c.id === g.categoryId);
-            return (
-              <View key={g.categoryId ?? "none"} style={styles.cadenceRow}>
-                <View style={styles.cadenceHeader}>
-                  <Text style={styles.cadenceLabel}>
-                    {category?.name ?? "No category"}{" "}
-                    <Text style={styles.cadenceCount}>×{g.count}</Text>
-                  </Text>
-                  <Text style={styles.cadenceAmount}>
-                    {formatMoneyList(g.monthlyTotal)}/mo · {formatMoneyList(g.yearlyTotal)}/yr
-                  </Text>
-                </View>
-                <View style={styles.shareTrack}>
-                  <View style={[styles.shareFill, { flex: share }]} />
-                  <View style={{ flex: 1 - share }} />
-                </View>
-              </View>
-            );
-          })}
-        </View>
-      )}
-
       {(cadences.length > 0 || planSummaries.length > 0) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>By billing cycle · theory</Text>
@@ -401,7 +373,18 @@ export default function InsightsScreen() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Explore</Text>
         <View style={styles.exploreCard}>
-          <Pressable style={styles.exploreRow} onPress={() => router.push("/price-changes")}>
+          <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
+            <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
+            <Text style={styles.exploreText}>By category</Text>
+            <Text style={styles.exploreValue}>
+              {categoryGroups.length > 0 ? `${categoryGroups.length}` : ""}
+            </Text>
+            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable
+            style={[styles.exploreRow, styles.exploreRowDivider]}
+            onPress={() => router.push("/price-changes")}
+          >
             <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>Price changes</Text>
             <Text style={styles.exploreValue}>

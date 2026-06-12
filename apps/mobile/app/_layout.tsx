@@ -32,6 +32,7 @@ export default function RootLayout() {
             <Stack.Screen name="accounts" options={{ title: "Accounts" }} />
             <Stack.Screen name="price-changes" options={{ title: "Price changes" }} />
             <Stack.Screen name="by-account" options={{ title: "By account" }} />
+            <Stack.Screen name="by-category" options={{ title: "By category" }} />
           </Stack>
           {/* Header is navy in both schemes, so light status-bar content reads well. */}
           <StatusBar style="light" />
