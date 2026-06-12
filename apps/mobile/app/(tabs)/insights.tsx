@@ -4,6 +4,7 @@
 
 import {
   calendarDate,
+  COVERED_INSTALLMENT_STATUSES,
   describeRecurrence,
   endOfMonth,
   formatCalendarDate,
@@ -84,6 +85,9 @@ interface MonthDetail {
   dueDate: CalendarDate;
   amount: Money;
   kind: "paid" | "upcoming" | "overdue";
+  /** For Pay-in-X payments: "2 of 4". */
+  installmentIndex?: number;
+  installmentCount?: number;
 }
 
 export default function InsightsScreen() {
@@ -185,6 +189,26 @@ export default function InsightsScreen() {
         amount: o.amount,
         kind: "paid" as const,
       })),
+    // Pay-in-X payments live on the plan, not in the ledger — read them there.
+    ...items.flatMap((item) => {
+      if (!isInstallmentSchedule(item.schedule)) return [];
+      const count = item.schedule.installments.length;
+      return item.schedule.installments
+        .filter(
+          (inst) =>
+            COVERED_INSTALLMENT_STATUSES.includes(inst.status) &&
+            inst.dueDate.slice(0, 7) === selectedKey,
+        )
+        .map((inst) => ({
+          key: inst.id,
+          name: item.name,
+          dueDate: inst.dueDate,
+          amount: inst.amount,
+          kind: "paid" as const,
+          installmentIndex: inst.index,
+          installmentCount: count,
+        }));
+    }),
     ...projected
       .filter((c) => c.dueDate.slice(0, 7) === selectedKey)
       .map((c) => ({
@@ -193,6 +217,8 @@ export default function InsightsScreen() {
         dueDate: c.dueDate,
         amount: c.amount,
         kind: (c.dueDate < asOf ? "overdue" : "upcoming") as MonthDetail["kind"],
+        installmentIndex: c.installmentIndex,
+        installmentCount: c.installmentCount,
       })),
   ].sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
 
@@ -260,6 +286,12 @@ export default function InsightsScreen() {
               />
               <Text style={styles.detailName} numberOfLines={1}>
                 {d.name}
+                {d.installmentIndex && d.installmentCount ? (
+                  <Text style={styles.detailCount}>
+                    {" "}
+                    · {d.installmentIndex} of {d.installmentCount}
+                  </Text>
+                ) : null}
               </Text>
               <Text style={[styles.detailDate, d.kind === "overdue" && { color: tones.warning }]}>
                 {d.kind === "overdue"
@@ -401,6 +433,10 @@ function createStyles(colors: ThemeColors) {
       ...typography.caption,
       color: colors.text,
       flex: 1,
+    },
+    detailCount: {
+      ...typography.caption,
+      color: colors.mutedText,
     },
     detailDate: {
       ...typography.caption,

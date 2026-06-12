@@ -6,6 +6,7 @@ import {
   groupByCadence,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
+  markNextInstallmentPaid,
   now,
   pausePaymentItem,
   recordRecurringPayment,
@@ -125,6 +126,25 @@ describe("spendingByMonth (ledger actuals + projections)", () => {
     const buckets = spendingByMonth([item], [occurrence], calendarDate("2026-04-01"), 3);
     // April once (ledger), May and June once each (projection of the overdue).
     expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([1599, 1599, 1599]);
+  });
+
+  it("keeps a paid installment in its month (plan-side payment, no ledger entry)", () => {
+    let plan = makeInstallmentPaymentItem(
+      {
+        name: "Sofa",
+        totalAmount: eur(300),
+        numberOfInstallments: 3,
+        recurrence: RECURRENCE_PRESETS.MONTHLY,
+        firstInstallmentDate: calendarDate("2026-06-10"),
+        settlementMode: "manual",
+      },
+      { id: "p1", now: now(), makeId: ids() },
+    );
+    plan = markNextInstallmentPaid(plan, { paidDate: calendarDate("2026-06-10"), now: now() });
+
+    const buckets = spendingByMonth([plan], [], calendarDate("2026-06-01"), 3);
+    // June stays at 100 (now as a paid installment), July/August projected.
+    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([10000, 10000, 10000]);
   });
 
   it("leaves a skipped cycle out of the totals while later months stay projected", () => {

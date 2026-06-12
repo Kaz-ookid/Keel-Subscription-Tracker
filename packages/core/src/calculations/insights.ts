@@ -10,7 +10,12 @@ import { money, sumByCurrency, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import { addRecurrence, endOfMonth } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate } from "../primitives/temporal";
-import { isRecurringSchedule, type PaymentItem } from "../models/payment-item";
+import { COVERED_INSTALLMENT_STATUSES } from "../models/installment";
+import {
+  isInstallmentSchedule,
+  isRecurringSchedule,
+  type PaymentItem,
+} from "../models/payment-item";
 import { isPaymentItemComplete } from "../models/payment-item-status";
 import type { PaymentOccurrence } from "../models/payment-occurrence";
 import { monthlyEquivalent, occurrencesPerYear, projectCharges } from "./forecast";
@@ -56,12 +61,15 @@ export function forecastByMonth(
 
 /**
  * The full picture per month: what was ACTUALLY paid (the occurrence ledger —
- * which survives pausing, editing, even ending an item) plus what is still
- * owed or upcoming (the projection). The two can never double-count: the
- * ledger covers everything up to each item's charge cursor, and projections
- * start at the cursor. An unpaid manual charge therefore stays visible in the
- * month it was due — as projection — until it's ticked off, when it moves to
- * the ledger side of the same bucket.
+ * which survives pausing, editing, even ending an item — plus the covered
+ * installments of Pay-in-X plans, whose payments live on the plan itself, not
+ * in the ledger) plus what is still owed or upcoming (the projection). The
+ * sides can never double-count: the ledger covers everything up to each
+ * item's charge cursor, projections start at the cursor, and a covered
+ * installment is by definition excluded from the projection. An unpaid
+ * manual charge therefore stays visible in the month it was due — as
+ * projection — until it's ticked off, when it moves to the actual side of
+ * the same bucket.
  */
 export function spendingByMonth(
   items: readonly PaymentItem[],
@@ -80,11 +88,17 @@ export function spendingByMonth(
   const projected = projectCharges(items, until);
   // Money actually moved: refunded/failed events don't count (edge case #8).
   const actuals = occurrences.filter((o) => o.status === "charged");
+  const paidInstallments = items.flatMap((item) =>
+    isInstallmentSchedule(item.schedule)
+      ? item.schedule.installments.filter((i) => COVERED_INSTALLMENT_STATUSES.includes(i.status))
+      : [],
+  );
 
   return starts.map((monthStart) => {
     const key = monthStart.slice(0, 7);
     const amounts = [
       ...actuals.filter((o) => o.dueDate.slice(0, 7) === key).map((o) => o.amount),
+      ...paidInstallments.filter((i) => i.dueDate.slice(0, 7) === key).map((i) => i.amount),
       ...projected.filter((c) => c.dueDate.slice(0, 7) === key).map((c) => c.amount),
     ];
     return { monthStart, totals: sumByCurrency(amounts) };
