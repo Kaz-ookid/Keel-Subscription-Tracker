@@ -135,11 +135,29 @@ export default function InsightsScreen() {
     ),
   ).filter((m) => m.amount !== 0);
 
-  // The headline stays the calendar year, carved out of the wide window.
+  // The headline stays the calendar year, carved out of the wide window —
+  // split into its two halves so the card explains its own number: what has
+  // actually been paid, and what the rest of the year is still set to charge.
   const year = asOf.slice(0, 4);
   const yearReal = sumByCurrency(
     buckets.filter((b) => b.monthStart.slice(0, 4) === year).flatMap((b) => b.totals),
   );
+  const yearPaid = sumByCurrency([
+    ...occurrences
+      .filter((o) => o.status === "charged" && o.dueDate.slice(0, 4) === year)
+      .map((o) => o.amount),
+    ...items.flatMap((item) =>
+      isInstallmentSchedule(item.schedule)
+        ? item.schedule.installments
+            .filter(
+              (inst) =>
+                COVERED_INSTALLMENT_STATUSES.includes(inst.status) &&
+                inst.dueDate.slice(0, 4) === year,
+            )
+            .map((inst) => inst.amount)
+        : [],
+    ),
+  ]);
 
   if (yearReal.length === 0 && yearlyTheory.length === 0) {
     return (
@@ -207,10 +225,37 @@ export default function InsightsScreen() {
   const bnplPaidShare =
     bnplTotalDisplay > 0 ? Math.min(amountIn(bnplPaid) / bnplTotalDisplay, 1) : 0;
 
+  // The value above is the recurring, predictable part — the hint quantifies
+  // what rode on top of it this year as finite Pay-in-X money (every
+  // installment due this calendar year, finished plans included).
+  const bnplThisYear = sumByCurrency(
+    items.flatMap((item) =>
+      isInstallmentSchedule(item.schedule)
+        ? item.schedule.installments
+            .filter((inst) => inst.dueDate.slice(0, 4) === year)
+            .map((inst) => inst.amount)
+        : [],
+    ),
+  );
+  const ongoingHint =
+    bnplThisYear.length > 0
+      ? `+ ${totals(bnplThisYear)} of Pay in X this year`
+      : "your recurring baseline";
+
   // The selected month's payments, one light card — ledger entries plus
   // projections, each with its due date (overdue ones marked as such).
   const itemNames = new Map(items.map((i) => [i.id, i.name]));
   const projected = projectCharges(items, windowEnd);
+  // The other half of the headline: charges this year that haven't been
+  // settled yet (overdue ones included — they're still owed).
+  const yearDue = sumByCurrency(
+    projected.filter((c) => c.dueDate.slice(0, 4) === year).map((c) => c.amount),
+  );
+  const heroSub =
+    [
+      ...(yearPaid.length > 0 ? [`${totals(yearPaid)} paid`] : []),
+      ...(yearDue.length > 0 ? [`${totals(yearDue)} still due`] : []),
+    ].join(" · ") || undefined;
   const selectedKey = selected !== null ? buckets[selected]?.monthStart.slice(0, 7) : undefined;
   const details: MonthDetail[] = [
     ...occurrences
@@ -258,11 +303,9 @@ export default function InsightsScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
-        label={year}
+        label={`${year} in total`}
         amount={yearReal.length > 0 ? totals(yearReal) : "Nothing planned"}
-        sub={
-          yearlyTheory.length > 0 ? `in theory ${totals(yearlyTheory)} a year, ongoing` : undefined
-        }
+        sub={heroSub}
       />
 
       {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
@@ -275,11 +318,11 @@ export default function InsightsScreen() {
           <Text style={styles.statHint}>actually leaves</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Average · theory</Text>
+          <Text style={styles.statLabel}>Average per month</Text>
           <Text style={styles.statValue}>
             {commitments.monthly.length > 0 ? totals(commitments.monthly) : "Nothing"}
           </Text>
-          <Text style={styles.statHint}>yearly costs spread out</Text>
+          <Text style={styles.statHint}>{ongoingHint}</Text>
         </View>
       </View>
 
