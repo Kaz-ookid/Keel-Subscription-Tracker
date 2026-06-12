@@ -73,6 +73,15 @@ export function listOccurrenceDates(
   return dates;
 }
 
+/** Step a calendar date by whole days (negative allowed — "3 days before"). */
+export function addDays(date: CalendarDate, days: number): CalendarDate {
+  const [y, m, d] = date.split("-").map(Number);
+  const stepped = new Date(Date.UTC(y, m - 1, d + days));
+  return calendarDate(
+    `${stepped.getUTCFullYear()}-${pad(stepped.getUTCMonth() + 1)}-${pad(stepped.getUTCDate())}`,
+  );
+}
+
 /** The last day of `date`'s month — e.g. 2026-02-10 → 2026-02-28. */
 export function endOfMonth(date: CalendarDate): CalendarDate {
   const [y, m] = date.split("-").map(Number);
