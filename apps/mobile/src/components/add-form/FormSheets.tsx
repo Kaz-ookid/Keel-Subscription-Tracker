@@ -11,8 +11,10 @@ import {
 import { type ComponentType, type ReactNode } from "react";
 import { Pressable, ScrollView } from "react-native";
 
+import { SymbolView } from "expo-symbols";
+
 import { COLOR_SWATCHES } from "../../constants";
-import { useTheme } from "../../theme";
+import { contrastText, useTheme } from "../../theme";
 import { AccountPickerSheet } from "../AccountSheet";
 import { CategorySheet } from "../CategorySheet";
 import { Sheet } from "../Sheet";
@@ -130,12 +132,13 @@ export function FormSheets({ form }: { form: AddForm }) {
                 form.setColor(c);
                 close();
               }}
-              style={[
-                styles.colorSwatch,
-                { backgroundColor: c },
-                form.color === c && styles.colorSwatchActive,
-              ]}
-            />
+              style={[styles.colorSwatch, { backgroundColor: c }]}
+            >
+              {/* A checkmark reads on any swatch — a dark ring didn't. */}
+              {form.color === c && (
+                <SymbolView name="checkmark" size={18} tintColor={contrastText(c)} />
+              )}
+            </Pressable>
           ))}
         </ScrollView>
       </Sheet>

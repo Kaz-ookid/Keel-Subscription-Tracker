@@ -44,6 +44,16 @@ export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
   return { colors: scheme === "dark" ? dark : light, scheme };
 }
 
+/** Black or white — whichever reads on the given hex background. Used for
+ *  marks drawn on top of user-picked swatch colours. */
+export function contrastText(hex: string): string {
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255;
+  const g = (n >> 8) & 255;
+  const b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#111827" : "#FFFFFF";
+}
+
 // The platform's mapping of the core's semantic tones → actual colours. These
 // read acceptably on both light and dark backgrounds, so they stay static.
 export const tones: Record<SemanticTone, string> = {

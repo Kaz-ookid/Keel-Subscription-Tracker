@@ -12,7 +12,15 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 
 import { COLOR_SWATCHES } from "../constants";
 import { useAppState } from "../state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import {
+  contrastText,
+  radius,
+  spacing,
+  tones,
+  typography,
+  useTheme,
+  type ThemeColors,
+} from "../theme";
 import { IconBadge } from "./IconBadge";
 import { Segmented, type SegmentedOption } from "./Segmented";
 import { Sheet } from "./Sheet";
@@ -63,14 +71,14 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
     <View style={styles.form}>
       <TextInput
         style={[styles.input, !name.trim() && styles.requiredMissing]}
-        placeholder="Account name — e.g. Compte courant"
+        placeholder="Account name — e.g. Revolut, PayPal, BNP"
         placeholderTextColor={colors.mutedText}
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
-        placeholder="Bank (optional) — e.g. BNP Paribas"
+        placeholder="Details (optional) — e.g. joint account, travel card"
         placeholderTextColor={colors.mutedText}
         value={institution}
         onChangeText={setInstitution}
@@ -101,8 +109,11 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
             <Pressable
               key={c}
               onPress={() => setColor(c)}
-              style={[styles.swatch, { backgroundColor: c }, color === c && styles.swatchActive]}
-            />
+              style={[styles.swatch, { backgroundColor: c }]}
+            >
+              {/* A checkmark reads on any swatch — a dark ring didn't. */}
+              {color === c && <SymbolView name="checkmark" size={14} tintColor={contrastText(c)} />}
+            </Pressable>
           ))}
         </View>
       </ScrollView>
@@ -296,11 +307,8 @@ function createStyles(colors: ThemeColors) {
       width: 32,
       height: 32,
       borderRadius: 16,
-      borderWidth: 3,
-      borderColor: "transparent",
-    },
-    swatchActive: {
-      borderColor: colors.text,
+      alignItems: "center",
+      justifyContent: "center",
     },
     submitBtn: {
       backgroundColor: colors.navy,

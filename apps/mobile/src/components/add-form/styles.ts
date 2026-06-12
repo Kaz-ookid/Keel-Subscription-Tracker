@@ -85,11 +85,8 @@ function createFormStyles(colors: ThemeColors) {
       width: 48,
       height: 48,
       borderRadius: 24,
-      borderWidth: 3,
-      borderColor: "transparent",
-    },
-    colorSwatchActive: {
-      borderColor: colors.text,
+      alignItems: "center",
+      justifyContent: "center",
     },
   });
 }
