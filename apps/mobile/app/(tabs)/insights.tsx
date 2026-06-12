@@ -124,7 +124,7 @@ export default function InsightsScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
-        label={`${asOf.slice(0, 4)} · real`}
+        label={asOf.slice(0, 4)}
         amount={yearReal.length > 0 ? formatMoneyList(yearReal) : "Nothing planned"}
         sub={
           yearlyTheory.length > 0
@@ -133,10 +133,10 @@ export default function InsightsScreen() {
         }
       />
 
-      {/* REAL vs THEORY — the distinction the whole screen exists for. */}
+      {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
       <View style={styles.statRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>This month · real</Text>
+          <Text style={styles.statLabel}>This month</Text>
           <Text style={styles.statValue}>
             {thisMonthReal.length > 0 ? formatMoneyList(thisMonthReal) : "Nothing"}
           </Text>
