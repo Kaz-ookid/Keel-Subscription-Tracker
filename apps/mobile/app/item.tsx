@@ -9,10 +9,12 @@ import {
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
+  formatMoneyList,
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
   summarizeInstallmentPlan,
+  sumByCurrency,
   today,
 } from "@keel/core";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -94,6 +96,12 @@ export default function ItemScreen() {
   const history = occurrences
     .filter((o) => o.paymentItemId === item.id)
     .sort((a, b) => (a.dueDate < b.dueDate ? 1 : -1));
+  // Lifetime cost: what this commitment has actually taken so far.
+  const paidToDate = sumByCurrency(
+    installment && plan
+      ? [plan.paidAmount]
+      : history.filter((o) => o.status === "charged").map((o) => o.amount),
+  ).filter((m) => m.amount > 0);
 
   const confirmDelete = () =>
     Alert.alert("Delete subscription", `Remove “${item.name}”? This cannot be undone.`, [
@@ -188,6 +196,9 @@ export default function ItemScreen() {
               <InfoRow label="Provider" value={installment.provider} styles={styles} />
             )}
           </>
+        )}
+        {paidToDate.length > 0 && (
+          <InfoRow label="Paid to date" value={formatMoneyList(paidToDate)} styles={styles} />
         )}
         <InfoRow label="Account" value={account?.name ?? "None"} styles={styles} />
         <InfoRow label="Category" value={category?.name ?? "None"} styles={styles} />
