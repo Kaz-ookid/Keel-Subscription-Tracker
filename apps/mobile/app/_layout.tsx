@@ -18,6 +18,9 @@ export default function RootLayout() {
               headerStyle: { backgroundColor: colors.navy },
               headerTintColor: colors.white,
               contentStyle: { backgroundColor: colors.background },
+              // Just the chevron — otherwise iOS prints the previous route's
+              // name ("(tabs)") next to the back arrow.
+              headerBackButtonDisplayMode: "minimal",
             }}
           >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
