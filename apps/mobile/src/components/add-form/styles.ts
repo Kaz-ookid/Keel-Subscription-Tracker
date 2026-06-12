@@ -41,8 +41,6 @@ function createFormStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     currencyChipText: { ...typography.label, color: colors.text },
-    // Currency follows the selected account (one currency per account, v1).
-    currencyChipLocked: { opacity: 0.5 },
     amountInput: { ...typography.title, color: colors.text, flex: 1, textAlign: "right" },
     field: {
       paddingVertical: spacing.md,

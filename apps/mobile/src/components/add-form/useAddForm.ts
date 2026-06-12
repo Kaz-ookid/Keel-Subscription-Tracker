@@ -113,6 +113,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     removePendingSuggestion,
     categories,
     accounts,
+    displayCurrency,
   } = useAppState();
 
   // When an `id` is passed we're editing an existing item; pre-fill from it.
@@ -140,7 +141,10 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [amountText, setAmountText] = useState(() =>
     editAmount ? String(toMajor(editAmount)) : "",
   );
-  const [currency, setCurrency] = useState<CurrencyCode>(() => editAmount?.currency ?? "EUR");
+  // A fresh form speaks the user's display currency until told otherwise.
+  const [currency, setCurrency] = useState<CurrencyCode>(
+    () => editAmount?.currency ?? displayCurrency,
+  );
   const [intervalText, setIntervalText] = useState(() =>
     String(editRec?.recurrence.interval ?? editInst?.recurrence.interval ?? 1),
   );
@@ -214,9 +218,10 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   // Manual payments are deliberately not pre-linked to an account (brief §8).
   const isAutomatic = settlementMode === "automatic";
   const selectedAccount = isAutomatic ? accounts.find((a) => a.id === accountId) : undefined;
-  // v1 rule: a payment charged to an account uses that account's currency —
-  // while an account is selected it wins over the manually-picked currency.
-  const effectiveCurrency = selectedAccount?.currency ?? currency;
+  // Selecting an account DEFAULTS the currency to the account's (see
+  // selectAccount) but never locks it — a CHF card can pay a USD
+  // subscription; the charge is stored in what the merchant bills.
+  const effectiveCurrency = currency;
 
   // Compute total ⇄ per-payment depending on how the user entered the amount.
   const installmentTotal =
@@ -240,7 +245,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     return `total ${formatMoney(installmentTotal)} · ${installmentCount} payments · ends ${ends}`;
   })();
 
-  // Selecting an account also syncs the manual currency so unselecting stays coherent.
+  // Selecting an account defaults the currency to the account's — the usual
+  // case — while leaving the chip editable for foreign-currency charges.
   const selectAccount = (selected: string | undefined) => {
     setAccountId(selected);
     const account = accounts.find((a) => a.id === selected);

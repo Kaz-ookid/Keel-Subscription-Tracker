@@ -20,11 +20,7 @@ export function AmountSection({ form }: { form: AddForm }) {
   return (
     <>
       <View style={[styles.amountCard, !(form.amountValue > 0) && styles.requiredMissing]}>
-        <Pressable
-          style={[styles.currencyChip, form.selectedAccount && styles.currencyChipLocked]}
-          onPress={() => form.setSheet("currency")}
-          disabled={!!form.selectedAccount}
-        >
+        <Pressable style={styles.currencyChip} onPress={() => form.setSheet("currency")}>
           <Text style={styles.currencyChipText}>{currencyLabel(form.effectiveCurrency)}</Text>
         </Pressable>
         <TextInput
