@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   accrueDueOccurrences,
   calendarDate,
+  canMarkNextInstallmentPaid,
   fromMajor,
   isInstallmentSchedule,
   isPaymentItemComplete,
@@ -10,9 +11,12 @@ import {
   makeRecurringPaymentItem,
   markNextInstallmentPaid,
   now,
+  pausePaymentItem,
   recordRecurringPayment,
   RECURRENCE_PRESETS,
+  resumePaymentItem,
   sumMoney,
+  unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
   updateRecurringPaymentItem,
 } from "../index";
@@ -380,5 +384,119 @@ describe("completion lifecycle", () => {
     // A further mark is a no-op once everything is covered.
     const same = markNextInstallmentPaid(item, { paidDate: today, now: now() });
     expect(same).toBe(item);
+  });
+});
+
+describe("canMarkNextInstallmentPaid (current-cycle cap)", () => {
+  const ids = () => {
+    let n = 0;
+    return () => `i-${++n}`;
+  };
+  const plan = {
+    name: "TV",
+    totalAmount: fromMajor(300, "EUR"),
+    numberOfInstallments: 3,
+    recurrence: RECURRENCE_PRESETS.MONTHLY,
+    firstInstallmentDate: calendarDate("2026-06-10"),
+    settlementMode: "manual" as const,
+  };
+
+  it("allows due, overdue and within-one-cycle payments — but never the cycle after", () => {
+    let item = makeInstallmentPaymentItem(plan, { id: "p1", now: now(), makeId: ids() });
+
+    // Early in the month, the 10th is within one cycle → markable.
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-01"))).toBe(true);
+    // Overdue → still markable.
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-20"))).toBe(true);
+
+    // Pay June: July's installment is a full cycle away on June 1st…
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-06-01"), now: now() });
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-01"))).toBe(false);
+    // …but becomes markable as July approaches within one cycle.
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-15"))).toBe(true);
+  });
+
+  it("is false for complete plans, paused items and recurring items", () => {
+    let item = makeInstallmentPaymentItem(
+      { ...plan, numberOfInstallments: 1 },
+      { id: "p2", now: now(), makeId: ids() },
+    );
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-06-10"), now: now() });
+    expect(canMarkNextInstallmentPaid(item, calendarDate("2026-06-10"))).toBe(false); // complete
+
+    const paused = pausePaymentItem(
+      makeInstallmentPaymentItem(plan, { id: "p3", now: now(), makeId: ids() }),
+      { now: now() },
+    );
+    expect(canMarkNextInstallmentPaid(paused, calendarDate("2026-06-01"))).toBe(false);
+
+    const sub = makeRecurringPaymentItem(input, { id: "r1", now: now() });
+    expect(canMarkNextInstallmentPaid(sub, calendarDate("2026-06-01"))).toBe(false);
+  });
+});
+
+describe("unmarkLastInstallmentPaid", () => {
+  const ids = () => {
+    let n = 0;
+    return () => `i-${++n}`;
+  };
+
+  it("reverts the most recent payment, clearing its paid fields", () => {
+    let item = makeInstallmentPaymentItem(
+      {
+        name: "TV",
+        totalAmount: fromMajor(300, "EUR"),
+        numberOfInstallments: 3,
+        recurrence: RECURRENCE_PRESETS.MONTHLY,
+        firstInstallmentDate: calendarDate("2026-06-10"),
+        settlementMode: "manual",
+      },
+      { id: "p1", now: now(), makeId: ids() },
+    );
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-06-10"), now: now() });
+    item = markNextInstallmentPaid(item, { paidDate: calendarDate("2026-07-10"), now: now() });
+
+    const undone = unmarkLastInstallmentPaid(item, { now: now() });
+    if (!isInstallmentSchedule(undone.schedule)) throw new Error("expected installment");
+    expect(undone.schedule.installments.map((i) => i.status)).toEqual([
+      "paid",
+      "upcoming",
+      "upcoming",
+    ]);
+    expect(undone.schedule.installments[1].paidDate).toBeUndefined();
+
+    // Nothing covered → no-op.
+    const fresh = unmarkLastInstallmentPaid(unmarkLastInstallmentPaid(undone, { now: now() }), {
+      now: now(),
+    });
+    expect(unmarkLastInstallmentPaid(fresh, { now: now() })).toBe(fresh);
+  });
+});
+
+describe("pause / resume", () => {
+  it("pauses an active item and resumes without back-charging the gap", () => {
+    const item = makeRecurringPaymentItem(input, { id: "r1", now: now() });
+    const paused = pausePaymentItem(item, { now: now() });
+    expect(paused.status).toBe("paused");
+
+    // Paused Jan→June; resuming must NOT owe Feb–June: the cursor jumps to
+    // the next grid date after asOf (bills on the 15th → 2026-07-15).
+    const resumed = resumePaymentItem(paused, { now: now(), asOf: calendarDate("2026-06-20") });
+    expect(resumed.status).toBe("active");
+    if (!isRecurringSchedule(resumed.schedule)) throw new Error("expected recurring");
+    expect(resumed.schedule.nextChargeDate).toBe("2026-07-15");
+
+    // A cursor already in the future stays put.
+    const pausedEarly = pausePaymentItem(item, { now: now() });
+    const resumedEarly = resumePaymentItem(pausedEarly, {
+      now: now(),
+      asOf: calendarDate("2026-01-01"),
+    });
+    if (!isRecurringSchedule(resumedEarly.schedule)) throw new Error("expected recurring");
+    expect(resumedEarly.schedule.nextChargeDate).toBe("2026-01-15");
+
+    // Guards: pause is a no-op on non-active, resume on non-paused.
+    expect(pausePaymentItem(paused, { now: now() })).toBe(paused);
+    expect(resumePaymentItem(item, { now: now(), asOf: calendarDate("2026-06-20") })).toBe(item);
   });
 });

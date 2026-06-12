@@ -1,4 +1,5 @@
 import {
+  canMarkNextInstallmentPaid,
   describeRecurrence,
   formatCalendarDate,
   formatMoney,
@@ -62,9 +63,24 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     const next = s.nextDue;
     subLine = `${s.totalCount}× · ${s.paidCount} of ${s.totalCount} paid${next ? ` · next ${formatCalendarDate(next.dueDate)}` : ""}`;
     amount = formatMoney(next ? next.amount : s.totalAmount);
-    tag = "Pay in X";
-    tagColor = colors.accent;
-    showMarkPaid = true;
+    // Only the current cycle's installment can be ticked off; once it is,
+    // the row says so instead of offering a button that would race ahead.
+    const canMark = canMarkNextInstallmentPaid(item, today());
+    showMarkPaid = canMark;
+    if (!canMark && s.paidCount > 0 && !s.isComplete) {
+      tag = "Paid this cycle";
+      tagColor = tones.success;
+    } else {
+      tag = "Pay in X";
+      tagColor = colors.accent;
+    }
+  }
+
+  // Paused: kept around, clearly parked, no action.
+  if (item.status === "paused") {
+    tag = "Paused";
+    tagColor = colors.mutedText;
+    showMarkPaid = false;
   }
 
   // A finished item: greyed, labelled, no action.
@@ -84,7 +100,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     <Pressable
       onPress={onPress}
       onLongPress={confirmDelete}
-      style={[styles.row, complete && styles.rowComplete]}
+      style={[styles.row, (complete || item.status === "paused") && styles.rowComplete]}
     >
       <IconBadge
         icon={category?.icon}

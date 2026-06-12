@@ -1,5 +1,6 @@
 import {
   addRecurrence,
+  canMarkNextInstallmentPaid,
   endOfMonth,
   formatCalendarDate,
   formatMoneyList,
@@ -102,6 +103,18 @@ export function UpcomingView() {
   for (const c of allCharges) {
     if (!earliest.has(c.paymentItemId)) earliest.set(c.paymentItemId, c);
   }
+  const itemsById = new Map(items.map((i) => [i.id, i]));
+
+  // Manual subscriptions tick off once due; installments any time within
+  // their current cycle (you often pay BNPL a few days early).
+  const canMark = (charge: ProjectedCharge): boolean => {
+    if (earliest.get(charge.paymentItemId) !== charge) return false;
+    if (charge.scheduleType === "INSTALLMENT") {
+      const item = itemsById.get(charge.paymentItemId);
+      return item !== undefined && canMarkNextInstallmentPaid(item, asOf);
+    }
+    return charge.settlementMode === "manual" && charge.dueDate <= asOf;
+  };
 
   const selectedAccount = accounts.find((a) => a.id === filter);
   const dueThisMonth = sumByCurrency(
@@ -244,11 +257,7 @@ export function UpcomingView() {
         <UpcomingRow
           charge={item}
           overdue={item.dueDate < asOf}
-          showMarkPaid={
-            item.dueDate <= asOf &&
-            earliest.get(item.paymentItemId) === item &&
-            (item.scheduleType === "INSTALLMENT" || item.settlementMode === "manual")
-          }
+          showMarkPaid={canMark(item)}
           onPress={() => router.push({ pathname: "/item", params: { id: item.paymentItemId } })}
           onMarkPaid={() =>
             item.scheduleType === "INSTALLMENT"

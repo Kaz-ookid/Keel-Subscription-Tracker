@@ -1,3 +1,4 @@
+import { addRecurrence } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import { summarizeInstallmentPlan } from "./installment-plan";
 import { isInstallmentSchedule, isRecurringSchedule, type PaymentItem } from "./payment-item";
@@ -19,4 +20,16 @@ export function isPaymentItemComplete(item: PaymentItem, asOf: CalendarDate): bo
     return summarizeInstallmentPlan(item.schedule).isComplete;
   }
   return false;
+}
+
+/**
+ * Whether the plan's next installment may be marked paid right now: only the
+ * one falling within the current billing cycle — due, overdue, or coming up
+ * within one recurrence step of `asOf`. Caps repeated taps from racing months
+ * ahead (works for weekly/quarterly plans too, not just monthly).
+ */
+export function canMarkNextInstallmentPaid(item: PaymentItem, asOf: CalendarDate): boolean {
+  if (item.status !== "active" || !isInstallmentSchedule(item.schedule)) return false;
+  const next = summarizeInstallmentPlan(item.schedule).nextDue;
+  return next !== undefined && next.dueDate < addRecurrence(asOf, item.schedule.recurrence);
 }

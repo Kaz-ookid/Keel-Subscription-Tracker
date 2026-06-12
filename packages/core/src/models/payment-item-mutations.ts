@@ -169,6 +169,72 @@ export function markNextInstallmentPaid(
   return { ...item, updatedAt: ctx.now, schedule: { ...schedule, installments } };
 }
 
+/**
+ * Undo the most recent installment payment: the last covered installment goes
+ * back to `upcoming`, clearing its paid date/account. Returns the item
+ * unchanged if it isn't an installment plan or nothing is covered yet.
+ */
+export function unmarkLastInstallmentPaid(item: PaymentItem, ctx: { now: Timestamp }): PaymentItem {
+  if (item.schedule.kind !== "INSTALLMENT") return item;
+  const schedule = item.schedule;
+  let idx = -1;
+  for (let i = schedule.installments.length - 1; i >= 0; i--) {
+    if (COVERED_INSTALLMENT_STATUSES.includes(schedule.installments[i].status)) {
+      idx = i;
+      break;
+    }
+  }
+  if (idx === -1) return item;
+
+  const installments: Installment[] = schedule.installments.map((inst, i) =>
+    i === idx
+      ? {
+          ...inst,
+          status: "upcoming" as InstallmentStatus,
+          paidDate: undefined,
+          paidFromAccountId: undefined,
+        }
+      : inst,
+  );
+
+  return { ...item, updatedAt: ctx.now, schedule: { ...schedule, installments } };
+}
+
+/** Pause an active item: it keeps its history but stops being forecast,
+ *  accrued, or counted (edge case #7). No-op unless currently active. */
+export function pausePaymentItem(item: PaymentItem, ctx: { now: Timestamp }): PaymentItem {
+  if (item.status !== "active") return item;
+  return { ...item, status: "paused", updatedAt: ctx.now };
+}
+
+/**
+ * Resume a paused item. A recurring schedule's cursor fast-forwards to the
+ * next billing-grid date after `asOf` WITHOUT logging the skipped occurrences
+ * — nothing was charged while paused, so nothing may enter the ledger.
+ * Installment plans need no adjustment: their unpaid installments simply
+ * become due (still owed) again. No-op unless currently paused.
+ */
+export function resumePaymentItem(
+  item: PaymentItem,
+  ctx: { now: Timestamp; asOf: CalendarDate },
+): PaymentItem {
+  if (item.status !== "paused") return item;
+  if (item.schedule.kind === "RECURRING") {
+    const schedule = item.schedule;
+    const nextChargeDate =
+      schedule.nextChargeDate > ctx.asOf
+        ? schedule.nextChargeDate
+        : nextDueDate(schedule.firstChargeDate, schedule.recurrence, ctx.asOf);
+    return {
+      ...item,
+      status: "active",
+      updatedAt: ctx.now,
+      schedule: { ...schedule, nextChargeDate },
+    };
+  }
+  return { ...item, status: "active", updatedAt: ctx.now };
+}
+
 export interface RecordPaymentContext {
   id: string;
   paidDate: CalendarDate;

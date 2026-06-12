@@ -4,6 +4,7 @@
 // detail can never accidentally change one.
 
 import {
+  canMarkNextInstallmentPaid,
   COVERED_INSTALLMENT_STATUSES,
   describeRecurrence,
   formatCalendarDate,
@@ -39,8 +40,17 @@ export default function ItemScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, accounts, categories, markPaid, markInstallmentPaid, removeSubscription } =
-    useAppState();
+  const {
+    items,
+    accounts,
+    categories,
+    markPaid,
+    markInstallmentPaid,
+    undoInstallmentPaid,
+    pauseSubscription,
+    resumeSubscription,
+    removeSubscription,
+  } = useAppState();
 
   const item = items.find((i) => i.id === id);
   if (!item) {
@@ -63,7 +73,13 @@ export default function ItemScreen() {
     ? `${describeRecurrence(recurring.recurrence)} · ${item.settlementMode === "manual" ? "Manual" : "Automatic"}`
     : `Pay in ${plan?.totalCount} · ${item.settlementMode === "manual" ? "Manual" : "Automatic"}`;
 
-  const canMarkPaid = !complete && (installment !== undefined || item.settlementMode === "manual");
+  const paused = item.status === "paused";
+  const canMarkPaid = installment
+    ? canMarkNextInstallmentPaid(item, asOf)
+    : !complete && !paused && item.settlementMode === "manual";
+  // Already ticked for the current cycle — say so instead of hiding the button.
+  const paidThisCycle =
+    installment !== undefined && !canMarkPaid && !complete && !paused && (plan?.paidCount ?? 0) > 0;
 
   const confirmDelete = () =>
     Alert.alert("Delete subscription", `Remove “${item.name}”? This cannot be undone.`, [
@@ -109,6 +125,7 @@ export default function ItemScreen() {
             {recurring ? "Ended" : "Fully paid"}
           </Text>
         )}
+        {paused && <Text style={[styles.subtitle, { color: tones.warning }]}>Paused</Text>}
       </View>
 
       {/* Facts */}
@@ -169,9 +186,16 @@ export default function ItemScreen() {
       </View>
 
       {/* The explicit list is the point of Pay-in-X — show every payment. */}
-      {installment && (
+      {installment && plan && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Payments</Text>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>Payments</Text>
+            {plan.paidCount > 0 && (
+              <Pressable onPress={() => undoInstallmentPaid(item.id)} hitSlop={8}>
+                <Text style={styles.undoText}>Undo last</Text>
+              </Pressable>
+            )}
+          </View>
           {installment.installments.map((inst) => {
             const covered = COVERED_INSTALLMENT_STATUSES.includes(inst.status);
             const late = !covered && inst.dueDate < asOf;
@@ -219,6 +243,23 @@ export default function ItemScreen() {
           <Text style={styles.primaryBtnText}>Mark paid</Text>
         </Pressable>
       )}
+      {paidThisCycle && (
+        <View style={styles.disabledBtn}>
+          <Text style={styles.disabledBtnText}>
+            Paid for this cycle
+            {plan?.nextDue ? ` · next ${formatCalendarDate(plan.nextDue.dueDate)}` : ""}
+          </Text>
+        </View>
+      )}
+
+      {!complete && (
+        <Pressable
+          style={styles.secondaryBtn}
+          onPress={() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id))}
+        >
+          <Text style={styles.secondaryBtnText}>{paused ? "Resume" : "Pause"}</Text>
+        </Pressable>
+      )}
 
       <Pressable style={styles.deleteRow} onPress={confirmDelete}>
         <Text style={styles.deleteText}>Delete</Text>
@@ -257,7 +298,17 @@ function createStyles(colors: ThemeColors) {
     cardTitle: {
       ...typography.label,
       color: colors.text,
+    },
+    cardTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingTop: spacing.sm,
+    },
+    undoText: {
+      ...typography.caption,
+      color: colors.accent,
+      fontWeight: "600",
     },
     infoRow: {
       flexDirection: "row",
@@ -282,6 +333,23 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
     },
     primaryBtnText: { ...typography.label, color: colors.white },
+    disabledBtn: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: "center",
+    },
+    disabledBtnText: { ...typography.label, color: colors.mutedText },
+    secondaryBtn: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+      alignItems: "center",
+    },
+    secondaryBtnText: { ...typography.label, color: colors.text },
     deleteRow: { alignItems: "center", paddingVertical: spacing.sm },
     deleteText: { ...typography.label, color: tones.danger },
   });

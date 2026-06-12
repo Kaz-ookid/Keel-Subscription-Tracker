@@ -11,6 +11,7 @@ import { randomUUID } from "expo-crypto";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   accrueDueOccurrences,
+  canMarkNextInstallmentPaid,
   DEFAULT_CATEGORIES,
   isPaymentItemComplete,
   makeAccount,
@@ -18,8 +19,11 @@ import {
   makeRecurringPaymentItem,
   markNextInstallmentPaid,
   now,
+  pausePaymentItem,
   recordRecurringPayment,
+  resumePaymentItem,
   today,
+  unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
   updateRecurringPaymentItem,
   type Account,
@@ -60,8 +64,14 @@ interface AppStateValue {
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
-  /** Mark the next due installment of a BNPL plan as paid. */
+  /** Mark the next due installment of a BNPL plan as paid (current cycle only). */
   markInstallmentPaid: (id: string) => void;
+  /** Undo the most recent installment payment. */
+  undoInstallmentPaid: (id: string) => void;
+  /** Pause an active item: kept, but not forecast/accrued/counted. */
+  pauseSubscription: (id: string) => void;
+  /** Resume a paused item; a recurring cursor skips the gap without charging it. */
+  resumeSubscription: (id: string) => void;
   /** Create a custom category; returns it so the caller can select it. */
   addCategory: (name: string, icon: string) => Category;
   /** Create an account; returns it so the caller can select it. */
@@ -160,7 +170,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     const markPaid = (id: string) => {
       const item = items.find((i) => i.id === id);
-      if (!item || item.schedule.kind !== "RECURRING") return;
+      if (!item || item.schedule.kind !== "RECURRING" || item.status !== "active") return;
       // Never pay past the end of an already-finished subscription.
       if (isPaymentItemComplete(item, today())) return;
       const { item: advanced, occurrence } = recordRecurringPayment(item, {
@@ -175,8 +185,27 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const markInstallmentPaid = (id: string) => {
       setItems((prev) =>
         prev.map((i) =>
-          i.id === id ? markNextInstallmentPaid(i, { paidDate: today(), now: now() }) : i,
+          // Cycle cap: only the installment of the current cycle can be ticked.
+          i.id === id && canMarkNextInstallmentPaid(i, today())
+            ? markNextInstallmentPaid(i, { paidDate: today(), now: now() })
+            : i,
         ),
+      );
+    };
+
+    const undoInstallmentPaid = (id: string) => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? unmarkLastInstallmentPaid(i, { now: now() }) : i)),
+      );
+    };
+
+    const pauseSubscription = (id: string) => {
+      setItems((prev) => prev.map((i) => (i.id === id ? pausePaymentItem(i, { now: now() }) : i)));
+    };
+
+    const resumeSubscription = (id: string) => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? resumePaymentItem(i, { now: now(), asOf: today() }) : i)),
       );
     };
 
@@ -217,6 +246,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       removeSubscription,
       markPaid,
       markInstallmentPaid,
+      undoInstallmentPaid,
+      pauseSubscription,
+      resumeSubscription,
       addCategory,
       addAccount,
       updateAccount,
