@@ -6,8 +6,10 @@ import { CURRENCIES, currencyLabel, type CurrencyCode } from "@keel/core";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState, type ComponentType, type ReactNode } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { Alert, AppState, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+
+import { reminderPermissionGranted } from "../../src/lib/notifications";
 
 import { APP_NAME } from "../../src/constants";
 import { WheelSheet } from "../../src/components/WheelSheet";
@@ -30,6 +32,18 @@ export default function SettingsScreen() {
   const { accounts, displayCurrency, setDisplayCurrency, rates, clearAllData, loadSampleData } =
     useAppState();
   const [currencySheet, setCurrencySheet] = useState(false);
+  const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
+
+  // Reflect the OS notification permission (re-check when returning from iOS
+  // Settings via the app coming back to the foreground).
+  useEffect(() => {
+    const check = () => void reminderPermissionGranted().then(setRemindersOn);
+    check();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") check();
+    });
+    return () => subscription.remove();
+  }, []);
 
   const confirmClear = () =>
     Alert.alert(
@@ -61,6 +75,19 @@ export default function SettingsScreen() {
           <Text style={styles.rowText}>Display currency</Text>
           <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+        {/* Reminders ride the OS permission; when off, the row opens Settings. */}
+        <Pressable
+          style={[styles.row, styles.rowDivider]}
+          onPress={() => {
+            if (remindersOn === false) void Linking.openSettings();
+          }}
+        >
+          <SymbolView name="bell.fill" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Reminders</Text>
+          <Text style={styles.rowValue}>
+            {remindersOn === null ? "" : remindersOn ? "On" : "Off in iOS Settings"}
+          </Text>
         </Pressable>
       </View>
 

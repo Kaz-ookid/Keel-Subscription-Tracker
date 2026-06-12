@@ -42,6 +42,7 @@ import {
 } from "@keel/core";
 
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
+import { syncReminders } from "../lib/notifications";
 import { buildSampleData } from "../lib/sample-data";
 import { loadState, saveState } from "../lib/storage";
 
@@ -150,6 +151,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       if (fresh) setRates(fresh);
     });
   }, []);
+
+  // Reschedule every reminder from current state after any change — a paid,
+  // paused or edited commitment can never fire a stale notification.
+  useEffect(() => {
+    if (!loading) void syncReminders(items);
+  }, [items, loading]);
 
   // Persist after the initial hydration completes.
   useEffect(() => {
