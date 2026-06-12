@@ -10,7 +10,11 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AmountSection } from "../src/components/add-form/AmountSection";
-import { DetailsSection, MetaSection } from "../src/components/add-form/DetailsSection";
+import {
+  DetailsSection,
+  IdentityHeader,
+  MetaSection,
+} from "../src/components/add-form/DetailsSection";
 import { FormSheets } from "../src/components/add-form/FormSheets";
 import { ScheduleSection } from "../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../src/components/add-form/useAddForm";
@@ -98,6 +102,8 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
           ),
         }}
       />
+
+      <IdentityHeader form={form} />
 
       {!form.isEditing && (
         <View style={styles.modeSwitch}>

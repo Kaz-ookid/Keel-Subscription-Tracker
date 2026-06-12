@@ -1,8 +1,9 @@
 import { type SettlementMode } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { useTheme } from "../../theme";
+import { spacing, useTheme } from "../../theme";
+import { BrandBadge } from "../BrandBadge";
 import { FieldButton } from "../FieldButton";
 import { Segmented, type SegmentedOption } from "../Segmented";
 import { useFormStyles } from "./styles";
@@ -13,27 +14,118 @@ const SETTLEMENT_OPTIONS: SegmentedOption<SettlementMode>[] = [
   { value: "manual", label: "Manual" },
 ];
 
-/** The rows every plan type shares: name, description, settlement, account,
- *  reminder, category, colour. */
+/** The identity cluster: the commitment's live face (brand logo, or colour
+ *  circle with the category icon / name's first letter) next to the name
+ *  field and a category chip. Everything that changes the face sits beside
+ *  it, so cause and effect stay in the same glance: tap the circle for the
+ *  colour (custom items only — a logo makes colour invisible, so the picker
+ *  disappears instead of lying), tap the chip and the icon morphs with it. */
+export function IdentityHeader({ form }: { form: AddForm }) {
+  const { colors } = useTheme();
+  const styles = useFormStyles();
+  const editable = !form.domain;
+
+  return (
+    <View style={headerStyles.wrap}>
+      <Pressable
+        disabled={!editable}
+        onPress={() => form.setSheet("color")}
+        accessibilityLabel={editable ? "Change colour" : undefined}
+      >
+        <BrandBadge
+          domain={form.domain}
+          icon={form.selectedCategory?.icon}
+          fallback={(form.name.trim().charAt(0) || "?").toUpperCase()}
+          color={form.color ?? colors.accent}
+          size={64}
+        />
+        {editable && (
+          <View style={[headerStyles.pencil, { backgroundColor: colors.surface }]}>
+            <SymbolView name="pencil" size={12} tintColor={colors.mutedText} />
+          </View>
+        )}
+      </Pressable>
+
+      <View style={headerStyles.right}>
+        <TextInput
+          style={[styles.input, !form.name.trim() && styles.requiredMissing]}
+          value={form.name}
+          onChangeText={form.setName}
+          placeholder="Name — e.g. Netflix"
+          placeholderTextColor={colors.mutedText}
+        />
+        <Pressable
+          style={[headerStyles.categoryChip, { borderColor: colors.border }]}
+          onPress={() => form.setSheet("category")}
+        >
+          {form.selectedCategory?.icon && (
+            <SymbolView
+              name={form.selectedCategory.icon as SymbolViewProps["name"]}
+              size={14}
+              tintColor={colors.mutedText}
+            />
+          )}
+          <Text
+            style={[
+              headerStyles.categoryText,
+              { color: form.selectedCategory ? colors.text : colors.mutedText },
+            ]}
+          >
+            {form.selectedCategory?.name ?? "Choose category"}
+          </Text>
+          <SymbolView name="chevron.down" size={10} tintColor={colors.mutedText} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+const headerStyles = StyleSheet.create({
+  wrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+    marginBottom: spacing.md,
+  },
+  right: {
+    flex: 1,
+    gap: spacing.sm,
+  },
+  pencil: {
+    position: "absolute",
+    right: -2,
+    bottom: -2,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  categoryChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 6,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+  },
+  categoryText: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
+});
+
+/** The free-text extras (name + category live in the IdentityHeader). */
 export function DetailsSection({ form }: { form: AddForm }) {
   const { colors } = useTheme();
   const styles = useFormStyles();
 
   return (
-    <>
-      <View style={styles.field}>
-        <Text style={styles.label}>Name</Text>
-        <TextInput
-          style={[styles.input, !form.name.trim() && styles.requiredMissing]}
-          value={form.name}
-          onChangeText={form.setName}
-          placeholder="e.g. Netflix"
-          placeholderTextColor={colors.mutedText}
-        />
-      </View>
-
-      <View style={styles.field}>
-        <Text style={styles.label}>Description</Text>
+    <View style={styles.rowField}>
+      <Text style={styles.label}>Description</Text>
+      <View style={styles.rowControl}>
         <TextInput
           style={styles.input}
           value={form.notes}
@@ -42,14 +134,13 @@ export function DetailsSection({ form }: { form: AddForm }) {
           placeholderTextColor={colors.mutedText}
         />
       </View>
-    </>
+    </View>
   );
 }
 
 /** Settlement, account, reminder, category and colour — rendered after the
  *  schedule rows so the form reads: what → how much → when → how → extras. */
 export function MetaSection({ form }: { form: AddForm }) {
-  const { colors } = useTheme();
   const styles = useFormStyles();
 
   return (
@@ -69,27 +160,6 @@ export function MetaSection({ form }: { form: AddForm }) {
         label="Reminder"
         value={form.reminderLabel}
         onPress={() => form.setSheet("reminder")}
-      />
-
-      <FieldButton
-        label="Category"
-        value={form.selectedCategory?.name ?? "None"}
-        accessory={
-          form.selectedCategory?.icon ? (
-            <SymbolView
-              name={form.selectedCategory.icon as SymbolViewProps["name"]}
-              size={20}
-              tintColor={colors.mutedText}
-            />
-          ) : undefined
-        }
-        onPress={() => form.setSheet("category")}
-      />
-
-      <FieldButton
-        label="Colour"
-        accessory={<View style={[styles.dot, { backgroundColor: form.color ?? colors.border }]} />}
-        onPress={() => form.setSheet("color")}
       />
     </>
   );

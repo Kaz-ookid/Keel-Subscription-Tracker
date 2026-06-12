@@ -333,6 +333,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     accountId,
     color,
     setColor,
+    domain,
     // Derived
     amountValue,
     canSubmit,
