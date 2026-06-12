@@ -159,7 +159,7 @@ export default function SettingsScreen() {
         </Pressable>
         <Pressable
           style={[styles.row, styles.rowDivider]}
-          onPress={() => router.push({ pathname: "/onboarding", params: { mode: "deck" } })}
+          onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
         >
           <SymbolView name="rectangle.stack.fill" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>Browse common subscriptions</Text>
@@ -194,6 +194,7 @@ export default function SettingsScreen() {
       <Text style={styles.footer}>
         {APP_NAME}
         {rates ? ` · rates ${rates.date} (ECB)` : ""}
+        {"\n"}All trademarks are the property of their respective owners.
       </Text>
 
       <WheelSheet visible={themeSheet} title="Appearance" onClose={() => setThemeSheet(false)}>

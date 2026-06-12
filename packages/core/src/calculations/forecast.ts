@@ -31,6 +31,7 @@ export interface ProjectedCharge {
   accountId?: string;
   categoryId?: string;
   color?: string;
+  domain?: string;
   settlementMode: SettlementMode;
   scheduleType: ScheduleType;
   /** For installments: "payment 3 of 4". */
@@ -56,6 +57,7 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
     accountId: item.accountId,
     categoryId: item.categoryId,
     color: item.color,
+    domain: item.domain,
     settlementMode: item.settlementMode,
     scheduleType: item.scheduleType,
   };

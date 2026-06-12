@@ -15,7 +15,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
-import { IconBadge } from "./IconBadge";
+import { BrandBadge } from "./BrandBadge";
 
 interface Props {
   item: PaymentItem;
@@ -107,7 +107,8 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
       onLongPress={confirmDelete}
       style={[styles.row, (complete || item.status === "paused") && styles.rowComplete]}
     >
-      <IconBadge
+      <BrandBadge
+        domain={item.domain}
         icon={category?.icon}
         fallback={item.name.charAt(0).toUpperCase()}
         color={accent}

@@ -1,6 +1,6 @@
 // First-launch onboarding: a three-pane tour of what the app is for, then the
-// suggestion deck (swipe right = "I have this" → the To-complete list). Also
-// reachable any time from Settings with ?mode=deck, which skips the tour.
+// brand-bank picker (tap what you pay for → the To-complete list). Also
+// reachable any time from Settings with ?mode=browse, which skips the tour.
 
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -8,7 +8,7 @@ import { useMemo, useRef, useState } from "react";
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { SuggestionDeck } from "../src/components/SuggestionDeck";
+import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { useAppState } from "../src/state/app-state";
 import { spacing, radius, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -30,7 +30,7 @@ const TOUR_PANES = [
   },
 ] as const;
 
-type Phase = "tour" | "deck" | "done";
+type Phase = "tour" | "pick" | "done";
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -40,13 +40,13 @@ export default function OnboardingScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, pending, addPendingSuggestions } = useAppState();
 
-  const [phase, setPhase] = useState<Phase>(mode === "deck" ? "deck" : "tour");
+  const [phase, setPhase] = useState<Phase>(mode === "browse" ? "pick" : "tour");
   const [pane, setPane] = useState(0);
   const [savedCount, setSavedCount] = useState(0);
   const pagerRef = useRef<ScrollView>(null);
 
-  // On a revisit the deck only shows what isn't already tracked or pending.
-  const deck = useMemo(() => {
+  // On a revisit the picker only shows what isn't already tracked or pending.
+  const bank = useMemo(() => {
     const taken = new Set(items.map((i) => i.name.trim().toLowerCase()));
     const pendingIds = new Set(pending.map((p) => p.id));
     return SUGGESTED_COMMITMENTS.filter(
@@ -59,10 +59,9 @@ export default function OnboardingScreen() {
     router.back();
   };
 
-  const acceptSuggestion = (s: SuggestedCommitment) => addPendingSuggestions([s]);
-
-  const onDeckFinish = (count: number) => {
-    setSavedCount(count);
+  const onAdd = (selected: SuggestedCommitment[]) => {
+    addPendingSuggestions(selected);
+    setSavedCount(selected.length);
     setPhase("done");
   };
 
@@ -71,7 +70,7 @@ export default function OnboardingScreen() {
       {phase === "tour" && (
         <>
           <View style={styles.topBar}>
-            <Pressable onPress={() => setPhase("deck")} hitSlop={12}>
+            <Pressable onPress={() => setPhase("pick")} hitSlop={12}>
               <Text style={styles.skip}>Skip</Text>
             </Pressable>
           </View>
@@ -103,7 +102,7 @@ export default function OnboardingScreen() {
                 pagerRef.current?.scrollTo({ x: (pane + 1) * SCREEN_WIDTH, animated: true });
                 setPane(pane + 1);
               } else {
-                setPhase("deck");
+                setPhase("pick");
               }
             }}
           >
@@ -112,26 +111,16 @@ export default function OnboardingScreen() {
         </>
       )}
 
-      {phase === "deck" &&
-        (deck.length > 0 ? (
+      {phase === "pick" &&
+        (bank.length > 0 ? (
           <>
-            <View style={styles.topBar}>
+            <View style={styles.pickHeader}>
+              <Text style={styles.pickTitle}>Which of these do you pay for?</Text>
               <Pressable onPress={finish} hitSlop={12}>
                 <Text style={styles.skip}>Skip</Text>
               </Pressable>
             </View>
-            <View style={styles.deckIntro}>
-              <Text style={styles.paneTitle}>Which of these do you pay for?</Text>
-              <Text style={styles.paneBody}>
-                Swipe right on the ones you have — they'll wait in a list so you can fill in the
-                details later.
-              </Text>
-            </View>
-            <SuggestionDeck
-              suggestions={deck}
-              onAccept={acceptSuggestion}
-              onFinish={onDeckFinish}
-            />
+            <SuggestionPicker suggestions={bank} onAdd={onAdd} />
           </>
         ) : (
           <View style={styles.pane}>
@@ -181,6 +170,20 @@ function createStyles(colors: ThemeColors) {
       ...typography.label,
       color: colors.mutedText,
     },
+    pickHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.md,
+    },
+    pickTitle: {
+      ...typography.subtitle,
+      fontWeight: "700",
+      color: colors.text,
+      flexShrink: 1,
+    },
     pane: {
       width: SCREEN_WIDTH,
       flex: 1,
@@ -229,11 +232,6 @@ function createStyles(colors: ThemeColors) {
     ctaText: {
       ...typography.label,
       color: colors.white,
-    },
-    deckIntro: {
-      paddingHorizontal: spacing.xl,
-      gap: spacing.sm,
-      alignItems: "center",
     },
   });
 }

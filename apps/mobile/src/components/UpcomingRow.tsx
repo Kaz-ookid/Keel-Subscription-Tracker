@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
-import { IconBadge } from "./IconBadge";
+import { BrandBadge } from "./BrandBadge";
 
 interface Props {
   charge: ProjectedCharge;
@@ -59,7 +59,8 @@ export function UpcomingRow({
     <Pressable onPress={onPress} style={styles.row}>
       {/* Dim the content, not the whole row — Undo must keep full strength. */}
       <View style={settled && styles.dimmed}>
-        <IconBadge
+        <BrandBadge
+          domain={charge.domain}
           icon={category?.icon}
           fallback={charge.name.charAt(0).toUpperCase()}
           color={accent}

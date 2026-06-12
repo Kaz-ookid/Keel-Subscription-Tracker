@@ -17,8 +17,8 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 
 import { useAppState } from "../../state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
-import { IconBadge } from "../IconBadge";
 import { SubscriptionRow } from "../SubscriptionRow";
 
 /** The day of the month an item bills on — its fixed "place" in the list. */
@@ -74,6 +74,8 @@ export function SubscriptionsView() {
         suggestionId: s.id,
         name: s.name,
         ...(s.categoryId ? { categoryId: s.categoryId } : {}),
+        ...(s.color ? { color: s.color } : {}),
+        ...(s.domain ? { domain: s.domain } : {}),
         unit: s.unit,
       },
     });
@@ -134,10 +136,11 @@ export function SubscriptionsView() {
                     const category = DEFAULT_CATEGORIES.find((c) => c.id === s.categoryId);
                     return (
                       <View key={s.id} style={styles.pendingRow}>
-                        <IconBadge
-                          icon={category?.icon}
+                        <BrandBadge
+                          domain={s.domain}
+                          icon={s.color ? undefined : category?.icon}
                           fallback={s.name.charAt(0).toUpperCase()}
-                          color={colors.accent}
+                          color={s.color ?? colors.accent}
                           size={36}
                         />
                         <Text style={styles.pendingName} numberOfLines={1}>

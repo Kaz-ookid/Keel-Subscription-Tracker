@@ -86,6 +86,8 @@ export function useAddForm() {
     name?: string;
     categoryId?: string;
     unit?: string;
+    color?: string;
+    domain?: string;
   }>();
   const {
     items,
@@ -148,7 +150,12 @@ export function useAddForm() {
     () => editItem?.categoryId ?? suggestion?.categoryId,
   );
   const [accountId, setAccountId] = useState<string | undefined>(() => editItem?.accountId);
-  const [color, setColor] = useState<string | undefined>(() => editItem?.color);
+  const [color, setColor] = useState<string | undefined>(
+    () => editItem?.color ?? suggestion?.color,
+  );
+  // The brand website behind the logo — carried invisibly from a suggestion
+  // (or the item being edited) through to the saved item.
+  const domain = editItem?.domain ?? suggestion?.domain;
   const [notes, setNotes] = useState(() => editItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
@@ -232,6 +239,7 @@ export function useAddForm() {
         accountId: isAutomatic ? accountId : undefined,
         categoryId,
         color,
+        domain,
         reminder: reminderFromKey(reminderKey),
         notes: notes.trim() || undefined,
       };
@@ -248,6 +256,7 @@ export function useAddForm() {
         accountId: isAutomatic ? accountId : undefined,
         categoryId,
         color,
+        domain,
         reminder: reminderFromKey(reminderKey),
         notes: notes.trim() || undefined,
       };
