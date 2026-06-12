@@ -132,6 +132,17 @@ export function SubscriptionsView() {
               </Pressable>
               {pendingOpen && (
                 <View style={styles.pendingList}>
+                  {/* Back into the bank — todo shopping is resumable. */}
+                  <Pressable
+                    style={styles.browseRow}
+                    onPress={() =>
+                      router.push({ pathname: "/onboarding", params: { mode: "browse" } })
+                    }
+                  >
+                    <SymbolView name="plus.circle" size={18} tintColor={colors.accent} />
+                    <Text style={styles.browseText}>Browse more subscriptions</Text>
+                    <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                  </Pressable>
                   {pending.map((s) => {
                     const category = DEFAULT_CATEGORIES.find((c) => c.id === s.categoryId);
                     return (
@@ -234,6 +245,20 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
       paddingVertical: spacing.sm,
+    },
+    browseRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    browseText: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.text,
+      flex: 1,
     },
     pendingName: {
       ...typography.body,
