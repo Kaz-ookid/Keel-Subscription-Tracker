@@ -89,7 +89,7 @@ export function UpcomingView() {
     undoPaid,
     undoInstallmentPaid,
   } = useAppState();
-  // Big numbers merge into the display currency ("≈" when converted).
+  // Big numbers merge into the display currency.
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);
   // "all" | "none" (no account) | an account id.

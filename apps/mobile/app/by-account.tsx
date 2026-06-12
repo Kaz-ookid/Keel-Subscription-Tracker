@@ -127,7 +127,7 @@ export default function ByAccountScreen() {
       label: MONTH_SHORT[m],
       name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
       amount,
-      formatted: merged?.approximate ? `≈ ${formatted}` : formatted,
+      formatted,
       yearStart: m === 0 ? b.monthStart.slice(0, 4) : undefined,
     };
   });

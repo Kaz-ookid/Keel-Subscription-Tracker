@@ -49,8 +49,8 @@ describe("mergeTotals", () => {
 });
 
 describe("formatTotalsIn", () => {
-  it("marks converted totals with ≈ and leaves exact ones unmarked", () => {
-    expect(formatTotalsIn([fromMajor(9.5, "CHF")], "EUR", rates)).toBe("≈ 10,00 €");
+  it("merges converted and exact totals without an approximation marker", () => {
+    expect(formatTotalsIn([fromMajor(9.5, "CHF")], "EUR", rates)).toBe("10,00 €");
     expect(formatTotalsIn([fromMajor(10, "EUR")], "EUR", rates)).toBe("10,00 €");
   });
 

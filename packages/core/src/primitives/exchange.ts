@@ -1,9 +1,8 @@
 // Currency conversion for DISPLAY aggregation. Stored money never converts —
 // every amount keeps the currency it was entered in (exact); conversion only
-// merges totals into the user's display currency, and anything merged across
-// currencies is approximate by definition (daily reference rates), which the
-// formatting marks with "≈". Pure: rates are injected, fetching them is the
-// platform's job.
+// merges totals into the user's display currency (approximate by definition —
+// daily reference rates — but displayed unmarked: see formatTotalsIn). Pure:
+// rates are injected, fetching them is the platform's job.
 
 import { CURRENCIES, type CurrencyCode } from "../constants/currencies";
 import { formatMoney, formatMoneyList, fromMajor, toMajor, type Money } from "./money";
@@ -40,7 +39,7 @@ export function convertMoney(
 
 export interface MergedTotal {
   total: Money;
-  /** True when any amount was actually converted — display with "≈". */
+  /** True when any amount was actually converted (kept for callers that care). */
   approximate: boolean;
 }
 
@@ -65,9 +64,10 @@ export function mergeTotals(
 }
 
 /**
- * The one display rule for big numbers: merged into the display currency,
- * "≈"-prefixed whenever conversion was involved; exact (no "≈") when nothing
- * needed converting; the per-currency list when rates are unavailable.
+ * The one display rule for big numbers: merged into the display currency
+ * (conversion is unmarked — owning commitments in several currencies makes it
+ * self-evident, and a marker on every number taxed them all for a rare case);
+ * the per-currency list when rates are unavailable.
  */
 export function formatTotalsIn(
   totals: readonly Money[],
@@ -78,7 +78,7 @@ export function formatTotalsIn(
   if (totals.length === 1 && totals[0].currency === to) return formatMoney(totals[0]);
   const merged = rates ? mergeTotals(totals, to, rates) : undefined;
   if (!merged) return formatMoneyList(totals);
-  return merged.approximate ? `≈ ${formatMoney(merged.total)}` : formatMoney(merged.total);
+  return formatMoney(merged.total);
 }
 
 /** Every currency a rates object can serve, for validating fetched payloads. */

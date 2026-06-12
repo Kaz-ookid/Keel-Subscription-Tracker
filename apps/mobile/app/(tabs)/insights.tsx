@@ -11,7 +11,6 @@ import {
   formatMoney,
   formatTotalsIn,
   groupByCadence,
-  groupByCategory,
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
@@ -128,7 +127,6 @@ export default function InsightsScreen() {
   const commitments = summarizeCommitments(items, asOf);
   const yearlyTheory = yearlyCommitment(items, asOf);
   const cadences = groupByCadence(items, asOf);
-  const categoryGroups = groupByCategory(items, asOf);
   const priceChanges = summarizePriceChanges(items, asOf);
   // The Explore teaser: how much more per month than at signup.
   const creep = sumByCurrency(
@@ -152,7 +150,7 @@ export default function InsightsScreen() {
     );
   }
 
-  // Everything big merges into the display currency; "≈" marks conversion.
+  // Everything big merges into the display currency.
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);
   const amountIn = (values: { amount: number; currency: CurrencyCode }[]): number => {
@@ -173,7 +171,7 @@ export default function InsightsScreen() {
       label: MONTH_SHORT[m],
       name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
       amount,
-      formatted: merged?.approximate ? `≈ ${formatted}` : formatted,
+      formatted,
       // Januaries carry the year milestone so sliding never loses the reader.
       yearStart: m === 0 ? b.monthStart.slice(0, 4) : undefined,
     };
@@ -190,8 +188,7 @@ export default function InsightsScreen() {
 
   const creepLabel = (() => {
     if (creep.length === 0) return priceChanges.length > 0 ? `${priceChanges.length} changed` : "";
-    const text = totals(creep);
-    return text.startsWith("≈ ") ? `≈ +${text.slice(2)}/mo` : `+${text}/mo`;
+    return `+${totals(creep)}/mo`;
   })();
 
   // Pay in X: per-month figures make no sense for a finite plan — what
@@ -491,9 +488,6 @@ export default function InsightsScreen() {
           <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
             <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>By category</Text>
-            <Text style={styles.exploreValue}>
-              {categoryGroups.length > 0 ? `${categoryGroups.length}` : ""}
-            </Text>
             <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
           </Pressable>
           <Pressable

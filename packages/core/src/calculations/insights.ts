@@ -107,6 +107,98 @@ export function spendingByMonth(
   });
 }
 
+export interface CategorySpendingItem {
+  paymentItemId: string;
+  name: string;
+  color?: string;
+  domain?: string;
+  /** This item's real money in the window, one total per currency. */
+  totals: Money[];
+}
+
+export interface CategorySpending {
+  categoryId?: string;
+  /** The category's real money in the window, one total per currency. */
+  totals: Money[];
+  /** Who contributed, largest first (by primary-currency amount). */
+  items: CategorySpendingItem[];
+}
+
+/**
+ * REAL money per category over a date window — the same three sources as
+ * `spendingByMonth` (ledger actuals + covered installments + projections, by
+ * construction never double-counting), attributed to each item's category.
+ * Pay-in-X installments land in their item's own category: the donut answers
+ * "where does the money GO", and a financed purchase is still that purchase —
+ * the financing mechanism has its own card elsewhere. Categories and the
+ * items inside them come back largest-first.
+ */
+export function spendingByCategory(
+  items: readonly PaymentItem[],
+  occurrences: readonly PaymentOccurrence[],
+  from: CalendarDate,
+  until: CalendarDate,
+): CategorySpending[] {
+  const inWindow = (date: CalendarDate) => date >= from && date <= until;
+  const byId = new Map(items.map((i) => [i.id, i]));
+
+  // Every real amount in the window, attributed to its item.
+  const contributions: { item: PaymentItem; amount: Money }[] = [
+    ...occurrences.flatMap((o) => {
+      if (o.status !== "charged" || !inWindow(o.dueDate)) return [];
+      const item = byId.get(o.paymentItemId);
+      return item ? [{ item, amount: o.amount }] : [];
+    }),
+    ...items.flatMap((item) =>
+      isInstallmentSchedule(item.schedule)
+        ? item.schedule.installments
+            .filter((i) => COVERED_INSTALLMENT_STATUSES.includes(i.status) && inWindow(i.dueDate))
+            .map((i) => ({ item, amount: i.amount }))
+        : [],
+    ),
+    ...projectCharges(items, until).flatMap((c) => {
+      if (!inWindow(c.dueDate)) return [];
+      const item = byId.get(c.paymentItemId);
+      return item ? [{ item, amount: c.amount }] : [];
+    }),
+  ];
+
+  const perItem = new Map<string, { item: PaymentItem; amounts: Money[] }>();
+  for (const { item, amount } of contributions) {
+    const entry = perItem.get(item.id);
+    if (entry) entry.amounts.push(amount);
+    else perItem.set(item.id, { item, amounts: [amount] });
+  }
+
+  const groups = new Map<string, CategorySpending>();
+  for (const { item, amounts } of perItem.values()) {
+    const key = item.categoryId ?? "";
+    const itemEntry: CategorySpendingItem = {
+      paymentItemId: item.id,
+      name: item.name,
+      color: item.color,
+      domain: item.domain,
+      totals: sumByCurrency(amounts),
+    };
+    const group = groups.get(key);
+    if (group) {
+      group.items.push(itemEntry);
+      group.totals = sumByCurrency([...group.totals, ...itemEntry.totals]);
+    } else {
+      groups.set(key, {
+        categoryId: item.categoryId,
+        totals: itemEntry.totals,
+        items: [itemEntry],
+      });
+    }
+  }
+
+  const primary = (totals: Money[]) => totals[0]?.amount ?? 0;
+  const result = Array.from(groups.values());
+  for (const g of result) g.items.sort((a, b) => primary(b.totals) - primary(a.totals));
+  return result.sort((a, b) => primary(b.totals) - primary(a.totals));
+}
+
 export interface CadenceGroup {
   /** The shared cadence, e.g. { month, 1 } — label via `describeRecurrence`. */
   recurrence: RecurrenceRule;

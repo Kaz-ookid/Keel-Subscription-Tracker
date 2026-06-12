@@ -235,7 +235,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     const ends = formatCalendarDate(finish);
     if (amountMode === "total") {
       const per = splitMoney(installmentTotal, installmentCount)[0];
-      return `${installmentCount} payments · ≈ ${formatMoney(per)} each · ends ${ends}`;
+      return `${installmentCount} payments · ${formatMoney(per)} each · ends ${ends}`;
     }
     return `total ${formatMoney(installmentTotal)} · ${installmentCount} payments · ends ${ends}`;
   })();

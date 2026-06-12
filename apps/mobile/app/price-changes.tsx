@@ -33,8 +33,7 @@ export default function PriceChangesScreen() {
   ).filter((m) => m.amount !== 0);
   const creepLabel = (() => {
     if (creep.length === 0) return "No drift";
-    const text = formatTotalsIn(creep, displayCurrency, rates);
-    return text.startsWith("≈ ") ? `≈ +${text.slice(2)}/mo` : `+${text}/mo`;
+    return `+${formatTotalsIn(creep, displayCurrency, rates)}/mo`;
   })();
 
   if (changes.length === 0) {

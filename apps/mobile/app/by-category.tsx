@@ -1,18 +1,19 @@
-// Per-category analytics: where the recurring money goes, with each category
-// expandable in place to the subscriptions behind its number. Theory view —
-// the equivalents that spread yearly/quarterly items.
+// Where this year's money goes: a donut of the calendar year's REAL spending
+// per category (ledger for the past, projection for the rest — the same basis
+// as the Insights headline, so the numbers reconcile). Pay-in-X installments
+// count inside their item's own category: a financed sofa is still furniture
+// spending; the financing mechanism has its own card on the Insights screen.
+// The category cards double as the donut's legend and expand to the items
+// behind each number.
 
 import {
-  describeRecurrence,
+  calendarDate,
   formatMoney,
   formatTotalsIn,
-  groupByCategory,
-  isPaymentItemComplete,
-  isRecurringSchedule,
   mergeTotals,
-  summarizeCommitments,
+  money,
+  spendingByCategory,
   today,
-  yearlyCommitment,
   type CurrencyCode,
 } from "@keel/core";
 import { useRouter } from "expo-router";
@@ -20,32 +21,32 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { HeroCard } from "../src/components/HeroCard";
-import { IconBadge } from "../src/components/IconBadge";
+import { BrandBadge } from "../src/components/BrandBadge";
+import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+
+// Distinct slice hues that read on light and dark; the tail beyond them is
+// grouped into one grey "everything else" slice so the donut stays legible.
+const PALETTE = ["#4E79A7", "#F28E2B", "#E15759", "#76B7B2", "#59A14F", "#EDC948"];
+const TAIL_COLOR = "#9AA0A6";
 
 export default function ByCategoryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, categories, displayCurrency, rates } = useAppState();
+  const { items, occurrences, categories, displayCurrency, rates } = useAppState();
   // The expanded category (its id, or "none" for the uncategorised bucket).
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const asOf = today();
-  const groups = groupByCategory(items, asOf);
-  const commitments = summarizeCommitments(items, asOf);
-  const yearlyTheory = yearlyCommitment(items, asOf);
-
-  if (groups.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyTitle}>Nothing to split yet</Text>
-        <Text style={styles.emptyHint}>Add subscriptions and the category view appears here.</Text>
-      </View>
-    );
-  }
+  const year = asOf.slice(0, 4);
+  const groups = spendingByCategory(
+    items,
+    occurrences,
+    calendarDate(`${year}-01-01`),
+    calendarDate(`${year}-12-31`),
+  );
 
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);
@@ -56,41 +57,81 @@ export default function ByCategoryScreen() {
     }
     return values.find((t) => t.currency === displayCurrency)?.amount ?? 0;
   };
-  const yearlyTotalPrimary = Math.max(amountIn(yearlyTheory), 1);
+
+  // Order by converted value so multi-currency households sort correctly.
+  const ordered = [...groups].sort((a, b) => amountIn(b.totals) - amountIn(a.totals));
+  const grandTotal = ordered.reduce((sum, g) => sum + amountIn(g.totals), 0);
+
+  if (ordered.length === 0 || grandTotal <= 0) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.emptyTitle}>Nothing to split yet</Text>
+        <Text style={styles.emptyHint}>Add subscriptions and the category view appears here.</Text>
+      </View>
+    );
+  }
+
+  // Top slices get their own colour; the rest merge into one grey slice but
+  // keep their own legend cards (carrying the same grey dot).
+  const sliceColor = (index: number) => (index < PALETTE.length ? PALETTE[index] : TAIL_COLOR);
+  const segments: DonutSegment[] = [
+    ...ordered.slice(0, PALETTE.length).map((g, i) => ({
+      key: g.categoryId ?? "none",
+      value: amountIn(g.totals),
+      color: sliceColor(i),
+    })),
+    ...(ordered.length > PALETTE.length
+      ? [
+          {
+            key: "tail",
+            value: ordered.slice(PALETTE.length).reduce((sum, g) => sum + amountIn(g.totals), 0),
+            color: TAIL_COLOR,
+          },
+        ]
+      : []),
+  ];
+
+  const yearTotals = ordered.flatMap((g) => g.totals);
+  const centerTitle = totals(yearTotals);
+  const monthlyMean = formatMoney(money(Math.round(grandTotal / 12), displayCurrency));
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <HeroCard
-        label="Committed monthly · theory"
-        amount={commitments.monthly.length > 0 ? totals(commitments.monthly) : "Nothing"}
-        sub={`${totals(yearlyTheory)} a year, split below`}
-      />
+      <View style={styles.donutWrap}>
+        <DonutChart
+          segments={segments}
+          centerTitle={centerTitle}
+          centerSub={`${year} · ${monthlyMean}/mo`}
+          // The open card's slice lights up; tail categories share the grey
+          // "everything else" slice, so any of them lights that one.
+          selectedKey={
+            expanded === null
+              ? null
+              : ordered.findIndex((g) => (g.categoryId ?? "none") === expanded) < PALETTE.length
+                ? expanded
+                : "tail"
+          }
+        />
+      </View>
 
-      {groups.map((g) => {
+      {ordered.map((g, index) => {
         const key = g.categoryId ?? "none";
         const open = expanded === key;
-        const share = Math.min(amountIn(g.yearlyTotal) / yearlyTotalPrimary, 1);
         const category = categories.find((c) => c.id === g.categoryId);
-        // The live subscriptions behind this number (matches the group math).
-        const members = items.filter(
-          (i) =>
-            (i.categoryId ?? undefined) === g.categoryId &&
-            i.status === "active" &&
-            isRecurringSchedule(i.schedule) &&
-            !isPaymentItemComplete(i, asOf),
-        );
+        const share = grandTotal > 0 ? amountIn(g.totals) / grandTotal : 0;
 
         return (
           <View key={key} style={styles.card}>
             <Pressable style={styles.cardBody} onPress={() => setExpanded(open ? null : key)}>
               <View style={styles.cardHeader}>
+                <View style={[styles.dot, { backgroundColor: sliceColor(index) }]} />
                 <Text style={styles.cardLabel}>
-                  {category?.name ?? "No category"} <Text style={styles.cardCount}>×{g.count}</Text>
+                  {category?.name ?? "No category"}{" "}
+                  <Text style={styles.cardCount}>×{g.items.length}</Text>
                 </Text>
                 <View style={styles.cardRight}>
-                  <Text style={styles.cardAmount}>
-                    {totals(g.monthlyTotal)}/mo · {totals(g.yearlyTotal)}/yr
-                  </Text>
+                  <Text style={styles.cardShare}>{Math.round(share * 100)}%</Text>
+                  <Text style={styles.cardAmount}>{totals(g.totals)}</Text>
                   <SymbolView
                     name={open ? "chevron.up" : "chevron.down"}
                     size={11}
@@ -98,42 +139,44 @@ export default function ByCategoryScreen() {
                   />
                 </View>
               </View>
-              <View style={styles.shareTrack}>
-                <View style={[styles.shareFill, { flex: share }]} />
-                <View style={{ flex: 1 - share }} />
-              </View>
             </Pressable>
 
             {open &&
-              members.map((item) => {
-                const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
+              g.items.map((member) => {
+                const exists = items.some((i) => i.id === member.paymentItemId);
                 return (
                   <Pressable
-                    key={item.id}
+                    key={member.paymentItemId}
                     style={styles.memberRow}
-                    onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
+                    disabled={!exists}
+                    onPress={() =>
+                      router.push({ pathname: "/item", params: { id: member.paymentItemId } })
+                    }
                   >
-                    <IconBadge
-                      icon={category?.icon}
-                      fallback={item.name.charAt(0).toUpperCase()}
-                      color={item.color ?? colors.accent}
+                    <BrandBadge
+                      domain={member.domain}
+                      icon={member.color ? undefined : category?.icon}
+                      fallback={member.name.charAt(0).toUpperCase()}
+                      color={member.color ?? colors.accent}
                       size={28}
                     />
                     <Text style={styles.memberName} numberOfLines={1}>
-                      {item.name}
+                      {member.name}
                     </Text>
-                    <Text style={styles.memberValue}>
-                      {recurring
-                        ? `${formatMoney(recurring.amount)} · ${describeRecurrence(recurring.recurrence)}`
-                        : ""}
-                    </Text>
-                    <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                    <Text style={styles.memberValue}>{totals(member.totals)}</Text>
+                    {exists && (
+                      <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                    )}
                   </Pressable>
                 );
               })}
           </View>
         );
       })}
+
+      <Text style={styles.note}>
+        Real money over {year}: what was paid, plus what the rest of the year is set to charge.
+      </Text>
     </ScrollView>
   );
 }
@@ -152,6 +195,10 @@ function createStyles(colors: ThemeColors) {
     },
     emptyTitle: { ...typography.subtitle, color: colors.text, fontWeight: "600" },
     emptyHint: { ...typography.body, color: colors.mutedText, textAlign: "center" },
+    donutWrap: {
+      alignItems: "center",
+      paddingVertical: spacing.md,
+    },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
@@ -159,26 +206,18 @@ function createStyles(colors: ThemeColors) {
     },
     cardBody: {
       paddingVertical: spacing.md,
-      gap: spacing.sm,
     },
     cardHeader: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
       gap: spacing.sm,
     },
-    cardLabel: { ...typography.label, color: colors.text },
+    dot: { width: 10, height: 10, borderRadius: 5 },
+    cardLabel: { ...typography.label, color: colors.text, flex: 1 },
     cardCount: { ...typography.caption, color: colors.mutedText, fontWeight: "400" },
     cardRight: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    cardShare: { ...typography.label, color: colors.text },
     cardAmount: { ...typography.caption, color: colors.mutedText },
-    shareTrack: {
-      flexDirection: "row",
-      height: 4,
-      borderRadius: 2,
-      backgroundColor: colors.background,
-      overflow: "hidden",
-    },
-    shareFill: { backgroundColor: colors.accent, borderRadius: 2 },
     memberRow: {
       flexDirection: "row",
       alignItems: "center",
@@ -189,5 +228,6 @@ function createStyles(colors: ThemeColors) {
     },
     memberName: { ...typography.body, color: colors.text, flex: 1 },
     memberValue: { ...typography.caption, color: colors.mutedText },
+    note: { ...typography.caption, color: colors.mutedText, paddingTop: spacing.sm },
   });
 }

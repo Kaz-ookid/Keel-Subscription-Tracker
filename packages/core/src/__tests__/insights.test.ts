@@ -13,6 +13,7 @@ import {
   recordRecurringPayment,
   RECURRENCE_PRESETS,
   skipRecurringPayment,
+  spendingByCategory,
   spendingByMonth,
   summarizePriceChanges,
   updateRecurringPaymentItem,
@@ -43,6 +44,76 @@ const ids = () => {
   let n = 0;
   return () => `i-${++n}`;
 };
+
+describe("spendingByCategory", () => {
+  it("attributes ledger, installments and projections to each item's category", () => {
+    // Streaming sub with one recorded payment; the rest of the year projects.
+    const sub = makeRecurringPaymentItem(
+      { ...netflix, categoryId: "streaming" },
+      { id: "r1", now: now() },
+    );
+    const { item: paidSub, occurrence } = recordRecurringPayment(sub, {
+      id: "o1",
+      paidDate: calendarDate("2026-01-15"),
+      now: now(),
+    });
+    // A financed purchase: 2 of 3 installments fall inside the window; one is
+    // already paid. It lands in ITS category (shopping), not a "BNPL" bucket.
+    const plan = markNextInstallmentPaid(
+      makeInstallmentPaymentItem(
+        {
+          name: "Sofa",
+          totalAmount: eur(300),
+          numberOfInstallments: 3,
+          recurrence: RECURRENCE_PRESETS.MONTHLY,
+          firstInstallmentDate: calendarDate("2026-01-10"),
+          settlementMode: "manual",
+          categoryId: "shopping",
+        },
+        { id: "p1", now: now(), makeId: ids() },
+      ),
+      { paidDate: calendarDate("2026-01-10"), now: now() },
+    );
+
+    const groups = spendingByCategory(
+      [paidSub, plan],
+      [occurrence],
+      calendarDate("2026-01-01"),
+      calendarDate("2026-02-28"),
+    );
+
+    // Shopping (2 × 100) ahead of streaming (2 × 15.99), largest first.
+    expect(groups.map((g) => g.categoryId)).toEqual(["shopping", "streaming"]);
+    expect(groups[0].totals).toEqual([eur(200)]);
+    expect(groups[1].totals).toEqual([eur(31.98)]);
+    expect(groups[1].items).toEqual([
+      expect.objectContaining({ name: "Netflix", totals: [eur(31.98)] }),
+    ]);
+  });
+
+  it("never counts a paid charge twice and ignores out-of-window dates", () => {
+    const sub = makeRecurringPaymentItem(
+      { ...netflix, categoryId: "streaming" },
+      { id: "r1", now: now() },
+    );
+    const { item: paidSub, occurrence } = recordRecurringPayment(sub, {
+      id: "o1",
+      paidDate: calendarDate("2026-01-15"),
+      now: now(),
+    });
+
+    // Window covering only January: exactly one charge (the paid one — the
+    // cursor moved past it, so the projection contributes nothing here).
+    const january = spendingByCategory(
+      [paidSub],
+      [occurrence],
+      calendarDate("2026-01-01"),
+      calendarDate("2026-01-31"),
+    );
+    expect(january).toHaveLength(1);
+    expect(january[0].totals).toEqual([eur(15.99)]);
+  });
+});
 
 describe("yearlyEquivalent", () => {
   it("scales by occurrences per year", () => {
