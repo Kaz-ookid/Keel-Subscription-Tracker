@@ -13,6 +13,7 @@ import {
   type CurrencyCode,
   type PaymentItem,
   type PaymentOccurrence,
+  type SuggestedCommitment,
 } from "@keel/core";
 
 const STORAGE_KEY = "keel.subscriptions.v1";
@@ -27,6 +28,9 @@ export interface PersistedState {
   accounts: Account[];
   /** Big numbers merge into this currency for display. */
   displayCurrency: CurrencyCode;
+  /** The "To complete" list: suggestions the user said they have but
+   *  hasn't filled in yet. */
+  pending: SuggestedCommitment[];
 }
 
 const EMPTY: PersistedState = {
@@ -35,6 +39,7 @@ const EMPTY: PersistedState = {
   categories: [],
   accounts: [],
   displayCurrency: DEFAULT_CURRENCY,
+  pending: [],
 };
 
 /** Lenient parse of a persisted blob (storage or an imported backup file).
@@ -57,6 +62,7 @@ export function parsePersistedState(raw: string): PersistedState | null {
         typeof parsed.displayCurrency === "string" && parsed.displayCurrency in CURRENCIES
           ? (parsed.displayCurrency as CurrencyCode)
           : DEFAULT_CURRENCY,
+      pending: Array.isArray(parsed.pending) ? parsed.pending : [],
     };
   } catch {
     return null;

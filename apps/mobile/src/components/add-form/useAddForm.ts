@@ -78,13 +78,22 @@ export type AddForm = ReturnType<typeof useAddForm>;
 
 export function useAddForm() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id?: string }>();
+  const { id, suggestionId, ...suggested } = useLocalSearchParams<{
+    id?: string;
+    // Set when arriving from the To-complete list: pre-fill, then clear the
+    // pending entry on a successful save.
+    suggestionId?: string;
+    name?: string;
+    categoryId?: string;
+    unit?: string;
+  }>();
   const {
     items,
     addSubscription,
     addInstallmentPlan,
     updateSubscription,
     updateInstallmentPlan,
+    removePendingSuggestion,
     categories,
     accounts,
   } = useAppState();
@@ -92,6 +101,7 @@ export function useAddForm() {
   // When an `id` is passed we're editing an existing item; pre-fill from it.
   const editItem = id ? items.find((i) => i.id === id) : undefined;
   const isEditing = !!editItem;
+  const suggestion = !editItem && suggestionId ? suggested : undefined;
   const editRec =
     editItem && isRecurringSchedule(editItem.schedule) ? editItem.schedule : undefined;
   const editInst =
@@ -102,7 +112,7 @@ export function useAddForm() {
   const [planType, setPlanType] = useState<PlanType>(() =>
     editInst ? "installment" : "subscription",
   );
-  const [name, setName] = useState(() => editItem?.name ?? "");
+  const [name, setName] = useState(() => editItem?.name ?? suggestion?.name ?? "");
   const [amountText, setAmountText] = useState(() =>
     editAmount ? String(toMajor(editAmount)) : "",
   );
@@ -110,9 +120,11 @@ export function useAddForm() {
   const [intervalText, setIntervalText] = useState(() =>
     String(editRec?.recurrence.interval ?? editInst?.recurrence.interval ?? 1),
   );
-  const [unit, setUnit] = useState<TimeUnit>(
-    () => editRec?.recurrence.unit ?? editInst?.recurrence.unit ?? "month",
-  );
+  const [unit, setUnit] = useState<TimeUnit>(() => {
+    if (editRec) return editRec.recurrence.unit;
+    if (editInst) return editInst.recurrence.unit;
+    return suggestion?.unit === "year" ? "year" : "month";
+  });
   const [installmentsText, setInstallmentsText] = useState(() =>
     editInst ? String(editInst.numberOfInstallments) : "3",
   );
@@ -132,7 +144,9 @@ export function useAddForm() {
   const [reminderKey, setReminderKey] = useState(() =>
     editItem?.reminder ? String(editItem.reminder.daysBefore) : "never",
   );
-  const [categoryId, setCategoryId] = useState<string | undefined>(() => editItem?.categoryId);
+  const [categoryId, setCategoryId] = useState<string | undefined>(
+    () => editItem?.categoryId ?? suggestion?.categoryId,
+  );
   const [accountId, setAccountId] = useState<string | undefined>(() => editItem?.accountId);
   const [color, setColor] = useState<string | undefined>(() => editItem?.color);
   const [notes, setNotes] = useState(() => editItem?.notes ?? "");
@@ -240,6 +254,8 @@ export function useAddForm() {
       if (editItem) updateSubscription(editItem.id, input);
       else addSubscription(input);
     }
+    // The suggestion is now a real commitment — its To-complete row retires.
+    if (suggestion && suggestionId) removePendingSuggestion(suggestionId);
     router.back();
   };
 

@@ -39,6 +39,7 @@ import {
   type NewRecurringInput,
   type PaymentItem,
   type PaymentOccurrence,
+  type SuggestedCommitment,
 } from "@keel/core";
 
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
@@ -103,6 +104,10 @@ interface AppStateValue {
   clearAllData: () => void;
   /** Debug/testing: replace everything with a realistic seeded household. */
   loadSampleData: () => void;
+  /** The "To complete" list: suggestions the user has but hasn't filled in. */
+  pending: SuggestedCommitment[];
+  addPendingSuggestions: (suggestions: SuggestedCommitment[]) => void;
+  removePendingSuggestion: (id: string) => void;
   /** Backup: the exact persisted shape, ready to serialise and share. */
   exportData: () => PersistedState;
   /** Restore a backup (replaces everything); false when the JSON is invalid. */
@@ -126,6 +131,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
   const [rates, setRates] = useState<ExchangeRates | null>(null);
+  const [pending, setPending] = useState<SuggestedCommitment[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -145,6 +151,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setCustomCategories(state.categories);
       setAccounts(state.accounts);
       setDisplayCurrency(state.displayCurrency);
+      setPending(state.pending);
       setLoading(false);
     });
     // Rates: last cached ones first (works offline), then today's, quietly.
@@ -171,8 +178,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         categories: customCategories,
         accounts,
         displayCurrency,
+        pending,
       });
-  }, [items, occurrences, customCategories, accounts, displayCurrency, loading]);
+  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading]);
 
   // One memoised value object: consumers only re-render when state actually
   // changes. Handlers live inside the memo so their closures (over `items`,
@@ -331,6 +339,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setOccurrences([]);
       setCustomCategories([]);
       setAccounts([]);
+      setPending([]);
+    };
+
+    const addPendingSuggestions = (suggestions: SuggestedCommitment[]) => {
+      setPending((prev) => {
+        const seen = new Set(prev.map((s) => s.id));
+        const fresh = suggestions.filter((s) => !seen.has(s.id));
+        return fresh.length > 0 ? [...prev, ...fresh] : prev;
+      });
+    };
+
+    const removePendingSuggestion = (id: string) => {
+      setPending((prev) => prev.filter((s) => s.id !== id));
     };
 
     const loadSampleData = () => {
@@ -347,6 +368,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       categories: customCategories,
       accounts,
       displayCurrency,
+      pending,
     });
 
     const importData = (json: string): boolean => {
@@ -357,6 +379,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setCustomCategories(state.categories);
       setAccounts(state.accounts);
       setDisplayCurrency(state.displayCurrency);
+      setPending(state.pending);
       return true;
     };
 
@@ -387,10 +410,13 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       archiveAccount,
       clearAllData,
       loadSampleData,
+      pending,
+      addPendingSuggestions,
+      removePendingSuggestion,
       exportData,
       importData,
     };
-  }, [items, occurrences, customCategories, accounts, displayCurrency, rates, loading]);
+  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, rates, loading]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

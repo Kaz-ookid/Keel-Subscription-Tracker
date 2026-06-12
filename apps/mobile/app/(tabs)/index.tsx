@@ -2,11 +2,14 @@
 // (what hits, when, from which account); "All" is the catalog of every item,
 // including ended/paused ones a timeline can't show.
 
-import { useMemo, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
+import { wasOnboardingSeen } from "../../src/lib/onboarding";
+import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 type PaymentsView = "upcoming" | "all";
@@ -20,6 +23,20 @@ export default function PaymentsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [view, setView] = useState<PaymentsView>("upcoming");
+  const router = useRouter();
+  const { items, accounts, loading } = useAppState();
+
+  // First launch only: a truly empty app (no items, no accounts) and the tour
+  // never shown → open onboarding. Checked once per mount, after hydration.
+  const checkedOnboarding = useRef(false);
+  useEffect(() => {
+    if (loading || checkedOnboarding.current) return;
+    checkedOnboarding.current = true;
+    if (items.length > 0 || accounts.length > 0) return;
+    void wasOnboardingSeen().then((seen) => {
+      if (!seen) router.push("/onboarding");
+    });
+  }, [loading, items, accounts, router]);
 
   return (
     <View style={styles.screen}>

@@ -1,4 +1,5 @@
 import {
+  DEFAULT_CATEGORIES,
   formatTotalsIn,
   isInstallmentSchedule,
   isPaymentItemComplete,
@@ -7,14 +8,17 @@ import {
   summarizeInstallmentPlan,
   today,
   type PaymentItem,
+  type SuggestedCommitment,
 } from "@keel/core";
 import { useRouter } from "expo-router";
-import { useMemo } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { SymbolView } from "expo-symbols";
+import { useMemo, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../../state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
+import { IconBadge } from "../IconBadge";
 import { SubscriptionRow } from "../SubscriptionRow";
 
 /** The day of the month an item bills on — its fixed "place" in the list. */
@@ -34,13 +38,17 @@ export function SubscriptionsView() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     items,
+    pending,
     displayCurrency,
     rates,
     loading,
     removeSubscription,
+    removePendingSuggestion,
     markPaid,
     markInstallmentPaid,
   } = useAppState();
+  // Open by default — the whole point of the list is to be acted on.
+  const [pendingOpen, setPendingOpen] = useState(true);
 
   if (loading) {
     return (
@@ -50,7 +58,7 @@ export function SubscriptionsView() {
     );
   }
 
-  if (items.length === 0) {
+  if (items.length === 0 && pending.length === 0) {
     return (
       <View style={styles.center}>
         <Text style={styles.emptyTitle}>No subscriptions yet</Text>
@@ -58,6 +66,17 @@ export function SubscriptionsView() {
       </View>
     );
   }
+
+  const fillIn = (s: SuggestedCommitment) =>
+    router.push({
+      pathname: "/add",
+      params: {
+        suggestionId: s.id,
+        name: s.name,
+        ...(s.categoryId ? { categoryId: s.categoryId } : {}),
+        unit: s.unit,
+      },
+    });
 
   const asOf = today();
   const commitments = summarizeCommitments(items, asOf);
@@ -79,21 +98,69 @@ export function SubscriptionsView() {
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
-        commitments.monthly.length > 0 || commitments.bnplOutstanding.length > 0 ? (
-          <HeroCard
-            label="Committed monthly"
-            amount={
-              commitments.monthly.length > 0
-                ? formatTotalsIn(commitments.monthly, displayCurrency, rates)
-                : "Nothing yet"
-            }
-            sub={
-              commitments.bnplOutstanding.length > 0
-                ? `Pay-in-X still owed: ${formatTotalsIn(commitments.bnplOutstanding, displayCurrency, rates)}`
-                : undefined
-            }
-          />
-        ) : null
+        <View style={styles.headerStack}>
+          {(commitments.monthly.length > 0 || commitments.bnplOutstanding.length > 0) && (
+            <HeroCard
+              label="Committed monthly"
+              amount={
+                commitments.monthly.length > 0
+                  ? formatTotalsIn(commitments.monthly, displayCurrency, rates)
+                  : "Nothing yet"
+              }
+              sub={
+                commitments.bnplOutstanding.length > 0
+                  ? `Pay-in-X still owed: ${formatTotalsIn(commitments.bnplOutstanding, displayCurrency, rates)}`
+                  : undefined
+              }
+            />
+          )}
+          {/* What the onboarding deck collected: each row opens the Add form
+              pre-filled, the ✗ dismisses without adding. */}
+          {pending.length > 0 && (
+            <View>
+              <Pressable style={styles.pendingHeader} onPress={() => setPendingOpen((o) => !o)}>
+                <View style={styles.pendingLine} />
+                <Text style={styles.pendingTitle}>To complete · {pending.length}</Text>
+                <SymbolView
+                  name={pendingOpen ? "chevron.up" : "chevron.down"}
+                  size={11}
+                  tintColor={colors.mutedText}
+                />
+                <View style={styles.pendingLine} />
+              </Pressable>
+              {pendingOpen && (
+                <View style={styles.pendingList}>
+                  {pending.map((s) => {
+                    const category = DEFAULT_CATEGORIES.find((c) => c.id === s.categoryId);
+                    return (
+                      <View key={s.id} style={styles.pendingRow}>
+                        <IconBadge
+                          icon={category?.icon}
+                          fallback={s.name.charAt(0).toUpperCase()}
+                          color={colors.accent}
+                          size={36}
+                        />
+                        <Text style={styles.pendingName} numberOfLines={1}>
+                          {s.name}
+                        </Text>
+                        <Pressable style={styles.addPill} onPress={() => fillIn(s)}>
+                          <Text style={styles.addPillText}>Add</Text>
+                        </Pressable>
+                        <Pressable
+                          accessibilityLabel={`Dismiss ${s.name}`}
+                          hitSlop={8}
+                          onPress={() => removePendingSuggestion(s.id)}
+                        >
+                          <SymbolView name="xmark" size={13} tintColor={colors.mutedText} />
+                        </Pressable>
+                      </View>
+                    );
+                  })}
+                </View>
+              )}
+            </View>
+          )}
+        </View>
       }
       renderItem={({ item }) => (
         <SubscriptionRow
@@ -134,6 +201,52 @@ function createStyles(colors: ThemeColors) {
     emptyHint: {
       ...typography.body,
       color: colors.mutedText,
+    },
+    headerStack: {
+      gap: spacing.sm,
+    },
+    pendingHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.xs,
+    },
+    pendingLine: {
+      flex: 1,
+      height: StyleSheet.hairlineWidth,
+      backgroundColor: colors.border,
+    },
+    pendingTitle: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.mutedText,
+    },
+    pendingList: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+    },
+    pendingRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+    },
+    pendingName: {
+      ...typography.body,
+      color: colors.text,
+      flex: 1,
+    },
+    addPill: {
+      backgroundColor: colors.accent,
+      borderRadius: radius.sm,
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+    },
+    addPillText: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.white,
     },
   });
 }

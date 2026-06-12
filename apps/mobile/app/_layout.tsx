@@ -48,6 +48,10 @@ function RootNavigator() {
           >
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
             <Stack.Screen
+              name="onboarding"
+              options={{ presentation: "fullScreenModal", headerShown: false }}
+            />
+            <Stack.Screen
               name="add"
               options={{ presentation: "modal", title: "New subscription" }}
             />

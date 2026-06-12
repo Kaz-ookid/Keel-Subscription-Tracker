@@ -157,6 +157,14 @@ export default function SettingsScreen() {
             {remindersOn === null ? "" : remindersOn ? "On" : "Off in iOS Settings"}
           </Text>
         </Pressable>
+        <Pressable
+          style={[styles.row, styles.rowDivider]}
+          onPress={() => router.push({ pathname: "/onboarding", params: { mode: "deck" } })}
+        >
+          <SymbolView name="rectangle.stack.fill" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Browse common subscriptions</Text>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
       </View>
 
       {/* The escape hatch: real finances deserve a way out of one local blob. */}
