@@ -5,7 +5,15 @@
 // swapping to SQLite later changes just this file.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Account, Category, PaymentItem, PaymentOccurrence } from "@keel/core";
+import {
+  DEFAULT_CURRENCY,
+  CURRENCIES,
+  type Account,
+  type Category,
+  type CurrencyCode,
+  type PaymentItem,
+  type PaymentOccurrence,
+} from "@keel/core";
 
 const STORAGE_KEY = "keel.subscriptions.v1";
 
@@ -17,9 +25,17 @@ export interface PersistedState {
   categories: Category[];
   /** Bank accounts/cards payments are assigned to (archived ones included). */
   accounts: Account[];
+  /** Big numbers merge into this currency for display. */
+  displayCurrency: CurrencyCode;
 }
 
-const EMPTY: PersistedState = { items: [], occurrences: [], categories: [], accounts: [] };
+const EMPTY: PersistedState = {
+  items: [],
+  occurrences: [],
+  categories: [],
+  accounts: [],
+  displayCurrency: DEFAULT_CURRENCY,
+};
 
 export async function loadState(): Promise<PersistedState> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -28,13 +44,17 @@ export async function loadState(): Promise<PersistedState> {
     const parsed = JSON.parse(raw);
     // Back-compat: an earlier build stored a bare PaymentItem[] array.
     if (Array.isArray(parsed)) {
-      return { items: parsed as PaymentItem[], occurrences: [], categories: [], accounts: [] };
+      return { ...EMPTY, items: parsed as PaymentItem[] };
     }
     return {
       items: Array.isArray(parsed.items) ? parsed.items : [],
       occurrences: Array.isArray(parsed.occurrences) ? parsed.occurrences : [],
       categories: Array.isArray(parsed.categories) ? parsed.categories : [],
       accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
+      displayCurrency:
+        typeof parsed.displayCurrency === "string" && parsed.displayCurrency in CURRENCIES
+          ? (parsed.displayCurrency as CurrencyCode)
+          : DEFAULT_CURRENCY,
     };
   } catch {
     // Corrupt blob — start clean rather than crash the app on launch.

@@ -28,9 +28,12 @@ import {
   unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
   updateRecurringPaymentItem,
+  DEFAULT_CURRENCY,
   type Account,
   type CalendarDate,
   type Category,
+  type CurrencyCode,
+  type ExchangeRates,
   type NewAccountInput,
   type NewInstallmentInput,
   type NewRecurringInput,
@@ -38,6 +41,7 @@ import {
   type PaymentOccurrence,
 } from "@keel/core";
 
+import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { buildSampleData } from "../lib/sample-data";
 import { loadState, saveState } from "../lib/storage";
 
@@ -56,6 +60,11 @@ interface AppStateValue {
   categories: Category[];
   /** Active (non-archived) bank accounts, for assignment + the Accounts tab. */
   accounts: Account[];
+  /** Big numbers merge into this currency everywhere. */
+  displayCurrency: CurrencyCode;
+  setDisplayCurrency: (currency: CurrencyCode) => void;
+  /** ECB daily reference rates (cached; null until first successful fetch). */
+  rates: ExchangeRates | null;
   loading: boolean;
   addSubscription: (input: NewRecurringInput) => void;
   /** Create a BNPL "Pay in X" installment plan. */
@@ -110,6 +119,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [occurrences, setOccurrences] = useState<PaymentOccurrence[]>([]);
   const [customCategories, setCustomCategories] = useState<Category[]>([]);
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
+  const [rates, setRates] = useState<ExchangeRates | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -128,14 +139,29 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setOccurrences([...kept, ...accrued]);
       setCustomCategories(state.categories);
       setAccounts(state.accounts);
+      setDisplayCurrency(state.displayCurrency);
       setLoading(false);
+    });
+    // Rates: last cached ones first (works offline), then today's, quietly.
+    void loadCachedRates().then((cached) => {
+      if (cached) setRates((current) => current ?? cached);
+    });
+    void fetchRates().then((fresh) => {
+      if (fresh) setRates(fresh);
     });
   }, []);
 
   // Persist after the initial hydration completes.
   useEffect(() => {
-    if (!loading) void saveState({ items, occurrences, categories: customCategories, accounts });
-  }, [items, occurrences, customCategories, accounts, loading]);
+    if (!loading)
+      void saveState({
+        items,
+        occurrences,
+        categories: customCategories,
+        accounts,
+        displayCurrency,
+      });
+  }, [items, occurrences, customCategories, accounts, displayCurrency, loading]);
 
   // One memoised value object: consumers only re-render when state actually
   // changes. Handlers live inside the memo so their closures (over `items`,
@@ -309,6 +335,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       occurrences,
       categories: [...BUILTIN_CATEGORIES, ...customCategories],
       accounts: accounts.filter((a) => !a.isArchived),
+      displayCurrency,
+      setDisplayCurrency,
+      rates,
       loading,
       addSubscription,
       addInstallmentPlan,
@@ -329,7 +358,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       clearAllData,
       loadSampleData,
     };
-  }, [items, occurrences, customCategories, accounts, loading]);
+  }, [items, occurrences, customCategories, accounts, displayCurrency, rates, loading]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }
