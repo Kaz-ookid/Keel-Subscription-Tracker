@@ -1,12 +1,5 @@
-import {
-  ACCOUNT_TYPES,
-  CURRENCIES,
-  type Account,
-  type AccountType,
-  type CurrencyCode,
-  type NewAccountInput,
-} from "@keel/core";
-import { SymbolView } from "expo-symbols";
+import { CURRENCIES, type Account, type CurrencyCode, type NewAccountInput } from "@keel/core";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -22,20 +15,20 @@ import {
   type ThemeColors,
 } from "../theme";
 import { IconBadge } from "./IconBadge";
-import { Segmented, type SegmentedOption } from "./Segmented";
 import { Sheet } from "./Sheet";
 
-/** SF Symbol per account type (the core descriptor icons are abstract names). */
-export const ACCOUNT_TYPE_SYMBOLS: Record<AccountType, string> = {
-  checking: "building.columns.fill",
-  savings: "banknote.fill",
-  credit_card: "creditcard.fill",
-  other: "wallet.bifold.fill",
-};
-
-const TYPE_OPTIONS: SegmentedOption<AccountType>[] = (
-  Object.keys(ACCOUNT_TYPES) as AccountType[]
-).map((t) => ({ value: t, label: ACCOUNT_TYPES[t].label }));
+// Users pick the icon directly — "checking/savings/credit card" labels asked a
+// question nobody filling in "Revolut" was thinking about. (The model keeps
+// its `type` field; it just isn't part of the form.)
+const ICON_CHOICES = [
+  "building.columns.fill",
+  "creditcard.fill",
+  "banknote.fill",
+  "wallet.bifold.fill",
+  "bitcoinsign.circle.fill",
+  "chart.line.uptrend.xyaxis",
+  "globe",
+];
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 
@@ -51,7 +44,7 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [name, setName] = useState(initial?.name ?? "");
   const [institution, setInstitution] = useState(initial?.institution ?? "");
-  const [type, setType] = useState<AccountType>(initial?.type ?? "checking");
+  const [icon, setIcon] = useState(initial?.icon ?? ICON_CHOICES[0]);
   const [currency, setCurrency] = useState<CurrencyCode>(initial?.currency ?? "EUR");
   const [color, setColor] = useState(initial?.color ?? "#3B82F6");
 
@@ -59,11 +52,11 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
     if (!name.trim()) return;
     onSubmit({
       name,
-      type,
+      type: initial?.type ?? "other",
       currency,
       institution: institution.trim() || undefined,
       color,
-      icon: ACCOUNT_TYPE_SYMBOLS[type],
+      icon,
     });
   };
 
@@ -84,7 +77,23 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
         onChangeText={setInstitution}
       />
 
-      <Segmented options={TYPE_OPTIONS} value={type} onChange={setType} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+        <View style={styles.chipRow}>
+          {ICON_CHOICES.map((choice) => (
+            <Pressable
+              key={choice}
+              onPress={() => setIcon(choice)}
+              style={[styles.iconChoice, icon === choice && styles.iconChoiceActive]}
+            >
+              <SymbolView
+                name={choice as SymbolViewProps["name"]}
+                size={20}
+                tintColor={icon === choice ? colors.white : colors.text}
+              />
+            </Pressable>
+          ))}
+        </View>
+      </ScrollView>
 
       {/* One currency per account (v1 rule) — payments inherit it. */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -284,6 +293,20 @@ function createStyles(colors: ThemeColors) {
     chipRow: {
       flexDirection: "row",
       gap: spacing.sm,
+    },
+    iconChoice: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.sm,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    iconChoiceActive: {
+      backgroundColor: colors.navy,
+      borderColor: colors.navy,
     },
     chip: {
       paddingVertical: spacing.xs + 2,

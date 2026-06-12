@@ -1,12 +1,12 @@
-import { ACCOUNT_TYPES, type Account } from "@keel/core";
+import { type Account } from "@keel/core";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { AccountEditSheet } from "../../src/components/AccountSheet";
-import { IconBadge } from "../../src/components/IconBadge";
-import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { AccountEditSheet } from "../src/components/AccountSheet";
+import { IconBadge } from "../src/components/IconBadge";
+import { useAppState } from "../src/state/app-state";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 export default function AccountsScreen() {
   const { colors } = useTheme();
@@ -65,10 +65,11 @@ export default function AccountsScreen() {
                 <Text style={styles.name} numberOfLines={1}>
                   {item.name}
                 </Text>
-                <Text style={styles.sub} numberOfLines={1}>
-                  {item.institution ? `${item.institution} · ` : ""}
-                  {ACCOUNT_TYPES[item.type].label}
-                </Text>
+                {item.institution ? (
+                  <Text style={styles.sub} numberOfLines={1}>
+                    {item.institution}
+                  </Text>
+                ) : null}
               </View>
               <Text style={styles.currency}>{item.currency}</Text>
             </Pressable>

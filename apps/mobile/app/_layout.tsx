@@ -29,6 +29,7 @@ export default function RootLayout() {
               options={{ presentation: "modal", title: "New subscription" }}
             />
             <Stack.Screen name="item" options={{ title: "Details" }} />
+            <Stack.Screen name="accounts" options={{ title: "Accounts" }} />
           </Stack>
           {/* Header is navy in both schemes, so light status-bar content reads well. */}
           <StatusBar style="light" />
