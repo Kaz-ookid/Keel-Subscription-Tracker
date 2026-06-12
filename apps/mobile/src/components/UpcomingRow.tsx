@@ -102,7 +102,7 @@ export function UpcomingRow({
           </Pressable>
         )}
         {settled && onUndo && (
-          <Pressable onPress={onUndo} hitSlop={8}>
+          <Pressable onPress={onUndo} style={styles.undoButton} hitSlop={6}>
             <Text style={styles.undoText}>Undo</Text>
           </Pressable>
         )}
@@ -131,10 +131,18 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.xs,
     },
+    // A real button, full strength against the dimmed row — navy on accent
+    // (pale accent TEXT alone read as disabled grey).
+    undoButton: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: colors.accent,
+    },
     undoText: {
       ...typography.caption,
-      color: colors.accent,
-      fontWeight: "600",
+      color: colors.navy,
+      fontWeight: "700",
     },
     middle: {
       flex: 1,

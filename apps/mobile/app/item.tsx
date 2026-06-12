@@ -205,7 +205,11 @@ export default function ItemScreen() {
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>Payments</Text>
             {plan.paidCount > 0 && (
-              <Pressable onPress={() => undoInstallmentPaid(item.id)} hitSlop={8}>
+              <Pressable
+                onPress={() => undoInstallmentPaid(item.id)}
+                style={styles.undoButton}
+                hitSlop={6}
+              >
                 <Text style={styles.undoText}>Undo last</Text>
               </Pressable>
             )}
@@ -241,7 +245,7 @@ export default function ItemScreen() {
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>History</Text>
             {item.settlementMode === "manual" && (
-              <Pressable onPress={() => undoPaid(item.id)} hitSlop={8}>
+              <Pressable onPress={() => undoPaid(item.id)} style={styles.undoButton} hitSlop={6}>
                 <Text style={styles.undoText}>Undo last</Text>
               </Pressable>
             )}
@@ -366,10 +370,17 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       paddingTop: spacing.sm,
     },
+    // A real button — pale accent TEXT alone read as disabled grey.
+    undoButton: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.sm,
+      borderRadius: radius.sm,
+      backgroundColor: colors.accent,
+    },
     undoText: {
       ...typography.caption,
-      color: colors.accent,
-      fontWeight: "600",
+      color: colors.navy,
+      fontWeight: "700",
     },
     infoRow: {
       flexDirection: "row",
