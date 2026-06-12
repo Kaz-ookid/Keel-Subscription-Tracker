@@ -21,3 +21,12 @@ export async function markOnboardingSeen(): Promise<void> {
     // best-effort
   }
 }
+
+/** Debug: forget the tour was ever shown, so first-launch can be replayed. */
+export async function resetOnboardingSeen(): Promise<void> {
+  try {
+    await AsyncStorage.removeItem(SEEN_KEY);
+  } catch {
+    // best-effort
+  }
+}

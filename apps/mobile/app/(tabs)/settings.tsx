@@ -13,6 +13,7 @@ import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from
 import { Alert, AppState, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { reminderPermissionGranted } from "../../src/lib/notifications";
+import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME } from "../../src/constants";
 import { WheelSheet } from "../../src/components/WheelSheet";
@@ -87,6 +88,22 @@ export default function SettingsScreen() {
     Alert.alert("Load sample data", "Replaces everything with a realistic seeded household.", [
       { text: "Cancel", style: "cancel" },
       { text: "Replace", style: "destructive", onPress: loadSampleData },
+    ]);
+
+  // Debug: relive the first launch — wipe everything, forget the tour was
+  // seen, and open onboarding right away.
+  const confirmOnboarding = () =>
+    Alert.alert("Test onboarding", "Deletes ALL data and replays the first-launch setup.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Wipe & replay",
+        style: "destructive",
+        onPress: () => {
+          clearAllData();
+          void resetOnboardingSeen();
+          router.push("/onboarding");
+        },
+      },
     ]);
 
   const exportBackup = async () => {
@@ -184,6 +201,10 @@ export default function SettingsScreen() {
         <Pressable style={styles.row} onPress={confirmSample}>
           <SymbolView name="wand.and.stars" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>Load sample data</Text>
+        </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
+          <SymbolView name="arrow.counterclockwise" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Test onboarding (wipes data)</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmClear}>
           <SymbolView name="trash.fill" size={20} tintColor={tones.danger} />
