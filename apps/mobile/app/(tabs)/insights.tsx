@@ -11,6 +11,7 @@ import {
   formatMoney,
   formatMoneyList,
   groupByCadence,
+  groupByCategory,
   isInstallmentSchedule,
   isPaymentItemComplete,
   money,
@@ -18,6 +19,7 @@ import {
   spendingByMonth,
   summarizeCommitments,
   summarizeInstallmentPlan,
+  summarizePriceChanges,
   sumByCurrency,
   today,
   yearlyCommitment,
@@ -25,9 +27,10 @@ import {
   type CurrencyCode,
   type Money,
 } from "@keel/core";
+import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../../src/components/HeroCard";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
@@ -91,9 +94,10 @@ interface MonthDetail {
 }
 
 export default function InsightsScreen() {
+  const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, loading } = useAppState();
+  const { items, occurrences, categories, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
   const [selected, setSelected] = useState<number | null>(MONTHS_BACK);
 
@@ -119,6 +123,14 @@ export default function InsightsScreen() {
   const commitments = summarizeCommitments(items, asOf);
   const yearlyTheory = yearlyCommitment(items, asOf);
   const cadences = groupByCadence(items, asOf);
+  const categoryGroups = groupByCategory(items, asOf);
+  const priceChanges = summarizePriceChanges(items, asOf);
+  // The Explore teaser: how much more per month than at signup.
+  const creep = sumByCurrency(
+    priceChanges.map((c) =>
+      money(c.monthlyCurrent.amount - c.monthlyOriginal.amount, c.monthlyCurrent.currency),
+    ),
+  ).filter((m) => m.amount !== 0);
 
   // The headline stays the calendar year, carved out of the wide window.
   const year = asOf.slice(0, 4);
@@ -311,6 +323,34 @@ export default function InsightsScreen() {
         <Text style={styles.note}>+ {formatMoneyList(otherCurrencies)} this year not charted</Text>
       )}
 
+      {/* Where the money goes — the split most people actually think in. */}
+      {categoryGroups.length > 0 && (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>By category · theory</Text>
+          {categoryGroups.map((g) => {
+            const share = Math.min(inPrimary(g.yearlyTotal) / yearlyTotalPrimary, 1);
+            const category = categories.find((c) => c.id === g.categoryId);
+            return (
+              <View key={g.categoryId ?? "none"} style={styles.cadenceRow}>
+                <View style={styles.cadenceHeader}>
+                  <Text style={styles.cadenceLabel}>
+                    {category?.name ?? "No category"}{" "}
+                    <Text style={styles.cadenceCount}>×{g.count}</Text>
+                  </Text>
+                  <Text style={styles.cadenceAmount}>
+                    {formatMoneyList(g.monthlyTotal)}/mo · {formatMoneyList(g.yearlyTotal)}/yr
+                  </Text>
+                </View>
+                <View style={styles.shareTrack}>
+                  <View style={[styles.shareFill, { flex: share }]} />
+                  <View style={{ flex: 1 - share }} />
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      )}
+
       {(cadences.length > 0 || planSummaries.length > 0) && (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>By billing cycle · theory</Text>
@@ -356,6 +396,33 @@ export default function InsightsScreen() {
           )}
         </View>
       )}
+
+      {/* The deeper layer: focused tools, one tap away, out of the way. */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Explore</Text>
+        <View style={styles.exploreCard}>
+          <Pressable style={styles.exploreRow} onPress={() => router.push("/price-changes")}>
+            <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
+            <Text style={styles.exploreText}>Price changes</Text>
+            <Text style={styles.exploreValue}>
+              {creep.length > 0
+                ? `+${formatMoneyList(creep)}/mo`
+                : priceChanges.length > 0
+                  ? `${priceChanges.length} changed`
+                  : ""}
+            </Text>
+            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable
+            style={[styles.exploreRow, styles.exploreRowDivider]}
+            onPress={() => router.push("/by-account")}
+          >
+            <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
+            <Text style={styles.exploreText}>By account</Text>
+            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+          </Pressable>
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -496,6 +563,30 @@ function createStyles(colors: ThemeColors) {
     bnplOwed: {
       ...typography.label,
       color: colors.text,
+    },
+    exploreCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+    },
+    exploreRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.md,
+    },
+    exploreRowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    exploreText: {
+      ...typography.body,
+      color: colors.text,
+      flex: 1,
+    },
+    exploreValue: {
+      ...typography.caption,
+      color: colors.mutedText,
     },
     shareTrack: {
       flexDirection: "row",
