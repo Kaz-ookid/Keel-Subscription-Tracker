@@ -12,6 +12,7 @@ import { addRecurrence, endOfMonth } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate } from "../primitives/temporal";
 import { isRecurringSchedule, type PaymentItem } from "../models/payment-item";
 import { isPaymentItemComplete } from "../models/payment-item-status";
+import type { PaymentOccurrence } from "../models/payment-occurrence";
 import { monthlyEquivalent, occurrencesPerYear, projectCharges } from "./forecast";
 
 /** Theory: what one recurring item costs per average year. */
@@ -50,6 +51,43 @@ export function forecastByMonth(
     const key = monthStart.slice(0, 7);
     const inMonth = charges.filter((c) => c.dueDate.slice(0, 7) === key);
     return { monthStart, totals: sumByCurrency(inMonth.map((c) => c.amount)) };
+  });
+}
+
+/**
+ * The full picture per month: what was ACTUALLY paid (the occurrence ledger —
+ * which survives pausing, editing, even ending an item) plus what is still
+ * owed or upcoming (the projection). The two can never double-count: the
+ * ledger covers everything up to each item's charge cursor, and projections
+ * start at the cursor. An unpaid manual charge therefore stays visible in the
+ * month it was due — as projection — until it's ticked off, when it moves to
+ * the ledger side of the same bucket.
+ */
+export function spendingByMonth(
+  items: readonly PaymentItem[],
+  occurrences: readonly PaymentOccurrence[],
+  from: CalendarDate,
+  months: number,
+): MonthBucket[] {
+  const starts: CalendarDate[] = [];
+  let start = calendarDate(`${from.slice(0, 7)}-01`);
+  for (let i = 0; i < months; i++) {
+    starts.push(start);
+    start = addRecurrence(start, { unit: "month", interval: 1 });
+  }
+
+  const until = endOfMonth(starts[starts.length - 1]);
+  const projected = projectCharges(items, until);
+  // Money actually moved: refunded/failed events don't count (edge case #8).
+  const actuals = occurrences.filter((o) => o.status === "charged");
+
+  return starts.map((monthStart) => {
+    const key = monthStart.slice(0, 7);
+    const amounts = [
+      ...actuals.filter((o) => o.dueDate.slice(0, 7) === key).map((o) => o.amount),
+      ...projected.filter((c) => c.dueDate.slice(0, 7) === key).map((c) => c.amount),
+    ];
+    return { monthStart, totals: sumByCurrency(amounts) };
   });
 }
 

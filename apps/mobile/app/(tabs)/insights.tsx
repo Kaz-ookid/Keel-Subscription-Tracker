@@ -4,12 +4,13 @@
 // other. All math comes from @keel/core; this screen only formats.
 
 import {
+  calendarDate,
   describeRecurrence,
-  forecastByMonth,
   formatMoney,
   formatMoneyList,
   groupByCadence,
   money,
+  spendingByMonth,
   summarizeCommitments,
   sumByCurrency,
   today,
@@ -60,7 +61,7 @@ function capitalize(s: string): string {
 export default function InsightsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, loading } = useAppState();
+  const { items, occurrences, loading } = useAppState();
 
   if (loading) {
     return (
@@ -71,12 +72,21 @@ export default function InsightsScreen() {
   }
 
   const asOf = today();
-  const buckets = forecastByMonth(items, asOf, 12);
+  // The calendar year: past months from the payment ledger (what was actually
+  // paid — survives pausing), future months projected, unpaid overdue charges
+  // still standing in the month they were due.
+  const todayIndex = Number(asOf.slice(5, 7)) - 1;
+  const buckets = spendingByMonth(
+    items,
+    occurrences,
+    calendarDate(`${asOf.slice(0, 4)}-01-01`),
+    12,
+  );
   const commitments = summarizeCommitments(items, asOf);
   const yearlyTheory = yearlyCommitment(items, asOf);
   const cadences = groupByCadence(items, asOf);
 
-  // REAL: everything projected over the next 12 months.
+  // REAL: the whole year — actuals so far plus everything still to come.
   const yearReal = sumByCurrency(buckets.flatMap((b) => b.totals));
 
   if (yearReal.length === 0 && yearlyTheory.length === 0) {
@@ -108,13 +118,13 @@ export default function InsightsScreen() {
   const averageTheory = inPrimary(commitments.monthly);
   const otherCurrencies = yearReal.filter((t) => t.currency !== primary);
 
-  const thisMonthReal = buckets[0].totals;
+  const thisMonthReal = buckets[todayIndex].totals;
   const yearlyTotalPrimary = Math.max(inPrimary(yearlyTheory), 1);
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
-        label="Next 12 months · real"
+        label={`${asOf.slice(0, 4)} · real`}
         amount={yearReal.length > 0 ? formatMoneyList(yearReal) : "Nothing planned"}
         sub={
           yearlyTheory.length > 0
@@ -145,6 +155,7 @@ export default function InsightsScreen() {
         months={chartMonths}
         average={averageTheory}
         averageFormatted={formatMoney(money(averageTheory, primary))}
+        todayIndex={todayIndex}
       />
       {otherCurrencies.length > 0 && (
         <Text style={styles.note}>+ {formatMoneyList(otherCurrencies)} this year not charted</Text>

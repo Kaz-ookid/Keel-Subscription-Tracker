@@ -7,11 +7,15 @@ import {
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   now,
+  pausePaymentItem,
+  recordRecurringPayment,
   RECURRENCE_PRESETS,
+  skipRecurringPayment,
+  spendingByMonth,
   yearlyCommitment,
   yearlyEquivalent,
 } from "../index";
-import type { NewRecurringInput } from "../index";
+import type { NewRecurringInput, PaymentOccurrence } from "../index";
 
 const eur = (major: number) => fromMajor(major, "EUR");
 
@@ -78,6 +82,92 @@ describe("forecastByMonth", () => {
 
     const buckets = forecastByMonth([plan], calendarDate("2026-06-12"), 6);
     expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([0, 10000, 10000, 10000, 0, 0]);
+  });
+});
+
+describe("spendingByMonth (ledger actuals + projections)", () => {
+  it("keeps past months from the ledger even after the item is paused", () => {
+    // Manual sub billing since January, paid Jan-Mar, then paused.
+    let item = makeRecurringPaymentItem(
+      { ...netflix, settlementMode: "manual", firstChargeDate: calendarDate("2026-01-15") },
+      { id: "r1", now: now() },
+    );
+    const ledger: PaymentOccurrence[] = [];
+    for (const d of ["2026-01-15", "2026-02-15", "2026-03-15"]) {
+      const { item: advanced, occurrence } = recordRecurringPayment(item, {
+        id: `occ-${d}`,
+        paidDate: calendarDate(d),
+        now: now(),
+      });
+      item = advanced;
+      ledger.push(occurrence);
+    }
+    const paused = pausePaymentItem(item, { now: now() });
+
+    const buckets = spendingByMonth([paused], ledger, calendarDate("2026-01-01"), 6);
+    // Jan-Mar stay exactly as paid; the paused item projects nothing ahead.
+    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([1599, 1599, 1599, 0, 0, 0]);
+  });
+
+  it("shows an unpaid manual charge in the month it was due, without double-counting paid ones", () => {
+    // Billing since April, only April was ticked off — May/June still owed.
+    let item = makeRecurringPaymentItem(
+      { ...netflix, settlementMode: "manual", firstChargeDate: calendarDate("2026-04-15") },
+      { id: "r1", now: now() },
+    );
+    const { item: advanced, occurrence } = recordRecurringPayment(item, {
+      id: "occ-1",
+      paidDate: calendarDate("2026-04-15"),
+      now: now(),
+    });
+    item = advanced;
+
+    const buckets = spendingByMonth([item], [occurrence], calendarDate("2026-04-01"), 3);
+    // April once (ledger), May and June once each (projection of the overdue).
+    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([1599, 1599, 1599]);
+  });
+
+  it("leaves a skipped cycle out of the totals while later months stay projected", () => {
+    // 500/mo "stocks investment" since April; April paid, May deliberately skipped.
+    let item = makeRecurringPaymentItem(
+      {
+        ...netflix,
+        name: "Stocks",
+        amount: eur(500),
+        settlementMode: "manual",
+        firstChargeDate: calendarDate("2026-04-15"),
+      },
+      { id: "r1", now: now() },
+    );
+    const ledger = [];
+    const paid = recordRecurringPayment(item, {
+      id: "occ-1",
+      paidDate: calendarDate("2026-04-15"),
+      now: now(),
+    });
+    item = paid.item;
+    ledger.push(paid.occurrence);
+    const skipped = skipRecurringPayment(item, { id: "occ-2", now: now() });
+    item = skipped.item;
+    ledger.push(skipped.occurrence);
+
+    expect(skipped.occurrence.status).toBe("skipped");
+    const buckets = spendingByMonth([item], ledger, calendarDate("2026-04-01"), 3);
+    // April spent, May genuinely empty, June projected again.
+    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([50000, 0, 50000]);
+  });
+
+  it("excludes refunded and failed ledger events", () => {
+    const refund: PaymentOccurrence = {
+      id: "occ-r",
+      paymentItemId: "x",
+      dueDate: calendarDate("2026-02-10"),
+      recordedAt: now(),
+      amount: eur(50),
+      status: "refunded",
+    };
+    const buckets = spendingByMonth([], [refund], calendarDate("2026-02-01"), 1);
+    expect(buckets[0].totals).toEqual([]);
   });
 });
 

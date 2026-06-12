@@ -19,19 +19,22 @@ interface Props {
   /** The theoretical monthly average in minor units — drawn as a dashed line. */
   average: number;
   averageFormatted: string;
+  /** Bars before this index are the past (already paid) — drawn muted. */
+  todayIndex?: number;
 }
 
 const CHART_HEIGHT = 140;
 
 /**
  * Twelve bars of REAL monthly outflow with a dashed line at the THEORY
- * average. Calm months sit under the line; the bar spiking above it is the
- * yearly fee. Tap a bar to read the exact month.
+ * average. Past months (muted) show what was actually paid; calm future
+ * months sit under the line and the bar spiking above it is the yearly fee.
+ * Tap a bar to read the exact month.
  */
-export function YearChart({ months, average, averageFormatted }: Props) {
+export function YearChart({ months, average, averageFormatted, todayIndex = 0 }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [selected, setSelected] = useState(0);
+  const [selected, setSelected] = useState(todayIndex);
 
   const max = Math.max(average, ...months.map((m) => m.amount), 1);
   const averageY = (average / max) * CHART_HEIGHT;
@@ -58,6 +61,8 @@ export function YearChart({ months, average, averageFormatted }: Props) {
           {months.map((m, i) => {
             const height = Math.max((m.amount / max) * CHART_HEIGHT, m.amount > 0 ? 3 : 2);
             const spiking = average > 0 && m.amount > average;
+            // The past is fact: muted, never warning-tinted.
+            const past = i < todayIndex;
             return (
               <Pressable key={m.name} style={styles.column} onPress={() => setSelected(i)}>
                 <View
@@ -65,7 +70,11 @@ export function YearChart({ months, average, averageFormatted }: Props) {
                     styles.bar,
                     {
                       height,
-                      backgroundColor: spiking ? tones.warning : colors.accent,
+                      backgroundColor: past
+                        ? colors.mutedText
+                        : spiking
+                          ? tones.warning
+                          : colors.accent,
                       opacity: i === selected ? 1 : 0.55,
                     },
                   ]}
@@ -94,6 +103,12 @@ export function YearChart({ months, average, averageFormatted }: Props) {
           ))}
         </View>
         <Text style={styles.legendText}>theory average · {averageFormatted}/mo</Text>
+        {todayIndex > 0 && (
+          <>
+            <View style={[styles.legendSwatch, { backgroundColor: colors.mutedText }]} />
+            <Text style={styles.legendText}>paid</Text>
+          </>
+        )}
       </View>
     </View>
   );
@@ -170,6 +185,12 @@ function createStyles(colors: ThemeColors) {
     legendDashes: {
       flexDirection: "row",
       gap: 3,
+    },
+    legendSwatch: {
+      width: 8,
+      height: 8,
+      borderRadius: 2,
+      marginLeft: spacing.sm,
     },
     legendText: {
       ...typography.caption,
