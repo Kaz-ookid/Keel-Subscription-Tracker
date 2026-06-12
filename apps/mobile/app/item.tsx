@@ -22,7 +22,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { IconBadge } from "../src/components/IconBadge";
+import { BrandBadge } from "../src/components/BrandBadge";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -134,7 +134,8 @@ export default function ItemScreen() {
 
       {/* Identity */}
       <View style={styles.identity}>
-        <IconBadge
+        <BrandBadge
+          domain={item.domain}
           icon={category?.icon}
           fallback={item.name.charAt(0).toUpperCase()}
           color={item.color ?? colors.accent}

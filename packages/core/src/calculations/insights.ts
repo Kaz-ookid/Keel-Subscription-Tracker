@@ -313,6 +313,7 @@ export interface PriceChangeSummary {
   name: string;
   categoryId?: string;
   color?: string;
+  domain?: string;
   /** When the commitment started billing (the first price's effective date). */
   since: CalendarDate;
   /** How many times the price changed. */
@@ -348,6 +349,7 @@ export function summarizePriceChanges(
         name: item.name,
         categoryId: item.categoryId,
         color: item.color,
+        domain: item.domain,
         since: history[0].effectiveFrom,
         changes: history.length - 1,
         original,

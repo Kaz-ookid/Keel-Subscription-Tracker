@@ -24,7 +24,7 @@ import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
-import { IconBadge } from "../src/components/IconBadge";
+import { BrandBadge } from "../src/components/BrandBadge";
 import { YearChart, type YearChartMonth } from "../src/components/YearChart";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -190,7 +190,8 @@ export default function ByAccountScreen() {
               : undefined;
             return (
               <View key={item.id} style={styles.row}>
-                <IconBadge
+                <BrandBadge
+                  domain={item.domain}
                   icon={category?.icon}
                   fallback={item.name.charAt(0).toUpperCase()}
                   color={item.color ?? colors.accent}

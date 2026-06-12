@@ -33,8 +33,8 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
-import { IconBadge } from "../../src/components/IconBadge";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -397,7 +397,8 @@ export default function InsightsScreen() {
                         style={styles.memberRow}
                         onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
                       >
-                        <IconBadge
+                        <BrandBadge
+                          domain={item.domain}
                           icon={category?.icon}
                           fallback={item.name.charAt(0).toUpperCase()}
                           color={item.color ?? colors.accent}
@@ -458,7 +459,8 @@ export default function InsightsScreen() {
                       style={styles.memberRow}
                       onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
                     >
-                      <IconBadge
+                      <BrandBadge
+                        domain={item.domain}
                         icon={category?.icon}
                         fallback={item.name.charAt(0).toUpperCase()}
                         color={item.color ?? colors.accent}

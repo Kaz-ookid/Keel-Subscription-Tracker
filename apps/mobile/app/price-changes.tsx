@@ -16,7 +16,7 @@ import { useMemo } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
-import { IconBadge } from "../src/components/IconBadge";
+import { BrandBadge } from "../src/components/BrandBadge";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -63,7 +63,8 @@ export default function PriceChangesScreen() {
         return (
           <View key={c.paymentItemId} style={styles.card}>
             <View style={styles.cardHeader}>
-              <IconBadge
+              <BrandBadge
+                domain={c.domain}
                 icon={category?.icon}
                 fallback={c.name.charAt(0).toUpperCase()}
                 color={c.color ?? colors.accent}
