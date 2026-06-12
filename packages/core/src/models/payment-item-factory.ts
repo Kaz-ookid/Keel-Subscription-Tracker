@@ -36,6 +36,7 @@ export interface NewRecurringInput {
   accountId?: string;
   categoryId?: string;
   color?: string;
+  domain?: string;
   reminder?: ReminderRule;
   notes?: string;
   endDate?: CalendarDate;
@@ -73,6 +74,7 @@ export function makeRecurringPaymentItem(input: NewRecurringInput, ctx: MakeCont
     accountId: input.accountId,
     categoryId: input.categoryId,
     color: input.color,
+    domain: input.domain,
     reminder: input.reminder,
     notes: input.notes,
     scheduleType: "RECURRING",
@@ -95,6 +97,7 @@ export interface NewInstallmentInput {
   accountId?: string;
   categoryId?: string;
   color?: string;
+  domain?: string;
   reminder?: ReminderRule;
   notes?: string;
 }
@@ -151,6 +154,7 @@ export function makeInstallmentPaymentItem(
     accountId: input.accountId,
     categoryId: input.categoryId,
     color: input.color,
+    domain: input.domain,
     reminder: input.reminder,
     notes: input.notes,
     scheduleType: "INSTALLMENT",

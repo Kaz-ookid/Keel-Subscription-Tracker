@@ -104,6 +104,9 @@ export interface PaymentItem {
   categoryId?: string;
   /** Optional per-subscription colour (hex) chosen by the user; UI accent. */
   color?: string;
+  /** Optional brand website (e.g. "netflix.com") — platforms may fetch a
+   *  logo from it at runtime; never required, plain text only. */
+  domain?: string;
   /** Optional per-subscription reminder; absent = never remind. */
   reminder?: ReminderRule;
   scheduleType: ScheduleType;

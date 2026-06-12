@@ -47,6 +47,15 @@ describe("makeRecurringPaymentItem", () => {
     ]);
   });
 
+  it("passes the brand fields (color, domain) through to the item", () => {
+    const item = makeRecurringPaymentItem(
+      { ...input, color: "#E50914", domain: "netflix.com" },
+      { id: "item-1", now: now() },
+    );
+    expect(item.color).toBe("#E50914");
+    expect(item.domain).toBe("netflix.com");
+  });
+
   it("snaps an off-grid end date down to the latest billing date", () => {
     // Bills monthly on the 15th — the 20th isn't a billing date.
     const item = makeRecurringPaymentItem(
