@@ -7,13 +7,17 @@ import {
   describeRecurrence,
   formatMoney,
   formatMoneyList,
+  isInstallmentSchedule,
   isRecurringSchedule,
   money,
   spendingByMonth,
   summarizeCommitments,
+  summarizeInstallmentPlan,
   today,
   type CalendarDate,
   type CurrencyCode,
+  type PaymentItem,
+  type PaymentOccurrence,
 } from "@keel/core";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -73,23 +77,40 @@ export default function ByAccountScreen() {
   const asOf = today();
   const account = accounts.find((a) => a.id === selected);
 
-  const scoped = items.filter((i) =>
-    selected === "none" ? !i.accountId : i.accountId === selected,
-  );
-  const scopedIds = new Set(scoped.map((i) => i.id));
-  const scopedOccurrences = occurrences.filter((o) => scopedIds.has(o.paymentItemId));
+  const scopeFor = (group: string): { items: PaymentItem[]; occurrences: PaymentOccurrence[] } => {
+    const groupItems = items.filter((i) =>
+      group === "none" ? !i.accountId : i.accountId === group,
+    );
+    const ids = new Set(groupItems.map((i) => i.id));
+    return { items: groupItems, occurrences: occurrences.filter((o) => ids.has(o.paymentItemId)) };
+  };
 
-  const buckets = spendingByMonth(
-    scoped,
-    scopedOccurrences,
-    monthShifted(asOf, -MONTHS_BACK),
-    MONTHS_BACK + 1 + MONTHS_AHEAD,
-  );
+  const windowStart = monthShifted(asOf, -MONTHS_BACK);
+  const windowMonths = MONTHS_BACK + 1 + MONTHS_AHEAD;
+
+  const { items: scoped, occurrences: scopedOccurrences } = scopeFor(selected);
+  const buckets = spendingByMonth(scoped, scopedOccurrences, windowStart, windowMonths);
   const commitments = summarizeCommitments(scoped, asOf);
 
   const primary: CurrencyCode = account?.currency ?? commitments.monthly[0]?.currency ?? "EUR";
   const inPrimary = (totals: { amount: number; currency: CurrencyCode }[]) =>
     totals.find((t) => t.currency === primary)?.amount ?? 0;
+
+  // The heaviest month across ALL accounts sets every chart's ceiling, so
+  // switching chips compares bar heights honestly instead of re-zooming.
+  const globalMax = [...accounts.map((a) => a.id), "none"].reduce((max, group) => {
+    const scope = scopeFor(group);
+    const groupAccount = accounts.find((a) => a.id === group);
+    const groupCommitments = summarizeCommitments(scope.items, asOf);
+    const groupPrimary: CurrencyCode =
+      groupAccount?.currency ?? groupCommitments.monthly[0]?.currency ?? "EUR";
+    const groupBuckets = spendingByMonth(scope.items, scope.occurrences, windowStart, windowMonths);
+    const groupTop = Math.max(
+      groupCommitments.monthly.find((t) => t.currency === groupPrimary)?.amount ?? 0,
+      ...groupBuckets.map((b) => b.totals.find((t) => t.currency === groupPrimary)?.amount ?? 0),
+    );
+    return Math.max(max, groupTop);
+  }, 1);
 
   const chartMonths: YearChartMonth[] = buckets.map((b) => {
     const m = Number(b.monthStart.slice(5, 7)) - 1;
@@ -150,6 +171,7 @@ export default function ByAccountScreen() {
         todayIndex={MONTHS_BACK}
         selected={selectedMonth}
         onSelect={(i) => setSelectedMonth((prev) => (prev === i ? null : i))}
+        scaleMax={globalMax}
       />
 
       {scoped.length > 0 && (
@@ -157,6 +179,9 @@ export default function ByAccountScreen() {
           {scoped.map((item) => {
             const category = categories.find((c) => c.id === item.categoryId);
             const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
+            const plan = isInstallmentSchedule(item.schedule)
+              ? summarizeInstallmentPlan(item.schedule)
+              : undefined;
             return (
               <View key={item.id} style={styles.row}>
                 <IconBadge
@@ -171,7 +196,11 @@ export default function ByAccountScreen() {
                 <Text style={styles.rowValue}>
                   {recurring
                     ? `${formatMoney(recurring.amount)} · ${describeRecurrence(recurring.recurrence)}`
-                    : "Pay in X"}
+                    : plan
+                      ? plan.isComplete
+                        ? `${formatMoney(plan.totalAmount)} · paid`
+                        : `${formatMoney(plan.nextDue?.amount ?? plan.totalAmount)} · ${plan.paidCount} of ${plan.totalCount}`
+                      : ""}
                 </Text>
               </View>
             );

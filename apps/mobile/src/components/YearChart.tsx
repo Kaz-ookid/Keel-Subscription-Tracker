@@ -27,6 +27,9 @@ interface Props {
   /** Selected month index, or null when nothing is selected. */
   selected: number | null;
   onSelect: (index: number) => void;
+  /** Optional shared ceiling (minor units) so sibling charts — e.g. one per
+   *  account — keep the same relative scale and stay comparable. */
+  scaleMax?: number;
 }
 
 const CHART_HEIGHT = 140;
@@ -47,11 +50,12 @@ export function YearChart({
   todayIndex,
   selected,
   onSelect,
+  scaleMax,
 }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const max = Math.max(average, ...months.map((m) => m.amount), 1);
+  const max = Math.max(scaleMax ?? 0, average, ...months.map((m) => m.amount), 1);
   const averageY = (average / max) * CHART_HEIGHT;
   const current = selected !== null ? months[selected] : undefined;
   const contentWidth = months.length * SLOT;
