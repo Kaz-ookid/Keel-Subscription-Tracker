@@ -284,20 +284,23 @@ export default function InsightsScreen() {
                       : colors.mutedText
                 }
               />
-              <Text style={styles.detailName} numberOfLines={1}>
-                {d.name}
-                {d.installmentIndex && d.installmentCount ? (
-                  <Text style={styles.detailCount}>
-                    {" "}
-                    · {d.installmentIndex} of {d.installmentCount}
-                  </Text>
-                ) : null}
-              </Text>
-              <Text style={[styles.detailDate, d.kind === "overdue" && { color: tones.warning }]}>
-                {d.kind === "overdue"
-                  ? `due ${formatCalendarDate(d.dueDate)}`
-                  : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
-              </Text>
+              {/* Date belongs with the name; the amount stands alone right. */}
+              <View style={styles.detailLeft}>
+                <Text style={styles.detailName} numberOfLines={1}>
+                  {d.name}
+                  {d.installmentIndex && d.installmentCount ? (
+                    <Text style={styles.detailCount}>
+                      {" "}
+                      · {d.installmentIndex} of {d.installmentCount}
+                    </Text>
+                  ) : null}
+                </Text>
+                <Text style={[styles.detailDate, d.kind === "overdue" && { color: tones.warning }]}>
+                  {d.kind === "overdue"
+                    ? `due ${formatCalendarDate(d.dueDate)}`
+                    : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
+                </Text>
+              </View>
               <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
             </View>
           ))}
@@ -429,10 +432,16 @@ function createStyles(colors: ThemeColors) {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
+    detailLeft: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
     detailName: {
       ...typography.caption,
       color: colors.text,
-      flex: 1,
+      flexShrink: 1,
     },
     detailCount: {
       ...typography.caption,
