@@ -1,4 +1,4 @@
-import { formatMoney, type ProjectedCharge } from "@keel/core";
+import { formatCalendarDate, formatMoney, type ProjectedCharge } from "@keel/core";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -47,6 +47,12 @@ export function UpcomingRow({ charge, overdue, showMarkPaid, onPress, onMarkPaid
           {charge.name}
         </Text>
         <Text style={styles.sub} numberOfLines={1}>
+          {/* The Overdue section groups many dates — each row says its own. */}
+          {overdue ? (
+            <Text style={{ color: tones.warning }}>
+              due {formatCalendarDate(charge.dueDate)} ·{" "}
+            </Text>
+          ) : null}
           {parts.join(" · ")}
         </Text>
       </View>
