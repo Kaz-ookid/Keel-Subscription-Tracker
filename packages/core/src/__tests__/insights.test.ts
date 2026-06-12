@@ -4,6 +4,7 @@ import {
   forecastByMonth,
   fromMajor,
   groupByCadence,
+  groupByCategory,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   markNextInstallmentPaid,
@@ -13,6 +14,8 @@ import {
   RECURRENCE_PRESETS,
   skipRecurringPayment,
   spendingByMonth,
+  summarizePriceChanges,
+  updateRecurringPaymentItem,
   yearlyCommitment,
   yearlyEquivalent,
 } from "../index";
@@ -225,6 +228,57 @@ describe("groupByCadence", () => {
       status: "paused" as const,
     };
     expect(groupByCadence([ended, paused], calendarDate("2026-06-12"))).toEqual([]);
+  });
+});
+
+describe("groupByCategory", () => {
+  it("splits theory spend per category, uncategorised in its own bucket", () => {
+    const a = makeRecurringPaymentItem(
+      { ...netflix, categoryId: "streaming" },
+      { id: "r1", now: now() },
+    );
+    const b = makeRecurringPaymentItem(
+      { ...netflix, name: "Spotify", amount: eur(9.99), categoryId: "streaming" },
+      { id: "r2", now: now() },
+    );
+    const c = makeRecurringPaymentItem(
+      { ...licence, categoryId: undefined },
+      { id: "r3", now: now() },
+    );
+
+    const groups = groupByCategory([a, b, c], calendarDate("2026-06-12"));
+    expect(groups).toHaveLength(2);
+    expect(groups[0].categoryId).toBe("streaming"); // 25.98/mo outweighs 18.33/mo
+    expect(groups[0].count).toBe(2);
+    expect(groups[0].monthlyTotal).toEqual([eur(25.98)]);
+    expect(groups[1].categoryId).toBeUndefined();
+    expect(groups[1].yearlyTotal).toEqual([eur(220)]);
+  });
+});
+
+describe("summarizePriceChanges", () => {
+  it("measures the drift from signup price, worst first", () => {
+    const base = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
+    // 15.99 → 19.99: two edits, one of which changes the price.
+    const renamed = updateRecurringPaymentItem(base, { ...netflix, name: "Netflix 4K" }, { now: now() });
+    const raised = updateRecurringPaymentItem(
+      renamed,
+      { ...netflix, name: "Netflix 4K", amount: eur(19.99) },
+      { now: now() },
+    );
+    const stable = makeRecurringPaymentItem(
+      { ...netflix, name: "Spotify", amount: eur(9.99) },
+      { id: "r2", now: now() },
+    );
+
+    const changes = summarizePriceChanges([raised, stable], calendarDate("2026-06-12"));
+    expect(changes).toHaveLength(1); // unchanged prices don't appear
+    expect(changes[0].name).toBe("Netflix 4K");
+    expect(changes[0].changes).toBe(1);
+    expect(changes[0].original).toEqual(eur(15.99));
+    expect(changes[0].current).toEqual(eur(19.99));
+    expect(changes[0].changeRatio).toBeCloseTo(0.25, 2);
+    expect(changes[0].monthlyCurrent).toEqual(eur(19.99));
   });
 });
 

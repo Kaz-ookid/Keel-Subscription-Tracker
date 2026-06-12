@@ -15,6 +15,8 @@ import {
   isInstallmentSchedule,
   isRecurringSchedule,
   type PaymentItem,
+  type PriceHistoryEntry,
+  type RecurringSchedule,
 } from "../models/payment-item";
 import { isPaymentItemComplete } from "../models/payment-item-status";
 import type { PaymentOccurrence } from "../models/payment-occurrence";
@@ -116,11 +118,14 @@ export interface CadenceGroup {
   yearlyTotal: Money[];
 }
 
-function liveRecurring(items: readonly PaymentItem[], asOf: CalendarDate) {
+function liveRecurring(
+  items: readonly PaymentItem[],
+  asOf: CalendarDate,
+): { item: PaymentItem; schedule: RecurringSchedule }[] {
   return items.flatMap((item) => {
     if (item.status !== "active" || isPaymentItemComplete(item, asOf)) return [];
     if (!isRecurringSchedule(item.schedule)) return [];
-    return [item.schedule];
+    return [{ item, schedule: item.schedule }];
   });
 }
 
@@ -132,7 +137,7 @@ function liveRecurring(items: readonly PaymentItem[], asOf: CalendarDate) {
 export function groupByCadence(items: readonly PaymentItem[], asOf: CalendarDate): CadenceGroup[] {
   const groups = new Map<string, CadenceGroup>();
 
-  for (const schedule of liveRecurring(items, asOf)) {
+  for (const { schedule } of liveRecurring(items, asOf)) {
     const { recurrence, amount } = schedule;
     const key = `${recurrence.interval}-${recurrence.unit}`;
     const monthly = monthlyEquivalent(amount, recurrence);
@@ -160,6 +165,106 @@ export function groupByCadence(items: readonly PaymentItem[], asOf: CalendarDate
 /** THEORY: what a year of all live recurring items costs, per currency. */
 export function yearlyCommitment(items: readonly PaymentItem[], asOf: CalendarDate): Money[] {
   return sumByCurrency(
-    liveRecurring(items, asOf).map((s) => yearlyEquivalent(s.amount, s.recurrence)),
+    liveRecurring(items, asOf).map(({ schedule }) =>
+      yearlyEquivalent(schedule.amount, schedule.recurrence),
+    ),
   );
+}
+
+export interface CategoryGroup {
+  /** Undefined = the uncategorised bucket. */
+  categoryId?: string;
+  count: number;
+  /** Theory: the category's per-month equivalent, one total per currency. */
+  monthlyTotal: Money[];
+  /** Theory: the category's per-year equivalent, one total per currency. */
+  yearlyTotal: Money[];
+}
+
+/**
+ * THEORY: where the recurring money goes — per category, with monthly and
+ * yearly equivalents. Sorted by yearly weight (largest first); items without
+ * a category share one bucket at the end of wherever their weight lands.
+ */
+export function groupByCategory(
+  items: readonly PaymentItem[],
+  asOf: CalendarDate,
+): CategoryGroup[] {
+  const groups = new Map<string, CategoryGroup>();
+
+  for (const { item, schedule } of liveRecurring(items, asOf)) {
+    const key = item.categoryId ?? "";
+    const monthly = monthlyEquivalent(schedule.amount, schedule.recurrence);
+    const yearly = yearlyEquivalent(schedule.amount, schedule.recurrence);
+    const existing = groups.get(key);
+    if (existing) {
+      existing.count += 1;
+      existing.monthlyTotal = sumByCurrency([...existing.monthlyTotal, monthly]);
+      existing.yearlyTotal = sumByCurrency([...existing.yearlyTotal, yearly]);
+    } else {
+      groups.set(key, {
+        categoryId: item.categoryId,
+        count: 1,
+        monthlyTotal: [monthly],
+        yearlyTotal: [yearly],
+      });
+    }
+  }
+
+  return Array.from(groups.values()).sort(
+    (a, b) => (b.yearlyTotal[0]?.amount ?? 0) - (a.yearlyTotal[0]?.amount ?? 0),
+  );
+}
+
+export interface PriceChangeSummary {
+  paymentItemId: string;
+  name: string;
+  categoryId?: string;
+  color?: string;
+  /** When the commitment started billing (the first price's effective date). */
+  since: CalendarDate;
+  /** How many times the price changed. */
+  changes: number;
+  original: Money;
+  current: Money;
+  /** Per-month equivalents of original/current — the creep in budget terms. */
+  monthlyOriginal: Money;
+  monthlyCurrent: Money;
+  /** (current − original) / original; 0.24 = 24% more than at signup. */
+  changeRatio: number;
+  history: PriceHistoryEntry[];
+}
+
+/**
+ * Price creep: every live recurring item whose price ever changed, with how
+ * far it drifted from what the user signed up for. The data is `priceHistory`,
+ * which edits append to — nothing extra is recorded for this. Sorted by drift
+ * (worst first).
+ */
+export function summarizePriceChanges(
+  items: readonly PaymentItem[],
+  asOf: CalendarDate,
+): PriceChangeSummary[] {
+  return liveRecurring(items, asOf)
+    .filter(({ schedule }) => schedule.priceHistory.length > 1)
+    .map(({ item, schedule }) => {
+      const history = schedule.priceHistory;
+      const original = history[0].amount;
+      const current = schedule.amount;
+      return {
+        paymentItemId: item.id,
+        name: item.name,
+        categoryId: item.categoryId,
+        color: item.color,
+        since: history[0].effectiveFrom,
+        changes: history.length - 1,
+        original,
+        current,
+        monthlyOriginal: monthlyEquivalent(original, schedule.recurrence),
+        monthlyCurrent: monthlyEquivalent(current, schedule.recurrence),
+        changeRatio: original.amount > 0 ? (current.amount - original.amount) / original.amount : 0,
+        history: [...history],
+      };
+    })
+    .sort((a, b) => b.changeRatio - a.changeRatio);
 }
