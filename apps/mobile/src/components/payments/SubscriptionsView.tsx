@@ -88,7 +88,7 @@ export function SubscriptionsView() {
       renderItem={({ item }) => (
         <SubscriptionRow
           item={item}
-          onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
+          onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
           onMarkPaid={() =>
             isInstallmentSchedule(item.schedule) ? markInstallmentPaid(item.id) : markPaid(item.id)
           }

@@ -249,7 +249,7 @@ export function UpcomingView() {
             earliest.get(item.paymentItemId) === item &&
             (item.scheduleType === "INSTALLMENT" || item.settlementMode === "manual")
           }
-          onPress={() => router.push({ pathname: "/add", params: { id: item.paymentItemId } })}
+          onPress={() => router.push({ pathname: "/item", params: { id: item.paymentItemId } })}
           onMarkPaid={() =>
             item.scheduleType === "INSTALLMENT"
               ? markInstallmentPaid(item.paymentItemId)
