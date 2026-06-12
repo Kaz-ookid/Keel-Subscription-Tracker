@@ -14,7 +14,7 @@ import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
-type PaymentsView = "upcoming" | "all";
+type PaymentsView = "upcoming" | "all" | "calendar";
 
 const VIEWS: { value: PaymentsView; label: string }[] = [
   { value: "upcoming", label: "Upcoming" },
@@ -25,8 +25,6 @@ export default function PaymentsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [view, setView] = useState<PaymentsView>("upcoming");
-  // Upcoming has two zooms of its own: the timeline list and the month grid.
-  const [calendar, setCalendar] = useState(false);
   const router = useRouter();
   const { items, accounts, loading } = useAppState();
 
@@ -59,30 +57,22 @@ export default function PaymentsScreen() {
             );
           })}
         </View>
-        {view === "upcoming" && (
-          <Pressable
-            accessibilityLabel={calendar ? "Show as list" : "Show as calendar"}
-            onPress={() => setCalendar((c) => !c)}
-            style={styles.calendarToggle}
-          >
-            <SymbolView
-              name={calendar ? "list.bullet" : "calendar"}
-              size={17}
-              tintColor={colors.text}
-            />
-          </Pressable>
-        )}
+        <Pressable
+          accessibilityLabel="Calendar view"
+          onPress={() => setView("calendar")}
+          style={[styles.calendarToggle, view === "calendar" && styles.calendarToggleActive]}
+        >
+          <SymbolView
+            name="calendar"
+            size={17}
+            tintColor={view === "calendar" ? colors.white : colors.text}
+          />
+        </Pressable>
       </View>
 
-      {view === "upcoming" ? (
-        calendar ? (
-          <CalendarMonthView />
-        ) : (
-          <UpcomingView />
-        )
-      ) : (
-        <SubscriptionsView />
-      )}
+      {view === "upcoming" && <UpcomingView />}
+      {view === "all" && <SubscriptionsView />}
+      {view === "calendar" && <CalendarMonthView />}
     </View>
   );
 }
@@ -119,6 +109,10 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.surface,
       alignItems: "center",
       justifyContent: "center",
+    },
+    calendarToggleActive: {
+      backgroundColor: colors.navy,
+      borderColor: colors.navy,
     },
     pill: {
       flex: 1,

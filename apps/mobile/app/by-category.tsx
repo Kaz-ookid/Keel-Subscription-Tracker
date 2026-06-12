@@ -79,6 +79,7 @@ export default function ByCategoryScreen() {
       key: g.categoryId ?? "none",
       value: amountIn(g.totals),
       color: sliceColor(i),
+      icon: categories.find((c) => c.id === g.categoryId)?.icon ?? "questionmark",
     })),
     ...(ordered.length > PALETTE.length
       ? [
@@ -86,14 +87,23 @@ export default function ByCategoryScreen() {
             key: "tail",
             value: ordered.slice(PALETTE.length).reduce((sum, g) => sum + amountIn(g.totals), 0),
             color: TAIL_COLOR,
+            icon: "ellipsis",
           },
         ]
       : []),
   ];
 
+  // The hole follows the selection: open a category card and it shows that
+  // category's number; otherwise the year total.
+  const expandedGroup = expanded
+    ? ordered.find((g) => (g.categoryId ?? "none") === expanded)
+    : undefined;
   const yearTotals = ordered.flatMap((g) => g.totals);
-  const centerTitle = totals(yearTotals);
   const monthlyMean = formatMoney(money(Math.round(grandTotal / 12), displayCurrency));
+  const centerTitle = expandedGroup ? totals(expandedGroup.totals) : totals(yearTotals);
+  const centerSub = expandedGroup
+    ? (categories.find((c) => c.id === expandedGroup.categoryId)?.name ?? "No category")
+    : `${year} · ${monthlyMean}/mo`;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -101,7 +111,7 @@ export default function ByCategoryScreen() {
         <DonutChart
           segments={segments}
           centerTitle={centerTitle}
-          centerSub={`${year} · ${monthlyMean}/mo`}
+          centerSub={centerSub}
           // The open card's slice lights up; tail categories share the grey
           // "everything else" slice, so any of them lights that one.
           selectedKey={
