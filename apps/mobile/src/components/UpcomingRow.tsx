@@ -19,6 +19,8 @@ interface Props {
   skipped?: boolean;
   /** When present (on the most recent settlement), a small Undo appears. */
   onUndo?: () => void;
+  /** Outside a day section (e.g. the paid fold) the row states its own date. */
+  dated?: boolean;
   onPress: () => void;
   onMarkPaid: () => void;
 }
@@ -31,6 +33,7 @@ export function UpcomingRow({
   paid,
   skipped,
   onUndo,
+  dated,
   onPress,
   onMarkPaid,
 }: Props) {
@@ -45,6 +48,7 @@ export function UpcomingRow({
 
   // Context line: BNPL progress first, then where the money comes from.
   const parts: string[] = [];
+  if (dated) parts.push(formatCalendarDate(charge.dueDate));
   if (charge.installmentIndex && charge.installmentCount) {
     parts.push(`${charge.installmentIndex} of ${charge.installmentCount}`);
   }

@@ -66,9 +66,9 @@ interface Section {
   key: string;
   title: string;
   overdue?: boolean;
-  /** A month banderole that expands/collapses the sections after it. */
+  /** A banderole that expands/collapses the rows after it. */
   monthLabel?: string;
-  toggle?: boolean;
+  toggle?: "paid" | "next";
   data: Entry[];
 }
 
@@ -91,6 +91,8 @@ export function UpcomingView() {
   const [filter, setFilter] = useState("all");
   // Next month stays one tap away — the daily view is about THIS month.
   const [nextMonthOpen, setNextMonthOpen] = useState(false);
+  // Symmetric: what's already settled this month folds away at the top.
+  const [paidOpen, setPaidOpen] = useState(false);
 
   const asOf = today();
   const monthEnd = endOfMonth(asOf);
@@ -197,9 +199,30 @@ export function UpcomingView() {
     filtered.filter((c) => c.dueDate > monthEnd).map((c) => c.amount),
   );
 
-  // Sections: one "Overdue" bucket, then one per due day (insertion order is
-  // chronological because the projection is sorted).
+  // Sections, in temporal order: the settled-this-month fold, then Overdue,
+  // then one section per due day, then the next-month fold.
   const sections: Section[] = [];
+  const thisMonth = asOf.slice(0, 7);
+
+  // This month's settled payments fold away at the top to clear the view —
+  // mirror of the next-month fold at the bottom. Rows carry their own date.
+  const settledThisMonth = settledFiltered
+    .filter((e) => e.dueDate.slice(0, 7) === thisMonth)
+    .sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
+  if (settledThisMonth.length > 0) {
+    const paidTotal = formatMoneyList(sumByCurrency(settledThisMonth.map((c) => c.amount)));
+    sections.push({
+      key: "paid-month",
+      title: "",
+      monthLabel: `Paid this month · ${paidTotal}`,
+      toggle: "paid",
+      data: [],
+    });
+    if (paidOpen) {
+      sections.push({ key: "paid-month-list", title: "", data: settledThisMonth });
+    }
+  }
+
   const overdueCharges = filtered.filter((c) => c.dueDate < asOf);
   if (overdueCharges.length > 0) {
     sections.push({ key: "overdue", title: "Overdue", overdue: true, data: overdueCharges });
@@ -214,10 +237,11 @@ export function UpcomingView() {
     if (c.dueDate < asOf) continue;
     addToDay(c);
   }
-  // Settled rows join their due day — including days already behind us.
-  for (const e of settledFiltered) addToDay(e);
+  // Next month's settled rows stay in their day inside that month's fold.
+  for (const e of settledFiltered) {
+    if (e.dueDate.slice(0, 7) !== thisMonth) addToDay(e);
+  }
 
-  const thisMonth = asOf.slice(0, 7);
   const nextSections: Section[] = [];
   for (const date of Array.from(byDay.keys()).sort()) {
     const data = byDay.get(date)!;
@@ -237,7 +261,7 @@ export function UpcomingView() {
       title: "",
       // Same text open or closed — the total doesn't vanish on expand.
       monthLabel: `${label} · ${nextTotal}`,
-      toggle: true,
+      toggle: "next",
       data: [],
     });
     if (nextMonthOpen) sections.push(...nextSections);
@@ -310,22 +334,29 @@ export function UpcomingView() {
           </Text>
         </View>
       }
-      renderSectionHeader={({ section }) =>
-        section.toggle ? (
-          <Pressable
-            style={[styles.sectionHeaderWrap, styles.monthBreak]}
-            onPress={() => setNextMonthOpen((open) => !open)}
-          >
-            <View style={styles.monthLine} />
-            <Text style={styles.monthText}>{section.monthLabel}</Text>
-            <SymbolView
-              name={nextMonthOpen ? "chevron.up" : "chevron.down"}
-              size={11}
-              tintColor={colors.mutedText}
-            />
-            <View style={styles.monthLine} />
-          </Pressable>
-        ) : (
+      renderSectionHeader={({ section }) => {
+        if (section.toggle) {
+          const open = section.toggle === "paid" ? paidOpen : nextMonthOpen;
+          const flip = section.toggle === "paid" ? setPaidOpen : setNextMonthOpen;
+          return (
+            <Pressable
+              style={[styles.sectionHeaderWrap, styles.monthBreak]}
+              onPress={() => flip((o) => !o)}
+            >
+              <View style={styles.monthLine} />
+              <Text style={styles.monthText}>{section.monthLabel}</Text>
+              <SymbolView
+                name={open ? "chevron.up" : "chevron.down"}
+                size={11}
+                tintColor={colors.mutedText}
+              />
+              <View style={styles.monthLine} />
+            </Pressable>
+          );
+        }
+        // Headerless row groups (the expanded paid list) render bare.
+        if (!section.title) return null;
+        return (
           <View style={styles.sectionHeaderWrap}>
             <View style={styles.sectionHeader}>
               <Text style={[styles.sectionTitle, section.overdue && { color: tones.warning }]}>
@@ -336,15 +367,16 @@ export function UpcomingView() {
               </Text>
             </View>
           </View>
-        )
-      }
-      renderItem={({ item }) => (
+        );
+      }}
+      renderItem={({ item, section }) => (
         <UpcomingRow
           charge={item}
           overdue={item.dueDate < asOf && !item.paid && !item.skipped}
           showMarkPaid={canMark(item)}
           paid={item.paid}
           skipped={item.skipped}
+          dated={section.key === "paid-month-list"}
           onUndo={
             item.undoable
               ? () =>
