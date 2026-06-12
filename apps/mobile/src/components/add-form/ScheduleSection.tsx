@@ -1,4 +1,5 @@
 import { BNPL_PROVIDERS, formatCalendarDate, type TimeUnit } from "@keel/core";
+import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 
 import { FieldButton } from "../FieldButton";
@@ -6,21 +7,25 @@ import { Segmented, type SegmentedOption } from "../Segmented";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
-const UNIT_OPTIONS: SegmentedOption<TimeUnit>[] = [
-  { value: "day", label: "Day" },
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
-  { value: "year", label: "Year" },
-];
+function useUnitOptions(): SegmentedOption<TimeUnit>[] {
+  const { t } = useTranslation();
+  return [
+    { value: "day", label: t("add.unitDay") },
+    { value: "week", label: t("add.unitWeek") },
+    { value: "month", label: t("add.unitMonth") },
+    { value: "year", label: t("add.unitYear") },
+  ];
+}
 
 /** Niche but discoverable: monthly cycles can repeat by weekday instead of
  *  by date — two interpretations of the date already picked, nothing more. */
 function RepeatsOnRow({ form }: { form: AddForm }) {
+  const { t } = useTranslation();
   const styles = useFormStyles();
   if (form.unit !== "month") return null;
   return (
     <View style={styles.rowField}>
-      <Text style={styles.label}>Repeats on</Text>
+      <Text style={styles.label}>{t("add.repeatsOn")}</Text>
       <View style={styles.rowControl}>
         <Segmented
           options={[
@@ -39,13 +44,15 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
  *  count/frequency/first payment/provider for Pay-in-X. (M3's Annual variant
  *  slots in here as a third branch.) */
 export function ScheduleSection({ form }: { form: AddForm }) {
+  const { t } = useTranslation();
   const styles = useFormStyles();
+  const unitOptions = useUnitOptions();
 
   if (form.isInstallment) {
     return (
       <>
         <View style={styles.rowField}>
-          <Text style={styles.label}>Number of payments</Text>
+          <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
           <TextInput
             style={[styles.input, styles.intervalInput]}
             value={form.installmentsText}
@@ -55,7 +62,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         </View>
 
         <View style={styles.field}>
-          <Text style={styles.label}>Cycle — every</Text>
+          <Text style={styles.label}>{t("add.cycleEvery")}</Text>
           <View style={styles.cycleRow}>
             <TextInput
               style={[styles.input, styles.intervalInput]}
@@ -63,12 +70,12 @@ export function ScheduleSection({ form }: { form: AddForm }) {
               onChangeText={form.setIntervalText}
               keyboardType="number-pad"
             />
-            <Segmented options={UNIT_OPTIONS} value={form.unit} onChange={form.setUnit} />
+            <Segmented options={unitOptions} value={form.unit} onChange={form.setUnit} />
           </View>
         </View>
 
         <FieldButton
-          label="First payment"
+          label={t("add.firstPayment")}
           value={formatCalendarDate(form.firstDateCal)}
           onPress={() => form.setSheet("date")}
         />
@@ -76,8 +83,10 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         <RepeatsOnRow form={form} />
 
         <FieldButton
-          label="Provider"
-          value={BNPL_PROVIDERS[form.provider].label}
+          label={t("add.provider")}
+          value={t(`providers.${form.provider}`, {
+            defaultValue: BNPL_PROVIDERS[form.provider].label,
+          })}
           onPress={() => form.setSheet("provider")}
         />
       </>
@@ -87,7 +96,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
   return (
     <>
       <View style={styles.field}>
-        <Text style={styles.label}>Cycle — every</Text>
+        <Text style={styles.label}>{t("add.cycleEvery")}</Text>
         <View style={styles.cycleRow}>
           <TextInput
             style={[styles.input, styles.intervalInput]}
@@ -95,12 +104,12 @@ export function ScheduleSection({ form }: { form: AddForm }) {
             onChangeText={form.setIntervalText}
             keyboardType="number-pad"
           />
-          <Segmented options={UNIT_OPTIONS} value={form.unit} onChange={form.setUnit} />
+          <Segmented options={unitOptions} value={form.unit} onChange={form.setUnit} />
         </View>
       </View>
 
       <FieldButton
-        label="First billing"
+        label={t("add.firstBilling")}
         value={formatCalendarDate(form.firstDateCal)}
         onPress={() => form.setSheet("date")}
       />
@@ -108,8 +117,8 @@ export function ScheduleSection({ form }: { form: AddForm }) {
       <RepeatsOnRow form={form} />
 
       <FieldButton
-        label="Last billing"
-        value={form.endDateCal ? formatCalendarDate(form.endDateCal) : "Never"}
+        label={t("add.lastBilling")}
+        value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
         onPress={() => form.setSheet("endDate")}
       />
     </>

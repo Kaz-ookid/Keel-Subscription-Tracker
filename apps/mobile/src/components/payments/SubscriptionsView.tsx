@@ -13,6 +13,7 @@ import {
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../../state/app-state";
@@ -35,6 +36,7 @@ function billingDay(item: PaymentItem): number {
 export function SubscriptionsView() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     items,
@@ -61,8 +63,8 @@ export function SubscriptionsView() {
   if (items.length === 0 && pending.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>No subscriptions yet</Text>
-        <Text style={styles.emptyHint}>Tap ＋ to add your first one.</Text>
+        <Text style={styles.emptyTitle}>{t("allList.emptyTitle")}</Text>
+        <Text style={styles.emptyHint}>{t("allList.emptyHint")}</Text>
       </View>
     );
   }
@@ -103,15 +105,17 @@ export function SubscriptionsView() {
         <View style={styles.headerStack}>
           {(commitments.monthly.length > 0 || commitments.bnplOutstanding.length > 0) && (
             <HeroCard
-              label="Committed monthly"
+              label={t("allList.committedMonthly")}
               amount={
                 commitments.monthly.length > 0
                   ? formatTotalsIn(commitments.monthly, displayCurrency, rates)
-                  : "Nothing yet"
+                  : t("allList.nothingYet")
               }
               sub={
                 commitments.bnplOutstanding.length > 0
-                  ? `Pay-in-X still owed: ${formatTotalsIn(commitments.bnplOutstanding, displayCurrency, rates)}`
+                  ? t("allList.bnplOwed", {
+                      amount: formatTotalsIn(commitments.bnplOutstanding, displayCurrency, rates),
+                    })
                   : undefined
               }
             />
@@ -122,7 +126,9 @@ export function SubscriptionsView() {
             <View>
               <Pressable style={styles.pendingHeader} onPress={() => setPendingOpen((o) => !o)}>
                 <View style={styles.pendingLine} />
-                <Text style={styles.pendingTitle}>To complete · {pending.length}</Text>
+                <Text style={styles.pendingTitle}>
+                  {t("allList.toComplete", { count: pending.length })}
+                </Text>
                 <SymbolView
                   name={pendingOpen ? "chevron.up" : "chevron.down"}
                   size={11}
@@ -140,7 +146,7 @@ export function SubscriptionsView() {
                     }
                   >
                     <SymbolView name="plus.circle" size={18} tintColor={colors.accent} />
-                    <Text style={styles.browseText}>Browse more subscriptions</Text>
+                    <Text style={styles.browseText}>{t("allList.browseMore")}</Text>
                     <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
                   </Pressable>
                   {pending.map((s) => {
@@ -155,13 +161,13 @@ export function SubscriptionsView() {
                           size={36}
                         />
                         <Text style={styles.pendingName} numberOfLines={1}>
-                          {s.name}
+                          {t(`bank.${s.id}`, { defaultValue: s.name })}
                         </Text>
                         <Pressable style={styles.addPill} onPress={() => fillIn(s)}>
-                          <Text style={styles.addPillText}>Add</Text>
+                          <Text style={styles.addPillText}>{t("common.add")}</Text>
                         </Pressable>
                         <Pressable
-                          accessibilityLabel={`Dismiss ${s.name}`}
+                          accessibilityLabel={t("allList.dismissA11y", { name: s.name })}
                           hitSlop={8}
                           onPress={() => removePendingSuggestion(s.id)}
                         >

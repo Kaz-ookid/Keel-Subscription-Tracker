@@ -4,7 +4,6 @@
 
 import {
   calendarDate,
-  describeRecurrence,
   formatMoney,
   formatTotalsIn,
   isInstallmentSchedule,
@@ -21,42 +20,17 @@ import {
   type PaymentOccurrence,
 } from "@keel/core";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { YearChart, type YearChartMonth } from "../src/components/YearChart";
+import { monthFull, monthShort } from "../src/i18n/dates";
+import { localizedRecurrence } from "../src/i18n/recurrence";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
-const MONTH_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-const MONTH_FULL = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 const MONTHS_BACK = 12;
 const MONTHS_AHEAD = 12;
 
@@ -69,6 +43,7 @@ function monthShifted(asOf: CalendarDate, delta: number): CalendarDate {
 
 export default function ByAccountScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppState();
   // An account id, or "none" for commitments not tied to any account.
@@ -124,8 +99,8 @@ export default function ByAccountScreen() {
     const amount = merged?.total.amount ?? amountIn(b.totals);
     const formatted = formatMoney(money(amount, displayCurrency));
     return {
-      label: MONTH_SHORT[m],
-      name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
+      label: monthShort(m),
+      name: `${monthFull(m)} ${b.monthStart.slice(0, 4)}`,
       amount,
       formatted,
       yearStart: m === 0 ? b.monthStart.slice(0, 4) : undefined,
@@ -139,7 +114,7 @@ export default function ByAccountScreen() {
         <View style={styles.chipRow}>
           {[
             ...accounts.map((a) => ({ id: a.id, label: a.name, dot: a.color })),
-            { id: "none", label: "No account" },
+            { id: "none", label: t("upcoming.chipNoAccount") },
           ].map((chip) => {
             const active = selected === chip.id;
             return (
@@ -159,14 +134,16 @@ export default function ByAccountScreen() {
       </ScrollView>
 
       <HeroCard
-        label={`${account?.name ?? "No account"} · theory`}
+        label={t("byAccount.theory", { name: account?.name ?? t("upcoming.chipNoAccount") })}
         amount={
-          commitments.monthly.length > 0 ? `${totals(commitments.monthly)}/mo` : "Nothing ongoing"
+          commitments.monthly.length > 0
+            ? t("byAccount.perMonth", { amount: totals(commitments.monthly) })
+            : t("byAccount.nothingOngoing")
         }
         sub={
           commitments.bnplOutstanding.length > 0
-            ? `plus ${totals(commitments.bnplOutstanding)} of Pay in X still owed`
-            : `${scoped.length} commitment${scoped.length === 1 ? "" : "s"}`
+            ? t("byAccount.plusOwed", { amount: totals(commitments.bnplOutstanding) })
+            : t("byAccount.commitments", { count: scoped.length })
         }
       />
 
@@ -202,11 +179,11 @@ export default function ByAccountScreen() {
                 </Text>
                 <Text style={styles.rowValue}>
                   {recurring
-                    ? `${formatMoney(recurring.amount)} · ${describeRecurrence(recurring.recurrence)}`
+                    ? `${formatMoney(recurring.amount)} · ${localizedRecurrence(recurring.recurrence)}`
                     : plan
                       ? plan.isComplete
-                        ? `${formatMoney(plan.totalAmount)} · paid`
-                        : `${formatMoney(plan.nextDue?.amount ?? plan.totalAmount)} · ${plan.paidCount} of ${plan.totalCount}`
+                        ? `${formatMoney(plan.totalAmount)} · ${t("row.doneTag").toLowerCase()}`
+                        : `${formatMoney(plan.nextDue?.amount ?? plan.totalAmount)} · ${t("common.xOfY", { x: plan.paidCount, y: plan.totalCount })}`
                       : ""}
                 </Text>
               </View>

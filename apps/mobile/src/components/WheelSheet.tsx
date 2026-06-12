@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
@@ -15,6 +16,7 @@ interface Props {
  *  the classic iOS "tap field → wheel slides up" pattern. */
 export function WheelSheet({ visible, title, onClose, children }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -23,7 +25,7 @@ export function WheelSheet({ visible, title, onClose, children }: Props) {
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Pressable onPress={onClose} hitSlop={8}>
-            <Text style={styles.done}>Done</Text>
+            <Text style={styles.done}>{t("common.done")}</Text>
           </Pressable>
         </View>
         {children}

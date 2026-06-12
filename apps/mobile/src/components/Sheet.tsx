@@ -1,4 +1,5 @@
 import { useMemo, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { spacing, typography, useTheme, type ThemeColors } from "../theme";
@@ -14,6 +15,7 @@ interface Props {
  *  top — no full-screen claustrophobia). Used for category + colour pickers. */
 export function Sheet({ visible, title, onClose, children }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Modal
@@ -26,7 +28,7 @@ export function Sheet({ visible, title, onClose, children }: Props) {
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Pressable onPress={onClose} hitSlop={8}>
-            <Text style={styles.done}>Done</Text>
+            <Text style={styles.done}>{t("common.done")}</Text>
           </Pressable>
         </View>
         <View style={styles.body}>{children}</View>

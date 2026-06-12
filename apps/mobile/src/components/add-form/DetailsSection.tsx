@@ -1,5 +1,6 @@
 import { type SettlementMode } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { spacing, useTheme } from "../../theme";
@@ -9,11 +10,6 @@ import { Segmented, type SegmentedOption } from "../Segmented";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
-const SETTLEMENT_OPTIONS: SegmentedOption<SettlementMode>[] = [
-  { value: "automatic", label: "Automatic" },
-  { value: "manual", label: "Manual" },
-];
-
 /** The identity cluster: the commitment's live face (brand logo, or colour
  *  circle with the category icon / name's first letter) next to the name
  *  field and a category chip. Everything that changes the face sits beside
@@ -22,6 +18,7 @@ const SETTLEMENT_OPTIONS: SegmentedOption<SettlementMode>[] = [
  *  disappears instead of lying), tap the chip and the icon morphs with it. */
 export function IdentityHeader({ form }: { form: AddForm }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useFormStyles();
   const editable = !form.domain;
 
@@ -30,7 +27,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
       <Pressable
         disabled={!editable}
         onPress={() => form.setSheet("color")}
-        accessibilityLabel={editable ? "Change colour" : undefined}
+        accessibilityLabel={editable ? t("add.changeColourA11y") : undefined}
       >
         <BrandBadge
           domain={form.domain}
@@ -51,7 +48,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
           style={[styles.input, !form.name.trim() && styles.requiredMissing]}
           value={form.name}
           onChangeText={form.setName}
-          placeholder="Name — e.g. Netflix"
+          placeholder={t("add.namePlaceholder")}
           placeholderTextColor={colors.mutedText}
         />
         <Pressable
@@ -71,7 +68,11 @@ export function IdentityHeader({ form }: { form: AddForm }) {
               { color: form.selectedCategory ? colors.text : colors.mutedText },
             ]}
           >
-            {form.selectedCategory?.name ?? "Choose category"}
+            {form.selectedCategory
+              ? t(`categories.${form.selectedCategory.id}`, {
+                  defaultValue: form.selectedCategory.name,
+                })
+              : t("add.chooseCategory")}
           </Text>
           <SymbolView name="chevron.down" size={10} tintColor={colors.mutedText} />
         </Pressable>
@@ -120,17 +121,18 @@ const headerStyles = StyleSheet.create({
 /** The free-text extras (name + category live in the IdentityHeader). */
 export function DetailsSection({ form }: { form: AddForm }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useFormStyles();
 
   return (
     <View style={styles.rowField}>
-      <Text style={styles.label}>Description</Text>
+      <Text style={styles.label}>{t("add.description")}</Text>
       <View style={styles.rowControl}>
         <TextInput
           style={styles.input}
           value={form.notes}
           onChangeText={form.setNotes}
-          placeholder="Optional"
+          placeholder={t("add.optional")}
           placeholderTextColor={colors.mutedText}
         />
       </View>
@@ -141,15 +143,21 @@ export function DetailsSection({ form }: { form: AddForm }) {
 /** Settlement, account, reminder, category and colour — rendered after the
  *  schedule rows so the form reads: what → how much → when → how → extras. */
 export function MetaSection({ form }: { form: AddForm }) {
+  const { t } = useTranslation();
   const styles = useFormStyles();
+
+  const settlementOptions: SegmentedOption<SettlementMode>[] = [
+    { value: "automatic", label: t("row.automatic") },
+    { value: "manual", label: t("row.manual") },
+  ];
 
   return (
     <>
       <View style={styles.rowField}>
-        <Text style={styles.label}>Settlement</Text>
+        <Text style={styles.label}>{t("add.settlement")}</Text>
         <View style={styles.rowControl}>
           <Segmented
-            options={SETTLEMENT_OPTIONS}
+            options={settlementOptions}
             value={form.settlementMode}
             onChange={form.setSettlementMode}
           />
@@ -157,7 +165,7 @@ export function MetaSection({ form }: { form: AddForm }) {
       </View>
 
       <FieldButton
-        label="Reminder"
+        label={t("add.reminder")}
         value={form.reminderLabel}
         onPress={() => form.setSheet("reminder")}
       />

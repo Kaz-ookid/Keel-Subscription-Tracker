@@ -3,8 +3,10 @@ import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+import "../src/i18n";
 import { AppStateProvider } from "../src/state/app-state";
 import { ThemePreferenceProvider, useTheme } from "../src/theme";
 
@@ -19,6 +21,7 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { colors, scheme } = useTheme();
+  const { t } = useTranslation();
   const router = useRouter();
 
   // Tapping a reminder lands on the commitment it's about.
@@ -53,13 +56,13 @@ function RootNavigator() {
             />
             <Stack.Screen
               name="add"
-              options={{ presentation: "modal", title: "New subscription" }}
+              options={{ presentation: "modal", title: t("titles.newSubscription") }}
             />
-            <Stack.Screen name="item" options={{ title: "Details" }} />
-            <Stack.Screen name="accounts" options={{ title: "Accounts" }} />
-            <Stack.Screen name="price-changes" options={{ title: "Price changes" }} />
-            <Stack.Screen name="by-account" options={{ title: "By account" }} />
-            <Stack.Screen name="by-category" options={{ title: "By category" }} />
+            <Stack.Screen name="item" options={{ title: t("titles.details") }} />
+            <Stack.Screen name="accounts" options={{ title: t("titles.accounts") }} />
+            <Stack.Screen name="price-changes" options={{ title: t("titles.priceChanges") }} />
+            <Stack.Screen name="by-account" options={{ title: t("titles.byAccount") }} />
+            <Stack.Screen name="by-category" options={{ title: t("titles.byCategory") }} />
           </Stack>
           {/* Header is navy in both schemes, so light status-bar content reads well. */}
           <StatusBar style="light" />

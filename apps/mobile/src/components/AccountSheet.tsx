@@ -7,6 +7,7 @@ import {
 } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { COLOR_SWATCHES } from "../constants";
@@ -47,6 +48,7 @@ interface FormProps {
 /** The create/edit fields, shared by the picker's inline add and the tab. */
 function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [name, setName] = useState(initial?.name ?? "");
   const [institution, setInstitution] = useState(initial?.institution ?? "");
@@ -70,14 +72,14 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
     <View style={styles.form}>
       <TextInput
         style={[styles.input, !name.trim() && styles.requiredMissing]}
-        placeholder="Account name — e.g. Revolut, PayPal, BNP"
+        placeholder={t("accounts.namePlaceholder")}
         placeholderTextColor={colors.mutedText}
         value={name}
         onChangeText={setName}
       />
       <TextInput
         style={styles.input}
-        placeholder="Details (optional) — e.g. joint account, travel card"
+        placeholder={t("accounts.detailsPlaceholder")}
         placeholderTextColor={colors.mutedText}
         value={institution}
         onChangeText={setInstitution}
@@ -167,6 +169,7 @@ interface PickerProps {
 /** Secondary card to pick an account — or create one inline mid-form. */
 export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: PickerProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { accounts, addAccount } = useAppState();
   const [adding, setAdding] = useState(false);
@@ -177,10 +180,10 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
   };
 
   return (
-    <Sheet visible={visible} title="Account" onClose={onClose}>
+    <Sheet visible={visible} title={t("accounts.sheetTitle")} onClose={onClose}>
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable style={styles.row} onPress={() => pick(undefined)}>
-          <Text style={styles.rowText}>None</Text>
+          <Text style={styles.rowText}>{t("common.none")}</Text>
           {!selectedId && <SymbolView name="checkmark" size={16} tintColor={colors.accent} />}
         </Pressable>
 
@@ -198,7 +201,7 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
 
         {adding ? (
           <AccountForm
-            submitLabel="Add account"
+            submitLabel={t("accounts.addAccount")}
             onSubmit={(input) => {
               const account = addAccount(input);
               setAdding(false);
@@ -209,7 +212,9 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
           <Pressable style={styles.row} onPress={() => setAdding(true)}>
             <View style={styles.left}>
               <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
-              <Text style={[styles.rowText, { color: colors.accent }]}>Add account</Text>
+              <Text style={[styles.rowText, { color: colors.accent }]}>
+                {t("accounts.addAccount")}
+              </Text>
             </View>
           </Pressable>
         )}
@@ -228,15 +233,20 @@ interface EditProps {
 /** Create/edit sheet used by the Accounts tab. */
 export function AccountEditSheet({ visible, onClose, account }: EditProps) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { addAccount, updateAccount } = useAppState();
 
   return (
-    <Sheet visible={visible} title={account ? "Edit account" : "New account"} onClose={onClose}>
+    <Sheet
+      visible={visible}
+      title={account ? t("accounts.editAccount") : t("accounts.newAccount")}
+      onClose={onClose}
+    >
       <ScrollView contentContainerStyle={styles.content}>
         <AccountForm
           initial={account}
-          submitLabel={account ? "Save" : "Add account"}
+          submitLabel={account ? t("common.save") : t("accounts.addAccount")}
           onSubmit={(input) => {
             if (account) updateAccount(account.id, input);
             else addAccount(input);

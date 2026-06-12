@@ -10,8 +10,10 @@ import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, AppState, Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
@@ -29,10 +31,18 @@ import {
   type ThemeMode,
 } from "../../src/theme";
 
-const THEME_OPTIONS: { value: ThemeMode; label: string }[] = [
-  { value: "system", label: "Match device" },
-  { value: "light", label: "Light" },
-  { value: "dark", label: "Dark" },
+const THEME_OPTIONS: { value: ThemeMode; labelKey: string }[] = [
+  { value: "system", labelKey: "settings.matchDevice" },
+  { value: "light", labelKey: "settings.light" },
+  { value: "dark", labelKey: "settings.dark" },
+];
+
+// Language names stay in their own language — the one wheel that must not
+// translate, or you can't find the way back out of a language you don't read.
+const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string }[] = [
+  { value: "system", labelKey: "settings.matchDevice" },
+  { value: "en", label: "English" },
+  { value: "fr", label: "Français" },
 ];
 
 // Same React-19 children alias as the Add form's pickers.
@@ -59,9 +69,24 @@ export default function SettingsScreen() {
     importData,
   } = useAppState();
   const { mode, setMode } = useThemeMode();
+  const { t } = useTranslation();
   const [currencySheet, setCurrencySheet] = useState(false);
   const [themeSheet, setThemeSheet] = useState(false);
+  const [languageSheet, setLanguageSheet] = useState(false);
+  const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void loadLanguageMode().then(setLanguageModeState);
+  }, []);
+
+  const changeLanguage = (next: LanguageMode) => {
+    setLanguageModeState(next);
+    void setLanguageMode(next);
+  };
+
+  const languageLabel = (option: (typeof LANGUAGE_OPTIONS)[number]) =>
+    option.label ?? t(option.labelKey ?? "");
 
   // Reflect the OS notification permission (re-check when returning from iOS
   // Settings via the app coming back to the foreground).
@@ -75,28 +100,24 @@ export default function SettingsScreen() {
   }, []);
 
   const confirmClear = () =>
-    Alert.alert(
-      "Clear all data",
-      "Every subscription, payment, category and account will be deleted. This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete everything", style: "destructive", onPress: clearAllData },
-      ],
-    );
+    Alert.alert(t("settings.clearAll"), t("settings.clearMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("settings.deleteEverything"), style: "destructive", onPress: clearAllData },
+    ]);
 
   const confirmSample = () =>
-    Alert.alert("Load sample data", "Replaces everything with a realistic seeded household.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Replace", style: "destructive", onPress: loadSampleData },
+    Alert.alert(t("settings.loadSample"), t("settings.sampleMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("settings.replace"), style: "destructive", onPress: loadSampleData },
     ]);
 
   // Debug: relive the first launch — wipe everything, forget the tour was
   // seen, and open onboarding right away.
   const confirmOnboarding = () =>
-    Alert.alert("Test onboarding", "Deletes ALL data and replays the first-launch setup.", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("settings.onboardingTitle"), t("settings.onboardingMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Wipe & replay",
+        text: t("settings.wipeReplay"),
         style: "destructive",
         onPress: () => {
           clearAllData();
@@ -114,7 +135,7 @@ export default function SettingsScreen() {
       file.write(JSON.stringify(exportData(), null, 2));
       await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
     } catch {
-      Alert.alert("Export failed", "Could not create the backup file.");
+      Alert.alert(t("settings.exportFailTitle"), t("settings.exportFailMsg"));
     }
   };
 
@@ -123,20 +144,20 @@ export default function SettingsScreen() {
       const picked = await DocumentPicker.getDocumentAsync({ type: "application/json" });
       if (picked.canceled || !picked.assets[0]) return;
       const content = new File(picked.assets[0].uri).textSync();
-      Alert.alert("Restore backup", "This replaces everything currently in the app.", [
-        { text: "Cancel", style: "cancel" },
+      Alert.alert(t("settings.restoreTitle"), t("settings.restoreMsg"), [
+        { text: t("common.cancel"), style: "cancel" },
         {
-          text: "Replace",
+          text: t("settings.replace"),
           style: "destructive",
           onPress: () => {
             if (!importData(content)) {
-              Alert.alert("Import failed", "That file doesn't look like a Keel backup.");
+              Alert.alert(t("settings.importFailTitle"), t("settings.importFailNotBackup"));
             }
           },
         },
       ]);
     } catch {
-      Alert.alert("Import failed", "Could not read that file.");
+      Alert.alert(t("settings.importFailTitle"), t("settings.importFailRead"));
     }
   };
 
@@ -145,20 +166,32 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
           <SymbolView name="building.columns.fill" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Accounts</Text>
+          <Text style={styles.rowText}>{t("settings.accounts")}</Text>
           <Text style={styles.rowValue}>{accounts.length || ""}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
           <SymbolView name="coloncurrencysign.circle" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Display currency</Text>
+          <Text style={styles.rowText}>{t("settings.displayCurrency")}</Text>
           <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setThemeSheet(true)}>
           <SymbolView name="circle.lefthalf.filled" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Appearance</Text>
-          <Text style={styles.rowValue}>{THEME_OPTIONS.find((o) => o.value === mode)?.label}</Text>
+          <Text style={styles.rowText}>{t("settings.appearance")}</Text>
+          <Text style={styles.rowValue}>
+            {t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
+          </Text>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setLanguageSheet(true)}>
+          <SymbolView name="globe" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>{t("settings.language")}</Text>
+          <Text style={styles.rowValue}>
+            {languageLabel(
+              LANGUAGE_OPTIONS.find((o) => o.value === languageMode) ?? LANGUAGE_OPTIONS[0],
+            )}
+          </Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         {/* Reminders ride the OS permission; when off, the row opens Settings. */}
@@ -169,9 +202,13 @@ export default function SettingsScreen() {
           }}
         >
           <SymbolView name="bell.fill" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Reminders</Text>
+          <Text style={styles.rowText}>{t("settings.reminders")}</Text>
           <Text style={styles.rowValue}>
-            {remindersOn === null ? "" : remindersOn ? "On" : "Off in iOS Settings"}
+            {remindersOn === null
+              ? ""
+              : remindersOn
+                ? t("settings.remindersOn")
+                : t("settings.remindersOff")}
           </Text>
         </Pressable>
         <Pressable
@@ -179,7 +216,7 @@ export default function SettingsScreen() {
           onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
         >
           <SymbolView name="rectangle.stack.fill" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Browse common subscriptions</Text>
+          <Text style={styles.rowText}>{t("settings.browseCommon")}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
       </View>
@@ -188,11 +225,11 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Pressable style={styles.row} onPress={() => void exportBackup()}>
           <SymbolView name="square.and.arrow.up" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Export backup</Text>
+          <Text style={styles.rowText}>{t("settings.exportBackup")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void importBackup()}>
           <SymbolView name="square.and.arrow.down" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Restore backup</Text>
+          <Text style={styles.rowText}>{t("settings.restoreBackup")}</Text>
         </Pressable>
       </View>
 
@@ -200,35 +237,60 @@ export default function SettingsScreen() {
       <View style={styles.card}>
         <Pressable style={styles.row} onPress={confirmSample}>
           <SymbolView name="wand.and.stars" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Load sample data</Text>
+          <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
           <SymbolView name="arrow.counterclockwise" size={20} tintColor={colors.accent} />
-          <Text style={styles.rowText}>Test onboarding (wipes data)</Text>
+          <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmClear}>
           <SymbolView name="trash.fill" size={20} tintColor={tones.danger} />
-          <Text style={[styles.rowText, styles.dangerText]}>Clear all data</Text>
+          <Text style={[styles.rowText, styles.dangerText]}>{t("settings.clearAll")}</Text>
         </Pressable>
       </View>
 
       <Text style={styles.footer}>
         {APP_NAME}
-        {rates ? ` · rates ${rates.date} (ECB)` : ""}
-        {"\n"}All trademarks are the property of their respective owners.
+        {rates ? ` · ${t("settings.ratesFooter", { date: rates.date })}` : ""}
+        {"\n"}
+        {t("settings.trademark")}
       </Text>
 
-      <WheelSheet visible={themeSheet} title="Appearance" onClose={() => setThemeSheet(false)}>
+      <WheelSheet
+        visible={themeSheet}
+        title={t("settings.appearance")}
+        onClose={() => setThemeSheet(false)}
+      >
         <Picker selectedValue={mode} onValueChange={(v) => setMode(v as ThemeMode)}>
           {THEME_OPTIONS.map((o) => (
-            <Picker.Item key={o.value} label={o.label} value={o.value} color={colors.text} />
+            <Picker.Item key={o.value} label={t(o.labelKey)} value={o.value} color={colors.text} />
+          ))}
+        </Picker>
+      </WheelSheet>
+
+      <WheelSheet
+        visible={languageSheet}
+        title={t("settings.language")}
+        onClose={() => setLanguageSheet(false)}
+      >
+        <Picker
+          selectedValue={languageMode}
+          onValueChange={(v) => changeLanguage(v as LanguageMode)}
+        >
+          {LANGUAGE_OPTIONS.map((o) => (
+            <Picker.Item
+              key={o.value}
+              label={languageLabel(o)}
+              value={o.value}
+              color={colors.text}
+            />
           ))}
         </Picker>
       </WheelSheet>
 
       <WheelSheet
         visible={currencySheet}
-        title="Display currency"
+        title={t("settings.displayCurrency")}
         onClose={() => setCurrencySheet(false)}
       >
         <Picker
@@ -238,7 +300,7 @@ export default function SettingsScreen() {
           {CURRENCY_CODES.map((code) => (
             <Picker.Item
               key={code}
-              label={`${currencyLabel(code)} — ${CURRENCIES[code].name}`}
+              label={`${currencyLabel(code)} — ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`}
               value={code}
               color={colors.text}
             />

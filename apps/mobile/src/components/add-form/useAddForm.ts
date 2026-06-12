@@ -7,7 +7,6 @@ import {
   alignToOccurrence,
   anchorFromDate,
   calendarDate,
-  describeAnchor,
   formatCalendarDate,
   formatMoney,
   fromMajor,
@@ -27,7 +26,9 @@ import {
 } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
+import { localizedAnchor } from "../../i18n/recurrence";
 import { useAppState } from "../../state/app-state";
 
 export type PlanType = "subscription" | "installment";
@@ -47,12 +48,12 @@ export type OpenSheet =
   | "provider"
   | null;
 
-export const REMINDER_OPTIONS = [
-  { value: "never", label: "Never" },
-  { value: "0", label: "On the day" },
-  { value: "1", label: "1 day before" },
-  { value: "2", label: "2 days before" },
-  { value: "7", label: "1 week before" },
+export const REMINDER_OPTIONS: { value: string; labelKey: string; count?: number }[] = [
+  { value: "never", labelKey: "add.reminderNever" },
+  { value: "0", labelKey: "add.reminderOnDay" },
+  { value: "1", labelKey: "add.reminderDayBefore", count: 1 },
+  { value: "2", labelKey: "add.reminderDayBefore", count: 2 },
+  { value: "7", labelKey: "add.reminderWeekBefore" },
 ];
 
 function reminderFromKey(key: string): ReminderRule | undefined {
@@ -89,6 +90,7 @@ export interface SuggestionPrefill {
 
 export function useAddForm(prefill?: SuggestionPrefill) {
   const router = useRouter();
+  const { t } = useTranslation();
   const {
     id,
     suggestionId: suggestionIdParam,
@@ -137,7 +139,13 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [planType, setPlanType] = useState<PlanType>(() =>
     editInst ? "installment" : "subscription",
   );
-  const [name, setName] = useState(() => editItem?.name ?? suggestion?.name ?? "");
+  // Generic bank entries ("Gym membership") arrive in the user's language;
+  // brand names pass through the defaultValue untouched.
+  const suggestedName =
+    suggestion?.name && suggestionId
+      ? t(`bank.${suggestionId}`, { defaultValue: suggestion.name })
+      : suggestion?.name;
+  const [name, setName] = useState(() => editItem?.name ?? suggestedName ?? "");
   const [amountText, setAmountText] = useState(() =>
     editAmount ? String(toMajor(editAmount)) : "",
   );
@@ -193,8 +201,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const firstDateCal = toCalendarDate(firstDate);
   // Both interpretations of the picked date — the "Repeats on" toggle's labels.
   const anchor = anchorFromDate(firstDateCal);
-  const dayLabel = `the ${Number(firstDateCal.slice(8, 10))}`;
-  const anchorLabel = describeAnchor(anchor);
+  const dayLabel = t("add.theDay", { day: Number(firstDateCal.slice(8, 10)) });
+  const anchorLabel = localizedAnchor(anchor);
   const recurrence = {
     unit,
     interval: Math.max(1, parseInt(intervalText, 10) || 1),
@@ -213,7 +221,10 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     return dates;
   })();
   const selectedCategory = categories.find((c) => c.id === categoryId);
-  const reminderLabel = REMINDER_OPTIONS.find((o) => o.value === reminderKey)?.label ?? "Never";
+  const reminderOption = REMINDER_OPTIONS.find((o) => o.value === reminderKey);
+  const reminderLabel = reminderOption
+    ? t(reminderOption.labelKey, { count: reminderOption.count })
+    : t("common.never");
 
   // Manual payments are deliberately not pre-linked to an account (brief §8).
   const isAutomatic = settlementMode === "automatic";
@@ -240,9 +251,17 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     const ends = formatCalendarDate(finish);
     if (amountMode === "total") {
       const per = splitMoney(installmentTotal, installmentCount)[0];
-      return `${installmentCount} payments · ${formatMoney(per)} each · ends ${ends}`;
+      return t("add.previewFromTotal", {
+        count: installmentCount,
+        per: formatMoney(per),
+        date: ends,
+      });
     }
-    return `total ${formatMoney(installmentTotal)} · ${installmentCount} payments · ends ${ends}`;
+    return t("add.previewFromPer", {
+      total: formatMoney(installmentTotal),
+      count: installmentCount,
+      date: ends,
+    });
   })();
 
   // Selecting an account defaults the currency to the account's — the usual

@@ -16,6 +16,7 @@ import {
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Pressable,
@@ -26,38 +27,11 @@ import {
   View,
 } from "react-native";
 
+import { dayLabel, monthNameOf } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { UpcomingRow } from "../UpcomingRow";
-
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const MONTHS = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
-
-/** "Today" / "Tomorrow" / "Mon 15.06" — the window is short, so no year. */
-function dayLabel(date: CalendarDate, asOf: CalendarDate): string {
-  if (date === asOf) return "Today";
-  if (date === addRecurrence(asOf, { unit: "day", interval: 1 })) return "Tomorrow";
-  const [y, m, d] = date.split("-").map(Number);
-  return `${WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]} ${date.slice(8, 10)}.${date.slice(5, 7)}`;
-}
-
-function monthName(date: CalendarDate): string {
-  return MONTHS[Number(date.slice(5, 7)) - 1];
-}
 
 /** A timeline row: a projected charge, or a settled one kept for completeness. */
 type Entry = ProjectedCharge & { paid?: boolean; skipped?: boolean; undoable?: boolean };
@@ -76,6 +50,7 @@ interface Section {
 export function UpcomingView() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     items,
@@ -221,7 +196,7 @@ export function UpcomingView() {
     sections.push({
       key: "paid-month",
       title: "",
-      monthLabel: `Paid this month · ${paidTotal}`,
+      monthLabel: t("upcoming.paidThisMonth", { amount: paidTotal }),
       toggle: "paid",
       data: [],
     });
@@ -232,7 +207,12 @@ export function UpcomingView() {
 
   const overdueCharges = filtered.filter((c) => c.dueDate < asOf);
   if (overdueCharges.length > 0) {
-    sections.push({ key: "overdue", title: "Overdue", overdue: true, data: overdueCharges });
+    sections.push({
+      key: "overdue",
+      title: t("upcoming.overdue"),
+      overdue: true,
+      data: overdueCharges,
+    });
   }
   const byDay = new Map<CalendarDate, Entry[]>();
   const addToDay = (e: Entry) => {
@@ -255,11 +235,12 @@ export function UpcomingView() {
     // Within a day, what still needs attention comes before what's settled.
     data.sort((a, b) => Number(!!(a.paid || a.skipped)) - Number(!!(b.paid || b.skipped)));
     const section: Section = { key: date, title: dayLabel(date, asOf), data };
+    // (dayLabel localizes Today/Tomorrow/weekday via i18n.)
     if (date.slice(0, 7) === thisMonth) sections.push(section);
     else nextSections.push(section);
   }
   if (nextSections.length > 0) {
-    const label = `${monthName(windowEnd)} ${windowEnd.slice(0, 4)}`;
+    const label = `${monthNameOf(windowEnd)} ${windowEnd.slice(0, 4)}`;
     const nextTotal = totals(
       sumByCurrency(nextSections.flatMap((s) => s.data.map((c) => c.amount))),
     );
@@ -275,21 +256,21 @@ export function UpcomingView() {
   }
 
   const heroLabel = selectedAccount
-    ? `${selectedAccount.name} needs`
+    ? t("upcoming.heroNeeds", { name: selectedAccount.name })
     : filter === "none"
-      ? "Not tied to an account"
-      : "Due this month";
+      ? t("upcoming.heroNoAccount")
+      : t("upcoming.heroDueThisMonth");
   const heroSub = selectedAccount
-    ? `by ${formatCalendarDate(monthEnd)}`
+    ? t("upcoming.heroBy", { date: formatCalendarDate(monthEnd) })
     : dueNextMonth.length > 0
-      ? `then ${totals(dueNextMonth)} in ${monthName(windowEnd)}`
-      : `nothing in ${monthName(windowEnd)}`;
+      ? t("upcoming.heroThen", { amount: totals(dueNextMonth), month: monthNameOf(windowEnd) })
+      : t("upcoming.heroNothingNext", { month: monthNameOf(windowEnd) });
 
   const header = (
     <View style={styles.header}>
       <HeroCard
         label={heroLabel}
-        amount={dueThisMonth.length > 0 ? totals(dueThisMonth) : "Nothing due"}
+        amount={dueThisMonth.length > 0 ? totals(dueThisMonth) : t("upcoming.nothingDue")}
         sub={heroSub}
       />
 
@@ -297,9 +278,9 @@ export function UpcomingView() {
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={styles.chipRow}>
             {[
-              { id: "all", label: "All" },
+              { id: "all", label: t("upcoming.chipAll") },
               ...accounts.map((a) => ({ id: a.id, label: a.name, dot: a.color })),
-              { id: "none", label: "No account" },
+              { id: "none", label: t("upcoming.chipNoAccount") },
             ].map((chip) => {
               const active = filter === chip.id;
               return (
@@ -335,10 +316,10 @@ export function UpcomingView() {
       ListHeaderComponent={header}
       ListEmptyComponent={
         <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>Nothing due before {formatCalendarDate(windowEnd)}</Text>
-          <Text style={styles.emptyHint}>
-            Charges from your subscriptions and Pay-in-X plans will line up here.
+          <Text style={styles.emptyTitle}>
+            {t("upcoming.emptyTitle", { date: formatCalendarDate(windowEnd) })}
           </Text>
+          <Text style={styles.emptyHint}>{t("upcoming.emptyHint")}</Text>
         </View>
       }
       renderSectionHeader={({ section }) => {

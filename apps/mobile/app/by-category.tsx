@@ -19,6 +19,7 @@ import {
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BrandBadge } from "../src/components/BrandBadge";
@@ -34,6 +35,7 @@ const TAIL_COLOR = "#9AA0A6";
 export default function ByCategoryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates } = useAppState();
   // The expanded category (its id, or "none" for the uncategorised bucket).
@@ -65,8 +67,8 @@ export default function ByCategoryScreen() {
   if (ordered.length === 0 || grandTotal <= 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>Nothing to split yet</Text>
-        <Text style={styles.emptyHint}>Add subscriptions and the category view appears here.</Text>
+        <Text style={styles.emptyTitle}>{t("byCategory.emptyTitle")}</Text>
+        <Text style={styles.emptyHint}>{t("byCategory.emptyHint")}</Text>
       </View>
     );
   }
@@ -100,10 +102,15 @@ export default function ByCategoryScreen() {
     : undefined;
   const yearTotals = ordered.flatMap((g) => g.totals);
   const monthlyMean = formatMoney(money(Math.round(grandTotal / 12), displayCurrency));
+  const expandedCategory = expandedGroup
+    ? categories.find((c) => c.id === expandedGroup.categoryId)
+    : undefined;
   const centerTitle = expandedGroup ? totals(expandedGroup.totals) : totals(yearTotals);
   const centerSub = expandedGroup
-    ? (categories.find((c) => c.id === expandedGroup.categoryId)?.name ?? "No category")
-    : `${year} · ${monthlyMean}/mo`;
+    ? expandedCategory
+      ? t(`categories.${expandedCategory.id}`, { defaultValue: expandedCategory.name })
+      : t("byCategory.noCategory")
+    : t("byCategory.centerSub", { year, amount: monthlyMean });
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
@@ -136,7 +143,9 @@ export default function ByCategoryScreen() {
               <View style={styles.cardHeader}>
                 <View style={[styles.dot, { backgroundColor: sliceColor(index) }]} />
                 <Text style={styles.cardLabel}>
-                  {category?.name ?? "No category"}{" "}
+                  {category
+                    ? t(`categories.${category.id}`, { defaultValue: category.name })
+                    : t("byCategory.noCategory")}{" "}
                   <Text style={styles.cardCount}>×{g.items.length}</Text>
                 </Text>
                 <View style={styles.cardRight}>
@@ -184,9 +193,7 @@ export default function ByCategoryScreen() {
         );
       })}
 
-      <Text style={styles.note}>
-        Real money over {year}: what was paid, plus what the rest of the year is set to charge.
-      </Text>
+      <Text style={styles.note}>{t("byCategory.note", { year })}</Text>
     </ScrollView>
   );
 }

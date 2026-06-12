@@ -9,6 +9,7 @@
 
 import { randomUUID } from "expo-crypto";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import {
   accrueDueOccurrences,
   canMarkPaid,
@@ -164,10 +165,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Reschedule every reminder from current state after any change — a paid,
-  // paused or edited commitment can never fire a stale notification.
+  // paused or edited commitment can never fire a stale notification. The
+  // language is a dependency so scheduled texts follow a language switch.
+  const { i18n } = useTranslation();
   useEffect(() => {
     if (!loading) void syncReminders(items);
-  }, [items, loading]);
+  }, [items, loading, i18n.language]);
 
   // Persist after the initial hydration completes.
   useEffect(() => {

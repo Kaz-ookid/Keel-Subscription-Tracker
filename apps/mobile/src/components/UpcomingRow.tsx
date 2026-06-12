@@ -1,6 +1,7 @@
 import { formatCalendarDate, formatMoney, type ProjectedCharge } from "@keel/core";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
@@ -38,6 +39,7 @@ export function UpcomingRow({
   onMarkPaid,
 }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, accounts } = useAppState();
 
@@ -50,10 +52,12 @@ export function UpcomingRow({
   const parts: string[] = [];
   if (dated) parts.push(formatCalendarDate(charge.dueDate));
   if (charge.installmentIndex && charge.installmentCount) {
-    parts.push(`${charge.installmentIndex} of ${charge.installmentCount}`);
+    parts.push(t("common.xOfY", { x: charge.installmentIndex, y: charge.installmentCount }));
   }
-  parts.push(account?.name ?? (charge.settlementMode === "manual" ? "Manual" : "Automatic"));
-  if (skipped) parts.push("skipped");
+  parts.push(
+    account?.name ?? (charge.settlementMode === "manual" ? t("row.manual") : t("row.automatic")),
+  );
+  if (skipped) parts.push(t("row.skipped"));
 
   return (
     <Pressable onPress={onPress} style={styles.row}>
@@ -76,7 +80,7 @@ export function UpcomingRow({
           {/* The Overdue section groups many dates — each row says its own. */}
           {overdue ? (
             <Text style={{ color: tones.warning }}>
-              due {formatCalendarDate(charge.dueDate)} ·{" "}
+              {t("row.due", { date: formatCalendarDate(charge.dueDate) })} ·{" "}
             </Text>
           ) : null}
           {parts.join(" · ")}
@@ -99,12 +103,12 @@ export function UpcomingRow({
         </View>
         {showMarkPaid && (
           <Pressable onPress={onMarkPaid} style={styles.payButton} hitSlop={6}>
-            <Text style={styles.payText}>Mark paid</Text>
+            <Text style={styles.payText}>{t("common.markPaid")}</Text>
           </Pressable>
         )}
         {settled && onUndo && (
           <Pressable onPress={onUndo} style={styles.undoButton} hitSlop={6}>
-            <Text style={styles.undoText}>Undo</Text>
+            <Text style={styles.undoText}>{t("common.undo")}</Text>
           </Pressable>
         )}
       </View>

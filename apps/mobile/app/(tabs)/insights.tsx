@@ -5,7 +5,6 @@
 import {
   calendarDate,
   COVERED_INSTALLMENT_STATUSES,
-  describeRecurrence,
   endOfMonth,
   formatCalendarDate,
   formatMoney,
@@ -31,42 +30,16 @@ import {
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
+import { monthFull, monthShort } from "../../src/i18n/dates";
+import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
-
-const MONTH_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-const MONTH_FULL = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
 
 // The chart's slide range: two years back, two years ahead. Plenty of runway
 // in both directions while staying a cheap, plain-View render.
@@ -98,6 +71,7 @@ interface MonthDetail {
 export default function InsightsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
@@ -162,8 +136,8 @@ export default function InsightsScreen() {
   if (yearReal.length === 0 && yearlyTheory.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>Nothing to analyse yet</Text>
-        <Text style={styles.emptyHint}>Add subscriptions and the year ahead appears here.</Text>
+        <Text style={styles.emptyTitle}>{t("insights.emptyTitle")}</Text>
+        <Text style={styles.emptyHint}>{t("insights.emptyHint")}</Text>
       </View>
     );
   }
@@ -186,8 +160,8 @@ export default function InsightsScreen() {
     const amount = merged?.total.amount ?? amountIn(b.totals);
     const formatted = formatMoney(money(amount, displayCurrency));
     return {
-      label: MONTH_SHORT[m],
-      name: `${MONTH_FULL[m]} ${b.monthStart.slice(0, 4)}`,
+      label: monthShort(m),
+      name: `${monthFull(m)} ${b.monthStart.slice(0, 4)}`,
       amount,
       formatted,
       // Januaries carry the year milestone so sliding never loses the reader.
@@ -205,8 +179,9 @@ export default function InsightsScreen() {
   const yearlyTotalPrimary = Math.max(amountIn(yearlyTheory), 1);
 
   const creepLabel = (() => {
-    if (creep.length === 0) return priceChanges.length > 0 ? `${priceChanges.length} changed` : "";
-    return `+${totals(creep)}/mo`;
+    if (creep.length === 0)
+      return priceChanges.length > 0 ? t("insights.changed", { count: priceChanges.length }) : "";
+    return t("insights.creep", { amount: totals(creep) });
   })();
 
   // Pay in X: per-month figures make no sense for a finite plan — what
@@ -239,8 +214,8 @@ export default function InsightsScreen() {
   );
   const ongoingHint =
     bnplThisYear.length > 0
-      ? `+ ${totals(bnplThisYear)} of Pay in X this year`
-      : "your recurring baseline";
+      ? t("insights.bnplHint", { amount: totals(bnplThisYear) })
+      : t("insights.recurringBaseline");
 
   // The selected month's payments, one light card — ledger entries plus
   // projections, each with its due date (overdue ones marked as such).
@@ -253,8 +228,8 @@ export default function InsightsScreen() {
   );
   const heroSub =
     [
-      ...(yearPaid.length > 0 ? [`${totals(yearPaid)} paid`] : []),
-      ...(yearDue.length > 0 ? [`${totals(yearDue)} still due`] : []),
+      ...(yearPaid.length > 0 ? [t("insights.paidPart", { amount: totals(yearPaid) })] : []),
+      ...(yearDue.length > 0 ? [t("insights.duePart", { amount: totals(yearDue) })] : []),
     ].join(" · ") || undefined;
   const selectedKey = selected !== null ? buckets[selected]?.monthStart.slice(0, 7) : undefined;
   const details: MonthDetail[] = [
@@ -303,24 +278,24 @@ export default function InsightsScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
-        label={`${year} in total`}
-        amount={yearReal.length > 0 ? totals(yearReal) : "Nothing planned"}
+        label={t("insights.yearInTotal", { year })}
+        amount={yearReal.length > 0 ? totals(yearReal) : t("insights.nothingPlanned")}
         sub={heroSub}
       />
 
       {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
       <View style={styles.statRow}>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>This month</Text>
+          <Text style={styles.statLabel}>{t("insights.thisMonth")}</Text>
           <Text style={styles.statValue}>
-            {thisMonthReal.length > 0 ? totals(thisMonthReal) : "Nothing"}
+            {thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
           </Text>
-          <Text style={styles.statHint}>actually leaves</Text>
+          <Text style={styles.statHint}>{t("insights.actuallyLeaves")}</Text>
         </View>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Average per month</Text>
+          <Text style={styles.statLabel}>{t("insights.averagePerMonth")}</Text>
           <Text style={styles.statValue}>
-            {commitments.monthly.length > 0 ? totals(commitments.monthly) : "Nothing"}
+            {commitments.monthly.length > 0 ? totals(commitments.monthly) : t("insights.nothing")}
           </Text>
           <Text style={styles.statHint}>{ongoingHint}</Text>
         </View>
@@ -365,13 +340,13 @@ export default function InsightsScreen() {
                   {d.installmentIndex && d.installmentCount ? (
                     <Text style={styles.detailCount}>
                       {" "}
-                      · {d.installmentIndex} of {d.installmentCount}
+                      · {t("common.xOfY", { x: d.installmentIndex, y: d.installmentCount })}
                     </Text>
                   ) : null}
                 </Text>
                 <Text style={[styles.detailDate, d.kind === "overdue" && { color: tones.warning }]}>
                   {d.kind === "overdue"
-                    ? `due ${formatCalendarDate(d.dueDate)}`
+                    ? t("row.due", { date: formatCalendarDate(d.dueDate) })
                     : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
                 </Text>
               </View>
@@ -382,17 +357,19 @@ export default function InsightsScreen() {
       )}
 
       {otherCurrencies.length > 0 && (
-        <Text style={styles.note}>+ {totals(otherCurrencies)} this year not charted</Text>
+        <Text style={styles.note}>
+          {t("insights.notCharted", { amount: totals(otherCurrencies) })}
+        </Text>
       )}
 
       {(cadences.length > 0 || planSummaries.length > 0) && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>By billing cycle · theory</Text>
+          <Text style={styles.sectionTitle}>{t("insights.byBillingCycle")}</Text>
           {cadences.map((g) => {
             const key = `${g.recurrence.interval}-${g.recurrence.unit}`;
             const open = expandedCadence === key;
             const share = Math.min(amountIn(g.yearlyTotal) / yearlyTotalPrimary, 1);
-            const label = capitalize(describeRecurrence(g.recurrence));
+            const label = capitalize(localizedRecurrence(g.recurrence));
             // The live subscriptions billing on this cycle.
             const members = items.filter(
               (i) =>
@@ -414,7 +391,10 @@ export default function InsightsScreen() {
                     </Text>
                     <View style={styles.cadenceRight}>
                       <Text style={styles.cadenceAmount}>
-                        {totals(g.monthlyTotal)}/mo · {totals(g.yearlyTotal)}/yr
+                        {t("insights.perMoYr", {
+                          mo: totals(g.monthlyTotal),
+                          yr: totals(g.yearlyTotal),
+                        })}
                       </Text>
                       <SymbolView
                         name={open ? "chevron.up" : "chevron.down"}
@@ -474,7 +454,9 @@ export default function InsightsScreen() {
                     Pay in X <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
                   </Text>
                   <View style={styles.cadenceRight}>
-                    <Text style={styles.bnplOwed}>{totals(bnplRemaining)} still owed</Text>
+                    <Text style={styles.bnplOwed}>
+                      {t("insights.stillOwed", { amount: totals(bnplRemaining) })}
+                    </Text>
                     <SymbolView
                       name={expandedCadence === "bnpl" ? "chevron.up" : "chevron.down"}
                       size={11}
@@ -487,7 +469,7 @@ export default function InsightsScreen() {
                   <View style={{ flex: 1 - bnplPaidShare }} />
                 </View>
                 <Text style={styles.statHint}>
-                  of {totals(bnplTotal)} total · the payments sit inside the bars above
+                  {t("insights.ofTotalHint", { total: totals(bnplTotal) })}
                 </Text>
               </Pressable>
               {expandedCadence === "bnpl" &&
@@ -528,11 +510,11 @@ export default function InsightsScreen() {
 
       {/* The deeper layer: focused tools, one tap away, out of the way. */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Explore</Text>
+        <Text style={styles.sectionTitle}>{t("insights.explore")}</Text>
         <View style={styles.exploreCard}>
           <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
             <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>By category</Text>
+            <Text style={styles.exploreText}>{t("titles.byCategory")}</Text>
             <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
           </Pressable>
           <Pressable
@@ -540,7 +522,7 @@ export default function InsightsScreen() {
             onPress={() => router.push("/price-changes")}
           >
             <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>Price changes</Text>
+            <Text style={styles.exploreText}>{t("titles.priceChanges")}</Text>
             <Text style={styles.exploreValue}>{creepLabel}</Text>
             <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
           </Pressable>
@@ -549,7 +531,7 @@ export default function InsightsScreen() {
             onPress={() => router.push("/by-account")}
           >
             <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>By account</Text>
+            <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
             <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
           </Pressable>
         </View>

@@ -13,6 +13,7 @@ import {
   today,
 } from "@keel/core";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
@@ -22,6 +23,7 @@ import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "
 
 export default function PriceChangesScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, categories, displayCurrency, rates } = useAppState();
 
@@ -32,18 +34,15 @@ export default function PriceChangesScreen() {
     ),
   ).filter((m) => m.amount !== 0);
   const creepLabel = (() => {
-    if (creep.length === 0) return "No drift";
-    return `+${formatTotalsIn(creep, displayCurrency, rates)}/mo`;
+    if (creep.length === 0) return t("priceChanges.noDrift");
+    return t("insights.creep", { amount: formatTotalsIn(creep, displayCurrency, rates) });
   })();
 
   if (changes.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>No price changes yet</Text>
-        <Text style={styles.emptyHint}>
-          When a commitment's price is edited, its history lands here — and you'll see exactly how
-          far it drifted from what you signed up for.
-        </Text>
+        <Text style={styles.emptyTitle}>{t("priceChanges.emptyTitle")}</Text>
+        <Text style={styles.emptyHint}>{t("priceChanges.emptyHint")}</Text>
       </View>
     );
   }
@@ -51,9 +50,9 @@ export default function PriceChangesScreen() {
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <HeroCard
-        label="Price creep"
+        label={t("priceChanges.heroLabel")}
         amount={creepLabel}
-        sub="more per month than at signup, across everything that changed"
+        sub={t("priceChanges.heroSub")}
       />
 
       {changes.map((c) => {
@@ -75,8 +74,10 @@ export default function PriceChangesScreen() {
                   {c.name}
                 </Text>
                 <Text style={styles.cardSub}>
-                  since {formatCalendarDate(c.since)} · {c.changes} change
-                  {c.changes > 1 ? "s" : ""}
+                  {t("priceChanges.sinceChanges", {
+                    date: formatCalendarDate(c.since),
+                    count: c.changes,
+                  })}
                 </Text>
               </View>
               <Text style={[styles.pct, { color: up ? tones.warning : tones.success }]}>
@@ -94,7 +95,8 @@ export default function PriceChangesScreen() {
             {c.history.map((entry, i) => (
               <View key={`${entry.effectiveFrom}-${i}`} style={styles.historyRow}>
                 <Text style={styles.historyDate}>
-                  {i === 0 ? "signed up" : "changed"} · {formatCalendarDate(entry.effectiveFrom)}
+                  {i === 0 ? t("priceChanges.signedUp") : t("priceChanges.changedAt")} ·{" "}
+                  {formatCalendarDate(entry.effectiveFrom)}
                 </Text>
                 <Text style={styles.historyAmount}>{formatMoney(entry.amount)}</Text>
               </View>

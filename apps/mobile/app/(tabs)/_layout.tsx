@@ -1,5 +1,6 @@
 import { Tabs, useRouter } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet } from "react-native";
 
 import { useTheme } from "../../src/theme";
@@ -9,17 +10,18 @@ type SymbolName = SymbolViewProps["name"];
 // The bottom bar is data-driven: change the count or content here and the bar
 // updates. `action: true` is the center ＋ — it opens the Add modal instead of
 // switching tab. Each non-action entry needs a matching file in this folder.
-const TABS: { name: string; title: string; sf: string; action?: boolean }[] = [
-  { name: "index", title: "Payments", sf: "creditcard.fill" },
-  { name: "insights", title: "Insights", sf: "chart.bar.fill" },
-  { name: "new", title: "", sf: "plus.circle.fill", action: true },
-  { name: "history", title: "History", sf: "clock.fill" },
-  { name: "settings", title: "Settings", sf: "gearshape.fill" },
+const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] = [
+  { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },
+  { name: "insights", titleKey: "tabs.insights", sf: "chart.bar.fill" },
+  { name: "new", titleKey: "", sf: "plus.circle.fill", action: true },
+  { name: "history", titleKey: "tabs.history", sf: "clock.fill" },
+  { name: "settings", titleKey: "tabs.settings", sf: "gearshape.fill" },
 ];
 
 export default function TabsLayout() {
   const router = useRouter();
   const { colors } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tabs
@@ -40,7 +42,7 @@ export default function TabsLayout() {
                 <Pressable
                   onPress={() => router.push("/add")}
                   style={styles.addButton}
-                  accessibilityLabel="Add subscription"
+                  accessibilityLabel={t("tabs.addA11y")}
                 >
                   <SymbolView name={tab.sf as SymbolName} size={40} tintColor={colors.accent} />
                 </Pressable>
@@ -52,7 +54,7 @@ export default function TabsLayout() {
             key={tab.name}
             name={tab.name}
             options={{
-              title: tab.title,
+              title: t(tab.titleKey),
               tabBarIcon: ({ color, size }) => (
                 <SymbolView name={tab.sf as SymbolName} size={size ?? 24} tintColor={color} />
               ),

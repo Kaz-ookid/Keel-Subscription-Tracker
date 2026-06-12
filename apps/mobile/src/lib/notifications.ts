@@ -14,6 +14,8 @@ import {
 } from "@keel/core";
 import * as Notifications from "expo-notifications";
 
+import i18n from "../i18n";
+
 /** Reminders ring at a civilised hour, not midnight. */
 const FIRE_HOUR = 9;
 
@@ -69,7 +71,10 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
       await Notifications.scheduleNotificationAsync({
         content: {
           title: reminder.name,
-          body: `${formatMoney(reminder.amount)} due ${formatCalendarDate(reminder.dueDate)}`,
+          body: i18n.t("notifications.body", {
+            amount: formatMoney(reminder.amount),
+            date: formatCalendarDate(reminder.dueDate),
+          }),
           data: { itemId: reminder.paymentItemId },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },

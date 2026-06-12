@@ -1,6 +1,7 @@
 import { currencyLabel, type Account } from "@keel/core";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AccountEditSheet } from "../src/components/AccountSheet";
@@ -10,6 +11,7 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/
 
 export default function AccountsScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { accounts, archiveAccount } = useAppState();
   const [editing, setEditing] = useState<Account | undefined>();
@@ -24,15 +26,19 @@ export default function AccountsScreen() {
   };
 
   const confirmArchive = (account: Account) =>
-    Alert.alert("Archive account", `Hide “${account.name}”? Past payments keep their history.`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Archive", style: "destructive", onPress: () => archiveAccount(account.id) },
+    Alert.alert(t("accounts.archiveTitle"), t("accounts.archiveAsk", { name: account.name }), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("accounts.archive"),
+        style: "destructive",
+        onPress: () => archiveAccount(account.id),
+      },
     ]);
 
   const addRow = (
     <Pressable style={styles.addRow} onPress={() => open()}>
       <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
-      <Text style={styles.addText}>Add account</Text>
+      <Text style={styles.addText}>{t("accounts.addAccount")}</Text>
     </Pressable>
   );
 
@@ -40,11 +46,8 @@ export default function AccountsScreen() {
     <View style={styles.screen}>
       {accounts.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyTitle}>No accounts yet</Text>
-          <Text style={styles.emptyHint}>
-            Add the accounts your payments are charged to — each subscription can then show which
-            account it hits.
-          </Text>
+          <Text style={styles.emptyTitle}>{t("accounts.emptyTitle")}</Text>
+          <Text style={styles.emptyHint}>{t("accounts.emptyHint")}</Text>
           {addRow}
         </View>
       ) : (

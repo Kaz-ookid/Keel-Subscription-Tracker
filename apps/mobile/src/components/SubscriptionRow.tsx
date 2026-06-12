@@ -1,6 +1,5 @@
 import {
   canMarkPaid,
-  describeRecurrence,
   formatCalendarDate,
   formatMoney,
   isInstallmentSchedule,
@@ -11,8 +10,10 @@ import {
   type PaymentItem,
 } from "@keel/core";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { localizedRecurrence } from "../i18n/recurrence";
 import { useAppState } from "../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
@@ -26,6 +27,7 @@ interface Props {
 
 export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, accounts } = useAppState();
   const category = categories.find((c) => c.id === item.categoryId);
@@ -54,51 +56,53 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     // A finished sub has no next billing — say when it ended instead.
     const when =
       complete && recurring.endDate
-        ? `ended ${formatCalendarDate(recurring.endDate)}`
-        : `next ${formatCalendarDate(recurring.nextChargeDate)}`;
-    subLine = `${describeRecurrence(recurring.recurrence)} · ${when}`;
+        ? t("row.endedOn", { date: formatCalendarDate(recurring.endDate) })
+        : t("row.next", { date: formatCalendarDate(recurring.nextChargeDate) });
+    subLine = `${localizedRecurrence(recurring.recurrence)} · ${when}`;
     amount = formatMoney(recurring.amount);
-    tag = isManual ? "Manual" : "Automatic";
+    tag = isManual ? t("row.manual") : t("row.automatic");
     tagColor = isManual ? tones.warning : tones.info;
     showMarkPaid = canMark;
     // Ticked off for this month: say so instead of offering the button.
     if (isManual && !canMark && !complete && recurring.nextChargeDate > recurring.firstChargeDate) {
-      tag = "Paid this cycle";
+      tag = t("row.paidThisCycle");
       tagColor = tones.success;
     }
   } else if (installment) {
     const s = summarizeInstallmentPlan(installment);
     const next = s.nextDue;
-    subLine = `${s.totalCount}× · ${s.paidCount} of ${s.totalCount} paid${next ? ` · next ${formatCalendarDate(next.dueDate)}` : ""}`;
+    subLine =
+      t("row.planSub", { count: s.totalCount, paid: s.paidCount, total: s.totalCount }) +
+      (next ? ` · ${t("row.next", { date: formatCalendarDate(next.dueDate) })}` : "");
     amount = formatMoney(next ? next.amount : s.totalAmount);
     showMarkPaid = canMark;
     if (!canMark && s.paidCount > 0 && !s.isComplete) {
-      tag = "Paid this cycle";
+      tag = t("row.paidThisCycle");
       tagColor = tones.success;
     } else {
-      tag = "Pay in X";
+      tag = t("row.payInX");
       tagColor = colors.accent;
     }
   }
 
   // Paused: kept around, clearly parked, no action.
   if (item.status === "paused") {
-    tag = "Paused";
+    tag = t("row.paused");
     tagColor = colors.mutedText;
     showMarkPaid = false;
   }
 
   // A finished item: greyed, labelled, no action.
   if (complete) {
-    tag = recurring ? "Ended" : "Done";
+    tag = recurring ? t("row.ended") : t("row.doneTag");
     tagColor = colors.mutedText;
     showMarkPaid = false;
   }
 
   const confirmDelete = () =>
-    Alert.alert("Delete subscription", `Remove “${item.name}”?`, [
-      { text: "Cancel", style: "cancel" },
-      { text: "Delete", style: "destructive", onPress: onDelete },
+    Alert.alert(t("row.deleteTitle"), t("row.deleteAsk", { name: item.name }), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.delete"), style: "destructive", onPress: onDelete },
     ]);
 
   return (
@@ -135,7 +139,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
         {amount && <Text style={styles.amount}>{amount}</Text>}
         {showMarkPaid && (
           <Pressable onPress={onMarkPaid} style={styles.payButton}>
-            <Text style={styles.payText}>Mark paid</Text>
+            <Text style={styles.payText}>{t("common.markPaid")}</Text>
           </Pressable>
         )}
       </View>

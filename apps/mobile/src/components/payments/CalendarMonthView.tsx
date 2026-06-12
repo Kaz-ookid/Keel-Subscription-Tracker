@@ -20,27 +20,16 @@ import {
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
+import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-const MONTH_FULL = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+// Monday-first column order, as JS weekday indices (0 = Sunday).
+const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
 interface DayCharge {
   key: string;
@@ -67,6 +56,8 @@ function firstOfShiftedMonth(asOf: CalendarDate, delta: number): CalendarDate {
 export function CalendarMonthView() {
   const router = useRouter();
   const { colors } = useTheme();
+  // Also subscribes the view to language changes for the date helpers.
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates } = useAppState();
   const asOf = today();
@@ -177,7 +168,7 @@ export function CalendarMonthView() {
   const monthTotals = charges.map((c) => c.amount);
   const selected = selectedDay ? (byDay.get(selectedDay) ?? []) : [];
 
-  const monthLabel = `${MONTH_FULL[Number(monthStart.slice(5, 7)) - 1]} ${monthStart.slice(0, 4)}`;
+  const monthLabel = `${monthFull(Number(monthStart.slice(5, 7)) - 1)} ${monthStart.slice(0, 4)}`;
 
   const shiftMonth = (delta: number) => {
     const next = offset + delta;
@@ -203,9 +194,9 @@ export function CalendarMonthView() {
 
       <View style={styles.grid}>
         <View style={styles.weekRow}>
-          {WEEKDAYS.map((d) => (
+          {WEEKDAY_ORDER.map((d) => (
             <Text key={d} style={styles.weekday}>
-              {d}
+              {weekdayShort(d)}
             </Text>
           ))}
         </View>
@@ -298,7 +289,7 @@ export function CalendarMonthView() {
                   {c.installmentIndex && c.installmentCount ? (
                     <Text style={styles.detailCount}>
                       {" "}
-                      · {c.installmentIndex} of {c.installmentCount}
+                      · {t("common.xOfY", { x: c.installmentIndex, y: c.installmentCount })}
                     </Text>
                   ) : null}
                 </Text>

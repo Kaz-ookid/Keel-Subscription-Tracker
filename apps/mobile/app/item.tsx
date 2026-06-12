@@ -6,7 +6,6 @@
 import {
   canMarkPaid,
   COVERED_INSTALLMENT_STATUSES,
-  describeRecurrence,
   formatCalendarDate,
   formatMoney,
   formatMoneyList,
@@ -20,9 +19,11 @@ import {
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BrandBadge } from "../src/components/BrandBadge";
+import { localizedRecurrence } from "../src/i18n/recurrence";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -41,6 +42,7 @@ export default function ItemScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     items,
@@ -61,7 +63,7 @@ export default function ItemScreen() {
   if (!item) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyHint}>This item no longer exists.</Text>
+        <Text style={styles.emptyHint}>{t("item.missing")}</Text>
       </View>
     );
   }
@@ -74,9 +76,10 @@ export default function ItemScreen() {
   const installment = isInstallmentSchedule(item.schedule) ? item.schedule : undefined;
   const plan = installment ? summarizeInstallmentPlan(installment) : undefined;
 
+  const settlementLabel = item.settlementMode === "manual" ? t("row.manual") : t("row.automatic");
   const subtitle = recurring
-    ? `${describeRecurrence(recurring.recurrence)} · ${item.settlementMode === "manual" ? "Manual" : "Automatic"}`
-    : `Pay in ${plan?.totalCount} · ${item.settlementMode === "manual" ? "Manual" : "Automatic"}`;
+    ? `${localizedRecurrence(recurring.recurrence)} · ${settlementLabel}`
+    : `${t("item.payIn", { count: plan?.totalCount })} · ${settlementLabel}`;
 
   const paused = item.status === "paused";
   // One shared rule for both payment types: current month only.
@@ -104,10 +107,10 @@ export default function ItemScreen() {
   ).filter((m) => m.amount > 0);
 
   const confirmDelete = () =>
-    Alert.alert("Delete subscription", `Remove “${item.name}”? This cannot be undone.`, [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert(t("row.deleteTitle"), t("row.deleteAskPermanent", { name: item.name }), [
+      { text: t("common.cancel"), style: "cancel" },
       {
-        text: "Delete",
+        text: t("common.delete"),
         style: "destructive",
         onPress: () => {
           removeSubscription(item.id);
@@ -120,13 +123,13 @@ export default function ItemScreen() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Stack.Screen
         options={{
-          title: "Details",
+          title: t("titles.details"),
           headerRight: () => (
             <Pressable
               onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
               hitSlop={12}
             >
-              <Text style={styles.headerAction}>Edit</Text>
+              <Text style={styles.headerAction}>{t("common.edit")}</Text>
             </Pressable>
           ),
         }}
@@ -145,84 +148,116 @@ export default function ItemScreen() {
         <Text style={styles.subtitle}>{subtitle}</Text>
         {complete && (
           <Text style={[styles.subtitle, { color: tones.success }]}>
-            {recurring ? "Ended" : "Fully paid"}
+            {recurring ? t("row.ended") : t("item.fullyPaid")}
           </Text>
         )}
-        {paused && <Text style={[styles.subtitle, { color: tones.warning }]}>Paused</Text>}
+        {paused && (
+          <Text style={[styles.subtitle, { color: tones.warning }]}>{t("row.paused")}</Text>
+        )}
       </View>
 
       {/* Facts */}
       <View style={styles.card}>
         {recurring && (
           <>
-            <InfoRow label="Amount" value={formatMoney(recurring.amount)} styles={styles} />
             <InfoRow
-              label="Cycle"
-              value={describeRecurrence(recurring.recurrence)}
+              label={t("item.amount")}
+              value={formatMoney(recurring.amount)}
               styles={styles}
             />
             <InfoRow
-              label="First billing"
+              label={t("item.cycle")}
+              value={localizedRecurrence(recurring.recurrence)}
+              styles={styles}
+            />
+            <InfoRow
+              label={t("add.firstBilling")}
               value={formatCalendarDate(recurring.firstChargeDate)}
               styles={styles}
             />
             {!complete && (
               <InfoRow
-                label="Next billing"
+                label={t("item.nextBilling")}
                 value={formatCalendarDate(recurring.nextChargeDate)}
                 styles={styles}
               />
             )}
             <InfoRow
-              label="Last billing"
-              value={recurring.endDate ? formatCalendarDate(recurring.endDate) : "Never"}
+              label={t("add.lastBilling")}
+              value={recurring.endDate ? formatCalendarDate(recurring.endDate) : t("common.never")}
               styles={styles}
             />
           </>
         )}
         {plan && installment && (
           <>
-            <InfoRow label="Total" value={formatMoney(plan.totalAmount)} styles={styles} />
+            <InfoRow label={t("add.total")} value={formatMoney(plan.totalAmount)} styles={styles} />
             <InfoRow
-              label="Progress"
-              value={`${plan.paidCount} of ${plan.totalCount} paid · ${formatMoney(plan.remainingAmount)} left`}
+              label={t("item.progress")}
+              value={t("item.progressValue", {
+                paid: plan.paidCount,
+                total: plan.totalCount,
+                left: formatMoney(plan.remainingAmount),
+              })}
               styles={styles}
             />
             <InfoRow
-              label="Cycle"
-              value={describeRecurrence(installment.recurrence)}
+              label={t("item.cycle")}
+              value={localizedRecurrence(installment.recurrence)}
               styles={styles}
             />
             {installment.provider && (
-              <InfoRow label="Provider" value={installment.provider} styles={styles} />
+              <InfoRow label={t("add.provider")} value={installment.provider} styles={styles} />
             )}
           </>
         )}
         {paidToDate.length > 0 && (
-          <InfoRow label="Paid to date" value={formatMoneyList(paidToDate)} styles={styles} />
+          <InfoRow
+            label={t("item.paidToDate")}
+            value={formatMoneyList(paidToDate)}
+            styles={styles}
+          />
         )}
-        <InfoRow label="Account" value={account?.name ?? "None"} styles={styles} />
-        <InfoRow label="Category" value={category?.name ?? "None"} styles={styles} />
         <InfoRow
-          label="Reminder"
-          value={item.reminder ? `${item.reminder.daysBefore} day(s) before` : "Never"}
+          label={t("add.account")}
+          value={account?.name ?? t("common.none")}
           styles={styles}
         />
-        {item.notes ? <InfoRow label="Description" value={item.notes} styles={styles} /> : null}
+        <InfoRow
+          label={t("add.category")}
+          value={
+            category
+              ? t(`categories.${category.id}`, { defaultValue: category.name })
+              : t("common.none")
+          }
+          styles={styles}
+        />
+        <InfoRow
+          label={t("add.reminder")}
+          value={
+            item.reminder
+              ? t("add.reminderDayBefore", { count: item.reminder.daysBefore })
+              : t("common.never")
+          }
+          styles={styles}
+        />
+        {item.notes ? (
+          <InfoRow label={t("add.description")} value={item.notes} styles={styles} />
+        ) : null}
       </View>
 
       {/* The explicit list is the point of Pay-in-X — show every payment. */}
       {installment && plan && (
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>Payments</Text>
+            <Text style={styles.cardTitle}>{t("item.payments")}</Text>
             {plan.paidCount > 0 && (
               <Pressable
                 onPress={() => undoInstallmentPaid(item.id)}
                 style={styles.undoButton}
                 hitSlop={6}
               >
-                <Text style={styles.undoText}>Undo last</Text>
+                <Text style={styles.undoText}>{t("common.undoLast")}</Text>
               </Pressable>
             )}
           </View>
@@ -255,10 +290,10 @@ export default function ItemScreen() {
       {recurring && history.length > 0 && (
         <View style={styles.card}>
           <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>History</Text>
+            <Text style={styles.cardTitle}>{t("item.history")}</Text>
             {item.settlementMode === "manual" && (
               <Pressable onPress={() => undoPaid(item.id)} style={styles.undoButton} hitSlop={6}>
-                <Text style={styles.undoText}>Undo last</Text>
+                <Text style={styles.undoText}>{t("common.undoLast")}</Text>
               </Pressable>
             )}
           </View>
@@ -291,11 +326,11 @@ export default function ItemScreen() {
       {/* Price changes over time (edge case #1) — only when there were any. */}
       {recurring && recurring.priceHistory.length > 1 && (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Price history</Text>
+          <Text style={styles.cardTitle}>{t("item.priceHistory")}</Text>
           {recurring.priceHistory.map((entry, i) => (
             <InfoRow
               key={`${entry.effectiveFrom}-${i}`}
-              label={`since ${formatCalendarDate(entry.effectiveFrom)}`}
+              label={t("item.since", { date: formatCalendarDate(entry.effectiveFrom) })}
               value={formatMoney(entry.amount)}
               styles={styles}
             />
@@ -308,7 +343,7 @@ export default function ItemScreen() {
           style={styles.primaryBtn}
           onPress={() => (installment ? markInstallmentPaid(item.id) : markPaid(item.id))}
         >
-          <Text style={styles.primaryBtnText}>Mark paid</Text>
+          <Text style={styles.primaryBtnText}>{t("common.markPaid")}</Text>
         </Pressable>
       )}
       {/* Flexible commitments ("monthly investing") can sit a cycle out —
@@ -316,15 +351,17 @@ export default function ItemScreen() {
       {markable && recurring && (
         <Pressable style={styles.secondaryBtn} onPress={() => skipPayment(item.id)}>
           <Text style={styles.secondaryBtnText}>
-            Skip this cycle · {formatCalendarDate(recurring.nextChargeDate)}
+            {t("item.skipCycle", { date: formatCalendarDate(recurring.nextChargeDate) })}
           </Text>
         </Pressable>
       )}
       {paidThisCycle && (
         <View style={styles.disabledBtn}>
           <Text style={styles.disabledBtnText}>
-            Paid for this cycle
-            {nextAfterCycle ? ` · next ${formatCalendarDate(nextAfterCycle)}` : ""}
+            {t("item.paidForCycle")}
+            {nextAfterCycle
+              ? t("item.nextAfter", { date: formatCalendarDate(nextAfterCycle) })
+              : ""}
           </Text>
         </View>
       )}
@@ -334,12 +371,12 @@ export default function ItemScreen() {
           style={styles.secondaryBtn}
           onPress={() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id))}
         >
-          <Text style={styles.secondaryBtnText}>{paused ? "Resume" : "Pause"}</Text>
+          <Text style={styles.secondaryBtnText}>{paused ? t("item.resume") : t("item.pause")}</Text>
         </Pressable>
       )}
 
       <Pressable style={styles.deleteRow} onPress={confirmDelete}>
-        <Text style={styles.deleteText}>Delete</Text>
+        <Text style={styles.deleteText}>{t("common.delete")}</Text>
       </Pressable>
     </ScrollView>
   );

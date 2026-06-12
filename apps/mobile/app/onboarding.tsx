@@ -5,6 +5,7 @@
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -16,18 +17,9 @@ import { spacing, radius, typography, useTheme, type ThemeColors } from "../src/
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
 const TOUR_PANES = [
-  {
-    title: "Every commitment, one place",
-    body: "Subscriptions, bills and Pay-in-X plans side by side — including the ones that only hit once a year.",
-  },
-  {
-    title: "Know what hits, and from where",
-    body: "Each payment is assigned to a bank account, so you can see what's about to leave which account, and when.",
-  },
-  {
-    title: "Understand your year",
-    body: "Insights smooths yearly costs into a monthly number and shows what you actually paid, not just the theory.",
-  },
+  { titleKey: "onboarding.tour1Title", bodyKey: "onboarding.tour1Body" },
+  { titleKey: "onboarding.tour2Title", bodyKey: "onboarding.tour2Body" },
+  { titleKey: "onboarding.tour3Title", bodyKey: "onboarding.tour3Body" },
 ] as const;
 
 type Phase = "tour" | "pick" | "done";
@@ -36,6 +28,7 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, pending, addPendingSuggestions } = useAppState();
@@ -74,7 +67,7 @@ export default function OnboardingScreen() {
         <>
           <View style={styles.topBar}>
             <Pressable onPress={() => setPhase("pick")} hitSlop={12}>
-              <Text style={styles.skip}>Skip</Text>
+              <Text style={styles.skip}>{t("onboarding.skip")}</Text>
             </Pressable>
           </View>
           <ScrollView
@@ -87,15 +80,15 @@ export default function OnboardingScreen() {
             }
           >
             {TOUR_PANES.map((p) => (
-              <View key={p.title} style={styles.pane}>
-                <Text style={styles.paneTitle}>{p.title}</Text>
-                <Text style={styles.paneBody}>{p.body}</Text>
+              <View key={p.titleKey} style={styles.pane}>
+                <Text style={styles.paneTitle}>{t(p.titleKey)}</Text>
+                <Text style={styles.paneBody}>{t(p.bodyKey)}</Text>
               </View>
             ))}
           </ScrollView>
           <View style={styles.dots}>
             {TOUR_PANES.map((p, i) => (
-              <View key={p.title} style={[styles.dot, i === pane && styles.dotActive]} />
+              <View key={p.titleKey} style={[styles.dot, i === pane && styles.dotActive]} />
             ))}
           </View>
           <Pressable
@@ -109,7 +102,9 @@ export default function OnboardingScreen() {
               }
             }}
           >
-            <Text style={styles.ctaText}>{pane < TOUR_PANES.length - 1 ? "Next" : "Continue"}</Text>
+            <Text style={styles.ctaText}>
+              {pane < TOUR_PANES.length - 1 ? t("onboarding.next") : t("onboarding.continue")}
+            </Text>
           </Pressable>
         </>
       )}
@@ -118,9 +113,9 @@ export default function OnboardingScreen() {
         (remaining > 0 ? (
           <>
             <View style={styles.pickHeader}>
-              <Text style={styles.pickTitle}>Which of these do you pay for?</Text>
+              <Text style={styles.pickTitle}>{t("onboarding.pickTitle")}</Text>
               <Pressable onPress={finish} hitSlop={12}>
-                <Text style={styles.skip}>Skip</Text>
+                <Text style={styles.skip}>{t("onboarding.skip")}</Text>
               </Pressable>
             </View>
             <SuggestionPicker
@@ -131,13 +126,10 @@ export default function OnboardingScreen() {
           </>
         ) : (
           <View style={styles.pane}>
-            <Text style={styles.paneTitle}>All caught up</Text>
-            <Text style={styles.paneBody}>
-              Everything in our list of common commitments is already tracked or waiting in your
-              To-complete list.
-            </Text>
+            <Text style={styles.paneTitle}>{t("onboarding.caughtUpTitle")}</Text>
+            <Text style={styles.paneBody}>{t("onboarding.caughtUpBody")}</Text>
             <Pressable style={styles.cta} onPress={finish}>
-              <Text style={styles.ctaText}>Done</Text>
+              <Text style={styles.ctaText}>{t("onboarding.done")}</Text>
             </Pressable>
           </View>
         ))}
@@ -145,15 +137,15 @@ export default function OnboardingScreen() {
       {phase === "done" && (
         <View style={styles.pane}>
           <Text style={styles.paneTitle}>
-            {savedCount > 0 ? `${savedCount} saved to your To-complete list` : "All set"}
+            {savedCount > 0
+              ? t("onboarding.savedTitle", { count: savedCount })
+              : t("onboarding.allSetTitle")}
           </Text>
           <Text style={styles.paneBody}>
-            {savedCount > 0
-              ? "You'll find them under All on the Payments tab — each one opens the form pre-filled, so adding takes a couple of taps."
-              : "Add your first commitment with the + tab whenever you're ready."}
+            {savedCount > 0 ? t("onboarding.savedBody") : t("onboarding.allSetBody")}
           </Text>
           <Pressable style={styles.cta} onPress={finish}>
-            <Text style={styles.ctaText}>Done</Text>
+            <Text style={styles.ctaText}>{t("onboarding.done")}</Text>
           </Pressable>
         </View>
       )}

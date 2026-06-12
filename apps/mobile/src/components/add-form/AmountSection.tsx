@@ -1,4 +1,5 @@
 import { currencyLabel } from "@keel/core";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, TextInput, View } from "react-native";
 
 import { useTheme } from "../../theme";
@@ -7,15 +8,16 @@ import { Segmented, type SegmentedOption } from "../Segmented";
 import { useFormStyles } from "./styles";
 import type { AddForm, AmountMode } from "./useAddForm";
 
-const AMOUNT_MODE_OPTIONS: SegmentedOption<AmountMode>[] = [
-  { value: "total", label: "Total" },
-  { value: "perPayment", label: "Per payment" },
-];
-
 /** Amount + currency chip, plus the Pay-in-X total/per-payment toggle. */
 export function AmountSection({ form }: { form: AddForm }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useFormStyles();
+
+  const amountModeOptions: SegmentedOption<AmountMode>[] = [
+    { value: "total", label: t("add.total") },
+    { value: "perPayment", label: t("add.perPayment") },
+  ];
 
   return (
     <>
@@ -37,8 +39,11 @@ export function AmountSection({ form }: { form: AddForm }) {
           payments are deliberately not pre-linked to an account (brief §8). */}
       {form.isAutomatic && (
         <FieldButton
-          label="Account"
-          value={form.selectedAccount?.name ?? (form.accountId ? "Archived account" : "Choose")}
+          label={t("add.account")}
+          value={
+            form.selectedAccount?.name ??
+            (form.accountId ? t("add.archivedAccount") : t("add.choose"))
+          }
           hint={!form.selectedAccount}
           accessory={
             form.selectedAccount ? (
@@ -52,10 +57,10 @@ export function AmountSection({ form }: { form: AddForm }) {
       {form.isInstallment && (
         <>
           <View style={styles.rowField}>
-            <Text style={styles.label}>Amount is</Text>
+            <Text style={styles.label}>{t("add.amountIs")}</Text>
             <View style={styles.rowControl}>
               <Segmented
-                options={AMOUNT_MODE_OPTIONS}
+                options={amountModeOptions}
                 value={form.amountMode}
                 onChange={form.setAmountMode}
               />

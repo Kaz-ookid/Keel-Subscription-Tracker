@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
@@ -53,6 +54,7 @@ export function YearChart({
   scaleMax,
 }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const max = Math.max(scaleMax ?? 0, average, ...months.map((m) => m.amount), 1);
@@ -156,7 +158,9 @@ export function YearChart({
             <View key={i} style={styles.dash} />
           ))}
         </View>
-        <Text style={styles.legendText}>theory average · {averageFormatted}/mo</Text>
+        <Text style={styles.legendText}>
+          {t("insights.chartLegend", { amount: averageFormatted })}
+        </Text>
         <View style={styles.legendTodayLine} />
         <Text style={styles.legendText}>now</Text>
       </View>

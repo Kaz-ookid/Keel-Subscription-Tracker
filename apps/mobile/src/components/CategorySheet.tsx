@@ -1,5 +1,6 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
@@ -37,6 +38,7 @@ interface Props {
 /** Secondary card to pick a category — built-in + custom — or create a new one. */
 export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { categories, addCategory } = useAppState();
   const [adding, setAdding] = useState(false);
@@ -57,10 +59,10 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
   };
 
   return (
-    <Sheet visible={visible} title="Category" onClose={onClose}>
+    <Sheet visible={visible} title={t("categorySheet.title")} onClose={onClose}>
       <ScrollView contentContainerStyle={styles.content}>
         <Pressable style={styles.row} onPress={() => pick(undefined)}>
-          <Text style={styles.rowText}>None</Text>
+          <Text style={styles.rowText}>{t("common.none")}</Text>
           {!selectedId && <SymbolView name="checkmark" size={16} tintColor={colors.accent} />}
         </Pressable>
 
@@ -72,7 +74,9 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
                 size={22}
                 tintColor={colors.text}
               />
-              <Text style={styles.rowText}>{c.name}</Text>
+              <Text style={styles.rowText}>
+                {t(`categories.${c.id}`, { defaultValue: c.name })}
+              </Text>
             </View>
             {selectedId === c.id && (
               <SymbolView name="checkmark" size={16} tintColor={colors.accent} />
@@ -84,7 +88,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
           <View style={styles.addBox}>
             <TextInput
               style={styles.input}
-              placeholder="Category name"
+              placeholder={t("categorySheet.namePlaceholder")}
               placeholderTextColor={colors.mutedText}
               value={name}
               onChangeText={setName}
@@ -106,14 +110,16 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
               ))}
             </View>
             <Pressable style={styles.addBtn} onPress={submitNew}>
-              <Text style={styles.addBtnText}>Add category</Text>
+              <Text style={styles.addBtnText}>{t("categorySheet.addCategory")}</Text>
             </Pressable>
           </View>
         ) : (
           <Pressable style={styles.row} onPress={() => setAdding(true)}>
             <View style={styles.left}>
               <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
-              <Text style={[styles.rowText, { color: colors.accent }]}>Add category</Text>
+              <Text style={[styles.rowText, { color: colors.accent }]}>
+                {t("categorySheet.addCategory")}
+              </Text>
             </View>
           </Pressable>
         )}

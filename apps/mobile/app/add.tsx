@@ -7,6 +7,7 @@
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AmountSection } from "../src/components/add-form/AmountSection";
@@ -22,9 +23,9 @@ import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
-const PLAN_TYPES: { value: PlanType; label: string }[] = [
-  { value: "subscription", label: "Subscription" },
-  { value: "installment", label: "Pay in X" },
+const PLAN_TYPES: { value: PlanType; labelKey: string }[] = [
+  { value: "subscription", labelKey: "add.subscription" },
+  { value: "installment", labelKey: "add.installment" },
 ];
 
 export default function AddScreen() {
@@ -59,6 +60,7 @@ function ChoosePhase({
   onCustom: () => void;
 }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items } = useAppState();
 
@@ -73,10 +75,10 @@ function ChoosePhase({
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: "New commitment", headerRight: undefined }} />
+      <Stack.Screen options={{ title: t("titles.newCommitment"), headerRight: undefined }} />
       <Pressable style={styles.customRow} onPress={onCustom}>
-        <Text style={styles.customText}>Start from scratch</Text>
-        <Text style={styles.customHint}>type everything yourself</Text>
+        <Text style={styles.customText}>{t("add.startScratch")}</Text>
+        <Text style={styles.customHint}>{t("add.scratchHint")}</Text>
       </Pressable>
       <SuggestionPicker suggestions={SUGGESTED_COMMITMENTS} addedIds={addedIds} onPick={onPick} />
     </View>
@@ -85,6 +87,7 @@ function ChoosePhase({
 
 function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const form = useAddForm(prefill);
 
@@ -92,11 +95,11 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <Stack.Screen
         options={{
-          title: form.isEditing ? "Edit" : "New subscription",
+          title: form.isEditing ? t("titles.edit") : t("titles.newSubscription"),
           headerRight: () => (
             <Pressable onPress={form.submit} disabled={!form.canSubmit} hitSlop={12}>
               <Text style={[styles.headerAction, !form.canSubmit && styles.headerActionDisabled]}>
-                {form.isEditing ? "Save" : "Add"}
+                {form.isEditing ? t("common.save") : t("common.add")}
               </Text>
             </Pressable>
           ),
@@ -115,7 +118,9 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
                 onPress={() => form.setPlanType(m.value)}
                 style={[styles.modePill, active && styles.modePillActive]}
               >
-                <Text style={[styles.modeText, active && styles.modeTextActive]}>{m.label}</Text>
+                <Text style={[styles.modeText, active && styles.modeTextActive]}>
+                  {t(m.labelKey)}
+                </Text>
               </Pressable>
             );
           })}

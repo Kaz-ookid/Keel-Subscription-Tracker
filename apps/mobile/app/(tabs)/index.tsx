@@ -5,6 +5,7 @@
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { CalendarMonthView } from "../../src/components/payments/CalendarMonthView";
@@ -16,13 +17,14 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../../s
 
 type PaymentsView = "upcoming" | "all" | "calendar";
 
-const VIEWS: { value: PaymentsView; label: string }[] = [
-  { value: "upcoming", label: "Upcoming" },
-  { value: "all", label: "All" },
+const VIEWS: { value: PaymentsView; labelKey: string }[] = [
+  { value: "upcoming", labelKey: "payments.upcoming" },
+  { value: "all", labelKey: "payments.all" },
 ];
 
 export default function PaymentsScreen() {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [view, setView] = useState<PaymentsView>("upcoming");
   const router = useRouter();
@@ -52,13 +54,15 @@ export default function PaymentsScreen() {
                 onPress={() => setView(v.value)}
                 style={[styles.pill, active && styles.pillActive]}
               >
-                <Text style={[styles.pillText, active && styles.pillTextActive]}>{v.label}</Text>
+                <Text style={[styles.pillText, active && styles.pillTextActive]}>
+                  {t(v.labelKey)}
+                </Text>
               </Pressable>
             );
           })}
         </View>
         <Pressable
-          accessibilityLabel="Calendar view"
+          accessibilityLabel={t("payments.calendarA11y")}
           onPress={() => setView("calendar")}
           style={[styles.calendarToggle, view === "calendar" && styles.calendarToggleActive]}
         >

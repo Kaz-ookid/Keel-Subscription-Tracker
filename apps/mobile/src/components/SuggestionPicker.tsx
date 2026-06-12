@@ -13,6 +13,7 @@ import {
 import { getLocales } from "expo-localization";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
@@ -42,6 +43,7 @@ function matches(s: SuggestedCommitment, query: string): boolean {
 
 export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
           style={styles.search}
           value={query}
           onChangeText={setQuery}
-          placeholder="Search all brands…"
+          placeholder={t("picker.searchPlaceholder")}
           placeholderTextColor={colors.mutedText}
           autoCorrect={false}
           autoCapitalize="none"
@@ -115,7 +117,9 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
             onPress={() => setCategory(null)}
             style={[styles.chip, category === null && styles.chipActive]}
           >
-            <Text style={[styles.chipText, category === null && styles.chipTextActive]}>All</Text>
+            <Text style={[styles.chipText, category === null && styles.chipTextActive]}>
+              {t("picker.chipAll")}
+            </Text>
           </Pressable>
           {chips.map((id) => {
             const active = category === id;
@@ -126,7 +130,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
                 style={[styles.chip, active && styles.chipActive]}
               >
                 <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                  {CATEGORY_NAMES.get(id) ?? id}
+                  {t(`categories.${id}`, { defaultValue: CATEGORY_NAMES.get(id) ?? id })}
                 </Text>
               </Pressable>
             );
@@ -141,9 +145,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
         ListEmptyComponent={
-          <Text style={styles.empty}>
-            {query.trim() ? "No brand matches that — you can still add it by hand later." : ""}
-          </Text>
+          <Text style={styles.empty}>{query.trim() ? t("picker.noMatch") : ""}</Text>
         }
         renderItem={({ item }) => {
           const isChecked = checked.has(item.id);
@@ -163,14 +165,19 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
               />
               <View style={styles.middle}>
                 <Text style={styles.name} numberOfLines={1}>
-                  {item.name}
+                  {t(`bank.${item.id}`, { defaultValue: item.name })}
                 </Text>
                 <Text style={styles.caption}>
                   {/* Without the section headers, each row says its category. */}
-                  {CATEGORY_NAMES.get(item.categoryId ?? "") ?? "Other"} ·{" "}
+                  {t(`categories.${item.categoryId ?? "other"}`, {
+                    defaultValue: CATEGORY_NAMES.get(item.categoryId ?? "") ?? "Other",
+                  })}{" "}
+                  ·{" "}
                   {added
-                    ? "already in your list"
-                    : `usually ${item.unit === "month" ? "monthly" : "yearly"}`}
+                    ? t("picker.alreadyInList")
+                    : item.unit === "month"
+                      ? t("picker.usuallyMonthly")
+                      : t("picker.usuallyYearly")}
                 </Text>
               </View>
               {added ? (
@@ -197,7 +204,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
             onPress={confirm}
           >
             <Text style={styles.ctaText}>
-              {checked.size === 0 ? "Tap what you pay for" : `Add ${checked.size} to my list`}
+              {checked.size === 0 ? t("picker.tapWhat") : t("picker.addN", { count: checked.size })}
             </Text>
           </Pressable>
         </View>

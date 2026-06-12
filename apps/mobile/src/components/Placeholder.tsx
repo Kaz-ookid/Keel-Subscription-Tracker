@@ -1,5 +1,6 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 
 import { spacing, typography, useTheme, type ThemeColors } from "../theme";
@@ -7,12 +8,13 @@ import { spacing, typography, useTheme, type ThemeColors } from "../theme";
 /** A "coming soon" screen for tabs whose real content lands later. */
 export function Placeholder({ sf, title }: { sf: string; title: string }) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.container}>
       <SymbolView name={sf as SymbolViewProps["name"]} size={48} tintColor={colors.accent} />
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.hint}>Coming soon.</Text>
+      <Text style={styles.hint}>{t("common.comingSoon")}</Text>
     </View>
   );
 }
