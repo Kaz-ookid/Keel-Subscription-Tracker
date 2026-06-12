@@ -38,6 +38,7 @@ import {
   type PaymentOccurrence,
 } from "@keel/core";
 
+import { buildSampleData } from "../lib/sample-data";
 import { loadState, saveState } from "../lib/storage";
 
 // Built-in seed categories presented as full Category records.
@@ -90,6 +91,8 @@ interface AppStateValue {
   archiveAccount: (id: string) => void;
   /** Debug/testing: wipe every item, ledger entry, category and account. */
   clearAllData: () => void;
+  /** Debug/testing: replace everything with a realistic seeded household. */
+  loadSampleData: () => void;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -293,6 +296,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts([]);
     };
 
+    const loadSampleData = () => {
+      const sample = buildSampleData();
+      setItems(sample.items);
+      setOccurrences(sample.occurrences);
+      setCustomCategories([]);
+      setAccounts(sample.accounts);
+    };
+
     return {
       items,
       occurrences,
@@ -316,6 +327,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       updateAccount,
       archiveAccount,
       clearAllData,
+      loadSampleData,
     };
   }, [items, occurrences, customCategories, accounts, loading]);
 

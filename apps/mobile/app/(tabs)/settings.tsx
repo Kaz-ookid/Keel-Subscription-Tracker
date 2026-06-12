@@ -15,7 +15,7 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, clearAllData } = useAppState();
+  const { accounts, clearAllData, loadSampleData } = useAppState();
 
   const confirmClear = () =>
     Alert.alert(
@@ -26,6 +26,12 @@ export default function SettingsScreen() {
         { text: "Delete everything", style: "destructive", onPress: clearAllData },
       ],
     );
+
+  const confirmSample = () =>
+    Alert.alert("Load sample data", "Replaces everything with a realistic seeded household.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Replace", style: "destructive", onPress: loadSampleData },
+    ]);
 
   return (
     <View style={styles.screen}>
@@ -38,9 +44,13 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
-      {/* Debug, for dogfooding: a clean slate in one (well-guarded) tap. */}
+      {/* Debug, for dogfooding: seed a realistic household or start clean. */}
       <View style={styles.card}>
-        <Pressable style={styles.row} onPress={confirmClear}>
+        <Pressable style={styles.row} onPress={confirmSample}>
+          <SymbolView name="wand.and.stars" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>Load sample data</Text>
+        </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmClear}>
           <SymbolView name="trash.fill" size={20} tintColor={tones.danger} />
           <Text style={[styles.rowText, styles.dangerText]}>Clear all data</Text>
         </Pressable>
@@ -81,6 +91,10 @@ function createStyles(colors: ThemeColors) {
     },
     dangerText: {
       color: tones.danger,
+    },
+    rowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     footer: {
       ...typography.caption,
