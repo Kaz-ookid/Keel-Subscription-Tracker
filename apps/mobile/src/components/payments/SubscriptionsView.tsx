@@ -1,4 +1,13 @@
-import { formatMoneyList, isInstallmentSchedule, summarizeCommitments, today } from "@keel/core";
+import {
+  formatMoneyList,
+  isInstallmentSchedule,
+  isPaymentItemComplete,
+  isRecurringSchedule,
+  summarizeCommitments,
+  summarizeInstallmentPlan,
+  today,
+  type PaymentItem,
+} from "@keel/core";
 import { useRouter } from "expo-router";
 import { useMemo } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
@@ -7,6 +16,16 @@ import { useAppState } from "../../state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
+
+/** The day of the month an item bills on — its fixed "place" in the list. */
+function billingDay(item: PaymentItem): number {
+  if (isRecurringSchedule(item.schedule)) return Number(item.schedule.nextChargeDate.slice(8, 10));
+  if (isInstallmentSchedule(item.schedule)) {
+    const s = summarizeInstallmentPlan(item.schedule);
+    return Number((s.nextDue?.dueDate ?? s.finalDueDate).slice(8, 10));
+  }
+  return 32;
+}
 
 /** The catalog: every item (including ended/paused ones a timeline can't show). */
 export function SubscriptionsView() {
@@ -32,12 +51,23 @@ export function SubscriptionsView() {
     );
   }
 
-  const commitments = summarizeCommitments(items, today());
+  const asOf = today();
+  const commitments = summarizeCommitments(items, asOf);
+
+  // A predictable, non-changing order: by the day of the month each item
+  // bills on (the 5th before the 15th), finished items sinking to the bottom.
+  // Sorting by "next charge" instead would reshuffle the list all the time.
+  const sorted = [...items].sort((a, b) => {
+    const doneA = isPaymentItemComplete(a, asOf) ? 1 : 0;
+    const doneB = isPaymentItemComplete(b, asOf) ? 1 : 0;
+    if (doneA !== doneB) return doneA - doneB;
+    return billingDay(a) - billingDay(b) || a.name.localeCompare(b.name);
+  });
 
   return (
     <FlatList
       style={styles.list}
-      data={items}
+      data={sorted}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
