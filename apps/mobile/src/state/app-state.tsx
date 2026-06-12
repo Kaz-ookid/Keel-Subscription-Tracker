@@ -118,7 +118,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         return result.item;
       });
       setItems(caughtUp);
-      setOccurrences([...state.occurrences, ...accrued]);
+      // Prune ledger entries whose item is gone (deleted before cascade
+      // deletion existed) — they'd render as nameless "(removed)" rows.
+      const knownIds = new Set(caughtUp.map((i) => i.id));
+      const kept = state.occurrences.filter((o) => knownIds.has(o.paymentItemId));
+      setOccurrences([...kept, ...accrued]);
       setCustomCategories(state.categories);
       setAccounts(state.accounts);
       setLoading(false);
@@ -176,6 +180,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     const removeSubscription = (id: string) => {
       setItems((prev) => prev.filter((i) => i.id !== id));
+      // Deleting an item takes its ledger with it — orphaned occurrences would
+      // surface as nameless "(removed)" rows in analytics. (Keeping history is
+      // what archive/end/pause are for; delete means "as if it never existed".)
+      setOccurrences((prev) => prev.filter((o) => o.paymentItemId !== id));
     };
 
     const markPaid = (id: string) => {
