@@ -14,6 +14,7 @@ import {
   groupByCategory,
   isInstallmentSchedule,
   isPaymentItemComplete,
+  isRecurringSchedule,
   mergeTotals,
   money,
   projectCharges,
@@ -34,6 +35,7 @@ import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../../src/components/HeroCard";
+import { IconBadge } from "../../src/components/IconBadge";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -98,9 +100,11 @@ export default function InsightsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, displayCurrency, rates, loading } = useAppState();
+  const { items, occurrences, categories, displayCurrency, rates, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
   const [selected, setSelected] = useState<number | null>(MONTHS_BACK);
+  // The expanded billing-cycle card ("interval-unit", or "bnpl").
+  const [expandedCadence, setExpandedCadence] = useState<string | null>(null);
 
   if (loading) {
     return (
@@ -192,10 +196,12 @@ export default function InsightsScreen() {
 
   // Pay in X: per-month figures make no sense for a finite plan — what
   // matters is how much is STILL OWED, and how far along the plans are.
-  const planSummaries = items.flatMap((i) =>
-    i.status === "active" && isInstallmentSchedule(i.schedule) && !isPaymentItemComplete(i, asOf)
-      ? [summarizeInstallmentPlan(i.schedule)]
-      : [],
+  const planItems = items.filter(
+    (i) =>
+      i.status === "active" && isInstallmentSchedule(i.schedule) && !isPaymentItemComplete(i, asOf),
+  );
+  const planSummaries = planItems.flatMap((i) =>
+    isInstallmentSchedule(i.schedule) ? [summarizeInstallmentPlan(i.schedule)] : [],
   );
   const bnplRemaining = sumByCurrency(planSummaries.map((s) => s.remainingAmount));
   const bnplTotal = sumByCurrency(planSummaries.map((s) => s.totalAmount));
@@ -343,22 +349,73 @@ export default function InsightsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>By billing cycle · theory</Text>
           {cadences.map((g) => {
+            const key = `${g.recurrence.interval}-${g.recurrence.unit}`;
+            const open = expandedCadence === key;
             const share = Math.min(amountIn(g.yearlyTotal) / yearlyTotalPrimary, 1);
             const label = capitalize(describeRecurrence(g.recurrence));
+            // The live subscriptions billing on this cycle.
+            const members = items.filter(
+              (i) =>
+                i.status === "active" &&
+                isRecurringSchedule(i.schedule) &&
+                !isPaymentItemComplete(i, asOf) &&
+                i.schedule.recurrence.unit === g.recurrence.unit &&
+                i.schedule.recurrence.interval === g.recurrence.interval,
+            );
             return (
-              <View key={`${g.recurrence.interval}-${g.recurrence.unit}`} style={styles.cadenceRow}>
-                <View style={styles.cadenceHeader}>
-                  <Text style={styles.cadenceLabel}>
-                    {label} <Text style={styles.cadenceCount}>×{g.count}</Text>
-                  </Text>
-                  <Text style={styles.cadenceAmount}>
-                    {totals(g.monthlyTotal)}/mo · {totals(g.yearlyTotal)}/yr
-                  </Text>
-                </View>
-                <View style={styles.shareTrack}>
-                  <View style={[styles.shareFill, { flex: share }]} />
-                  <View style={{ flex: 1 - share }} />
-                </View>
+              <View key={key} style={styles.cadenceRow}>
+                <Pressable
+                  style={styles.cadenceBody}
+                  onPress={() => setExpandedCadence(open ? null : key)}
+                >
+                  <View style={styles.cadenceHeader}>
+                    <Text style={styles.cadenceLabel}>
+                      {label} <Text style={styles.cadenceCount}>×{g.count}</Text>
+                    </Text>
+                    <View style={styles.cadenceRight}>
+                      <Text style={styles.cadenceAmount}>
+                        {totals(g.monthlyTotal)}/mo · {totals(g.yearlyTotal)}/yr
+                      </Text>
+                      <SymbolView
+                        name={open ? "chevron.up" : "chevron.down"}
+                        size={11}
+                        tintColor={colors.mutedText}
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.shareTrack}>
+                    <View style={[styles.shareFill, { flex: share }]} />
+                    <View style={{ flex: 1 - share }} />
+                  </View>
+                </Pressable>
+                {open &&
+                  members.map((item) => {
+                    const category = categories.find((c) => c.id === item.categoryId);
+                    const recurring = isRecurringSchedule(item.schedule)
+                      ? item.schedule
+                      : undefined;
+                    return (
+                      <Pressable
+                        key={item.id}
+                        style={styles.memberRow}
+                        onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
+                      >
+                        <IconBadge
+                          icon={category?.icon}
+                          fallback={item.name.charAt(0).toUpperCase()}
+                          color={item.color ?? colors.accent}
+                          size={28}
+                        />
+                        <Text style={styles.memberName} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <Text style={styles.memberValue}>
+                          {recurring ? formatMoney(recurring.amount) : ""}
+                        </Text>
+                        <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                      </Pressable>
+                    );
+                  })}
               </View>
             );
           })}
@@ -367,19 +424,61 @@ export default function InsightsScreen() {
               headline is what's still owed (not a meaningless per-month). */}
           {planSummaries.length > 0 && (
             <View style={styles.cadenceRow}>
-              <View style={styles.cadenceHeader}>
-                <Text style={styles.cadenceLabel}>
-                  Pay in X <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
+              <Pressable
+                style={styles.cadenceBody}
+                onPress={() => setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl")}
+              >
+                <View style={styles.cadenceHeader}>
+                  <Text style={styles.cadenceLabel}>
+                    Pay in X <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
+                  </Text>
+                  <View style={styles.cadenceRight}>
+                    <Text style={styles.bnplOwed}>{totals(bnplRemaining)} still owed</Text>
+                    <SymbolView
+                      name={expandedCadence === "bnpl" ? "chevron.up" : "chevron.down"}
+                      size={11}
+                      tintColor={colors.mutedText}
+                    />
+                  </View>
+                </View>
+                <View style={styles.shareTrack}>
+                  <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
+                  <View style={{ flex: 1 - bnplPaidShare }} />
+                </View>
+                <Text style={styles.statHint}>
+                  of {totals(bnplTotal)} total · the payments sit inside the bars above
                 </Text>
-                <Text style={styles.bnplOwed}>{totals(bnplRemaining)} still owed</Text>
-              </View>
-              <View style={styles.shareTrack}>
-                <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
-                <View style={{ flex: 1 - bnplPaidShare }} />
-              </View>
-              <Text style={styles.statHint}>
-                of {totals(bnplTotal)} total · the payments sit inside the bars above
-              </Text>
+              </Pressable>
+              {expandedCadence === "bnpl" &&
+                planItems.map((item) => {
+                  const category = categories.find((c) => c.id === item.categoryId);
+                  const plan = isInstallmentSchedule(item.schedule)
+                    ? summarizeInstallmentPlan(item.schedule)
+                    : undefined;
+                  return (
+                    <Pressable
+                      key={item.id}
+                      style={styles.memberRow}
+                      onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
+                    >
+                      <IconBadge
+                        icon={category?.icon}
+                        fallback={item.name.charAt(0).toUpperCase()}
+                        color={item.color ?? colors.accent}
+                        size={28}
+                      />
+                      <Text style={styles.memberName} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={styles.memberValue}>
+                        {plan
+                          ? `${formatMoney(plan.remainingAmount)} left · ${plan.paidCount} of ${plan.totalCount}`
+                          : ""}
+                      </Text>
+                      <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                    </Pressable>
+                  );
+                })}
             </View>
           )}
         </View>
@@ -530,9 +629,27 @@ function createStyles(colors: ThemeColors) {
     cadenceRow: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
-      padding: spacing.md,
+      paddingHorizontal: spacing.md,
+    },
+    cadenceBody: {
+      paddingVertical: spacing.md,
       gap: spacing.sm,
     },
+    cadenceRight: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    memberRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    memberName: { ...typography.body, color: colors.text, flex: 1 },
+    memberValue: { ...typography.caption, color: colors.mutedText },
     cadenceHeader: {
       flexDirection: "row",
       alignItems: "center",
