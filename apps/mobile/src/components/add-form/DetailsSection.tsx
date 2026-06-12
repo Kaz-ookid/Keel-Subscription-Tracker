@@ -65,20 +65,6 @@ export function MetaSection({ form }: { form: AddForm }) {
         </View>
       </View>
 
-      {form.isAutomatic && (
-        <FieldButton
-          label="Account"
-          value={form.selectedAccount?.name ?? (form.accountId ? "Archived account" : "Choose")}
-          hint={!form.selectedAccount}
-          accessory={
-            form.selectedAccount ? (
-              <View style={[styles.dot, { backgroundColor: form.selectedAccount.color }]} />
-            ) : undefined
-          }
-          onPress={() => form.setSheet("account")}
-        />
-      )}
-
       <FieldButton
         label="Reminder"
         value={form.reminderLabel}
