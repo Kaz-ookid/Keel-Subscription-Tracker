@@ -45,14 +45,17 @@ export default function OnboardingScreen() {
   const [savedCount, setSavedCount] = useState(0);
   const pagerRef = useRef<ScrollView>(null);
 
-  // On a revisit the picker only shows what isn't already tracked or pending.
-  const bank = useMemo(() => {
+  // Tracked/pending entries stay visible but greyed ("already in your list")
+  // — hiding them made the bank look like it was missing obvious brands.
+  const addedIds = useMemo(() => {
     const taken = new Set(items.map((i) => i.name.trim().toLowerCase()));
-    const pendingIds = new Set(pending.map((p) => p.id));
-    return SUGGESTED_COMMITMENTS.filter(
-      (s) => !taken.has(s.name.toLowerCase()) && !pendingIds.has(s.id),
+    return new Set(
+      SUGGESTED_COMMITMENTS.filter(
+        (s) => taken.has(s.name.toLowerCase()) || pending.some((p) => p.id === s.id),
+      ).map((s) => s.id),
     );
   }, [items, pending]);
+  const remaining = SUGGESTED_COMMITMENTS.length - addedIds.size;
 
   const finish = () => {
     void markOnboardingSeen();
@@ -112,7 +115,7 @@ export default function OnboardingScreen() {
       )}
 
       {phase === "pick" &&
-        (bank.length > 0 ? (
+        (remaining > 0 ? (
           <>
             <View style={styles.pickHeader}>
               <Text style={styles.pickTitle}>Which of these do you pay for?</Text>
@@ -120,7 +123,11 @@ export default function OnboardingScreen() {
                 <Text style={styles.skip}>Skip</Text>
               </Pressable>
             </View>
-            <SuggestionPicker suggestions={bank} onAdd={onAdd} />
+            <SuggestionPicker
+              suggestions={SUGGESTED_COMMITMENTS}
+              addedIds={addedIds}
+              onAdd={onAdd}
+            />
           </>
         ) : (
           <View style={styles.pane}>

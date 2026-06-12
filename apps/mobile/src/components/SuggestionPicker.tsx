@@ -19,8 +19,10 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../them
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
-  /** Already deduped against tracked items + pending entries by the caller. */
   suggestions: readonly SuggestedCommitment[];
+  /** Ids already tracked or pending — shown greyed with an "added" mark
+   *  rather than hidden, so the bank never LOOKS incomplete. */
+  addedIds?: ReadonlySet<string>;
   /** Checklist mode: fired with everything checked when the user confirms. */
   onAdd?: (selected: SuggestedCommitment[]) => void;
   /** Single-select mode (the Add flow): a row tap picks immediately —
@@ -38,7 +40,7 @@ function matches(s: SuggestedCommitment, query: string): boolean {
   );
 }
 
-export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
+export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [query, setQuery] = useState("");
@@ -145,8 +147,13 @@ export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
         }
         renderItem={({ item }) => {
           const isChecked = checked.has(item.id);
+          const added = addedIds?.has(item.id) ?? false;
           return (
-            <Pressable style={styles.row} onPress={() => (onPick ? onPick(item) : toggle(item.id))}>
+            <Pressable
+              style={[styles.row, added && styles.rowAdded]}
+              disabled={added}
+              onPress={() => (onPick ? onPick(item) : toggle(item.id))}
+            >
               <BrandBadge
                 domain={item.domain}
                 icon={item.color ? undefined : CATEGORY_ICONS.get(item.categoryId ?? "")}
@@ -160,11 +167,15 @@ export function SuggestionPicker({ suggestions, onAdd, onPick }: Props) {
                 </Text>
                 <Text style={styles.caption}>
                   {/* Without the section headers, each row says its category. */}
-                  {CATEGORY_NAMES.get(item.categoryId ?? "") ?? "Other"} · usually{" "}
-                  {item.unit === "month" ? "monthly" : "yearly"}
+                  {CATEGORY_NAMES.get(item.categoryId ?? "") ?? "Other"} ·{" "}
+                  {added
+                    ? "already in your list"
+                    : `usually ${item.unit === "month" ? "monthly" : "yearly"}`}
                 </Text>
               </View>
-              {onPick ? (
+              {added ? (
+                <SymbolView name="checkmark" size={14} tintColor={colors.mutedText} />
+              ) : onPick ? (
                 <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
               ) : (
                 <SymbolView
@@ -262,6 +273,9 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
       marginBottom: 4,
+    },
+    rowAdded: {
+      opacity: 0.45,
     },
     middle: {
       flex: 1,

@@ -58,9 +58,13 @@ function ChoosePhase({
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items } = useAppState();
 
-  const bank = useMemo(() => {
+  // Tracked names show greyed rather than hidden — a missing Netflix reads
+  // as a gap in the bank, a greyed one as "you already have it".
+  const addedIds = useMemo(() => {
     const taken = new Set(items.map((i) => i.name.trim().toLowerCase()));
-    return SUGGESTED_COMMITMENTS.filter((s) => !taken.has(s.name.toLowerCase()));
+    return new Set(
+      SUGGESTED_COMMITMENTS.filter((s) => taken.has(s.name.toLowerCase())).map((s) => s.id),
+    );
   }, [items]);
 
   return (
@@ -70,7 +74,7 @@ function ChoosePhase({
         <Text style={styles.customText}>Start from scratch</Text>
         <Text style={styles.customHint}>type everything yourself</Text>
       </Pressable>
-      <SuggestionPicker suggestions={bank} onPick={onPick} />
+      <SuggestionPicker suggestions={SUGGESTED_COMMITMENTS} addedIds={addedIds} onPick={onPick} />
     </View>
   );
 }

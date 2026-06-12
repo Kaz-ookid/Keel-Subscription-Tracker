@@ -237,6 +237,23 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     regions: ["GB"],
   },
 
+  {
+    id: "blue-plus",
+    name: "blue+ (Swisscom)",
+    categoryId: "streaming",
+    unit: "month",
+    domain: "swisscom.ch",
+    regions: ["CH"],
+  },
+  {
+    id: "bein-sports",
+    name: "beIN SPORTS",
+    categoryId: "streaming",
+    unit: "month",
+    domain: "beinsports.com",
+    regions: ["FR"],
+  },
+
   // ── Music & audio ─────────────────────────────────────────────────────
   {
     id: "spotify",
@@ -302,6 +319,31 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     unit: "month",
     domain: "podimo.com",
     regions: ["DK", "DE", "ES", "NO", "FI", "NL"],
+  },
+
+  {
+    id: "qobuz",
+    name: "Qobuz",
+    categoryId: "music",
+    unit: "month",
+    domain: "qobuz.com",
+    regions: ["FR", "CH", "DE", "GB", "BE", "NL", "IT", "ES", "AT"],
+  },
+  {
+    id: "bookbeat",
+    name: "BookBeat",
+    categoryId: "music",
+    unit: "month",
+    domain: "bookbeat.com",
+    regions: ["DE", "AT", "CH", "FR", "SE", "FI", "DK", "NO"],
+  },
+  {
+    id: "storytel",
+    name: "Storytel",
+    categoryId: "music",
+    unit: "month",
+    domain: "storytel.com",
+    regions: ["SE", "DK", "NO", "FI", "NL", "PL", "ES", "IT"],
   },
 
   // ── Communications ────────────────────────────────────────────────────
@@ -500,6 +542,40 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     domain: "lycamobile.com",
   },
 
+  {
+    id: "sosh",
+    name: "Sosh",
+    categoryId: "communications",
+    unit: "month",
+    domain: "sosh.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "red-by-sfr",
+    name: "RED by SFR",
+    categoryId: "communications",
+    unit: "month",
+    domain: "red-by-sfr.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "swype",
+    name: "swype",
+    categoryId: "communications",
+    unit: "month",
+    domain: "swype.ch",
+    regions: ["CH"],
+  },
+  {
+    id: "m-budget-mobile",
+    name: "M-Budget Mobile",
+    categoryId: "communications",
+    unit: "month",
+    domain: "m-budget-mobile.ch",
+    regions: ["CH"],
+    aliases: ["Migros"],
+  },
+
   // ── Software, cloud & AI ──────────────────────────────────────────────
   {
     id: "icloud",
@@ -660,12 +736,52 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "proton",
-    name: "Proton",
+    name: "Proton Unlimited",
     categoryId: "software",
     unit: "year",
     color: "#6D4AFF",
     domain: "proton.me",
-    aliases: ["ProtonVPN", "Proton Mail"],
+    aliases: ["Proton bundle"],
+  },
+  {
+    id: "proton-vpn",
+    name: "Proton VPN",
+    categoryId: "software",
+    unit: "year",
+    color: "#6D4AFF",
+    domain: "proton.me",
+  },
+  {
+    id: "proton-mail",
+    name: "Proton Mail",
+    categoryId: "software",
+    unit: "year",
+    color: "#6D4AFF",
+    domain: "proton.me",
+  },
+  {
+    id: "proton-pass",
+    name: "Proton Pass",
+    categoryId: "software",
+    unit: "year",
+    color: "#6D4AFF",
+    domain: "proton.me",
+  },
+  {
+    id: "proton-drive",
+    name: "Proton Drive",
+    categoryId: "software",
+    unit: "year",
+    color: "#6D4AFF",
+    domain: "proton.me",
+  },
+  {
+    id: "proton-family",
+    name: "Proton Family",
+    categoryId: "software",
+    unit: "year",
+    color: "#6D4AFF",
+    domain: "proton.me",
   },
   {
     id: "cyberghost",
@@ -697,6 +813,16 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     unit: "year",
     domain: "ovhcloud.com",
     regions: ["FR"],
+  },
+
+  {
+    id: "apple-one",
+    name: "Apple One",
+    categoryId: "software",
+    unit: "month",
+    color: "#000000",
+    domain: "apple.com",
+    aliases: ["Apple bundle"],
   },
 
   // ── Gaming ────────────────────────────────────────────────────────────
@@ -790,6 +916,15 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     categoryId: "gaming",
     unit: "month",
     domain: "minecraft.net",
+  },
+
+  {
+    id: "apple-arcade",
+    name: "Apple Arcade",
+    categoryId: "gaming",
+    unit: "month",
+    color: "#000000",
+    domain: "apple.com",
   },
 
   // ── Insurance ─────────────────────────────────────────────────────────
@@ -925,6 +1060,39 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     regions: ["CH", "DE", "BE", "LU"],
   },
 
+  {
+    id: "maif",
+    name: "MAIF",
+    categoryId: "insurance",
+    unit: "year",
+    domain: "maif.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "macif",
+    name: "MACIF",
+    categoryId: "insurance",
+    unit: "year",
+    domain: "macif.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "matmut",
+    name: "Matmut",
+    categoryId: "insurance",
+    unit: "year",
+    domain: "matmut.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "groupama",
+    name: "Groupama",
+    categoryId: "insurance",
+    unit: "year",
+    domain: "groupama.fr",
+    regions: ["FR"],
+  },
+
   // ── Housing ───────────────────────────────────────────────────────────
   { id: "rent", name: "Rent", categoryId: "housing", unit: "month" },
   { id: "mortgage", name: "Mortgage", categoryId: "housing", unit: "month" },
@@ -960,6 +1128,23 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     regions: ["GB", "IE"],
   },
   { id: "gis", name: "GIS / ORF-Beitrag", categoryId: "utilities", unit: "month", regions: ["AT"] },
+
+  {
+    id: "edf",
+    name: "EDF",
+    categoryId: "utilities",
+    unit: "month",
+    domain: "edf.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "engie",
+    name: "ENGIE",
+    categoryId: "utilities",
+    unit: "month",
+    domain: "engie.fr",
+    regions: ["FR"],
+  },
 
   // ── Transport ─────────────────────────────────────────────────────────
   { id: "transit-pass", name: "Public transport pass", categoryId: "transport", unit: "year" },
@@ -1031,6 +1216,42 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     unit: "month",
     domain: "swapfiets.com",
     regions: ["NL", "DE", "BE", "DK"],
+  },
+
+  {
+    id: "carte-avantage",
+    name: "Carte Avantage (SNCF)",
+    categoryId: "transport",
+    unit: "year",
+    domain: "sncf-connect.com",
+    aliases: ["SNCF"],
+    regions: ["FR"],
+  },
+  {
+    id: "velib",
+    name: "Vélib' Métropole",
+    categoryId: "transport",
+    unit: "year",
+    domain: "velib-metropole.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "seven25",
+    name: "seven25 (SBB)",
+    categoryId: "transport",
+    unit: "year",
+    color: "#EB0000",
+    domain: "sbb.ch",
+    aliases: ["night GA"],
+    regions: ["CH"],
+  },
+  {
+    id: "publibike",
+    name: "PubliBike",
+    categoryId: "transport",
+    unit: "year",
+    domain: "publibike.ch",
+    regions: ["CH"],
   },
 
   // ── Health & fitness ──────────────────────────────────────────────────
@@ -1138,6 +1359,47 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     unit: "month",
     color: "#000000",
     domain: "whoop.com",
+  },
+
+  {
+    id: "fitness-park",
+    name: "Fitness Park",
+    categoryId: "health",
+    unit: "month",
+    domain: "fitnesspark.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "fitnesspark-migros",
+    name: "Fitnesspark (Migros)",
+    categoryId: "health",
+    unit: "month",
+    domain: "fitnesspark.ch",
+    regions: ["CH"],
+  },
+  {
+    id: "nonstop-gym",
+    name: "NonStop Gym",
+    categoryId: "health",
+    unit: "month",
+    domain: "nonstopgym.ch",
+    regions: ["CH"],
+  },
+  {
+    id: "lets-go-fitness",
+    name: "Let's Go Fitness",
+    categoryId: "health",
+    unit: "month",
+    domain: "letsgofitness.ch",
+    regions: ["CH"],
+  },
+  {
+    id: "update-fitness",
+    name: "update Fitness",
+    categoryId: "health",
+    unit: "month",
+    domain: "update-fitness.ch",
+    regions: ["CH"],
   },
 
   // ── Finance & banking ─────────────────────────────────────────────────
@@ -1320,6 +1582,39 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     domain: "skillshare.com",
   },
 
+  {
+    id: "mediapart",
+    name: "Mediapart",
+    categoryId: "news",
+    unit: "month",
+    domain: "mediapart.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "le-figaro",
+    name: "Le Figaro",
+    categoryId: "news",
+    unit: "month",
+    domain: "lefigaro.fr",
+    regions: ["FR"],
+  },
+  {
+    id: "le-temps",
+    name: "Le Temps",
+    categoryId: "news",
+    unit: "month",
+    domain: "letemps.ch",
+    regions: ["CH"],
+  },
+  {
+    id: "kindle-unlimited",
+    name: "Kindle Unlimited",
+    categoryId: "news",
+    unit: "month",
+    domain: "amazon.com",
+    aliases: ["Kindle", "ebooks"],
+  },
+
   // ── Food & delivery ───────────────────────────────────────────────────
   {
     id: "hellofresh",
@@ -1409,6 +1704,32 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     aliases: ["Twitter Blue"],
   },
   { id: "onlyfans", name: "OnlyFans", categoryId: "social", unit: "month", domain: "onlyfans.com" },
+
+  {
+    id: "fruitz",
+    name: "Fruitz",
+    categoryId: "social",
+    unit: "month",
+    domain: "fruitz.io",
+    regions: ["FR", "CH", "BE", "ES"],
+  },
+  {
+    id: "happn",
+    name: "happn",
+    categoryId: "social",
+    unit: "month",
+    domain: "happn.com",
+    regions: ["FR", "CH", "BE"],
+  },
+  {
+    id: "meetic",
+    name: "Meetic",
+    categoryId: "social",
+    unit: "month",
+    domain: "meetic.fr",
+    regions: ["FR", "BE"],
+  },
+  { id: "grindr", name: "Grindr", categoryId: "social", unit: "month", domain: "grindr.com" },
 
   // ── Memberships & charity ─────────────────────────────────────────────
   { id: "charity", name: "Charity donation", categoryId: "memberships", unit: "month" },
