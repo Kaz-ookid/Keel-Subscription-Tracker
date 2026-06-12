@@ -156,7 +156,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
             >
               <BrandBadge
                 domain={item.domain}
-                icon={item.color ? undefined : CATEGORY_ICONS.get(item.categoryId ?? "")}
+                icon={CATEGORY_ICONS.get(item.categoryId ?? "")}
                 fallback={item.name.charAt(0).toUpperCase()}
                 color={item.color ?? colors.accent}
                 size={36}

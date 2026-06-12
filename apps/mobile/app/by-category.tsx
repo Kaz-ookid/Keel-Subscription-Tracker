@@ -155,7 +155,7 @@ export default function ByCategoryScreen() {
                   >
                     <BrandBadge
                       domain={member.domain}
-                      icon={member.color ? undefined : category?.icon}
+                      icon={category?.icon}
                       fallback={member.name.charAt(0).toUpperCase()}
                       color={member.color ?? colors.accent}
                       size={28}

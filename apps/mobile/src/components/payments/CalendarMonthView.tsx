@@ -239,7 +239,7 @@ export function CalendarMonthView() {
                         <View key={c.key} style={c.paid && styles.paidBadge}>
                           <BrandBadge
                             domain={c.domain}
-                            icon={c.color ? undefined : category?.icon}
+                            icon={category?.icon}
                             fallback={c.name.charAt(0).toUpperCase()}
                             color={c.color ?? colors.accent}
                             size={18}
@@ -288,7 +288,7 @@ export function CalendarMonthView() {
                 />
                 <BrandBadge
                   domain={c.domain}
-                  icon={c.color ? undefined : category?.icon}
+                  icon={category?.icon}
                   fallback={c.name.charAt(0).toUpperCase()}
                   color={c.color ?? colors.accent}
                   size={24}

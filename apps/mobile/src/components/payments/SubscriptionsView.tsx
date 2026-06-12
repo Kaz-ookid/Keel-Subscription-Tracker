@@ -138,7 +138,7 @@ export function SubscriptionsView() {
                       <View key={s.id} style={styles.pendingRow}>
                         <BrandBadge
                           domain={s.domain}
-                          icon={s.color ? undefined : category?.icon}
+                          icon={category?.icon}
                           fallback={s.name.charAt(0).toUpperCase()}
                           color={s.color ?? colors.accent}
                           size={36}
