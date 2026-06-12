@@ -136,7 +136,8 @@ export function UpcomingView() {
     if (o.status !== "charged" && o.status !== "skipped") continue;
     if (o.dueDate < monthStart || o.dueDate > windowEnd) continue;
     const item = itemsById.get(o.paymentItemId);
-    if (!item || item.settlementMode !== "manual" || item.schedule.kind !== "RECURRING") continue;
+    // Every commitment's settled payments stay visible — automatic ones too.
+    if (!item || item.schedule.kind !== "RECURRING") continue;
     settled.push({
       paymentItemId: item.id,
       name: item.name,
@@ -173,14 +174,15 @@ export function UpcomingView() {
       });
     }
   }
-  // Undo only ever reverts an item's MOST RECENT settlement — offer it there.
+  // Undo only ever reverts a commitment's MOST RECENT settlement — offer it
+  // there, and never on automatic charges (those really were debited).
   const latestSettled = new Map<string, Entry>();
   for (const e of settled) {
     const cur = latestSettled.get(e.paymentItemId);
     if (!cur || e.dueDate > cur.dueDate) latestSettled.set(e.paymentItemId, e);
   }
   latestSettled.forEach((e) => {
-    e.undoable = true;
+    if (e.scheduleType === "INSTALLMENT" || e.settlementMode === "manual") e.undoable = true;
   });
   const settledFiltered =
     filter === "all"

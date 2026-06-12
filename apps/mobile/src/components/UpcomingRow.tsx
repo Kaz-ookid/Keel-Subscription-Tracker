@@ -52,15 +52,18 @@ export function UpcomingRow({
   if (skipped) parts.push("skipped");
 
   return (
-    <Pressable onPress={onPress} style={[styles.row, settled && styles.rowSettled]}>
-      <IconBadge
-        icon={category?.icon}
-        fallback={charge.name.charAt(0).toUpperCase()}
-        color={accent}
-        size={36}
-      />
+    <Pressable onPress={onPress} style={styles.row}>
+      {/* Dim the content, not the whole row — Undo must keep full strength. */}
+      <View style={settled && styles.dimmed}>
+        <IconBadge
+          icon={category?.icon}
+          fallback={charge.name.charAt(0).toUpperCase()}
+          color={accent}
+          size={36}
+        />
+      </View>
 
-      <View style={styles.middle}>
+      <View style={[styles.middle, settled && styles.dimmed]}>
         <Text style={styles.name} numberOfLines={1}>
           {charge.name}
         </Text>
@@ -76,7 +79,7 @@ export function UpcomingRow({
       </View>
 
       <View style={styles.right}>
-        <View style={styles.amountRow}>
+        <View style={[styles.amountRow, settled && styles.dimmed]}>
           {paid && <SymbolView name="checkmark.circle.fill" size={14} tintColor={tones.success} />}
           <Text
             style={[
@@ -115,8 +118,8 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       gap: spacing.md,
     },
-    // Settled rows stay for completeness but don't catch the eye.
-    rowSettled: {
+    // Settled content stays for completeness but doesn't catch the eye.
+    dimmed: {
       opacity: 0.5,
     },
     amountRow: {
