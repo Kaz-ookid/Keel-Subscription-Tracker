@@ -260,7 +260,11 @@ describe("summarizePriceChanges", () => {
   it("measures the drift from signup price, worst first", () => {
     const base = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
     // 15.99 → 19.99: two edits, one of which changes the price.
-    const renamed = updateRecurringPaymentItem(base, { ...netflix, name: "Netflix 4K" }, { now: now() });
+    const renamed = updateRecurringPaymentItem(
+      base,
+      { ...netflix, name: "Netflix 4K" },
+      { now: now() },
+    );
     const raised = updateRecurringPaymentItem(
       renamed,
       { ...netflix, name: "Netflix 4K", amount: eur(19.99) },
