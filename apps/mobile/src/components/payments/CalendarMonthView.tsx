@@ -1,0 +1,405 @@
+// The Upcoming timeline as a month grid: every charge sits on its due day as
+// a brand badge — dimmed once paid, the day number warning-tinted while
+// something is overdue — so the calendar tells the month's story, not just
+// its schedule. Tapping a day opens its charges below (the same pattern as
+// tapping a bar on the Insights year chart). Past months read the ledger,
+// the future is projected — the same sources as the list view.
+
+import {
+  calendarDate,
+  COVERED_INSTALLMENT_STATUSES,
+  endOfMonth,
+  formatMoney,
+  formatTotalsIn,
+  isInstallmentSchedule,
+  projectCharges,
+  today,
+  type CalendarDate,
+  type Money,
+} from "@keel/core";
+import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { useMemo, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+
+import { useAppState } from "../../state/app-state";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import { BrandBadge } from "../BrandBadge";
+
+const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+const MONTH_FULL = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+interface DayCharge {
+  key: string;
+  paymentItemId: string;
+  name: string;
+  dueDate: CalendarDate;
+  amount: Money;
+  domain?: string;
+  color?: string;
+  categoryId?: string;
+  paid: boolean;
+  overdue: boolean;
+  installmentIndex?: number;
+  installmentCount?: number;
+}
+
+function firstOfShiftedMonth(asOf: CalendarDate, delta: number): CalendarDate {
+  const total = Number(asOf.slice(0, 4)) * 12 + (Number(asOf.slice(5, 7)) - 1) + delta;
+  const y = Math.floor(total / 12);
+  const m = String((total % 12) + 1).padStart(2, "0");
+  return calendarDate(`${y}-${m}-01`);
+}
+
+export function CalendarMonthView() {
+  const router = useRouter();
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { items, occurrences, categories, displayCurrency, rates } = useAppState();
+  const asOf = today();
+  const [offset, setOffset] = useState(0);
+  const [selectedDay, setSelectedDay] = useState<CalendarDate | null>(asOf);
+
+  const monthStart = firstOfShiftedMonth(asOf, offset);
+  const monthEnd = endOfMonth(monthStart);
+  const monthKey = monthStart.slice(0, 7);
+
+  // Every charge of the shown month on its due day — the list view's three
+  // sources (ledger, covered installments, projection), never double-counted.
+  const charges = useMemo<DayCharge[]>(() => {
+    const byId = new Map(items.map((i) => [i.id, i]));
+    return [
+      ...occurrences.flatMap((o) => {
+        if (o.status !== "charged" || o.dueDate.slice(0, 7) !== monthKey) return [];
+        const item = byId.get(o.paymentItemId);
+        if (!item) return [];
+        return [
+          {
+            key: o.id,
+            paymentItemId: item.id,
+            name: item.name,
+            dueDate: o.dueDate,
+            amount: o.amount,
+            domain: item.domain,
+            color: item.color,
+            categoryId: item.categoryId,
+            paid: true,
+            overdue: false,
+          },
+        ];
+      }),
+      ...items.flatMap((item) => {
+        if (!isInstallmentSchedule(item.schedule)) return [];
+        const count = item.schedule.installments.length;
+        return item.schedule.installments
+          .filter(
+            (inst) =>
+              COVERED_INSTALLMENT_STATUSES.includes(inst.status) &&
+              inst.dueDate.slice(0, 7) === monthKey,
+          )
+          .map((inst) => ({
+            key: inst.id,
+            paymentItemId: item.id,
+            name: item.name,
+            dueDate: inst.dueDate,
+            amount: inst.amount,
+            domain: item.domain,
+            color: item.color,
+            categoryId: item.categoryId,
+            paid: true,
+            overdue: false,
+            installmentIndex: inst.index,
+            installmentCount: count,
+          }));
+      }),
+      ...projectCharges(items, monthEnd)
+        .filter((c) => c.dueDate.slice(0, 7) === monthKey)
+        .map((c) => ({
+          key: `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
+          paymentItemId: c.paymentItemId,
+          name: c.name,
+          dueDate: c.dueDate,
+          amount: c.amount,
+          domain: c.domain,
+          color: c.color,
+          categoryId: c.categoryId,
+          paid: false,
+          overdue: c.dueDate < asOf,
+          installmentIndex: c.installmentIndex,
+          installmentCount: c.installmentCount,
+        })),
+    ];
+  }, [items, occurrences, monthKey, monthEnd, asOf]);
+
+  const byDay = useMemo(() => {
+    const map = new Map<string, DayCharge[]>();
+    for (const c of charges) {
+      const list = map.get(c.dueDate);
+      if (list) list.push(c);
+      else map.set(c.dueDate, [c]);
+    }
+    return map;
+  }, [charges]);
+
+  // Monday-first grid: leading blanks, then every day of the month.
+  const weeks = useMemo(() => {
+    const y = Number(monthStart.slice(0, 4));
+    const m = Number(monthStart.slice(5, 7));
+    const daysInMonth = Number(monthEnd.slice(8, 10));
+    const leading = (new Date(y, m - 1, 1).getDay() + 6) % 7;
+    const cells: (CalendarDate | null)[] = [
+      ...Array.from({ length: leading }, () => null),
+      ...Array.from({ length: daysInMonth }, (_, i) =>
+        calendarDate(`${monthKey}-${String(i + 1).padStart(2, "0")}`),
+      ),
+    ];
+    while (cells.length % 7 !== 0) cells.push(null);
+    const rows: (CalendarDate | null)[][] = [];
+    for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+    return rows;
+  }, [monthStart, monthEnd, monthKey]);
+
+  const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
+    formatTotalsIn(values, displayCurrency, rates);
+  const monthTotals = charges.map((c) => c.amount);
+  const selected = selectedDay ? (byDay.get(selectedDay) ?? []) : [];
+
+  const monthLabel = `${MONTH_FULL[Number(monthStart.slice(5, 7)) - 1]} ${monthStart.slice(0, 4)}`;
+
+  const shiftMonth = (delta: number) => {
+    const next = offset + delta;
+    setOffset(next);
+    // Landing back on the current month re-selects today; elsewhere, nothing.
+    setSelectedDay(next === 0 ? asOf : null);
+  };
+
+  return (
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <View style={styles.header}>
+        <Pressable onPress={() => shiftMonth(-1)} hitSlop={10} style={styles.chevronButton}>
+          <SymbolView name="chevron.left" size={14} tintColor={colors.text} />
+        </Pressable>
+        <View style={styles.headerMiddle}>
+          <Text style={styles.monthTitle}>{monthLabel}</Text>
+          {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
+        </View>
+        <Pressable onPress={() => shiftMonth(1)} hitSlop={10} style={styles.chevronButton}>
+          <SymbolView name="chevron.right" size={14} tintColor={colors.text} />
+        </Pressable>
+      </View>
+
+      <View style={styles.grid}>
+        <View style={styles.weekRow}>
+          {WEEKDAYS.map((d) => (
+            <Text key={d} style={styles.weekday}>
+              {d}
+            </Text>
+          ))}
+        </View>
+        {weeks.map((week, w) => (
+          <View key={w} style={styles.weekRow}>
+            {week.map((date, i) => {
+              if (!date) return <View key={`blank-${i}`} style={styles.dayCell} />;
+              const dayCharges = byDay.get(date) ?? [];
+              const isToday = date === asOf;
+              const isSelected = date === selectedDay;
+              const hasOverdue = dayCharges.some((c) => c.overdue);
+              return (
+                <Pressable
+                  key={date}
+                  style={[styles.dayCell, isSelected && styles.daySelected]}
+                  onPress={() => setSelectedDay(isSelected ? null : date)}
+                >
+                  <Text
+                    style={[
+                      styles.dayNumber,
+                      isToday && styles.dayToday,
+                      hasOverdue && { color: tones.warning },
+                    ]}
+                  >
+                    {Number(date.slice(8, 10))}
+                  </Text>
+                  <View style={styles.dayBadges}>
+                    {dayCharges.slice(0, 2).map((c) => {
+                      const category = categories.find((cat) => cat.id === c.categoryId);
+                      return (
+                        <View key={c.key} style={c.paid && styles.paidBadge}>
+                          <BrandBadge
+                            domain={c.domain}
+                            icon={c.color ? undefined : category?.icon}
+                            fallback={c.name.charAt(0).toUpperCase()}
+                            color={c.color ?? colors.accent}
+                            size={18}
+                          />
+                        </View>
+                      );
+                    })}
+                    {dayCharges.length > 2 && (
+                      <Text style={styles.moreBadge}>+{dayCharges.length - 2}</Text>
+                    )}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
+        ))}
+      </View>
+
+      {/* The tapped day's charges — light, in place, read-only. */}
+      {selectedDay && selected.length > 0 && (
+        <View style={styles.detailCard}>
+          <View style={styles.detailHeader}>
+            <Text style={styles.detailTitle}>
+              {Number(selectedDay.slice(8, 10))} {monthLabel}
+            </Text>
+            <Text style={styles.detailTotal}>{totals(selected.map((c) => c.amount))}</Text>
+          </View>
+          {selected.map((c) => {
+            const category = categories.find((cat) => cat.id === c.categoryId);
+            return (
+              <Pressable
+                key={c.key}
+                style={styles.detailRow}
+                onPress={() => router.push({ pathname: "/item", params: { id: c.paymentItemId } })}
+              >
+                <SymbolView
+                  name={
+                    c.paid
+                      ? "checkmark.circle.fill"
+                      : c.overdue
+                        ? "exclamationmark.circle"
+                        : "clock"
+                  }
+                  size={14}
+                  tintColor={c.paid ? tones.success : c.overdue ? tones.warning : colors.mutedText}
+                />
+                <BrandBadge
+                  domain={c.domain}
+                  icon={c.color ? undefined : category?.icon}
+                  fallback={c.name.charAt(0).toUpperCase()}
+                  color={c.color ?? colors.accent}
+                  size={24}
+                />
+                <Text style={styles.detailName} numberOfLines={1}>
+                  {c.name}
+                  {c.installmentIndex && c.installmentCount ? (
+                    <Text style={styles.detailCount}>
+                      {" "}
+                      · {c.installmentIndex} of {c.installmentCount}
+                    </Text>
+                  ) : null}
+                </Text>
+                <Text style={styles.detailAmount}>{formatMoney(c.amount)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
+    </ScrollView>
+  );
+}
+
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.background },
+    content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    chevronButton: {
+      width: 32,
+      height: 32,
+      borderRadius: radius.sm,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    headerMiddle: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      paddingHorizontal: spacing.xs,
+    },
+    monthTitle: { ...typography.label, fontSize: 17, color: colors.text },
+    monthTotal: { ...typography.caption, color: colors.mutedText },
+    grid: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.xs,
+      gap: 2,
+    },
+    weekRow: { flexDirection: "row", gap: 2 },
+    weekday: {
+      flex: 1,
+      textAlign: "center",
+      ...typography.caption,
+      fontSize: 11,
+      color: colors.mutedText,
+      paddingVertical: spacing.xs,
+    },
+    dayCell: {
+      flex: 1,
+      minHeight: 56,
+      borderRadius: radius.sm,
+      alignItems: "center",
+      paddingTop: 4,
+      gap: 3,
+    },
+    daySelected: { backgroundColor: colors.background },
+    dayNumber: { ...typography.caption, color: colors.text },
+    dayToday: { color: colors.accent, fontWeight: "700" },
+    dayBadges: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: 2,
+      paddingHorizontal: 1,
+    },
+    paidBadge: { opacity: 0.35 },
+    moreBadge: { ...typography.caption, fontSize: 10, color: colors.mutedText },
+    detailCard: {
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.xs,
+    },
+    detailHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "baseline",
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    detailTitle: { ...typography.label, color: colors.text },
+    detailTotal: { ...typography.caption, fontWeight: "600", color: colors.text },
+    detailRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: spacing.sm,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    detailName: { ...typography.caption, color: colors.text, flex: 1 },
+    detailCount: { ...typography.caption, color: colors.mutedText },
+    detailAmount: { ...typography.caption, fontWeight: "600", color: colors.text },
+  });
+}

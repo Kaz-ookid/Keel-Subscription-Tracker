@@ -3,9 +3,11 @@
 // including ended/paused ones a timeline can't show.
 
 import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { CalendarMonthView } from "../../src/components/payments/CalendarMonthView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
@@ -23,6 +25,8 @@ export default function PaymentsScreen() {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [view, setView] = useState<PaymentsView>("upcoming");
+  // Upcoming has two zooms of its own: the timeline list and the month grid.
+  const [calendar, setCalendar] = useState(false);
   const router = useRouter();
   const { items, accounts, loading } = useAppState();
 
@@ -55,9 +59,30 @@ export default function PaymentsScreen() {
             );
           })}
         </View>
+        {view === "upcoming" && (
+          <Pressable
+            accessibilityLabel={calendar ? "Show as list" : "Show as calendar"}
+            onPress={() => setCalendar((c) => !c)}
+            style={styles.calendarToggle}
+          >
+            <SymbolView
+              name={calendar ? "list.bullet" : "calendar"}
+              size={17}
+              tintColor={colors.text}
+            />
+          </Pressable>
+        )}
       </View>
 
-      {view === "upcoming" ? <UpcomingView /> : <SubscriptionsView />}
+      {view === "upcoming" ? (
+        calendar ? (
+          <CalendarMonthView />
+        ) : (
+          <UpcomingView />
+        )
+      ) : (
+        <SubscriptionsView />
+      )}
     </View>
   );
 }
@@ -69,10 +94,14 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
     },
     switchWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
       paddingHorizontal: spacing.md,
       paddingTop: spacing.md,
     },
     switch: {
+      flex: 1,
       flexDirection: "row",
       backgroundColor: colors.surface,
       borderRadius: radius.md,
@@ -80,6 +109,16 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
       padding: 3,
       gap: 3,
+    },
+    calendarToggle: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
     },
     pill: {
       flex: 1,
