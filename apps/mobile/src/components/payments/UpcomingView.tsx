@@ -10,6 +10,7 @@ import {
   type ProjectedCharge,
 } from "@keel/core";
 import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -58,8 +59,9 @@ interface Section {
   key: string;
   title: string;
   overdue?: boolean;
-  /** Set on the first day of a new month — rendered as a banderole. */
+  /** A month banderole that expands/collapses the sections after it. */
   monthLabel?: string;
+  toggle?: boolean;
   data: ProjectedCharge[];
 }
 
@@ -71,6 +73,8 @@ export function UpcomingView() {
   const { items, accounts, loading, markPaid, markInstallmentPaid } = useAppState();
   // "all" | "none" (no account) | an account id.
   const [filter, setFilter] = useState("all");
+  // Next month stays one tap away — the daily view is about THIS month.
+  const [nextMonthOpen, setNextMonthOpen] = useState(false);
 
   const asOf = today();
   const monthEnd = endOfMonth(asOf);
@@ -121,13 +125,27 @@ export function UpcomingView() {
     if (bucket) bucket.push(c);
     else byDay.set(c.dueDate, [c]);
   }
-  let lastMonth = asOf.slice(0, 7);
+  const thisMonth = asOf.slice(0, 7);
+  const nextSections: Section[] = [];
   byDay.forEach((data, date) => {
-    const month = date.slice(0, 7);
-    const monthLabel = month !== lastMonth ? `${monthName(date)} ${date.slice(0, 4)}` : undefined;
-    lastMonth = month;
-    sections.push({ key: date, title: dayLabel(date, asOf), monthLabel, data });
+    const section: Section = { key: date, title: dayLabel(date, asOf), data };
+    if (date.slice(0, 7) === thisMonth) sections.push(section);
+    else nextSections.push(section);
   });
+  if (nextSections.length > 0) {
+    const label = `${monthName(windowEnd)} ${windowEnd.slice(0, 4)}`;
+    const nextTotal = formatMoneyList(
+      sumByCurrency(nextSections.flatMap((s) => s.data.map((c) => c.amount))),
+    );
+    sections.push({
+      key: "next-month",
+      title: "",
+      monthLabel: nextMonthOpen ? label : `${label} · ${nextTotal}`,
+      toggle: true,
+      data: [],
+    });
+    if (nextMonthOpen) sections.push(...nextSections);
+  }
 
   const heroLabel = selectedAccount
     ? `${selectedAccount.name} needs`
@@ -194,25 +212,34 @@ export function UpcomingView() {
           </Text>
         </View>
       }
-      renderSectionHeader={({ section }) => (
-        <View style={styles.sectionHeaderWrap}>
-          {section.monthLabel && (
-            <View style={styles.monthBreak}>
-              <View style={styles.monthLine} />
-              <Text style={styles.monthText}>{section.monthLabel}</Text>
-              <View style={styles.monthLine} />
+      renderSectionHeader={({ section }) =>
+        section.toggle ? (
+          <Pressable
+            style={[styles.sectionHeaderWrap, styles.monthBreak]}
+            onPress={() => setNextMonthOpen((open) => !open)}
+          >
+            <View style={styles.monthLine} />
+            <Text style={styles.monthText}>{section.monthLabel}</Text>
+            <SymbolView
+              name={nextMonthOpen ? "chevron.up" : "chevron.down"}
+              size={11}
+              tintColor={colors.mutedText}
+            />
+            <View style={styles.monthLine} />
+          </Pressable>
+        ) : (
+          <View style={styles.sectionHeaderWrap}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, section.overdue && { color: tones.warning }]}>
+                {section.title}
+              </Text>
+              <Text style={styles.sectionTotal}>
+                {formatMoneyList(sumByCurrency(section.data.map((c) => c.amount)))}
+              </Text>
             </View>
-          )}
-          <View style={styles.sectionHeader}>
-            <Text style={[styles.sectionTitle, section.overdue && { color: tones.warning }]}>
-              {section.title}
-            </Text>
-            <Text style={styles.sectionTotal}>
-              {formatMoneyList(sumByCurrency(section.data.map((c) => c.amount)))}
-            </Text>
           </View>
-        </View>
-      )}
+        )
+      }
       renderItem={({ item }) => (
         <UpcomingRow
           charge={item}
@@ -296,6 +323,7 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
       paddingTop: spacing.lg,
+      paddingBottom: spacing.sm,
     },
     monthLine: {
       flex: 1,
