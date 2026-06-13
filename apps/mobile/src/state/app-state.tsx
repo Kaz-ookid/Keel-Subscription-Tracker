@@ -11,6 +11,7 @@ import { randomUUID } from "expo-crypto";
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  accrueDueInstallments,
   accrueDueOccurrences,
   canMarkPaid,
   DEFAULT_CATEGORIES,
@@ -120,10 +121,15 @@ interface AppStateValue {
 
 const AppStateContext = createContext<AppStateValue | null>(null);
 
-/** Catch an automatic item up to today, logging any charges that have come due. */
+/** Catch an automatic item up to today: recurring items log any charges that
+ *  have come due; Pay-in-X plans mark any installments that have come due as
+ *  paid (the provider debits them automatically). Manual items are untouched. */
 function catchUp(item: PaymentItem): { item: PaymentItem; occurrences: PaymentOccurrence[] } {
   if (item.status !== "active" || item.settlementMode !== "automatic") {
     return { item, occurrences: [] };
+  }
+  if (item.scheduleType === "INSTALLMENT") {
+    return { item: accrueDueInstallments(item, today(), { now: now() }), occurrences: [] };
   }
   return accrueDueOccurrences(item, today(), { now: now(), makeId: randomUUID });
 }

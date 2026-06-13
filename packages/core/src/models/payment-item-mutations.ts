@@ -436,3 +436,36 @@ export function accrueDueOccurrences(
     occurrences,
   };
 }
+
+/**
+ * Automatic catch-up for an INSTALLMENT plan: mark every installment whose due
+ * date has arrived (≤ `asOf`) as `paid`, dated to its due date and drawn from
+ * the item's account — the BNPL counterpart of `accrueDueOccurrences`, for
+ * plans the provider debits automatically. Payments live on the installments
+ * themselves (not the occurrence ledger), so nothing is returned to append.
+ * Non-installment items and already-covered installments pass through
+ * untouched. Pure — the clock is injected.
+ */
+export function accrueDueInstallments(
+  item: PaymentItem,
+  asOf: CalendarDate,
+  ctx: { now: Timestamp },
+): PaymentItem {
+  if (item.schedule.kind !== "INSTALLMENT") return item;
+  const schedule = item.schedule;
+
+  let changed = false;
+  const installments: Installment[] = schedule.installments.map((inst) => {
+    if (COVERED_INSTALLMENT_STATUSES.includes(inst.status) || inst.dueDate > asOf) return inst;
+    changed = true;
+    return {
+      ...inst,
+      status: "paid" as InstallmentStatus,
+      paidDate: inst.dueDate,
+      paidFromAccountId: item.accountId ?? inst.paidFromAccountId,
+    };
+  });
+  if (!changed) return item;
+
+  return { ...item, updatedAt: ctx.now, schedule: { ...schedule, installments } };
+}

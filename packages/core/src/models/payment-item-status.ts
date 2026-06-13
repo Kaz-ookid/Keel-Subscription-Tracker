@@ -39,16 +39,17 @@ export function canMarkNextInstallmentPaid(item: PaymentItem, asOf: CalendarDate
 
 /**
  * The ONE rule for "can this item's running payment be ticked off now",
- * shared by recurring manual subscriptions and Pay-in-X plans alike (what
- * applies to one must apply to the other): the payment must be due, overdue,
- * or due later in the current calendar month — never a later month.
- * Automatic recurring items are never hand-ticked.
+ * shared by recurring subscriptions and Pay-in-X plans alike (what applies to
+ * one must apply to the other): the item must be MANUAL (automatic ones debit
+ * themselves and are caught up automatically — never hand-ticked), and the
+ * payment must be due, overdue, or due later in the current calendar month —
+ * never a later month.
  */
 export function canMarkPaid(item: PaymentItem, asOf: CalendarDate): boolean {
   if (item.status !== "active" || isPaymentItemComplete(item, asOf)) return false;
+  if (item.settlementMode !== "manual") return false;
   if (isInstallmentSchedule(item.schedule)) return canMarkNextInstallmentPaid(item, asOf);
   if (isRecurringSchedule(item.schedule)) {
-    if (item.settlementMode !== "manual") return false;
     return withinCurrentMonth(item.schedule.nextChargeDate, asOf);
   }
   return false;

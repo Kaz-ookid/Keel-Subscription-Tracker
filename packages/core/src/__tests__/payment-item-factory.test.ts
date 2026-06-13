@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  accrueDueInstallments,
   accrueDueOccurrences,
   calendarDate,
   canMarkNextInstallmentPaid,
   canMarkPaid,
   fromMajor,
   isInstallmentSchedule,
+  summarizeInstallmentPlan,
   isPaymentItemComplete,
   isRecurringSchedule,
   makeInstallmentPaymentItem,
@@ -485,6 +487,56 @@ describe("canMarkPaid (unified cycle cap)", () => {
       { id: "r4", now: now() },
     );
     expect(canMarkPaid(ended, calendarDate("2026-03-01"))).toBe(false);
+  });
+});
+
+describe("automatic Pay-in-X", () => {
+  const ids = () => {
+    let n = 0;
+    return () => `ai-${++n}`;
+  };
+  const autoPlan: NewInstallmentInput = {
+    name: "Sofa (auto)",
+    totalAmount: fromMajor(300, "EUR"),
+    numberOfInstallments: 3,
+    recurrence: RECURRENCE_PRESETS.MONTHLY,
+    firstInstallmentDate: calendarDate("2026-01-10"),
+    settlementMode: "automatic",
+    accountId: "acc-1",
+  };
+
+  it("never offers a manual tick-off for an automatic plan", () => {
+    const item = makeInstallmentPaymentItem(autoPlan, { id: "p1", now: now(), makeId: ids() });
+    // Jan 10 is due, but it's automatic → not hand-tickable.
+    expect(canMarkPaid(item, calendarDate("2026-01-10"))).toBe(false);
+    // The same plan as manual IS tickable in that state.
+    const manual = makeInstallmentPaymentItem(
+      { ...autoPlan, settlementMode: "manual" },
+      { id: "p2", now: now(), makeId: ids() },
+    );
+    expect(canMarkPaid(manual, calendarDate("2026-01-10"))).toBe(true);
+  });
+
+  it("auto-covers installments whose due date has arrived", () => {
+    const item = makeInstallmentPaymentItem(autoPlan, { id: "p1", now: now(), makeId: ids() });
+    // By Feb 15, Jan 10 and Feb 10 have come due; Mar 10 hasn't.
+    const caught = accrueDueInstallments(item, calendarDate("2026-02-15"), { now: now() });
+    if (!isInstallmentSchedule(caught.schedule)) throw new Error("expected installment");
+    const plan = summarizeInstallmentPlan(caught.schedule);
+    expect(plan.paidCount).toBe(2);
+    expect(plan.nextDue?.dueDate).toBe("2026-03-10");
+    // Paid installments are dated to their due date and drawn from the account.
+    const first = caught.schedule.installments[0];
+    expect(first.status).toBe("paid");
+    expect(first.paidDate).toBe("2026-01-10");
+    expect(first.paidFromAccountId).toBe("acc-1");
+  });
+
+  it("is a no-op once everything due is already covered", () => {
+    const item = makeInstallmentPaymentItem(autoPlan, { id: "p1", now: now(), makeId: ids() });
+    const once = accrueDueInstallments(item, calendarDate("2026-02-15"), { now: now() });
+    const twice = accrueDueInstallments(once, calendarDate("2026-02-15"), { now: now() });
+    expect(twice).toBe(once); // same reference — nothing changed
   });
 });
 
