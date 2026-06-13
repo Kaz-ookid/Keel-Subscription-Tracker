@@ -73,6 +73,23 @@ export function FormSheets({ form }: { form: AddForm }) {
         />
       </WheelSheet>
 
+      <WheelSheet
+        visible={form.sheet === "convertsDate"}
+        title={t("add.trialEnds")}
+        onClose={close}
+      >
+        <DateTimePicker
+          value={form.convertsDate}
+          mode="date"
+          display="spinner"
+          themeVariant={scheme}
+          textColor={colors.text}
+          onChange={(_, d) => {
+            if (d) form.setConvertsDate(d);
+          }}
+        />
+      </WheelSheet>
+
       <WheelSheet visible={form.sheet === "endDate"} title={t("add.ends")} onClose={close}>
         <Picker
           selectedValue={form.endDateCal ?? "never"}

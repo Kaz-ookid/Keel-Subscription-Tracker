@@ -16,8 +16,32 @@ import {
   type NewInstallmentInput,
   type NewRecurringInput,
 } from "./payment-item-factory";
-import type { PaymentItem } from "./payment-item";
+import { effectiveRecurringAmount, type PaymentItem, type RecurringSchedule } from "./payment-item";
 import type { PaymentOccurrence } from "./payment-occurrence";
+
+/**
+ * Finalize a trial/intro once a real charge has reached its conversion date:
+ * the regular price becomes the standing `amount`, the change is recorded in
+ * `priceHistory` (so it shows up in the Price-changes insight — it genuinely
+ * is one), and `introOffer` clears. No-op when there's no offer or the date
+ * hasn't reached `convertsOn` yet.
+ */
+function graduateIfConverted(
+  schedule: RecurringSchedule,
+  through: CalendarDate,
+): RecurringSchedule {
+  const offer = schedule.introOffer;
+  if (!offer || through < offer.convertsOn) return schedule;
+  return {
+    ...schedule,
+    amount: offer.regularAmount,
+    priceHistory: [
+      ...schedule.priceHistory,
+      { amount: offer.regularAmount, effectiveFrom: offer.convertsOn },
+    ],
+    introOffer: undefined,
+  };
+}
 
 export interface UpdateContext {
   now: Timestamp;
@@ -256,24 +280,26 @@ export function recordRecurringPayment(
   }
   const schedule = item.schedule;
 
+  const due = schedule.nextChargeDate;
   const occurrence: PaymentOccurrence = {
     id: ctx.id,
     paymentItemId: item.id,
-    dueDate: schedule.nextChargeDate,
+    dueDate: due,
     chargedDate: ctx.paidDate,
     paidDate: ctx.paidDate,
     paidFromAccountId: ctx.paidFromAccountId,
     recordedAt: ctx.now,
-    amount: schedule.amount,
+    amount: effectiveRecurringAmount(schedule, due),
     status: "charged",
   };
 
+  const graduated = graduateIfConverted(schedule, due);
   const advanced: PaymentItem = {
     ...item,
     updatedAt: ctx.now,
     schedule: {
-      ...schedule,
-      nextChargeDate: addRecurrence(schedule.nextChargeDate, schedule.recurrence),
+      ...graduated,
+      nextChargeDate: addRecurrence(due, schedule.recurrence),
     },
   };
 
@@ -315,21 +341,23 @@ export function skipRecurringPayment(
   }
   const schedule = item.schedule;
 
+  const due = schedule.nextChargeDate;
   const occurrence: PaymentOccurrence = {
     id: ctx.id,
     paymentItemId: item.id,
-    dueDate: schedule.nextChargeDate,
+    dueDate: due,
     recordedAt: ctx.now,
-    amount: schedule.amount,
+    amount: effectiveRecurringAmount(schedule, due),
     status: "skipped",
   };
 
+  const graduated = graduateIfConverted(schedule, due);
   const advanced: PaymentItem = {
     ...item,
     updatedAt: ctx.now,
     schedule: {
-      ...schedule,
-      nextChargeDate: addRecurrence(schedule.nextChargeDate, schedule.recurrence),
+      ...graduated,
+      nextChargeDate: addRecurrence(due, schedule.recurrence),
     },
   };
 
@@ -365,26 +393,36 @@ export function accrueDueOccurrences(
   const occurrences: PaymentOccurrence[] = [];
 
   // CalendarDate is YYYY-MM-DD, so string comparison is chronological.
+  let crossedConversion = false;
   while (schedule.nextChargeDate <= limit) {
     const due = schedule.nextChargeDate;
-    occurrences.push({
-      id: ctx.makeId(),
-      paymentItemId: item.id,
-      dueDate: due,
-      chargedDate: due,
-      paidDate: due,
-      paidFromAccountId: item.accountId,
-      recordedAt: ctx.now,
-      amount: schedule.amount,
-      status: "charged",
-    });
+    const amount = effectiveRecurringAmount(schedule, due);
+    // Free-trial occurrences (0) aren't real charges — advance past them
+    // without logging, exactly as the projection skips them.
+    if (amount.amount > 0) {
+      occurrences.push({
+        id: ctx.makeId(),
+        paymentItemId: item.id,
+        dueDate: due,
+        chargedDate: due,
+        paidDate: due,
+        paidFromAccountId: item.accountId,
+        recordedAt: ctx.now,
+        amount,
+        status: "charged",
+      });
+    }
+    if (schedule.introOffer && due >= schedule.introOffer.convertsOn) crossedConversion = true;
     schedule = { ...schedule, nextChargeDate: addRecurrence(due, schedule.recurrence) };
   }
+
+  // Finalize a converted trial once a charge has crossed its conversion date.
+  if (crossedConversion) schedule = graduateIfConverted(schedule, limit);
 
   // The plan is finished once the cursor has moved past its end date.
   const completed = endDate !== undefined && schedule.nextChargeDate > endDate;
 
-  if (occurrences.length === 0 && !completed) {
+  if (occurrences.length === 0 && !completed && !crossedConversion) {
     return { item, occurrences };
   }
 

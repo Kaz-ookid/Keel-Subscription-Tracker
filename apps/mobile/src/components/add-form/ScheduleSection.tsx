@@ -40,6 +40,57 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
   );
 }
 
+/** Free trial / intro price: a recurring price that changes on a date. Niche
+ *  but discoverable, like RepeatsOnRow — off by default, and when on it folds
+ *  the regular price + conversion date in (replacing the plain "First billing"
+ *  date, which for a free trial IS the conversion date). */
+function TrialRow({ form }: { form: AddForm }) {
+  const { t } = useTranslation();
+  const styles = useFormStyles();
+  return (
+    <>
+      <View style={styles.rowField}>
+        <Text style={styles.label}>{t("add.freeTrial")}</Text>
+        <View style={styles.rowControl}>
+          <Segmented
+            options={[
+              { value: "off", label: t("common.no") },
+              { value: "on", label: t("common.yes") },
+            ]}
+            value={form.isTrial ? "on" : "off"}
+            onChange={(v) => form.setIsTrial(v === "on")}
+          />
+        </View>
+      </View>
+
+      {form.showTrial && (
+        <>
+          <View style={styles.rowField}>
+            <Text style={styles.label}>{t("add.regularPrice")}</Text>
+            <View style={styles.rowControl}>
+              <TextInput
+                style={styles.input}
+                value={form.trialRegularText}
+                onChangeText={form.setTrialRegularText}
+                placeholder="0.00"
+                keyboardType="decimal-pad"
+              />
+            </View>
+          </View>
+
+          <FieldButton
+            label={t("add.trialEnds")}
+            value={formatCalendarDate(form.convertsCal)}
+            onPress={() => form.setSheet("convertsDate")}
+          />
+
+          {form.trialPreview ? <Text style={styles.preview}>{form.trialPreview}</Text> : null}
+        </>
+      )}
+    </>
+  );
+}
+
 /** The plan-type-specific rows: cycle/first/last billing for subscriptions,
  *  count/frequency/first payment/provider for Pay-in-X. (M3's Annual variant
  *  slots in here as a third branch.) */
@@ -108,19 +159,27 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         </View>
       </View>
 
-      <FieldButton
-        label={t("add.firstBilling")}
-        value={formatCalendarDate(form.firstDateCal)}
-        onPress={() => form.setSheet("date")}
-      />
+      {/* A free trial's first real charge IS the conversion date, so the plain
+          "First/Last billing" rows give way to the trial fields. */}
+      {!form.showTrial && (
+        <FieldButton
+          label={t("add.firstBilling")}
+          value={formatCalendarDate(form.firstDateCal)}
+          onPress={() => form.setSheet("date")}
+        />
+      )}
 
       <RepeatsOnRow form={form} />
 
-      <FieldButton
-        label={t("add.lastBilling")}
-        value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
-        onPress={() => form.setSheet("endDate")}
-      />
+      <TrialRow form={form} />
+
+      {!form.showTrial && (
+        <FieldButton
+          label={t("add.lastBilling")}
+          value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
+          onPress={() => form.setSheet("endDate")}
+        />
+      )}
     </>
   );
 }

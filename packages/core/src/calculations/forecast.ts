@@ -10,6 +10,7 @@ import { addRecurrence } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import { COVERED_INSTALLMENT_STATUSES } from "../models/installment";
 import {
+  effectiveRecurringAmount,
   isInstallmentSchedule,
   isRecurringSchedule,
   type PaymentItem,
@@ -63,12 +64,17 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
   };
 
   if (isRecurringSchedule(item.schedule)) {
-    const { recurrence, amount, endDate } = item.schedule;
+    const schedule = item.schedule;
+    const { recurrence, endDate } = schedule;
     const limit = endDate && endDate < until ? endDate : until;
     const charges: ProjectedCharge[] = [];
-    let due = item.schedule.nextChargeDate;
+    let due = schedule.nextChargeDate;
     while (due <= limit) {
-      charges.push({ ...base, dueDate: due, amount });
+      // Time-aware price: the regular amount once a trial/intro has converted,
+      // the intro amount before. Free-trial occurrences (0) carry no real
+      // charge — skip them so the timeline only shows what actually bills.
+      const amount = effectiveRecurringAmount(schedule, due);
+      if (amount.amount > 0) charges.push({ ...base, dueDate: due, amount });
       due = addRecurrence(due, recurrence);
     }
     return charges;
@@ -147,7 +153,9 @@ export function summarizeCommitments(
       .map((i) => {
         const s = i.schedule;
         if (!isRecurringSchedule(s)) throw new TypeError("unreachable");
-        return monthlyEquivalent(s.amount, s.recurrence);
+        // Effective price today: a not-yet-converted free trial weighs 0 —
+        // you haven't committed to the regular price while you can still cancel.
+        return monthlyEquivalent(effectiveRecurringAmount(s, asOf), s.recurrence);
       }),
   );
 

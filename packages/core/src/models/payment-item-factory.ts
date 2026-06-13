@@ -21,6 +21,7 @@ function snapToAnchor(first: CalendarDate, recurrence: RecurrenceRule): Calendar
 import type { Installment } from "./installment";
 import type {
   InstallmentSchedule,
+  IntroOffer,
   PaymentItem,
   RecurringSchedule,
   SettlementMode,
@@ -40,6 +41,9 @@ export interface NewRecurringInput {
   reminder?: ReminderRule;
   notes?: string;
   endDate?: CalendarDate;
+  /** A trial/intro offer: `amount` is the intro price (0 = free) until
+   *  `introOffer.convertsOn`, then `introOffer.regularAmount`. */
+  introOffer?: IntroOffer;
 }
 
 export interface MakeContext {
@@ -65,6 +69,7 @@ export function makeRecurringPaymentItem(input: NewRecurringInput, ctx: MakeCont
       : undefined,
     // Seed price history with the opening amount so later changes stay accurate.
     priceHistory: [{ amount: input.amount, effectiveFrom: firstChargeDate }],
+    introOffer: input.introOffer,
   };
 
   return {

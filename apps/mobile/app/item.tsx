@@ -76,6 +76,23 @@ export default function ItemScreen() {
   const installment = isInstallmentSchedule(item.schedule) ? item.schedule : undefined;
   const plan = installment ? summarizeInstallmentPlan(installment) : undefined;
 
+  // A live trial/intro offer (not yet converted): drives the banner + facts.
+  const trial = recurring?.introOffer;
+  const inTrial = trial !== undefined && trial.convertsOn >= asOf;
+  const trialBanner =
+    trial && inTrial
+      ? recurring!.amount.amount === 0
+        ? t("item.trialBannerFree", {
+            date: formatCalendarDate(trial.convertsOn),
+            regular: formatMoney(trial.regularAmount),
+          })
+        : t("item.trialBannerIntro", {
+            intro: formatMoney(recurring!.amount),
+            date: formatCalendarDate(trial.convertsOn),
+            regular: formatMoney(trial.regularAmount),
+          })
+      : undefined;
+
   const settlementLabel = item.settlementMode === "manual" ? t("row.manual") : t("row.automatic");
   const subtitle = recurring
     ? `${localizedRecurrence(recurring.recurrence)} · ${settlementLabel}`
@@ -154,6 +171,7 @@ export default function ItemScreen() {
         {paused && (
           <Text style={[styles.subtitle, { color: tones.warning }]}>{t("row.paused")}</Text>
         )}
+        {trialBanner && <Text style={[styles.subtitle, styles.trialBanner]}>{trialBanner}</Text>}
       </View>
 
       {/* Facts */}
@@ -165,6 +183,20 @@ export default function ItemScreen() {
               value={formatMoney(recurring.amount)}
               styles={styles}
             />
+            {trial && inTrial && (
+              <>
+                <InfoRow
+                  label={t("item.regularPrice")}
+                  value={formatMoney(trial.regularAmount)}
+                  styles={styles}
+                />
+                <InfoRow
+                  label={t("item.convertsOn")}
+                  value={formatCalendarDate(trial.convertsOn)}
+                  styles={styles}
+                />
+              </>
+            )}
             <InfoRow
               label={t("item.cycle")}
               value={localizedRecurrence(recurring.recurrence)}
@@ -403,6 +435,7 @@ function createStyles(colors: ThemeColors) {
     },
     name: { ...typography.title, fontSize: 24, color: colors.text },
     subtitle: { ...typography.caption, color: colors.mutedText },
+    trialBanner: { color: colors.accent, fontWeight: "600" },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,

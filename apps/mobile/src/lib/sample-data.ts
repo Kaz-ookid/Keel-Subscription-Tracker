@@ -44,6 +44,13 @@ function monthShift(asOf: CalendarDate, delta: number, day: number): CalendarDat
   return calendarDate(`${y}-${m}-${String(Math.min(day, last)).padStart(2, "0")}`);
 }
 
+/** `days` ahead of a calendar date (UTC, format-only). */
+function plusDays(date: CalendarDate, days: number): CalendarDate {
+  const dt = new Date(`${date}T00:00:00Z`);
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return calendarDate(dt.toISOString().slice(0, 10));
+}
+
 /** Name, category, brand color and domain straight from the bank — sample
  *  items created from it look exactly like ones picked in the real flow. */
 function bank(id: string) {
@@ -198,6 +205,21 @@ export function buildSampleData(): SampleData {
     endDate: monthShift(asOf, -2, 25),
     settlementMode: "automatic",
     accountId: bcv.id,
+  });
+
+  // Free trial converting in 5 days: free now, CHF 12.90/mo from the
+  // conversion date — exercises the Trial badge, the forecast jump and the
+  // trial-end reminder.
+  const convertsOn = plusDays(asOf, 5);
+  addAuto({
+    ...bank("disney-plus"),
+    amount: chf(0),
+    recurrence: monthly,
+    firstChargeDate: convertsOn,
+    settlementMode: "automatic",
+    accountId: bcv.id,
+    introOffer: { regularAmount: chf(12.9), convertsOn },
+    reminder: { daysBefore: 2 },
   });
 
   // ── Custom commitments (the letter-badge path) ───────────────────────

@@ -68,6 +68,14 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
       tag = t("row.paidThisCycle");
       tagColor = tones.success;
     }
+    // Mid-trial: lead with the conversion + the price it'll become, not the
+    // (often zero) intro amount.
+    const trial = recurring.introOffer;
+    if (trial && trial.convertsOn >= today() && !complete) {
+      amount = formatMoney(trial.regularAmount);
+      tag = t("row.trial", { date: formatCalendarDate(trial.convertsOn) });
+      tagColor = colors.accent;
+    }
   } else if (installment) {
     const s = summarizeInstallmentPlan(installment);
     const next = s.nextDue;

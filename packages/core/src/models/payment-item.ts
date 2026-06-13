@@ -39,13 +39,27 @@ export interface PriceHistoryEntry {
   effectiveFrom: CalendarDate;
 }
 
+/**
+ * A trial / introductory offer: the schedule's `amount` is the intro price
+ * (often `money(0)` = a free trial) charged for occurrences BEFORE
+ * `convertsOn`; from `convertsOn` onward the price is `regularAmount`. A trial
+ * is just a scheduled price change — see `effectiveRecurringAmount`. Once a
+ * real charge crosses `convertsOn` the schedule "graduates": `amount` becomes
+ * `regularAmount`, the change lands in `priceHistory`, and `introOffer` clears.
+ */
+export interface IntroOffer {
+  regularAmount: Money;
+  convertsOn: CalendarDate;
+}
+
 // `kind` mirrors `PaymentItem.scheduleType` but lives on each variant so the
 // `Schedule` union is a discriminated union TypeScript can narrow safely.
 export interface RecurringSchedule {
   kind: "RECURRING";
   /** Composable cadence: every N days/weeks/months/years. */
   recurrence: RecurrenceRule;
-  /** Current amount (its currency must match the item's account in v1). */
+  /** Current amount (its currency must match the item's account in v1).
+   *  With an `introOffer`, this is the intro/trial price until conversion. */
   amount: Money;
   firstChargeDate: CalendarDate;
   /** Cached/computed for fast lookups. */
@@ -53,6 +67,18 @@ export interface RecurringSchedule {
   endDate?: CalendarDate;
   /** Tracks price changes over time rather than overwriting `amount` (edge #1). */
   priceHistory: PriceHistoryEntry[];
+  /** A live trial/intro offer: the price changes to `regularAmount` on
+   *  `convertsOn`. Absent once the trial has converted (or never had one). */
+  introOffer?: IntroOffer;
+}
+
+/** The price actually in effect on a given date: the regular price once a
+ *  trial/intro offer has converted, otherwise the schedule's (intro) `amount`.
+ *  The single source of truth every charge-amount read should flow through —
+ *  flat-amount items (no `introOffer`) return `amount` unchanged. */
+export function effectiveRecurringAmount(schedule: RecurringSchedule, on: CalendarDate): Money {
+  const offer = schedule.introOffer;
+  return offer && on >= offer.convertsOn ? offer.regularAmount : schedule.amount;
 }
 
 export interface InstallmentSchedule {

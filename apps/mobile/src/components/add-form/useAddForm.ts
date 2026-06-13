@@ -41,6 +41,7 @@ export type OpenSheet =
   | "currency"
   | "date"
   | "endDate"
+  | "convertsDate"
   | "reminder"
   | "category"
   | "account"
@@ -174,12 +175,28 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     editFirstDate ? fromCalendarDate(editFirstDate) : new Date(),
   );
   const [endDate, setEndDate] = useState<CalendarDate | null>(() => editRec?.endDate ?? null);
+  // Trial / intro offer: the amount field becomes the trial price (0 = free)
+  // until `convertsDate`, then `trialRegularText` takes over.
+  const [isTrial, setIsTrialState] = useState(() => editRec?.introOffer != null);
+  const [trialRegularText, setTrialRegularText] = useState(() =>
+    editRec?.introOffer ? String(toMajor(editRec.introOffer.regularAmount)) : "",
+  );
+  const [convertsDate, setConvertsDate] = useState(() =>
+    editRec?.introOffer ? fromCalendarDate(editRec.introOffer.convertsOn) : new Date(),
+  );
   const [settlementMode, setSettlementMode] = useState<SettlementMode>(
     () => editItem?.settlementMode ?? "automatic",
   );
   const [reminderKey, setReminderKey] = useState(() =>
     editItem?.reminder ? String(editItem.reminder.daysBefore) : "never",
   );
+
+  // Turning a trial on lights up a heads-up reminder by default — the whole
+  // point is not to be surprised by the conversion.
+  const setIsTrial = (next: boolean) => {
+    setIsTrialState(next);
+    if (next && reminderKey === "never") setReminderKey("2");
+  };
   const [categoryId, setCategoryId] = useState<string | undefined>(
     () => editItem?.categoryId ?? suggestion?.categoryId,
   );
@@ -196,7 +213,12 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const isInstallment = planType === "installment";
   const amountValue = parseFloat(amountText.replace(",", "."));
   const installmentCount = Math.max(1, parseInt(installmentsText, 10) || 1);
-  const canSubmit = name.trim().length > 0 && amountValue > 0;
+  // Trials only apply to subscriptions; the amount field is the trial price
+  // (0 = free), so it's the REGULAR price that must be present to submit.
+  const showTrial = isTrial && !isInstallment;
+  const trialRegularValue = parseFloat(trialRegularText.replace(",", "."));
+  const convertsCal = toCalendarDate(convertsDate);
+  const canSubmit = name.trim().length > 0 && (showTrial ? trialRegularValue > 0 : amountValue > 0);
 
   const firstDateCal = toCalendarDate(firstDate);
   // Both interpretations of the picked date — the "Repeats on" toggle's labels.
@@ -225,6 +247,22 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const reminderLabel = reminderOption
     ? t(reminderOption.labelKey, { count: reminderOption.count })
     : t("common.never");
+
+  // Live trial summary: "Free until 20 Jun · then CHF 12.90" (or the intro
+  // price when it isn't free). Shown under the toggle once a regular price set.
+  const trialPreview = (() => {
+    if (!showTrial || !(trialRegularValue > 0)) return null;
+    const regular = formatMoney(fromMajor(trialRegularValue, currency));
+    const until = formatCalendarDate(convertsCal);
+    const free = !(amountValue > 0);
+    return free
+      ? t("add.trialPreviewFree", { date: until, regular })
+      : t("add.trialPreviewIntro", {
+          intro: formatMoney(fromMajor(amountValue, currency)),
+          date: until,
+          regular,
+        });
+  })();
 
   // Manual payments are deliberately not pre-linked to an account (brief §8).
   const isAutomatic = settlementMode === "automatic";
@@ -293,11 +331,20 @@ export function useAddForm(prefill?: SuggestionPrefill) {
       if (editItem) updateInstallmentPlan(editItem.id, input);
       else addInstallmentPlan(input);
     } else {
+      // Trial price (0 = free) until conversion; the regular price lives in the
+      // intro offer. A free trial bills nothing before conversion, so the grid
+      // starts at the conversion date.
+      const introPrice = fromMajor(showTrial && !(amountValue > 0) ? 0 : amountValue, currency);
+      const introOffer =
+        showTrial && trialRegularValue > 0
+          ? { regularAmount: fromMajor(trialRegularValue, currency), convertsOn: convertsCal }
+          : undefined;
+      const isFreeTrial = introOffer !== undefined && introPrice.amount === 0;
       const input: NewRecurringInput = {
         name: name.trim(),
-        amount: fromMajor(amountValue, effectiveCurrency),
+        amount: introPrice,
         recurrence,
-        firstChargeDate: firstDateCal,
+        firstChargeDate: isFreeTrial ? convertsCal : firstDateCal,
         endDate: endDateCal,
         settlementMode,
         accountId: isAutomatic ? accountId : undefined,
@@ -306,6 +353,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         domain,
         reminder: reminderFromKey(reminderKey),
         notes: notes.trim() || undefined,
+        introOffer,
       };
       if (editItem) updateSubscription(editItem.id, input);
       else addSubscription(input);
@@ -349,6 +397,16 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     firstDate,
     setFirstDate,
     setEndDate,
+    // Trial / intro offer
+    showTrial,
+    isTrial,
+    setIsTrial,
+    trialRegularText,
+    setTrialRegularText,
+    convertsDate,
+    setConvertsDate,
+    convertsCal,
+    trialPreview,
     settlementMode,
     setSettlementMode,
     reminderKey,

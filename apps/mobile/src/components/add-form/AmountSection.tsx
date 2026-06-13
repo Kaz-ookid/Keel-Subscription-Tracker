@@ -21,7 +21,14 @@ export function AmountSection({ form }: { form: AddForm }) {
 
   return (
     <>
-      <View style={[styles.amountCard, !(form.amountValue > 0) && styles.requiredMissing]}>
+      {/* During a trial this field is the TRIAL price (0 = free), so an empty
+          value is valid — only the regular price is then required. */}
+      <View
+        style={[
+          styles.amountCard,
+          !form.showTrial && !(form.amountValue > 0) && styles.requiredMissing,
+        ]}
+      >
         <Pressable style={styles.currencyChip} onPress={() => form.setSheet("currency")}>
           <Text style={styles.currencyChipText}>{currencyLabel(form.effectiveCurrency)}</Text>
         </Pressable>
@@ -29,11 +36,12 @@ export function AmountSection({ form }: { form: AddForm }) {
           style={styles.amountInput}
           value={form.amountText}
           onChangeText={form.setAmountText}
-          placeholder="0.00"
+          placeholder={form.showTrial ? t("add.trialPriceFree") : "0.00"}
           placeholderTextColor={colors.mutedText}
           keyboardType="decimal-pad"
         />
       </View>
+      {form.showTrial ? <Text style={styles.preview}>{t("add.trialPriceHint")}</Text> : null}
 
       {/* Where the money comes from, right next to how much it is. Manual
           payments are deliberately not pre-linked to an account (brief §8). */}

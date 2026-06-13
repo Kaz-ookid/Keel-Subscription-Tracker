@@ -71,10 +71,13 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
       await Notifications.scheduleNotificationAsync({
         content: {
           title: reminder.name,
-          body: i18n.t("notifications.body", {
-            amount: formatMoney(reminder.amount),
-            date: formatCalendarDate(reminder.dueDate),
-          }),
+          body: i18n.t(
+            reminder.kind === "trialEnd" ? "notifications.trialBody" : "notifications.body",
+            {
+              amount: formatMoney(reminder.amount),
+              date: formatCalendarDate(reminder.dueDate),
+            },
+          ),
           data: { itemId: reminder.paymentItemId },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
