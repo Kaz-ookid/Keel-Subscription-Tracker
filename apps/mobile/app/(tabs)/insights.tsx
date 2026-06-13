@@ -176,7 +176,6 @@ export default function InsightsScreen() {
       : yearReal.filter((t) => t.currency !== displayCurrency);
 
   const thisMonthReal = buckets[todayIndex].totals;
-  const yearlyTotalPrimary = Math.max(amountIn(yearlyTheory), 1);
 
   const creepLabel = (() => {
     if (creep.length === 0)
@@ -368,7 +367,6 @@ export default function InsightsScreen() {
           {cadences.map((g) => {
             const key = `${g.recurrence.interval}-${g.recurrence.unit}`;
             const open = expandedCadence === key;
-            const share = Math.min(amountIn(g.yearlyTotal) / yearlyTotalPrimary, 1);
             const label = capitalize(localizedRecurrence(g.recurrence));
             // The live subscriptions billing on this cycle.
             const members = items.filter(
@@ -402,10 +400,6 @@ export default function InsightsScreen() {
                         tintColor={colors.mutedText}
                       />
                     </View>
-                  </View>
-                  <View style={styles.shareTrack}>
-                    <View style={[styles.shareFill, { flex: share }]} />
-                    <View style={{ flex: 1 - share }} />
                   </View>
                 </Pressable>
                 {open &&
