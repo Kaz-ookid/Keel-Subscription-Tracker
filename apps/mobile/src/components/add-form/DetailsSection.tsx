@@ -13,22 +13,19 @@ import type { AddForm } from "./useAddForm";
 /** The identity cluster: the commitment's live face (brand logo, or colour
  *  circle with the category icon / name's first letter) next to the name
  *  field and a category chip. Everything that changes the face sits beside
- *  it, so cause and effect stay in the same glance: tap the circle for the
- *  colour (custom items only — a logo makes colour invisible, so the picker
- *  disappears instead of lying), tap the chip and the icon morphs with it. */
+ *  it, so cause and effect stay in the same glance: tap the circle to set a
+ *  logo (by website) or a colour, tap the chip and the icon morphs with it. */
 export function IdentityHeader({ form }: { form: AddForm }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useFormStyles();
-  const editable = !form.domain;
 
   return (
     <View>
       <View style={headerStyles.wrap}>
         <Pressable
-          disabled={!editable}
           onPress={() => form.setSheet("color")}
-          accessibilityLabel={editable ? t("add.changeColourA11y") : undefined}
+          accessibilityLabel={t("add.changeIdentityA11y")}
         >
           <BrandBadge
             domain={form.domain}
@@ -37,11 +34,9 @@ export function IdentityHeader({ form }: { form: AddForm }) {
             color={form.color ?? colors.accent}
             size={64}
           />
-          {editable && (
-            <View style={[headerStyles.pencil, { backgroundColor: colors.surface }]}>
-              <SymbolView name="pencil" size={12} tintColor={colors.mutedText} />
-            </View>
-          )}
+          <View style={[headerStyles.pencil, { backgroundColor: colors.surface }]}>
+            <SymbolView name="pencil" size={12} tintColor={colors.mutedText} />
+          </View>
         </Pressable>
 
         <View style={headerStyles.right}>

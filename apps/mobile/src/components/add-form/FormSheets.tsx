@@ -11,13 +11,14 @@ import {
 } from "@keel/core";
 import { type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView } from "react-native";
+import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { SymbolView } from "expo-symbols";
 
 import { COLOR_SWATCHES } from "../../constants";
-import { contrastText, useTheme } from "../../theme";
+import { contrastText, spacing, typography, useTheme } from "../../theme";
 import { AccountPickerSheet } from "../AccountSheet";
+import { BrandBadge } from "../BrandBadge";
 import { CategorySheet } from "../CategorySheet";
 import { Sheet } from "../Sheet";
 import { WheelSheet } from "../WheelSheet";
@@ -153,19 +154,47 @@ export function FormSheets({ form }: { form: AddForm }) {
         onSelect={form.selectAccount}
       />
 
-      <Sheet visible={form.sheet === "color"} title={t("add.colour")} onClose={close}>
+      <Sheet visible={form.sheet === "color"} title={t("add.identityTitle")} onClose={close}>
+        {/* A custom logo by website (with a live preview), or a colour swatch. */}
+        <View style={{ alignItems: "center", gap: spacing.sm, marginBottom: spacing.md }}>
+          <BrandBadge
+            domain={form.domain}
+            icon={form.selectedCategory?.icon}
+            fallback={(form.name.trim().charAt(0) || "?").toUpperCase()}
+            color={form.color ?? colors.accent}
+            size={56}
+          />
+          <TextInput
+            style={[styles.input, { alignSelf: "stretch" }]}
+            value={form.domain ?? ""}
+            onChangeText={(v) => form.setDomain(v.trim() || undefined)}
+            placeholder={t("add.logoPlaceholder")}
+            placeholderTextColor={colors.mutedText}
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+          />
+          <Text style={{ ...typography.caption, color: colors.mutedText, alignSelf: "stretch" }}>
+            {t("add.logoHint")}
+          </Text>
+        </View>
+        <Text style={{ ...typography.caption, color: colors.mutedText, marginBottom: spacing.sm }}>
+          {t("add.orColour")}
+        </Text>
         <ScrollView contentContainerStyle={styles.swatchGrid}>
           {COLOR_SWATCHES.map((c) => (
             <Pressable
               key={c}
               onPress={() => {
+                // Choosing a colour means "use a colour, not a logo".
                 form.setColor(c);
+                form.setDomain(undefined);
                 close();
               }}
               style={[styles.colorSwatch, { backgroundColor: c }]}
             >
               {/* A checkmark reads on any swatch — a dark ring didn't. */}
-              {form.color === c && (
+              {form.color === c && !form.domain && (
                 <SymbolView name="checkmark" size={18} tintColor={contrastText(c)} />
               )}
             </Pressable>

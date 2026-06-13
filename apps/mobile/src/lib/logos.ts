@@ -4,5 +4,13 @@
 // licensed logo API) means changing exactly this function.
 
 export function logoUrl(domain: string): string {
-  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(domain)}&sz=128`;
+  // Tolerate a pasted full URL — reduce to a bare host so the lookup works
+  // whether the user typed "netflix.com" or "https://www.netflix.com/account".
+  const host = domain
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .replace(/\/.*$/, "");
+  return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=128`;
 }
