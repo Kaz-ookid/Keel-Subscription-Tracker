@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { suggestionMatches } from "../lib/suggestions";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 
@@ -33,13 +34,6 @@ interface Props {
 
 const CATEGORY_NAMES = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.name]));
 const CATEGORY_ICONS = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.icon]));
-
-function matches(s: SuggestedCommitment, query: string): boolean {
-  const q = query.toLowerCase();
-  return (
-    s.name.toLowerCase().includes(q) || (s.aliases ?? []).some((a) => a.toLowerCase().includes(q))
-  );
-}
 
 export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props) {
   const { colors } = useTheme();
@@ -69,7 +63,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
     // Typing searches the whole bank (all regions, all categories) — when you
     // know the name, no filter should hide it.
     const base = trimmed
-      ? suggestions.filter((s) => matches(s, trimmed))
+      ? suggestions.filter((s) => suggestionMatches(s, trimmed))
       : category
         ? browsable.filter((s) => (s.categoryId ?? "other") === category)
         : browsable;

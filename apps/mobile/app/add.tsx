@@ -92,7 +92,11 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
   const form = useAddForm(prefill);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      keyboardShouldPersistTaps="handled"
+    >
       <Stack.Screen
         options={{
           title: form.isEditing ? t("titles.edit") : t("titles.newSubscription"),

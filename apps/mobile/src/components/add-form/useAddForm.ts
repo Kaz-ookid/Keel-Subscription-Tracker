@@ -22,6 +22,7 @@ import {
   type NewRecurringInput,
   type ReminderRule,
   type SettlementMode,
+  type SuggestedCommitment,
   type TimeUnit,
 } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -29,6 +30,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { localizedAnchor } from "../../i18n/recurrence";
+import { matchSuggestions } from "../../lib/suggestions";
 import { useAppState } from "../../state/app-state";
 
 export type PlanType = "subscription" | "installment";
@@ -204,9 +206,12 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [color, setColor] = useState<string | undefined>(
     () => editItem?.color ?? suggestion?.color,
   );
-  // The brand website behind the logo — carried invisibly from a suggestion
-  // (or the item being edited) through to the saved item.
-  const domain = editItem?.domain ?? suggestion?.domain;
+  // The brand website behind the logo — seeded from a suggestion or the edited
+  // item, and editable: pick a brand by name (applySuggestion) or type a domain
+  // for a custom logo.
+  const [domain, setDomain] = useState<string | undefined>(
+    () => editItem?.domain ?? suggestion?.domain,
+  );
   const [notes, setNotes] = useState(() => editItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
@@ -309,6 +314,26 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     setAccountId(selected);
     const account = accounts.find((a) => a.id === selected);
     if (account) setCurrency(account.currency);
+  };
+
+  // Inline brand-bank suggestions for the name field: as the user types a fresh
+  // name, offer matching known providers (the upfront chooser, but in place).
+  // Hidden once an identity is set (a brand picked, or a custom domain typed)
+  // and when editing; skips brands already tracked by name.
+  const takenNames = new Set(items.map((i) => i.name.trim().toLowerCase()));
+  const nameSuggestions =
+    isEditing || domain
+      ? []
+      : matchSuggestions(name).filter((s) => !takenNames.has(s.name.toLowerCase()));
+
+  /** Apply a brand-bank entry to the live form — name, look, category, cadence.
+   *  The same effect as picking it from the upfront chooser. */
+  const applySuggestion = (s: SuggestedCommitment) => {
+    setName(t(`bank.${s.id}`, { defaultValue: s.name }));
+    if (s.categoryId) setCategoryId(s.categoryId);
+    setColor(s.color);
+    setDomain(s.domain);
+    if (s.unit === "month" || s.unit === "year") setUnit(s.unit);
   };
 
   const submit = () => {
@@ -418,6 +443,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     color,
     setColor,
     domain,
+    setDomain,
+    nameSuggestions,
     // Derived
     amountValue,
     canSubmit,
@@ -433,6 +460,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     sheet,
     setSheet,
     selectAccount,
+    applySuggestion,
     submit,
   };
 }
