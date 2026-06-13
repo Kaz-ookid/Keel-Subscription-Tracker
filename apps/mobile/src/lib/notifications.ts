@@ -72,7 +72,11 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
         content: {
           title: reminder.name,
           body: i18n.t(
-            reminder.kind === "trialEnd" ? "notifications.trialBody" : "notifications.body",
+            reminder.kind === "trialEnd"
+              ? "notifications.trialBody"
+              : reminder.kind === "priceChange"
+                ? "notifications.priceChangeBody"
+                : "notifications.body",
             {
               amount: formatMoney(reminder.amount),
               date: formatCalendarDate(reminder.dueDate),

@@ -264,9 +264,10 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         });
   })();
 
-  // Manual payments are deliberately not pre-linked to an account (brief §8).
+  // Any payment can name an account it's paid from — automatic ones debit it,
+  // manual ones associate by default (so it shows in per-account analytics).
   const isAutomatic = settlementMode === "automatic";
-  const selectedAccount = isAutomatic ? accounts.find((a) => a.id === accountId) : undefined;
+  const selectedAccount = accounts.find((a) => a.id === accountId);
   // Selecting an account DEFAULTS the currency to the account's (see
   // selectAccount) but never locks it — a CHF card can pay a USD
   // subscription; the charge is stored in what the merchant bills.
@@ -321,7 +322,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         firstInstallmentDate: firstDateCal,
         provider,
         settlementMode,
-        accountId: isAutomatic ? accountId : undefined,
+        accountId,
         categoryId,
         color,
         domain,
@@ -347,7 +348,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         firstChargeDate: isFreeTrial ? convertsCal : firstDateCal,
         endDate: endDateCal,
         settlementMode,
-        accountId: isAutomatic ? accountId : undefined,
+        accountId,
         categoryId,
         color,
         domain,

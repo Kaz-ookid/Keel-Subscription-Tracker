@@ -45,6 +45,7 @@ import {
 
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { syncReminders } from "../lib/notifications";
+import { buildDemoData } from "../lib/demo-data";
 import { buildSampleData } from "../lib/sample-data";
 import { loadState, parsePersistedState, saveState, type PersistedState } from "../lib/storage";
 
@@ -105,6 +106,8 @@ interface AppStateValue {
   clearAllData: () => void;
   /** Debug/testing: replace everything with a realistic seeded household. */
   loadSampleData: () => void;
+  /** Debug/testing: replace everything with the demo seed. */
+  loadDemoData: () => void;
   /** The "To complete" list: suggestions the user has but hasn't filled in. */
   pending: SuggestedCommitment[];
   addPendingSuggestions: (suggestions: SuggestedCommitment[]) => void;
@@ -365,6 +368,14 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts(sample.accounts);
     };
 
+    const loadDemoData = () => {
+      const demo = buildDemoData();
+      setItems(demo.items);
+      setOccurrences(demo.occurrences);
+      setCustomCategories([]);
+      setAccounts(demo.accounts);
+    };
+
     const exportData = (): PersistedState => ({
       items,
       occurrences,
@@ -413,6 +424,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       archiveAccount,
       clearAllData,
       loadSampleData,
+      loadDemoData,
       pending,
       addPendingSuggestions,
       removePendingSuggestion,

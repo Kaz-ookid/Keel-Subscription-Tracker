@@ -14,9 +14,11 @@ import {
 import { isPaymentItemComplete } from "../models/payment-item-status";
 import { summarizeInstallmentPlan } from "../models/installment-plan";
 
-/** A charge reminder ("X is due") vs a trial-end reminder ("your trial ends,
- *  you'll be charged X") — the platform localizes the body per kind. */
-export type ReminderKind = "charge" | "trialEnd";
+/** What a reminder is about — the platform localizes the body per kind:
+ *  - `charge`: a payment is due ("X is due").
+ *  - `trialEnd`: a FREE trial converts ("your trial ends, you'll be charged X").
+ *  - `priceChange`: a paid price changes on a date ("price changes to X"). */
+export type ReminderKind = "charge" | "trialEnd" | "priceChange";
 
 export interface PlannedReminder {
   paymentItemId: string;
@@ -49,7 +51,9 @@ export function plannedReminders(
     if (item.status !== "active" || isPaymentItemComplete(item, asOf)) return [];
     const reminders: PlannedReminder[] = [];
 
-    // Trial-end: anchored to the conversion date, announcing the regular price.
+    // A scheduled price change, anchored to the conversion date and announcing
+    // the new price. A free trial (intro price 0) reads as a trial ending; a
+    // paid intro reads as a price change — the wording differs per kind.
     if (isRecurringSchedule(item.schedule) && item.schedule.introOffer) {
       const { convertsOn, regularAmount } = item.schedule.introOffer;
       if (convertsOn >= asOf) {
@@ -61,7 +65,7 @@ export function plannedReminders(
           amount: regularAmount,
           dueDate: convertsOn,
           fireDate: fireDate < asOf ? asOf : fireDate,
-          kind: "trialEnd",
+          kind: item.schedule.amount.amount === 0 ? "trialEnd" : "priceChange",
         });
       }
     }

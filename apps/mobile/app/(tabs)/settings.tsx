@@ -65,6 +65,7 @@ export default function SettingsScreen() {
     rates,
     clearAllData,
     loadSampleData,
+    loadDemoData,
     exportData,
     importData,
   } = useAppState();
@@ -109,6 +110,12 @@ export default function SettingsScreen() {
     Alert.alert(t("settings.loadSample"), t("settings.sampleMsg"), [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("settings.replace"), style: "destructive", onPress: loadSampleData },
+    ]);
+
+  const confirmDemo = () =>
+    Alert.alert(t("settings.loadDemo"), t("settings.demoMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("settings.replace"), style: "destructive", onPress: loadDemoData },
     ]);
 
   // Debug: relive the first launch — wipe everything, forget the tour was
@@ -238,6 +245,14 @@ export default function SettingsScreen() {
         <Pressable style={styles.row} onPress={confirmSample}>
           <SymbolView name="wand.and.stars" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
+        </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmDemo}>
+          <SymbolView
+            name="person.crop.square.filled.and.at.rectangle"
+            size={20}
+            tintColor={colors.accent}
+          />
+          <Text style={styles.rowText}>{t("settings.loadDemo")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
           <SymbolView name="arrow.counterclockwise" size={20} tintColor={colors.accent} />

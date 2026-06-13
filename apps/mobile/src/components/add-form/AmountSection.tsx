@@ -43,24 +43,22 @@ export function AmountSection({ form }: { form: AddForm }) {
       </View>
       {form.showTrial ? <Text style={styles.preview}>{t("add.trialPriceHint")}</Text> : null}
 
-      {/* Where the money comes from, right next to how much it is. Manual
-          payments are deliberately not pre-linked to an account (brief §8). */}
-      {form.isAutomatic && (
-        <FieldButton
-          label={t("add.account")}
-          value={
-            form.selectedAccount?.name ??
-            (form.accountId ? t("add.archivedAccount") : t("add.choose"))
-          }
-          hint={!form.selectedAccount}
-          accessory={
-            form.selectedAccount ? (
-              <View style={[styles.dot, { backgroundColor: form.selectedAccount.color }]} />
-            ) : undefined
-          }
-          onPress={() => form.setSheet("account")}
-        />
-      )}
+      {/* Where the money comes from, right next to how much it is — for both
+          modes now: automatic debits the account, manual just associates it. */}
+      <FieldButton
+        label={t("add.account")}
+        value={
+          form.selectedAccount?.name ??
+          (form.accountId ? t("add.archivedAccount") : t("add.choose"))
+        }
+        hint={form.isAutomatic && !form.selectedAccount}
+        accessory={
+          form.selectedAccount ? (
+            <View style={[styles.dot, { backgroundColor: form.selectedAccount.color }]} />
+          ) : undefined
+        }
+        onPress={() => form.setSheet("account")}
+      />
 
       {form.isInstallment && (
         <>

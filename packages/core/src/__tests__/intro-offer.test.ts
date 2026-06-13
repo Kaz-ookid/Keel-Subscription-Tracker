@@ -179,4 +179,28 @@ describe("trial-end reminder", () => {
     expect(reminders).toHaveLength(1);
     expect(reminders[0]).toMatchObject({ kind: "trialEnd", fireDate: "2026-07-15" });
   });
+
+  it("flags a paid price change (non-zero intro) as priceChange, not trialEnd", () => {
+    // CHF 100 now, rising to 170 on conversion — a scheduled price change.
+    const priceChange = makeRecurringPaymentItem(
+      {
+        name: "Demi-tarif",
+        amount: fromMajor(100, "CHF"),
+        recurrence: RECURRENCE_PRESETS.YEARLY,
+        firstChargeDate: calendarDate("2026-12-26"),
+        settlementMode: "manual",
+        introOffer: {
+          regularAmount: fromMajor(170, "CHF"),
+          convertsOn: calendarDate("2027-12-26"),
+        },
+      },
+      { id: "r1", now: now() },
+    );
+    const [reminder] = plannedReminders([priceChange], calendarDate("2027-12-01"));
+    expect(reminder).toMatchObject({
+      kind: "priceChange",
+      amount: { amount: 17000, currency: "CHF" },
+      dueDate: "2027-12-26",
+    });
+  });
 });

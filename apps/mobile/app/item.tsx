@@ -76,18 +76,20 @@ export default function ItemScreen() {
   const installment = isInstallmentSchedule(item.schedule) ? item.schedule : undefined;
   const plan = installment ? summarizeInstallmentPlan(installment) : undefined;
 
-  // A live trial/intro offer (not yet converted): drives the banner + facts.
+  // A live intro offer (not yet converted): a FREE trial vs a paid price
+  // change — drives the banner + facts wording.
   const trial = recurring?.introOffer;
   const inTrial = trial !== undefined && trial.convertsOn >= asOf;
+  const isFreeTrial = trial !== undefined && recurring!.amount.amount === 0;
   const trialBanner =
     trial && inTrial
-      ? recurring!.amount.amount === 0
+      ? isFreeTrial
         ? t("item.trialBannerFree", {
             date: formatCalendarDate(trial.convertsOn),
             regular: formatMoney(trial.regularAmount),
           })
-        : t("item.trialBannerIntro", {
-            intro: formatMoney(recurring!.amount),
+        : t("item.priceChangeBanner", {
+            current: formatMoney(recurring!.amount),
             date: formatCalendarDate(trial.convertsOn),
             regular: formatMoney(trial.regularAmount),
           })
@@ -186,12 +188,12 @@ export default function ItemScreen() {
             {trial && inTrial && (
               <>
                 <InfoRow
-                  label={t("item.regularPrice")}
+                  label={isFreeTrial ? t("item.regularPrice") : t("item.newPrice")}
                   value={formatMoney(trial.regularAmount)}
                   styles={styles}
                 />
                 <InfoRow
-                  label={t("item.convertsOn")}
+                  label={isFreeTrial ? t("item.convertsOn") : t("item.changesOn")}
                   value={formatCalendarDate(trial.convertsOn)}
                   styles={styles}
                 />

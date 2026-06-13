@@ -68,12 +68,17 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
       tag = t("row.paidThisCycle");
       tagColor = tones.success;
     }
-    // Mid-trial: lead with the conversion + the price it'll become, not the
-    // (often zero) intro amount.
+    // A live intro offer: a free trial leads with the price it'll BECOME; a
+    // paid price change keeps the current price and just flags the upcoming
+    // jump.
     const trial = recurring.introOffer;
     if (trial && trial.convertsOn >= today() && !complete) {
-      amount = formatMoney(trial.regularAmount);
-      tag = t("row.trial", { date: formatCalendarDate(trial.convertsOn) });
+      if (recurring.amount.amount === 0) {
+        amount = formatMoney(trial.regularAmount);
+        tag = t("row.trial", { date: formatCalendarDate(trial.convertsOn) });
+      } else {
+        tag = t("row.priceChange", { date: formatCalendarDate(trial.convertsOn) });
+      }
       tagColor = colors.accent;
     }
   } else if (installment) {
