@@ -285,6 +285,27 @@ describe("groupByCadence", () => {
     expect(groups[1].monthlyTotal).toEqual([eur(18.33)]);
   });
 
+  it("groups an anchored monthly item under plain monthly (no anchor leaks into the label)", () => {
+    // A "1st Thursday" monthly item must read as Monthly, not its anchor.
+    const anchored = makeRecurringPaymentItem(
+      {
+        ...netflix,
+        name: "Account fee",
+        firstChargeDate: calendarDate("2026-01-01"), // a 1st Thursday
+        recurrence: { unit: "month", interval: 1, anchor: { week: 1, weekday: 4 } },
+      },
+      { id: "r1", now: now() },
+    );
+    const plain = makeRecurringPaymentItem(netflix, { id: "r2", now: now() });
+
+    const groups = groupByCadence([anchored, plain], calendarDate("2026-06-12"));
+    expect(groups).toHaveLength(1);
+    expect(groups[0].count).toBe(2);
+    // Representative recurrence carries no anchor — the label reads "Monthly".
+    expect(groups[0].recurrence).toEqual(RECURRENCE_PRESETS.MONTHLY);
+    expect(groups[0].recurrence.anchor).toBeUndefined();
+  });
+
   it("excludes ended and paused items", () => {
     const ended = makeRecurringPaymentItem(
       {

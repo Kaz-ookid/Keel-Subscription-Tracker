@@ -241,7 +241,10 @@ export function groupByCadence(items: readonly PaymentItem[], asOf: CalendarDate
       existing.yearlyTotal = sumByCurrency([...existing.yearlyTotal, yearly]);
     } else {
       groups.set(key, {
-        recurrence,
+        // The group represents a cadence ("monthly"), not any one item's
+        // anchor — strip the weekday/month anchor so the label reads "Monthly",
+        // not "every 1st Thursday" just because an anchored item created it.
+        recurrence: { unit: recurrence.unit, interval: recurrence.interval },
         count: 1,
         monthlyTotal: [monthly],
         yearlyTotal: [yearly],

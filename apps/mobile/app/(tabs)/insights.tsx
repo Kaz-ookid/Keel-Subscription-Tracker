@@ -368,15 +368,21 @@ export default function InsightsScreen() {
             const key = `${g.recurrence.interval}-${g.recurrence.unit}`;
             const open = expandedCadence === key;
             const label = capitalize(localizedRecurrence(g.recurrence));
-            // The live subscriptions billing on this cycle.
-            const members = items.filter(
-              (i) =>
-                i.status === "active" &&
-                isRecurringSchedule(i.schedule) &&
-                !isPaymentItemComplete(i, asOf) &&
-                i.schedule.recurrence.unit === g.recurrence.unit &&
-                i.schedule.recurrence.interval === g.recurrence.interval,
-            );
+            // The live subscriptions billing on this cycle, biggest first.
+            const members = items
+              .filter(
+                (i) =>
+                  i.status === "active" &&
+                  isRecurringSchedule(i.schedule) &&
+                  !isPaymentItemComplete(i, asOf) &&
+                  i.schedule.recurrence.unit === g.recurrence.unit &&
+                  i.schedule.recurrence.interval === g.recurrence.interval,
+              )
+              .sort((a, b) => {
+                const av = isRecurringSchedule(a.schedule) ? amountIn([a.schedule.amount]) : 0;
+                const bv = isRecurringSchedule(b.schedule) ? amountIn([b.schedule.amount]) : 0;
+                return bv - av;
+              });
             return (
               <View key={key} style={styles.cadenceRow}>
                 <Pressable
@@ -513,19 +519,20 @@ export default function InsightsScreen() {
           </Pressable>
           <Pressable
             style={[styles.exploreRow, styles.exploreRowDivider]}
+            onPress={() => router.push("/by-account")}
+          >
+            <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
+            <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
+            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+          </Pressable>
+          {/* Price changes is the long-term, least-used lens — keep it last. */}
+          <Pressable
+            style={[styles.exploreRow, styles.exploreRowDivider]}
             onPress={() => router.push("/price-changes")}
           >
             <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>{t("titles.priceChanges")}</Text>
             <Text style={styles.exploreValue}>{creepLabel}</Text>
-            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable
-            style={[styles.exploreRow, styles.exploreRowDivider]}
-            onPress={() => router.push("/by-account")}
-          >
-            <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
             <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
           </Pressable>
         </View>
