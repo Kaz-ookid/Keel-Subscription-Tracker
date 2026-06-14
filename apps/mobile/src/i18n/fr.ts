@@ -243,7 +243,7 @@ export const fr: typeof en = {
     recurringBaseline: "votre base récurrente",
     bnplHint: "+ {{amount}} de Pay in X cette année",
     notCharted: "+ {{amount}} cette année hors graphique",
-    byBillingCycle: "Par cycle de facturation · théorie",
+    byBillingCycle: "Par cycle de facturation",
     perMoYr: "{{mo}}/mois · {{yr}}/an",
     stillOwed: "{{amount}} encore dû",
     ofTotalHint: "sur {{total}} au total · les paiements vivent dans les barres ci-dessus",
@@ -252,7 +252,7 @@ export const fr: typeof en = {
     creep: "+{{amount}}/mois",
     emptyTitle: "Rien à analyser pour l'instant",
     emptyHint: "Ajoutez des abonnements et l'année à venir apparaîtra ici.",
-    chartLegend: "moyenne théorique · {{amount}}/mois",
+    chartLegend: "moyenne · {{amount}}/mois",
   },
   byCategory: {
     emptyTitle: "Rien à répartir pour l'instant",
@@ -262,7 +262,7 @@ export const fr: typeof en = {
     note: "Argent réel sur {{year}} : ce qui a été payé, plus ce que le reste de l'année doit prélever.",
   },
   byAccount: {
-    theory: "{{name}} · théorie",
+    theory: "{{name}} · moyenne mensuelle",
     nothingOngoing: "Rien d'en cours",
     perMonth: "{{amount}}/mois",
     plusOwed: "plus {{amount}} de Pay in X encore dû",
@@ -346,7 +346,7 @@ export const fr: typeof en = {
       "Chaque paiement est rattaché à un compte bancaire : vous voyez ce qui va quitter quel compte, et quand.",
     tour3Title: "Comprenez votre année",
     tour3Body:
-      "Analyses lisse les coûts annuels en un chiffre mensuel et montre ce que vous avez réellement payé, pas seulement la théorie.",
+      "Analyses lisse les coûts annuels en un chiffre mensuel et montre ce que vous avez réellement payé, pas seulement la projection.",
     skip: "Passer",
     next: "Suivant",
     continue: "Continuer",

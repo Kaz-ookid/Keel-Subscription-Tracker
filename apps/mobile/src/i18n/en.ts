@@ -243,7 +243,7 @@ export const en = {
     recurringBaseline: "your recurring baseline",
     bnplHint: "+ {{amount}} of Pay in X this year",
     notCharted: "+ {{amount}} this year not charted",
-    byBillingCycle: "By billing cycle · theory",
+    byBillingCycle: "By billing cycle",
     perMoYr: "{{mo}}/mo · {{yr}}/yr",
     stillOwed: "{{amount}} still owed",
     ofTotalHint: "of {{total}} total · the payments sit inside the bars above",
@@ -252,7 +252,7 @@ export const en = {
     creep: "+{{amount}}/mo",
     emptyTitle: "Nothing to analyse yet",
     emptyHint: "Add subscriptions and the year ahead appears here.",
-    chartLegend: "theory average · {{amount}}/mo",
+    chartLegend: "average · {{amount}}/mo",
   },
   byCategory: {
     emptyTitle: "Nothing to split yet",
@@ -262,7 +262,7 @@ export const en = {
     note: "Real money over {{year}}: what was paid, plus what the rest of the year is set to charge.",
   },
   byAccount: {
-    theory: "{{name}} · theory",
+    theory: "{{name}} · monthly average",
     nothingOngoing: "Nothing ongoing",
     perMonth: "{{amount}}/mo",
     plusOwed: "plus {{amount}} of Pay in X still owed",
@@ -346,7 +346,7 @@ export const en = {
       "Each payment is assigned to a bank account, so you can see what's about to leave which account, and when.",
     tour3Title: "Understand your year",
     tour3Body:
-      "Insights smooths yearly costs into a monthly number and shows what you actually paid, not just the theory.",
+      "Insights smooths yearly costs into a monthly number and shows what you actually paid, not just the projection.",
     skip: "Skip",
     next: "Next",
     continue: "Continue",
