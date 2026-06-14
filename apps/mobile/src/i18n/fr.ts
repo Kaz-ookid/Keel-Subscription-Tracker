@@ -107,7 +107,7 @@ export const fr: typeof en = {
   allList: {
     committedMonthly: "Engagé par mois",
     nothingYet: "Encore rien",
-    bnplOwed: "Pay in X encore dû : {{amount}}",
+    bnplOwed: "Paiement échelonné encore dû : {{amount}}",
     emptyTitle: "Pas encore d'abonnements",
     emptyHint: "Touchez ＋ pour ajouter le premier.",
     toComplete: "À compléter · {{count}}",
@@ -118,7 +118,7 @@ export const fr: typeof en = {
     manual: "Manuel",
     automatic: "Automatique",
     paidThisCycle: "Payé ce cycle",
-    payInX: "Pay in X",
+    payInX: "Paiement échelonné",
     trial: "Essai · fin {{date}}",
     priceChange: "Nouveau prix · {{date}}",
     paused: "En pause",
@@ -146,11 +146,11 @@ export const fr: typeof en = {
     paidThisMonth: "Payé ce mois-ci · {{amount}}",
     overdue: "En retard",
     emptyTitle: "Rien à payer avant le {{date}}",
-    emptyHint: "Les paiements de vos abonnements et plans Pay in X s'aligneront ici.",
+    emptyHint: "Les paiements de vos abonnements et plans de paiement échelonné s'aligneront ici.",
   },
   add: {
     subscription: "Abonnement",
-    installment: "Pay in X",
+    installment: "Paiement échelonné",
     startScratch: "Partir de zéro",
     scratchHint: "tout saisir soi-même",
     namePlaceholder: "Nom — ex. Netflix",
@@ -241,12 +241,13 @@ export const fr: typeof en = {
     actuallyLeaves: "part réellement",
     averagePerMonth: "Moyenne par mois",
     recurringBaseline: "votre base récurrente",
-    bnplHint: "+ {{amount}} de Pay in X cette année",
+    bnplHint: "+ {{amount}} de paiement échelonné cette année",
     notCharted: "+ {{amount}} cette année hors graphique",
     byBillingCycle: "Par cycle de facturation",
     cycleMonthly: "Mensuel",
     cycleYearly: "Annuel",
     cycleOther: "Autre",
+    splitPayments: "Paiement échelonné",
     perMoYr: "{{mo}}/mois · {{yr}}/an",
     stillOwed: "{{amount}} encore dû",
     ofTotalHint: "sur {{total}} au total · les paiements vivent dans les barres ci-dessus",
@@ -268,7 +269,7 @@ export const fr: typeof en = {
     theory: "{{name}} · moyenne mensuelle",
     nothingOngoing: "Rien d'en cours",
     perMonth: "{{amount}}/mois",
-    plusOwed: "plus {{amount}} de Pay in X encore dû",
+    plusOwed: "plus {{amount}} de paiement échelonné encore dû",
     commitments_one: "{{count}} engagement",
     commitments_other: "{{count}} engagements",
   },
@@ -343,7 +344,7 @@ export const fr: typeof en = {
   onboarding: {
     tour1Title: "Tous vos engagements, au même endroit",
     tour1Body:
-      "Abonnements, factures et plans Pay in X côte à côte — y compris ceux qui ne tombent qu'une fois par an.",
+      "Abonnements, factures et plans de paiement échelonné côte à côte — y compris ceux qui ne tombent qu'une fois par an.",
     tour2Title: "Sachez ce qui part, et d'où",
     tour2Body:
       "Chaque paiement est rattaché à un compte bancaire : vous voyez ce qui va quitter quel compte, et quand.",
@@ -400,7 +401,7 @@ export const fr: typeof en = {
     other: "Autre",
   },
   providers: {
-    cb_nx: "Carte — paiement en X",
+    cb_nx: "Carte — paiement échelonné",
     other: "Autre",
   },
   currencies: {

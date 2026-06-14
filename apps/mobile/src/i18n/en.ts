@@ -107,7 +107,7 @@ export const en = {
   allList: {
     committedMonthly: "Committed monthly",
     nothingYet: "Nothing yet",
-    bnplOwed: "Pay-in-X still owed: {{amount}}",
+    bnplOwed: "Split payments still owed: {{amount}}",
     emptyTitle: "No subscriptions yet",
     emptyHint: "Tap ＋ to add your first one.",
     toComplete: "To complete · {{count}}",
@@ -118,7 +118,7 @@ export const en = {
     manual: "Manual",
     automatic: "Automatic",
     paidThisCycle: "Paid this cycle",
-    payInX: "Pay in X",
+    payInX: "Split payments",
     trial: "Trial · ends {{date}}",
     priceChange: "New price · {{date}}",
     paused: "Paused",
@@ -146,11 +146,11 @@ export const en = {
     paidThisMonth: "Paid this month · {{amount}}",
     overdue: "Overdue",
     emptyTitle: "Nothing due before {{date}}",
-    emptyHint: "Charges from your subscriptions and Pay-in-X plans will line up here.",
+    emptyHint: "Charges from your subscriptions and split-payment plans will line up here.",
   },
   add: {
     subscription: "Subscription",
-    installment: "Pay in X",
+    installment: "Split payments",
     startScratch: "Start from scratch",
     scratchHint: "type everything yourself",
     namePlaceholder: "Name — e.g. Netflix",
@@ -241,12 +241,13 @@ export const en = {
     actuallyLeaves: "actually leaves",
     averagePerMonth: "Average per month",
     recurringBaseline: "your recurring baseline",
-    bnplHint: "+ {{amount}} of Pay in X this year",
+    bnplHint: "+ {{amount}} of split payments this year",
     notCharted: "+ {{amount}} this year not charted",
     byBillingCycle: "By billing cycle",
     cycleMonthly: "Monthly",
     cycleYearly: "Yearly",
     cycleOther: "Other",
+    splitPayments: "Split payments",
     perMoYr: "{{mo}}/mo · {{yr}}/yr",
     stillOwed: "{{amount}} still owed",
     ofTotalHint: "of {{total}} total · the payments sit inside the bars above",
@@ -268,7 +269,7 @@ export const en = {
     theory: "{{name}} · monthly average",
     nothingOngoing: "Nothing ongoing",
     perMonth: "{{amount}}/mo",
-    plusOwed: "plus {{amount}} of Pay in X still owed",
+    plusOwed: "plus {{amount}} of split payments still owed",
     commitments_one: "{{count}} commitment",
     commitments_other: "{{count}} commitments",
   },
@@ -343,7 +344,7 @@ export const en = {
   onboarding: {
     tour1Title: "Every commitment, one place",
     tour1Body:
-      "Subscriptions, bills and Pay-in-X plans side by side — including the ones that only hit once a year.",
+      "Subscriptions, bills and split-payment plans side by side — including the ones that only hit once a year.",
     tour2Title: "Know what hits, and from where",
     tour2Body:
       "Each payment is assigned to a bank account, so you can see what's about to leave which account, and when.",
@@ -400,7 +401,7 @@ export const en = {
     other: "Other",
   },
   providers: {
-    cb_nx: "Card — pay in X",
+    cb_nx: "Card — split payments",
     other: "Other",
   },
   // Partial overlays: looked up with defaultValue fallbacks, so English keeps

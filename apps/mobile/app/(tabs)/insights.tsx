@@ -465,7 +465,8 @@ export default function InsightsScreen() {
               >
                 <View style={styles.cadenceHeader}>
                   <Text style={styles.cadenceLabel}>
-                    Pay in X <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
+                    {t("insights.splitPayments")}{" "}
+                    <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
                   </Text>
                   <View style={styles.cadenceRight}>
                     <Text style={styles.bnplOwed}>
