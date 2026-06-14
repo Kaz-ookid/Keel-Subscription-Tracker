@@ -199,14 +199,26 @@ export function spendingByCategory(
   return result.sort((a, b) => primary(b.totals) - primary(a.totals));
 }
 
+/** The three billing-cadence buckets shown in Insights. */
+export type CadenceKind = "monthly" | "yearly" | "other";
+
+/** Classify a recurrence into a bucket: plain monthly, plain yearly, or
+ *  everything else ("other" — every 2 months, weekly, quarterly…). Shared by
+ *  groupByCadence and the UI so members bucket identically. */
+export function cadenceBucket(recurrence: RecurrenceRule): CadenceKind {
+  if (recurrence.interval === 1 && recurrence.unit === "month") return "monthly";
+  if (recurrence.interval === 1 && recurrence.unit === "year") return "yearly";
+  return "other";
+}
+
 export interface CadenceGroup {
-  /** The shared cadence, e.g. { month, 1 } — label via `describeRecurrence`. */
-  recurrence: RecurrenceRule;
-  /** How many live recurring items bill on this cadence. */
+  /** Which cadence bucket this is — drives the section label. */
+  kind: CadenceKind;
+  /** How many live recurring items fall in this bucket. */
   count: number;
-  /** Theory: the group's per-month equivalent, one total per currency. */
+  /** The bucket's per-month equivalent, one total per currency. */
   monthlyTotal: Money[];
-  /** Theory: the group's per-year equivalent, one total per currency. */
+  /** The bucket's per-year equivalent, one total per currency. */
   yearlyTotal: Money[];
 }
 
@@ -222,39 +234,34 @@ function liveRecurring(
 }
 
 /**
- * THEORY: the repartition of recurring spend by billing cadence — "Monthly ×6,
- * Yearly ×2, Every 3 months ×1" — with each group's monthly and yearly
- * equivalents. Sorted by yearly weight (largest first).
+ * Recurring spend grouped into three billing-cadence buckets — Monthly, Yearly
+ * and Other (everything else) — with each bucket's monthly and yearly
+ * equivalents, in that fixed order. Empty buckets are omitted. Pay-in-X is
+ * surfaced separately by the UI.
  */
 export function groupByCadence(items: readonly PaymentItem[], asOf: CalendarDate): CadenceGroup[] {
-  const groups = new Map<string, CadenceGroup>();
+  const groups = new Map<CadenceKind, CadenceGroup>();
 
   for (const { schedule } of liveRecurring(items, asOf)) {
     const { recurrence, amount } = schedule;
-    const key = `${recurrence.interval}-${recurrence.unit}`;
+    const kind = cadenceBucket(recurrence);
     const monthly = monthlyEquivalent(amount, recurrence);
     const yearly = yearlyEquivalent(amount, recurrence);
-    const existing = groups.get(key);
+    const existing = groups.get(kind);
     if (existing) {
       existing.count += 1;
       existing.monthlyTotal = sumByCurrency([...existing.monthlyTotal, monthly]);
       existing.yearlyTotal = sumByCurrency([...existing.yearlyTotal, yearly]);
     } else {
-      groups.set(key, {
-        // The group represents a cadence ("monthly"), not any one item's
-        // anchor — strip the weekday/month anchor so the label reads "Monthly",
-        // not "every 1st Thursday" just because an anchored item created it.
-        recurrence: { unit: recurrence.unit, interval: recurrence.interval },
-        count: 1,
-        monthlyTotal: [monthly],
-        yearlyTotal: [yearly],
-      });
+      groups.set(kind, { kind, count: 1, monthlyTotal: [monthly], yearlyTotal: [yearly] });
     }
   }
 
-  return Array.from(groups.values()).sort(
-    (a, b) => (b.yearlyTotal[0]?.amount ?? 0) - (a.yearlyTotal[0]?.amount ?? 0),
-  );
+  const order: CadenceKind[] = ["monthly", "yearly", "other"];
+  return order.flatMap((kind) => {
+    const group = groups.get(kind);
+    return group ? [group] : [];
+  });
 }
 
 /** THEORY: what a year of all live recurring items costs, per currency. */

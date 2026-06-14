@@ -3,6 +3,7 @@
 // such. All math comes from @keel/core; this screen only formats.
 
 import {
+  cadenceBucket,
   calendarDate,
   COVERED_INSTALLMENT_STATUSES,
   endOfMonth,
@@ -365,18 +366,22 @@ export default function InsightsScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t("insights.byBillingCycle")}</Text>
           {cadences.map((g) => {
-            const key = `${g.recurrence.interval}-${g.recurrence.unit}`;
+            const key = g.kind;
             const open = expandedCadence === key;
-            const label = capitalize(localizedRecurrence(g.recurrence));
-            // The live subscriptions billing on this cycle, biggest first.
+            const label =
+              g.kind === "monthly"
+                ? t("insights.cycleMonthly")
+                : g.kind === "yearly"
+                  ? t("insights.cycleYearly")
+                  : t("insights.cycleOther");
+            // The live subscriptions in this bucket, biggest first.
             const members = items
               .filter(
                 (i) =>
                   i.status === "active" &&
                   isRecurringSchedule(i.schedule) &&
                   !isPaymentItemComplete(i, asOf) &&
-                  i.schedule.recurrence.unit === g.recurrence.unit &&
-                  i.schedule.recurrence.interval === g.recurrence.interval,
+                  cadenceBucket(i.schedule.recurrence) === g.kind,
               )
               .sort((a, b) => {
                 const av = isRecurringSchedule(a.schedule) ? amountIn([a.schedule.amount]) : 0;
@@ -427,9 +432,18 @@ export default function InsightsScreen() {
                           color={item.color ?? colors.accent}
                           size={28}
                         />
-                        <Text style={styles.memberName} numberOfLines={1}>
-                          {item.name}
-                        </Text>
+                        <View style={styles.memberMiddle}>
+                          <Text style={styles.memberName} numberOfLines={1}>
+                            {item.name}
+                          </Text>
+                          {/* In the catch-all "Other" bucket, each item shows
+                              its own cadence — the headline can't. */}
+                          {g.kind === "other" && recurring && (
+                            <Text style={styles.memberCadence} numberOfLines={1}>
+                              {capitalize(localizedRecurrence(recurring.recurrence))}
+                            </Text>
+                          )}
+                        </View>
                         <Text style={styles.memberValue}>
                           {recurring ? formatMoney(recurring.amount) : ""}
                         </Text>
@@ -670,7 +684,9 @@ function createStyles(colors: ThemeColors) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
     },
-    memberName: { ...typography.body, color: colors.text, flex: 1 },
+    memberMiddle: { flex: 1, gap: 1 },
+    memberName: { ...typography.body, color: colors.text },
+    memberCadence: { ...typography.caption, color: colors.mutedText },
     memberValue: { ...typography.caption, color: colors.mutedText },
     cadenceHeader: {
       flexDirection: "row",

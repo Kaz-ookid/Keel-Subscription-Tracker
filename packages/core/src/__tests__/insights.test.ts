@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  cadenceBucket,
   calendarDate,
   forecastByMonth,
   fromMajor,
@@ -265,8 +266,22 @@ describe("spendingByMonth (ledger actuals + projections)", () => {
   });
 });
 
+describe("cadenceBucket", () => {
+  it("classifies into monthly / yearly / other", () => {
+    expect(cadenceBucket({ unit: "month", interval: 1 })).toBe("monthly");
+    expect(cadenceBucket({ unit: "year", interval: 1 })).toBe("yearly");
+    expect(cadenceBucket({ unit: "month", interval: 2 })).toBe("other");
+    expect(cadenceBucket({ unit: "week", interval: 1 })).toBe("other");
+    expect(cadenceBucket({ unit: "year", interval: 2 })).toBe("other");
+    // A weekday anchor doesn't change the bucket — still plain monthly.
+    expect(cadenceBucket({ unit: "month", interval: 1, anchor: { week: 1, weekday: 4 } })).toBe(
+      "monthly",
+    );
+  });
+});
+
 describe("groupByCadence", () => {
-  it("groups live recurring items by cadence with both equivalents, sorted by yearly weight", () => {
+  it("buckets into Monthly then Yearly (fixed order) with both equivalents", () => {
     const a = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
     const b = makeRecurringPaymentItem(
       { ...netflix, name: "Spotify", amount: eur(9.99) },
@@ -276,16 +291,15 @@ describe("groupByCadence", () => {
 
     const groups = groupByCadence([a, b, c], calendarDate("2026-06-12"));
     expect(groups).toHaveLength(2);
-    // Monthly group (25.98/mo → 311.76/yr) outweighs the yearly licence (220/yr).
-    expect(groups[0].recurrence).toEqual(RECURRENCE_PRESETS.MONTHLY);
+    expect(groups[0].kind).toBe("monthly");
     expect(groups[0].count).toBe(2);
     expect(groups[0].monthlyTotal).toEqual([eur(25.98)]);
     expect(groups[0].yearlyTotal).toEqual([eur(311.76)]);
-    expect(groups[1].recurrence).toEqual(RECURRENCE_PRESETS.YEARLY);
+    expect(groups[1].kind).toBe("yearly");
     expect(groups[1].monthlyTotal).toEqual([eur(18.33)]);
   });
 
-  it("groups an anchored monthly item under plain monthly (no anchor leaks into the label)", () => {
+  it("folds an anchored monthly item into the Monthly bucket", () => {
     // A "1st Thursday" monthly item must read as Monthly, not its anchor.
     const anchored = makeRecurringPaymentItem(
       {
@@ -300,10 +314,24 @@ describe("groupByCadence", () => {
 
     const groups = groupByCadence([anchored, plain], calendarDate("2026-06-12"));
     expect(groups).toHaveLength(1);
+    expect(groups[0].kind).toBe("monthly");
     expect(groups[0].count).toBe(2);
-    // Representative recurrence carries no anchor — the label reads "Monthly".
-    expect(groups[0].recurrence).toEqual(RECURRENCE_PRESETS.MONTHLY);
-    expect(groups[0].recurrence.anchor).toBeUndefined();
+  });
+
+  it("aggregates every non-monthly/yearly cadence into one Other bucket, after Monthly", () => {
+    const monthly = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
+    const bimonthly = makeRecurringPaymentItem(
+      { ...netflix, name: "Every 2 months", recurrence: { unit: "month", interval: 2 } },
+      { id: "r2", now: now() },
+    );
+    const weekly = makeRecurringPaymentItem(
+      { ...netflix, name: "Weekly", recurrence: { unit: "week", interval: 1 } },
+      { id: "r3", now: now() },
+    );
+
+    const groups = groupByCadence([bimonthly, weekly, monthly], calendarDate("2026-06-12"));
+    expect(groups.map((g) => g.kind)).toEqual(["monthly", "other"]);
+    expect(groups[1].count).toBe(2); // both odd cadences in one Other bucket
   });
 
   it("excludes ended and paused items", () => {
