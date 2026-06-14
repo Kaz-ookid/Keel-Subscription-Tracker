@@ -26,6 +26,17 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
 
+  // Re-fetch when the brand changes (e.g. typing a domain in the identity
+  // sheet): without this, a previous load/failure pins the badge to the wrong
+  // state and the new logo only appears after a remount/relaunch. React's
+  // "reset state when a prop changes" during render — no effect needed.
+  const [prevDomain, setPrevDomain] = useState(domain);
+  if (domain !== prevDomain) {
+    setPrevDomain(domain);
+    setLoaded(false);
+    setFailed(false);
+  }
+
   if (!domain || failed) {
     return <IconBadge icon={icon} fallback={fallback} color={color} size={size} />;
   }
