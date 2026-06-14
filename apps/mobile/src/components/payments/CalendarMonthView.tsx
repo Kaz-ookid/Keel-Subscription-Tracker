@@ -21,7 +21,15 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from "react-native-reanimated";
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
@@ -30,6 +38,9 @@ import { BrandBadge } from "../BrandBadge";
 
 // Monday-first column order, as JS weekday indices (0 = Sunday).
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+// Slide distance for the month-change animation. Portrait-locked, so one read.
+const SCREEN_W = Dimensions.get("window").width;
 
 interface DayCharge {
   key: string;
@@ -177,77 +188,107 @@ export function CalendarMonthView() {
     setSelectedDay(next === 0 ? asOf : null);
   };
 
+  // Animated month change: the grid slides out one way and the new month
+  // slides in from the other. Driven by the chevrons and by swiping the grid.
+  const slideX = useSharedValue(0);
+  const gridStyle = useAnimatedStyle(() => ({ transform: [{ translateX: slideX.value }] }));
+  const animateMonth = (delta: number) => {
+    const dir = delta > 0 ? 1 : -1; // next → slide out left; prev → out right
+    // A reanimated shared value is driven by assigning `.value` — that's the
+    // library's API, not a state mutation the lint rule should police.
+    // eslint-disable-next-line react-hooks/immutability
+    slideX.value = withSequence(
+      withTiming(-dir * SCREEN_W, { duration: 150 }),
+      // Off-screen: swap the month, then jump to the entry side to slide in.
+      withTiming(dir * SCREEN_W, { duration: 0 }, (finished) => {
+        if (finished) runOnJS(shiftMonth)(delta);
+      }),
+      withTiming(0, { duration: 150 }),
+    );
+  };
+
+  const monthSwipe = Gesture.Exclusive(
+    Gesture.Fling()
+      .direction(Directions.LEFT)
+      .onEnd(() => runOnJS(animateMonth)(1)),
+    Gesture.Fling()
+      .direction(Directions.RIGHT)
+      .onEnd(() => runOnJS(animateMonth)(-1)),
+  );
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Pressable onPress={() => shiftMonth(-1)} hitSlop={10} style={styles.chevronButton}>
+        <Pressable onPress={() => animateMonth(-1)} hitSlop={10} style={styles.chevronButton}>
           <SymbolView name="chevron.left" size={14} tintColor={colors.text} />
         </Pressable>
         <View style={styles.headerMiddle}>
           <Text style={styles.monthTitle}>{monthLabel}</Text>
           {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
         </View>
-        <Pressable onPress={() => shiftMonth(1)} hitSlop={10} style={styles.chevronButton}>
+        <Pressable onPress={() => animateMonth(1)} hitSlop={10} style={styles.chevronButton}>
           <SymbolView name="chevron.right" size={14} tintColor={colors.text} />
         </Pressable>
       </View>
 
-      <View style={styles.grid}>
-        <View style={styles.weekRow}>
-          {WEEKDAY_ORDER.map((d) => (
-            <Text key={d} style={styles.weekday}>
-              {weekdayShort(d)}
-            </Text>
-          ))}
-        </View>
-        {weeks.map((week, w) => (
-          <View key={w} style={styles.weekRow}>
-            {week.map((date, i) => {
-              if (!date) return <View key={`blank-${i}`} style={styles.dayCell} />;
-              const dayCharges = byDay.get(date) ?? [];
-              const isToday = date === asOf;
-              const isSelected = date === selectedDay;
-              const hasOverdue = dayCharges.some((c) => c.overdue);
-              return (
-                <Pressable
-                  key={date}
-                  style={[styles.dayCell, isSelected && styles.daySelected]}
-                  onPress={() => setSelectedDay(isSelected ? null : date)}
-                >
-                  <Text
-                    style={[
-                      styles.dayNumber,
-                      isToday && styles.dayToday,
-                      hasOverdue && { color: tones.warning },
-                    ]}
-                  >
-                    {Number(date.slice(8, 10))}
-                  </Text>
-                  <View style={styles.dayBadges}>
-                    {dayCharges.slice(0, 2).map((c) => {
-                      const category = categories.find((cat) => cat.id === c.categoryId);
-                      return (
-                        <View key={c.key} style={c.paid && styles.paidBadge}>
-                          <BrandBadge
-                            domain={c.domain}
-                            icon={category?.icon}
-                            fallback={c.name.charAt(0).toUpperCase()}
-                            color={c.color ?? colors.accent}
-                            size={18}
-                          />
-                        </View>
-                      );
-                    })}
-                    {dayCharges.length > 2 && (
-                      <Text style={styles.moreBadge}>+{dayCharges.length - 2}</Text>
-                    )}
-                  </View>
-                </Pressable>
-              );
-            })}
+      <GestureDetector gesture={monthSwipe}>
+        <Animated.View style={[styles.grid, gridStyle]}>
+          <View style={styles.weekRow}>
+            {WEEKDAY_ORDER.map((d) => (
+              <Text key={d} style={styles.weekday}>
+                {weekdayShort(d)}
+              </Text>
+            ))}
           </View>
-        ))}
-      </View>
+          {weeks.map((week, w) => (
+            <View key={w} style={styles.weekRow}>
+              {week.map((date, i) => {
+                if (!date) return <View key={`blank-${i}`} style={styles.dayCell} />;
+                const dayCharges = byDay.get(date) ?? [];
+                const isToday = date === asOf;
+                const isSelected = date === selectedDay;
+                const hasOverdue = dayCharges.some((c) => c.overdue);
+                return (
+                  <Pressable
+                    key={date}
+                    style={[styles.dayCell, isSelected && styles.daySelected]}
+                    onPress={() => setSelectedDay(isSelected ? null : date)}
+                  >
+                    <Text
+                      style={[
+                        styles.dayNumber,
+                        isToday && styles.dayToday,
+                        hasOverdue && { color: tones.warning },
+                      ]}
+                    >
+                      {Number(date.slice(8, 10))}
+                    </Text>
+                    <View style={styles.dayBadges}>
+                      {dayCharges.slice(0, 2).map((c) => {
+                        const category = categories.find((cat) => cat.id === c.categoryId);
+                        return (
+                          <View key={c.key} style={c.paid && styles.paidBadge}>
+                            <BrandBadge
+                              domain={c.domain}
+                              icon={category?.icon}
+                              fallback={c.name.charAt(0).toUpperCase()}
+                              color={c.color ?? colors.accent}
+                              size={18}
+                            />
+                          </View>
+                        );
+                      })}
+                      {dayCharges.length > 2 && (
+                        <Text style={styles.moreBadge}>+{dayCharges.length - 2}</Text>
+                      )}
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          ))}
+        </Animated.View>
+      </GestureDetector>
 
       {/* The tapped day's charges — light, in place, read-only. */}
       {selectedDay && selected.length > 0 && (
