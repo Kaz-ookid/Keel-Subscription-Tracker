@@ -1,6 +1,7 @@
-// Insights: the full picture. Unlabelled numbers are real money; only the
-// THEORY side (averages that spread yearly/quarterly items) is marked as
-// such. All math comes from @keel/core; this screen only formats.
+// Insights: the full picture. Unlabelled numbers are real money; the smoothed
+// figures that spread yearly/quarterly items into a monthly number are labelled
+// as such (e.g. "average", "expected"). All math comes from @keel/core; this
+// screen only formats.
 
 import {
   cadenceBucket,
