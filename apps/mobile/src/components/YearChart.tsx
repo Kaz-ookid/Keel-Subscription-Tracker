@@ -19,7 +19,7 @@ export interface YearChartMonth {
 
 interface Props {
   months: YearChartMonth[];
-  /** The theoretical monthly average in minor units — drawn as a dashed line. */
+  /** The expected (smoothed) monthly average in minor units — drawn as a dashed line. */
   average: number;
   averageFormatted: string;
   /** Index of the current month — a thin "now" landmark sits after its bar:
@@ -40,7 +40,7 @@ const SLOT = COL_WIDTH + COL_GAP;
 
 /**
  * A horizontally scrollable run of months — slide freely through past and
- * future. Real outflow as bars, the theory average as a dashed line, and a
+ * future. Real outflow as bars, the expected average as a dashed line, and a
  * thin "now" landmark separating what happened from what is calculated.
  * Tap a bar to inspect that month.
  */
@@ -84,7 +84,7 @@ export function YearChart({
       >
         <View style={{ width: contentWidth }}>
           <View style={styles.chartArea}>
-            {/* Dashed theory-average line (drawn as segments — reliable everywhere). */}
+            {/* Dashed expected-average line (drawn as segments — reliable everywhere). */}
             {average > 0 && (
               <View style={[styles.averageLine, { bottom: averageY }]} pointerEvents="none">
                 {Array.from({ length: months.length * 3 }, (_, i) => (
