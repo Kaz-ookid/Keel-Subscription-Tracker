@@ -3,13 +3,17 @@
 // that ride on it — the structural view behind "which account needs what".
 
 import {
+  buildSpendLedger,
   calendarDate,
+  endOfMonth,
+  formatCalendarDate,
   formatMoney,
   formatTotalsIn,
   isInstallmentSchedule,
   isRecurringSchedule,
   mergeTotals,
   money,
+  projectCharges,
   spendingByMonth,
   summarizeCommitments,
   summarizeInstallmentPlan,
@@ -19,6 +23,8 @@ import {
   type PaymentItem,
   type PaymentOccurrence,
 } from "@keel/core";
+import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -44,11 +50,14 @@ function monthShifted(asOf: CalendarDate, delta: number): CalendarDate {
 export default function ByAccountScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppState();
   // An account id, or "none" for commitments not tied to any account.
   const [selected, setSelected] = useState<string>(accounts[0]?.id ?? "none");
-  const [selectedMonth, setSelectedMonth] = useState<number | null>(MONTHS_BACK);
+  // Nothing selected by default: the screen opens on its commitments overview;
+  // tapping a bar drills into that month's charges.
+  const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
 
   const asOf = today();
   const account = accounts.find((a) => a.id === selected);
@@ -108,6 +117,41 @@ export default function ByAccountScreen() {
   });
   const averageTheory = amountIn(commitments.monthly);
 
+  // The tapped month's actual charges for this account — paid (ledger) plus
+  // upcoming (projection) — so selecting a bar drives the hero and the list.
+  const selectedBucket = selectedMonth !== null ? buckets[selectedMonth] : undefined;
+  const monthLabel = selectedMonth !== null ? chartMonths[selectedMonth]?.name : undefined;
+  const monthDetail = selectedBucket
+    ? (() => {
+        const start = selectedBucket.monthStart;
+        const end = endOfMonth(start);
+        const key = start.slice(0, 7);
+        const paid = buildSpendLedger(scoped, scopedOccurrences, start, end).map((e) => ({
+          key: `c-${e.paymentItemId}-${e.date}`,
+          paymentItemId: e.paymentItemId,
+          name: e.name,
+          domain: e.domain,
+          color: e.color,
+          categoryId: e.categoryId,
+          date: e.date,
+          amount: e.amount,
+        }));
+        const upcoming = projectCharges(scoped, end)
+          .filter((c) => c.dueDate.slice(0, 7) === key)
+          .map((c) => ({
+            key: `p-${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
+            paymentItemId: c.paymentItemId,
+            name: c.name,
+            domain: c.domain,
+            color: c.color,
+            categoryId: c.categoryId,
+            date: c.dueDate,
+            amount: c.amount,
+          }));
+        return [...paid, ...upcoming].sort((a, b) => (a.date < b.date ? -1 : 1));
+      })()
+    : [];
+
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -133,19 +177,29 @@ export default function ByAccountScreen() {
         </View>
       </ScrollView>
 
-      <HeroCard
-        label={t("byAccount.theory", { name: account?.name ?? t("upcoming.chipNoAccount") })}
-        amount={
-          commitments.monthly.length > 0
-            ? t("byAccount.perMonth", { amount: totals(commitments.monthly) })
-            : t("byAccount.nothingOngoing")
-        }
-        sub={
-          commitments.bnplOutstanding.length > 0
-            ? t("byAccount.plusOwed", { amount: totals(commitments.bnplOutstanding) })
-            : t("byAccount.commitments", { count: scoped.length })
-        }
-      />
+      {selectedBucket ? (
+        <HeroCard
+          label={monthLabel ?? ""}
+          amount={
+            selectedBucket.totals.length > 0 ? totals(selectedBucket.totals) : t("insights.nothing")
+          }
+          sub={t("history.count", { count: monthDetail.length })}
+        />
+      ) : (
+        <HeroCard
+          label={t("byAccount.theory", { name: account?.name ?? t("upcoming.chipNoAccount") })}
+          amount={
+            commitments.monthly.length > 0
+              ? t("byAccount.perMonth", { amount: totals(commitments.monthly) })
+              : t("byAccount.nothingOngoing")
+          }
+          sub={
+            commitments.bnplOutstanding.length > 0
+              ? t("byAccount.plusOwed", { amount: totals(commitments.bnplOutstanding) })
+              : t("byAccount.commitments", { count: scoped.length })
+          }
+        />
+      )}
 
       <YearChart
         months={chartMonths}
@@ -157,39 +211,81 @@ export default function ByAccountScreen() {
         scaleMax={globalMax}
       />
 
-      {scoped.length > 0 && (
-        <View style={styles.card}>
-          {scoped.map((item) => {
-            const category = categories.find((c) => c.id === item.categoryId);
-            const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
-            const plan = isInstallmentSchedule(item.schedule)
-              ? summarizeInstallmentPlan(item.schedule)
-              : undefined;
-            return (
-              <View key={item.id} style={styles.row}>
-                <BrandBadge
-                  domain={item.domain}
-                  icon={category?.icon}
-                  fallback={item.name.charAt(0).toUpperCase()}
-                  color={item.color ?? colors.accent}
-                  size={28}
-                />
-                <Text style={styles.rowName} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                <Text style={styles.rowValue}>
-                  {recurring
-                    ? `${formatMoney(recurring.amount)} · ${localizedRecurrence(recurring.recurrence)}`
-                    : plan
-                      ? plan.isComplete
-                        ? `${formatMoney(plan.totalAmount)} · ${t("row.doneTag").toLowerCase()}`
-                        : `${formatMoney(plan.nextDue?.amount ?? plan.totalAmount)} · ${t("common.xOfY", { x: plan.paidCount, y: plan.totalCount })}`
-                      : ""}
-                </Text>
-              </View>
-            );
-          })}
-        </View>
+      {selectedBucket ? (
+        monthDetail.length > 0 ? (
+          <View style={styles.card}>
+            {monthDetail.map((d) => {
+              const category = categories.find((c) => c.id === d.categoryId);
+              return (
+                <Pressable
+                  key={d.key}
+                  style={styles.row}
+                  onPress={() =>
+                    router.push({ pathname: "/item", params: { id: d.paymentItemId } })
+                  }
+                >
+                  <BrandBadge
+                    domain={d.domain}
+                    icon={category?.icon}
+                    fallback={d.name.charAt(0).toUpperCase()}
+                    color={d.color ?? colors.accent}
+                    size={28}
+                  />
+                  <View style={styles.rowMiddle}>
+                    <Text style={styles.detailName} numberOfLines={1}>
+                      {d.name}
+                    </Text>
+                    <Text style={styles.rowSub}>{formatCalendarDate(d.date)}</Text>
+                  </View>
+                  <Text style={styles.detailValue}>{formatMoney(d.amount)}</Text>
+                  <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                </Pressable>
+              );
+            })}
+          </View>
+        ) : (
+          <Text style={styles.emptyNote}>{t("insights.nothing")}</Text>
+        )
+      ) : (
+        scoped.length > 0 && (
+          <View style={styles.card}>
+            {scoped.map((item) => {
+              const category = categories.find((c) => c.id === item.categoryId);
+              const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
+              const plan = isInstallmentSchedule(item.schedule)
+                ? summarizeInstallmentPlan(item.schedule)
+                : undefined;
+              return (
+                <Pressable
+                  key={item.id}
+                  style={styles.row}
+                  onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
+                >
+                  <BrandBadge
+                    domain={item.domain}
+                    icon={category?.icon}
+                    fallback={item.name.charAt(0).toUpperCase()}
+                    color={item.color ?? colors.accent}
+                    size={28}
+                  />
+                  <Text style={styles.rowName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.rowValue}>
+                    {recurring
+                      ? `${formatMoney(recurring.amount)} · ${localizedRecurrence(recurring.recurrence)}`
+                      : plan
+                        ? plan.isComplete
+                          ? `${formatMoney(plan.totalAmount)} · ${t("row.doneTag").toLowerCase()}`
+                          : `${formatMoney(plan.nextDue?.amount ?? plan.totalAmount)} · ${t("common.xOfY", { x: plan.paidCount, y: plan.totalCount })}`
+                        : ""}
+                  </Text>
+                  <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                </Pressable>
+              );
+            })}
+          </View>
+        )
       )}
     </ScrollView>
   );
@@ -231,5 +327,15 @@ function createStyles(colors: ThemeColors) {
     },
     rowName: { ...typography.body, color: colors.text, flex: 1 },
     rowValue: { ...typography.caption, color: colors.mutedText },
+    rowMiddle: { flex: 1, gap: 1 },
+    detailName: { ...typography.body, color: colors.text },
+    rowSub: { ...typography.caption, color: colors.mutedText },
+    detailValue: { ...typography.caption, fontWeight: "600", color: colors.text },
+    emptyNote: {
+      ...typography.body,
+      color: colors.mutedText,
+      textAlign: "center",
+      paddingVertical: spacing.md,
+    },
   });
 }
