@@ -195,6 +195,7 @@ export const en = {
     upcoming: "Upcoming",
     all: "All",
     calendarA11y: "Calendar view",
+    harborA11y: "Harbor view",
   },
   allList: {
     committedMonthly: "Committed monthly",
@@ -418,6 +419,15 @@ export const en = {
     namePlaceholder: "Category name",
     addCategory: "Add category",
   },
+  harbor: {
+    dock: "Today",
+    days: "{{count}} d",
+    paused: "Paused",
+    more: "+{{count}}",
+    emptyTitle: "Nothing at anchor yet",
+    emptyHint: "Add subscriptions and they moor here, sized by what they cost each month.",
+    legend: "Closer to the dock: due sooner. Bigger: costs more per month.",
+  },
   applock: {
     lockFaceId: "Lock with Face ID",
     lockTouchId: "Lock with Touch ID",
@@ -442,6 +452,7 @@ export const en = {
     groupPrivacy: "Privacy",
     groupBackup: "Backup",
     groupDebug: "Debug",
+    harborExperiment: "Harbor view (experiment)",
     accounts: "Accounts",
     displayCurrency: "Display currency",
     appearance: "Appearance",

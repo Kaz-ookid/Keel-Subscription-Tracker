@@ -195,6 +195,7 @@ export const fr: typeof en = {
     upcoming: "À venir",
     all: "Tout",
     calendarA11y: "Vue calendrier",
+    harborA11y: "Vue port",
   },
   allList: {
     committedMonthly: "Engagé par mois",
@@ -418,6 +419,16 @@ export const fr: typeof en = {
     namePlaceholder: "Nom de la catégorie",
     addCategory: "Ajouter une catégorie",
   },
+  harbor: {
+    dock: "Aujourd'hui",
+    days: "{{count}} j",
+    paused: "En pause",
+    more: "+{{count}}",
+    emptyTitle: "Rien au mouillage pour l'instant",
+    emptyHint:
+      "Ajoutez des abonnements et ils viendront mouiller ici, à la taille de leur coût mensuel.",
+    legend: "Près du quai : bientôt dû. Plus gros : coûte plus par mois.",
+  },
   applock: {
     lockFaceId: "Verrouiller avec Face ID",
     lockTouchId: "Verrouiller avec Touch ID",
@@ -442,6 +453,7 @@ export const fr: typeof en = {
     groupPrivacy: "Confidentialité",
     groupBackup: "Sauvegarde",
     groupDebug: "Debug",
+    harborExperiment: "Vue port (expérimental)",
     accounts: "Comptes",
     displayCurrency: "Devise d'affichage",
     appearance: "Apparence",

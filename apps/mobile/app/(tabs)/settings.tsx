@@ -31,6 +31,7 @@ import {
 } from "react-native";
 
 import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
+import { loadHarborEnabled, setHarborEnabled } from "../../src/lib/experiments";
 import {
   authenticate,
   getAuthKind,
@@ -109,6 +110,8 @@ export default function SettingsScreen() {
   const [lockEnabled, setLockEnabled] = useState(false);
   const [graceSeconds, setGraceSeconds] = useState(0);
   const [graceSheet, setGraceSheet] = useState(false);
+  // Experimental Harbor view (DESIGN.md §3.7 B) — a debug-only flag.
+  const [harborOn, setHarborOn] = useState(false);
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
@@ -117,6 +120,7 @@ export default function SettingsScreen() {
       setLockEnabled(config.enabled);
       setGraceSeconds(config.graceSeconds);
     });
+    void loadHarborEnabled().then(setHarborOn);
   }, []);
 
   // Authenticate in BOTH directions: enabling proves the lock can open (no
@@ -400,6 +404,18 @@ export default function SettingsScreen() {
           />
           <Text style={styles.rowText}>{t("settings.loadDemo")}</Text>
         </Pressable>
+        <View style={[styles.row, styles.rowDivider]}>
+          <SymbolView name="sailboat" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>{t("settings.harborExperiment")}</Text>
+          <Switch
+            value={harborOn}
+            onValueChange={(next) => {
+              setHarborOn(next);
+              void setHarborEnabled(next);
+            }}
+            trackColor={{ true: colors.accent }}
+          />
+        </View>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
           <SymbolView name="arrow.counterclockwise" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
