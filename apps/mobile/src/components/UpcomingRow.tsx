@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
 import { emphasis, radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
@@ -101,16 +102,8 @@ export function UpcomingRow({
             {formatMoney(charge.amount)}
           </Text>
         </View>
-        {showMarkPaid && (
-          <Pressable onPress={onMarkPaid} style={styles.payButton} hitSlop={6}>
-            <Text style={styles.payText}>{t("common.markPaid")}</Text>
-          </Pressable>
-        )}
-        {settled && onUndo && (
-          <Pressable onPress={onUndo} style={styles.undoButton} hitSlop={6}>
-            <Text style={styles.undoText}>{t("common.undo")}</Text>
-          </Pressable>
-        )}
+        {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
+        {settled && onUndo && <Button size="sm" label={t("common.undo")} onPress={onUndo} />}
       </View>
     </Pressable>
   );
@@ -138,17 +131,6 @@ function createStyles(colors: ThemeColors) {
     },
     // A real button, full strength against the dimmed row — navy on accent
     // (pale accent TEXT alone read as disabled grey).
-    undoButton: {
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
-      borderRadius: radius.sm,
-      backgroundColor: colors.action,
-    },
-    undoText: {
-      ...typography.caption,
-      color: colors.actionText,
-      fontWeight: "700",
-    },
     middle: {
       flex: 1,
       gap: 2,
@@ -168,17 +150,6 @@ function createStyles(colors: ThemeColors) {
     amount: {
       ...typography.label,
       color: colors.text,
-    },
-    payButton: {
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
-      borderRadius: radius.sm,
-      backgroundColor: colors.action,
-    },
-    payText: {
-      ...typography.caption,
-      color: colors.actionText,
-      fontWeight: "600",
     },
   });
 }

@@ -21,6 +21,7 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../../t
 import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
+import { Button } from "../ui/Button";
 
 /** The day of the month an item bills on — its fixed "place" in the list. */
 function billingDay(item: PaymentItem): number {
@@ -180,9 +181,7 @@ export function SubscriptionsView() {
                       <Text style={styles.pendingName} numberOfLines={1}>
                         {t(`bank.${s.id}`, { defaultValue: s.name })}
                       </Text>
-                      <Pressable style={styles.addPill} onPress={() => fillIn(s)}>
-                        <Text style={styles.addPillText}>{t("common.add")}</Text>
-                      </Pressable>
+                      <Button size="sm" label={t("common.add")} onPress={() => fillIn(s)} />
                       <Pressable
                         accessibilityLabel={t("allList.dismissA11y", { name: s.name })}
                         hitSlop={8}
@@ -307,17 +306,6 @@ function createStyles(colors: ThemeColors) {
       ...typography.body,
       color: colors.text,
       flex: 1,
-    },
-    addPill: {
-      backgroundColor: colors.action,
-      borderRadius: radius.sm,
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
-    },
-    addPillText: {
-      ...typography.caption,
-      fontWeight: "600",
-      color: colors.actionText,
     },
   });
 }

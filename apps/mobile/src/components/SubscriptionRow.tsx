@@ -16,6 +16,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { localizedRecurrence } from "../i18n/recurrence";
 import { useAppState } from "../state/app-state";
 import { emphasis, radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
@@ -150,11 +151,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
 
       <View style={styles.right}>
         {amount && <Text style={styles.amount}>{amount}</Text>}
-        {showMarkPaid && (
-          <Pressable onPress={onMarkPaid} style={styles.payButton}>
-            <Text style={styles.payText}>{t("common.markPaid")}</Text>
-          </Pressable>
-        )}
+        {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
       </View>
     </Pressable>
   );
@@ -202,17 +199,6 @@ function createStyles(colors: ThemeColors) {
     amount: {
       ...typography.label,
       color: colors.text,
-    },
-    payButton: {
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
-      borderRadius: radius.sm,
-      backgroundColor: colors.action,
-    },
-    payText: {
-      ...typography.caption,
-      color: colors.actionText,
-      fontWeight: "600",
     },
   });
 }

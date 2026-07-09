@@ -28,6 +28,7 @@ import {
 } from "react-native";
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
+import { Chip } from "../ui/Chip";
 import { useAppState } from "../../state/app-state";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
@@ -281,23 +282,15 @@ export function UpcomingView() {
               { id: "all", label: t("upcoming.chipAll") },
               ...accounts.map((a) => ({ id: a.id, label: a.name, dot: a.color })),
               { id: "none", label: t("upcoming.chipNoAccount") },
-            ].map((chip) => {
-              const active = filter === chip.id;
-              return (
-                <Pressable
-                  key={chip.id}
-                  onPress={() => setFilter(chip.id)}
-                  style={[styles.chip, active && styles.chipActive]}
-                >
-                  {"dot" in chip && chip.dot ? (
-                    <View style={[styles.chipDot, { backgroundColor: chip.dot }]} />
-                  ) : null}
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {chip.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            ].map((chip) => (
+              <Chip
+                key={chip.id}
+                label={chip.label}
+                selected={filter === chip.id}
+                onPress={() => setFilter(chip.id)}
+                dot={"dot" in chip ? chip.dot : undefined}
+              />
+            ))}
           </View>
         </ScrollView>
       )}
@@ -418,34 +411,6 @@ function createStyles(colors: ThemeColors) {
     chipRow: {
       flexDirection: "row",
       gap: spacing.sm,
-    },
-    chip: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs + 2,
-      paddingVertical: spacing.xs + 2,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    chipActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.navy,
-    },
-    chipDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
-    chipText: {
-      ...typography.caption,
-      fontWeight: "600",
-      color: colors.text,
-    },
-    chipTextActive: {
-      color: colors.actionText,
     },
     sectionHeaderWrap: {
       backgroundColor: colors.background,

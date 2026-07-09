@@ -31,6 +31,7 @@ import {
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
 import { Segmented } from "../../src/components/Segmented";
+import { Chip } from "../../src/components/ui/Chip";
 import { monthFull } from "../../src/i18n/dates";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -149,23 +150,15 @@ export default function HistoryScreen() {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chips}
           >
-            {accountChips.map((chip) => {
-              const active = accountFilter === chip.id;
-              return (
-                <Pressable
-                  key={chip.id}
-                  onPress={() => setAccountFilter(chip.id)}
-                  style={[styles.chip, active && styles.chipActive]}
-                >
-                  {"dot" in chip && chip.dot ? (
-                    <View style={[styles.chipDot, { backgroundColor: chip.dot }]} />
-                  ) : null}
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {chip.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            {accountChips.map((chip) => (
+              <Chip
+                key={chip.id}
+                label={chip.label}
+                selected={accountFilter === chip.id}
+                onPress={() => setAccountFilter(chip.id)}
+                dot={"dot" in chip ? chip.dot : undefined}
+              />
+            ))}
           </ScrollView>
         )}
 
@@ -181,20 +174,14 @@ export default function HistoryScreen() {
                 id: c.id,
                 label: t(`categories.${c.id}`, { defaultValue: c.name }),
               })),
-            ].map((chip) => {
-              const active = categoryFilter === chip.id;
-              return (
-                <Pressable
-                  key={chip.id}
-                  onPress={() => setCategoryFilter(chip.id)}
-                  style={[styles.chip, active && styles.chipActive]}
-                >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                    {chip.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+            ].map((chip) => (
+              <Chip
+                key={chip.id}
+                label={chip.label}
+                selected={categoryFilter === chip.id}
+                onPress={() => setCategoryFilter(chip.id)}
+              />
+            ))}
           </ScrollView>
         )}
       </View>
@@ -283,21 +270,6 @@ function createStyles(colors: ThemeColors) {
     },
     search: { flex: 1, paddingVertical: spacing.sm + 2, ...typography.body, color: colors.text },
     chips: { flexDirection: "row", gap: spacing.sm, paddingVertical: 2 },
-    chip: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs + 2,
-      paddingVertical: spacing.xs + 2,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    chipActive: { backgroundColor: colors.action, borderColor: colors.action },
-    chipDot: { width: 8, height: 8, borderRadius: 4 },
-    chipText: { ...typography.caption, fontWeight: "600", color: colors.text },
-    chipTextActive: { color: colors.actionText },
     listContent: { padding: spacing.md, paddingBottom: spacing.xl, gap: 6 },
     sectionHeader: {
       flexDirection: "row",

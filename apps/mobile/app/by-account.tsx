@@ -31,6 +31,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
+import { Chip } from "../src/components/ui/Chip";
 import { YearChart, type YearChartMonth } from "../src/components/YearChart";
 import { monthFull, monthShort } from "../src/i18n/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
@@ -159,21 +160,15 @@ export default function ByAccountScreen() {
           {[
             ...accounts.map((a) => ({ id: a.id, label: a.name, dot: a.color })),
             { id: "none", label: t("upcoming.chipNoAccount") },
-          ].map((chip) => {
-            const active = selected === chip.id;
-            return (
-              <Pressable
-                key={chip.id}
-                onPress={() => setSelected(chip.id)}
-                style={[styles.chip, active && styles.chipActive]}
-              >
-                {"dot" in chip && chip.dot ? (
-                  <View style={[styles.chipDot, { backgroundColor: chip.dot }]} />
-                ) : null}
-                <Text style={[styles.chipText, active && styles.chipTextActive]}>{chip.label}</Text>
-              </Pressable>
-            );
-          })}
+          ].map((chip) => (
+            <Chip
+              key={chip.id}
+              label={chip.label}
+              selected={selected === chip.id}
+              onPress={() => setSelected(chip.id)}
+              dot={"dot" in chip ? chip.dot : undefined}
+            />
+          ))}
         </View>
       </ScrollView>
 
@@ -296,21 +291,6 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     chipRow: { flexDirection: "row", gap: spacing.sm },
-    chip: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs + 2,
-      paddingVertical: spacing.xs + 2,
-      paddingHorizontal: spacing.md,
-      borderRadius: radius.lg,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
-    },
-    chipActive: { backgroundColor: colors.action, borderColor: colors.action },
-    chipDot: { width: 8, height: 8, borderRadius: 4 },
-    chipText: { ...typography.caption, fontWeight: "600", color: colors.text },
-    chipTextActive: { color: colors.actionText },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,
