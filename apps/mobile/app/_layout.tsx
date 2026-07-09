@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "../src/i18n";
+import { AppLockGate } from "../src/components/AppLockGate";
 import { AppStateProvider } from "../src/state/app-state";
 import { ImportSessionProvider } from "../src/state/import-session";
 import { ThemePreferenceProvider, useTheme } from "../src/theme";
@@ -77,6 +78,8 @@ function RootNavigator() {
           </ImportSessionProvider>
           {/* Header is navy in both schemes, so light status-bar content reads well. */}
           <StatusBar style="light" />
+          {/* Above everything, including native modals: the app lock. */}
+          <AppLockGate />
         </AppStateProvider>
       </ThemeProvider>
     </GestureHandlerRootView>

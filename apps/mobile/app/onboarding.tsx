@@ -7,15 +7,22 @@
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
+import {
+  authenticate,
+  getAuthKind,
+  loadAppLockConfig,
+  setAppLockEnabled,
+  type AuthKind,
+} from "../src/lib/app-lock";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { useAppState } from "../src/state/app-state";
-import { spacing, radius, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, radius, tones, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -45,6 +52,27 @@ export default function OnboardingScreen() {
   const [pane, setPane] = useState(0);
   const [savedCount, setSavedCount] = useState(0);
   const pagerRef = useRef<ScrollView>(null);
+
+  // The app-lock nudge on the way out: shown on the done pane when the device
+  // can lock and the lock isn't already on.
+  const [lockKind, setLockKind] = useState<AuthKind | null>(null);
+  const [lockOn, setLockOn] = useState(false);
+  useEffect(() => {
+    void getAuthKind().then(setLockKind);
+    void loadAppLockConfig().then((config) => setLockOn(config.enabled));
+  }, []);
+  const enableLock = async () => {
+    const ok = await authenticate(t("applock.confirmPrompt"));
+    if (!ok) return;
+    await setAppLockEnabled(true);
+    setLockOn(true);
+  };
+  const lockLabel =
+    lockKind === "faceId"
+      ? t("applock.lockFaceId")
+      : lockKind === "touchId"
+        ? t("applock.lockTouchId")
+        : t("applock.lockGeneric");
 
   // Tracked/pending entries stay visible but greyed ("already in your list")
   // — hiding them made the bank look like it was missing obvious brands.
@@ -145,8 +173,9 @@ export default function OnboardingScreen() {
             colors={colors}
           />
           <Text style={styles.methodNote}>{t("onboarding.methodNote")}</Text>
-          {/* Structurally a skip, not a third door: "no thanks, I'll use +". */}
-          <Pressable onPress={finish} hitSlop={12} style={styles.methodSkip}>
+          {/* Structurally a skip, not a third door: "no thanks, I'll use +".
+              Routed through the done pane so the lock nudge is still seen. */}
+          <Pressable onPress={() => setPhase("done")} hitSlop={12} style={styles.methodSkip}>
             <Text style={styles.methodSkipText}>{t("onboarding.methodManual")}</Text>
           </Pressable>
         </View>
@@ -200,6 +229,25 @@ export default function OnboardingScreen() {
           <Text style={styles.paneBody}>
             {savedCount > 0 ? t("onboarding.savedBody") : t("onboarding.allSetBody")}
           </Text>
+          {/* One quiet nudge on the way out: lock the app. Never blocks Done. */}
+          {lockKind !== null && lockKind !== "unavailable" && (
+            <View style={styles.lockCard}>
+              <SymbolView
+                name={lockOn ? "checkmark.circle.fill" : "faceid"}
+                size={24}
+                tintColor={lockOn ? tones.success : colors.accent}
+              />
+              <View style={styles.lockTexts}>
+                <Text style={styles.lockTitle}>{lockOn ? t("onboarding.lockOn") : lockLabel}</Text>
+                {!lockOn && <Text style={styles.lockBody}>{t("onboarding.lockBody")}</Text>}
+              </View>
+              {!lockOn && (
+                <Pressable style={styles.lockCta} onPress={() => void enableLock()}>
+                  <Text style={styles.lockCtaText}>{t("onboarding.lockCta")}</Text>
+                </Pressable>
+              )}
+            </View>
+          )}
           <Pressable style={styles.cta} onPress={finish}>
             <Text style={styles.ctaText}>{t("onboarding.done")}</Text>
           </Pressable>
@@ -319,6 +367,28 @@ function createStyles(colors: ThemeColors) {
       ...typography.label,
       color: colors.accent,
     },
+    lockCard: {
+      alignSelf: "stretch",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+      marginTop: spacing.sm,
+    },
+    lockTexts: { flex: 1, gap: 2 },
+    lockTitle: { ...typography.label, color: colors.text },
+    lockBody: { ...typography.caption, color: colors.mutedText, lineHeight: 17 },
+    lockCta: {
+      backgroundColor: colors.navy,
+      borderRadius: radius.sm,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+    },
+    lockCtaText: { ...typography.caption, fontWeight: "600", color: colors.white },
     dots: {
       flexDirection: "row",
       justifyContent: "center",

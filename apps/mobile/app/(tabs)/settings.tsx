@@ -25,11 +25,21 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from "react-native";
 
 import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
+import {
+  authenticate,
+  getAuthKind,
+  GRACE_OPTIONS,
+  loadAppLockConfig,
+  setAppLockEnabled as persistLockEnabled,
+  setAppLockGrace as persistLockGrace,
+  type AuthKind,
+} from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
@@ -95,10 +105,44 @@ export default function SettingsScreen() {
   const [languageSheet, setLanguageSheet] = useState(false);
   const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
+  // App lock: what the device offers (wording + availability) and the config.
+  const [authKind, setAuthKind] = useState<AuthKind | null>(null);
+  const [lockEnabled, setLockEnabled] = useState(false);
+  const [graceSeconds, setGraceSeconds] = useState(0);
+  const [graceSheet, setGraceSheet] = useState(false);
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
+    void getAuthKind().then(setAuthKind);
+    void loadAppLockConfig().then((config) => {
+      setLockEnabled(config.enabled);
+      setGraceSeconds(config.graceSeconds);
+    });
   }, []);
+
+  // Authenticate in BOTH directions: enabling proves the lock can open (no
+  // lock-outs); disabling proves it's the owner turning it off (a borrowed
+  // unlocked phone can't quietly strip the protection).
+  const toggleLock = async (next: boolean) => {
+    const ok = await authenticate(t(next ? "applock.confirmPrompt" : "applock.disablePrompt"));
+    if (!ok) return;
+    setLockEnabled(next);
+    await persistLockEnabled(next);
+  };
+
+  const graceLabel = (seconds: number) =>
+    seconds === 0
+      ? t("applock.graceNow")
+      : seconds === 60
+        ? t("applock.grace1")
+        : t("applock.grace5");
+
+  const lockLabel =
+    authKind === "faceId"
+      ? t("applock.lockFaceId")
+      : authKind === "touchId"
+        ? t("applock.lockTouchId")
+        : t("applock.lockGeneric");
 
   const changeLanguage = (next: LanguageMode) => {
     setLanguageModeState(next);
@@ -284,6 +328,37 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
+      {/* Privacy: the app lock. The OS does the locking; we store one flag. */}
+      <View style={styles.card}>
+        <View style={styles.row}>
+          <SymbolView
+            name="faceid"
+            size={20}
+            tintColor={authKind === "unavailable" ? colors.mutedText : colors.accent}
+          />
+          <Text style={styles.rowText}>{lockLabel}</Text>
+          {authKind === "unavailable" ? (
+            <Text style={styles.rowValue}>{t("applock.needPasscode")}</Text>
+          ) : (
+            <Switch
+              value={lockEnabled}
+              onValueChange={(next) => void toggleLock(next)}
+              disabled={authKind === null}
+              trackColor={{ true: colors.accent }}
+            />
+          )}
+        </View>
+        {lockEnabled && (
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setGraceSheet(true)}>
+            <SymbolView name="clock.fill" size={20} tintColor={colors.accent} />
+            <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
+            <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+        )}
+        <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
+      </View>
+
       {/* The escape hatch: real finances deserve a way out of one local blob. */}
       <View style={styles.card}>
         <Pressable style={styles.row} onPress={() => void exportBackup()}>
@@ -372,6 +447,30 @@ export default function SettingsScreen() {
       </WheelSheet>
 
       <WheelSheet
+        visible={graceSheet}
+        title={t("applock.requireAfter")}
+        onClose={() => setGraceSheet(false)}
+      >
+        <Picker
+          selectedValue={String(graceSeconds)}
+          onValueChange={(v) => {
+            const seconds = Number(v);
+            setGraceSeconds(seconds);
+            void persistLockGrace(seconds);
+          }}
+        >
+          {GRACE_OPTIONS.map((seconds) => (
+            <Picker.Item
+              key={seconds}
+              label={graceLabel(seconds)}
+              value={String(seconds)}
+              color={colors.text}
+            />
+          ))}
+        </Picker>
+      </WheelSheet>
+
+      <WheelSheet
         visible={currencySheet}
         title={t("settings.displayCurrency")}
         onClose={() => setCurrencySheet(false)}
@@ -433,6 +532,12 @@ function createStyles(colors: ThemeColors) {
     rowDivider: {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
+    },
+    privacyFooter: {
+      ...typography.caption,
+      color: colors.mutedText,
+      paddingBottom: spacing.md,
+      paddingTop: spacing.xs,
     },
     footer: {
       ...typography.caption,
