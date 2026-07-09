@@ -49,6 +49,7 @@ export function ImportSessionProvider({ children }: { children: ReactNode }) {
                   id: d.id,
                   ...patch,
                   accountName: patch.input.accountId ? undefined : d.accountName,
+                  settlePast: d.settlePast,
                   warnings: [],
                 } as ImportDraft)
               : d,

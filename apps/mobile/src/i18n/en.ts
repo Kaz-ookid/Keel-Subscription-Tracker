@@ -112,6 +112,7 @@ export const en = {
     warnCadenceDefaulted: "No clear billing cycle, assumed monthly",
     warnDateDefaulted: "A date couldn't be read, check the dates",
     warnProviderUnknown: "Provider “{{detail}}” not recognised",
+    backlogLine: "Past payments arrive unpaid, as you stated",
   },
   recurrence: {
     daily: "daily",

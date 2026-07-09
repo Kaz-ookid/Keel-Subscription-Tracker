@@ -168,6 +168,8 @@ function parseItem(value: unknown, id: string, ctx: ImportContext): ImportDraft 
       ? { daysBefore: Math.floor(reminderDays) }
       : undefined;
   const firstDate = reader.firstDate(item.firstDate);
+  // Assume the user paid what was due so far, unless the input said otherwise.
+  const settlePast = item.backlogUnpaid !== true;
 
   const common = {
     name,
@@ -193,7 +195,7 @@ function parseItem(value: unknown, id: string, ctx: ImportContext): ImportDraft 
       firstInstallmentDate: firstDate,
       provider: reader.provider(item.provider),
     };
-    return { id, kind: "split", input, accountName, warnings: reader.warnings };
+    return { id, kind: "split", input, accountName, settlePast, warnings: reader.warnings };
   }
 
   const amount = asFiniteNumber(item.amount);
@@ -223,7 +225,7 @@ function parseItem(value: unknown, id: string, ctx: ImportContext): ImportDraft 
     endDate: reader.optionalDate(item.endDate, "endDate"),
     introOffer,
   };
-  return { id, kind: "subscription", input, accountName, warnings: reader.warnings };
+  return { id, kind: "subscription", input, accountName, settlePast, warnings: reader.warnings };
 }
 
 /**

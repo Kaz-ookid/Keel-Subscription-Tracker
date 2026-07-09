@@ -43,6 +43,11 @@ Optional fields, to include ONLY when present in the input (never invent them):
 - subscription "priceChange": {"newAmount":N,"on":"YYYY-MM-DD"} for a future price change. Use it for trials (amount 0 now → newAmount on the date) AND plain increases/decreases ("goes up to 170 on 26.12.2027", "down to 80 from the next payment").
 - split_payment "installments": N (how many payments); "provider": one of paypal_pay_in_x, klarna, afterpay, alma, oney, cb_nx, other ("PayPal"→paypal_pay_in_x, generic card plan→cb_nx).
 
+Default assumptions, to apply UNLESS the input says otherwise (and note in "notes" when you rely on one):
+- All payments due before today were made on time. Only if the user says something is NOT paid, behind, or overdue, add "backlogUnpaid": true to that item.
+- Settlement is "automatic"; the currency is the default currency; a cycle that is implied but not stated is monthly.
+- A start date with no day means the 1st of that month.
+
 Rules:
 - Output valid JSON only, with the exact field names above.
 - split_payment items need "cadence" too (usually {"unit":"month","interval":1}).

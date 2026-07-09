@@ -78,9 +78,9 @@ interface AppStateValue {
   /** ECB daily reference rates (cached; null until first successful fetch). */
   rates: ExchangeRates | null;
   loading: boolean;
-  addSubscription: (input: NewRecurringInput) => void;
+  addSubscription: (input: NewRecurringInput, options?: AddItemOptions) => void;
   /** Create a BNPL "Pay in X" installment plan. */
-  addInstallmentPlan: (input: NewInstallmentInput) => void;
+  addInstallmentPlan: (input: NewInstallmentInput, options?: AddItemOptions) => void;
   /** Edit an existing recurring subscription. */
   updateSubscription: (id: string, input: NewRecurringInput) => void;
   /** Edit an existing installment plan. */
@@ -133,6 +133,13 @@ interface AppStateValue {
   restoreSnapshot: () => void;
 }
 
+export interface AddItemOptions {
+  /** Record every occurrence due before today as paid, regardless of the
+   *  settlement mode — for imports, where the past was paid outside the app
+   *  and must not arrive as a wall of "overdue" cycles. */
+  settlePastPayments?: boolean;
+}
+
 const AppStateContext = createContext<AppStateValue | null>(null);
 
 /** Catch an automatic item up to today: recurring items log any charges that
@@ -142,6 +149,16 @@ function catchUp(item: PaymentItem): { item: PaymentItem; occurrences: PaymentOc
   if (item.status !== "active" || item.settlementMode !== "automatic") {
     return { item, occurrences: [] };
   }
+  return settleBacklog(item);
+}
+
+/** Catch ANY active item up to today, manual ones included — the import path,
+ *  where whatever was due before today was paid outside the app. */
+function settleBacklog(item: PaymentItem): {
+  item: PaymentItem;
+  occurrences: PaymentOccurrence[];
+} {
+  if (item.status !== "active") return { item, occurrences: [] };
   if (item.scheduleType === "INSTALLMENT") {
     return { item: accrueDueInstallments(item, today(), { now: now() }), occurrences: [] };
   }
@@ -217,19 +234,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // changes. Handlers live inside the memo so their closures (over `items`,
   // `occurrences`) are rebuilt whenever those change — never stale.
   const value = useMemo<AppStateValue>(() => {
-    const addSubscription = (input: NewRecurringInput) => {
+    const addSubscription = (input: NewRecurringInput, options?: AddItemOptions) => {
       const created = makeRecurringPaymentItem(input, { id: randomUUID(), now: now() });
-      const { item, occurrences: accrued } = catchUp(created);
+      const { item, occurrences: accrued } = options?.settlePastPayments
+        ? settleBacklog(created)
+        : catchUp(created);
       setItems((prev) => [item, ...prev]);
       if (accrued.length > 0) setOccurrences((prev) => [...prev, ...accrued]);
     };
 
-    const addInstallmentPlan = (input: NewInstallmentInput) => {
-      const item = makeInstallmentPaymentItem(input, {
+    const addInstallmentPlan = (input: NewInstallmentInput, options?: AddItemOptions) => {
+      const created = makeInstallmentPaymentItem(input, {
         id: randomUUID(),
         now: now(),
         makeId: randomUUID,
       });
+      const item = options?.settlePastPayments ? settleBacklog(created).item : created;
       setItems((prev) => [item, ...prev]);
     };
 

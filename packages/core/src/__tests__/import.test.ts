@@ -343,6 +343,18 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(messySplit.warnings).toContainEqual({ code: "provider-unknown", detail: "sofa4x" });
   });
 
+  it("assumes past payments were made unless backlogUnpaid says otherwise", () => {
+    const doc = {
+      items: [
+        { name: "Paid up", amount: 5, firstDate: "2026-01-20" },
+        { name: "Behind", amount: 5, firstDate: "2026-01-20", backlogUnpaid: true },
+      ],
+    };
+    const { drafts } = parseImportDocument(JSON.stringify(doc), ctx);
+    expect(drafts.find((d) => d.input.name === "Paid up")?.settlePast).toBe(true);
+    expect(drafts.find((d) => d.input.name === "Behind")?.settlePast).toBe(false);
+  });
+
   it("matches accounts case-insensitively and maps anchor week 5 to 'last'", () => {
     const doc = {
       items: [
@@ -392,6 +404,7 @@ describe("buildImportPrompt", () => {
     expect(prompt).toContain("import format v1");
     expect(prompt).toContain("screenshots");
     expect(prompt).toContain("code block"); // copy-at-once answer
+    expect(prompt).toContain("backlogUnpaid"); // paid-so-far default assumption
     expect(prompt).not.toContain("{{"); // no unfilled template slots
     expect(prompt).not.toContain("—"); // banned in user-visible text
   });

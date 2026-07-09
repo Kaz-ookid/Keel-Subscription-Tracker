@@ -37,6 +37,9 @@ interface ImportItemCommon {
   domain?: string;
   notes?: string;
   reminderDaysBefore?: number;
+  /** Set by the AI ONLY when the user says past payments were NOT made.
+   *  Default assumption: everything due before today was paid on time. */
+  backlogUnpaid?: boolean;
 }
 
 export interface ImportSubscriptionItem extends ImportItemCommon {
@@ -94,6 +97,9 @@ interface ImportDraftCommon {
   id: string;
   /** The account name as the AI wrote it, when it matched nothing. */
   accountName?: string;
+  /** Mark every occurrence due before today as paid when the item lands
+   *  (the default; false only when the input said payments are behind). */
+  settlePast: boolean;
   warnings: ImportWarning[];
 }
 

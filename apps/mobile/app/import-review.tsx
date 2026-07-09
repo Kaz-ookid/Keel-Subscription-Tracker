@@ -79,10 +79,13 @@ export default function ImportReviewScreen() {
 
     for (const draft of drafts) {
       const accountId = accountIdFor(draft);
+      // Past cycles were paid outside the app (unless the input said the
+      // user is behind) — land them settled, never as a wall of overdue.
+      const options = { settlePastPayments: draft.settlePast };
       if (draft.kind === "subscription") {
-        addSubscription({ ...draft.input, accountId });
+        addSubscription({ ...draft.input, accountId }, options);
       } else {
-        addInstallmentPlan({ ...draft.input, accountId });
+        addInstallmentPlan({ ...draft.input, accountId }, options);
       }
     }
     clear();
@@ -145,6 +148,7 @@ export default function ImportReviewScreen() {
           {trial && <Text style={styles.sub}>{trial}</Text>}
           {/* What the AI wrote in "notes": conversions, assumptions, caveats. */}
           {input.notes && <Text style={styles.notes}>“{input.notes}”</Text>}
+          {!draft.settlePast && <Text style={styles.warn}>⚠ {t("importAI.backlogLine")}</Text>}
           {account && (
             <View style={styles.accountRow}>
               <View style={[styles.accountDot, { backgroundColor: account.color }]} />

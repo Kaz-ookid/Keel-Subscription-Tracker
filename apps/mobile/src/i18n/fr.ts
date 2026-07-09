@@ -112,6 +112,7 @@ export const fr: typeof en = {
     warnCadenceDefaulted: "Cycle de facturation flou, mensuel supposé",
     warnDateDefaulted: "Une date n'a pas pu être lue, vérifiez les dates",
     warnProviderUnknown: "Fournisseur « {{detail}} » non reconnu",
+    backlogLine: "Les paiements passés arrivent impayés, comme indiqué",
   },
   recurrence: {
     daily: "chaque jour",
