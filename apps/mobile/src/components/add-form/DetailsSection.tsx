@@ -1,9 +1,10 @@
 import { type SettlementMode } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { radius, spacing, useTheme } from "../../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { FieldButton } from "../FieldButton";
 import { Segmented, type SegmentedOption } from "../Segmented";
@@ -19,10 +20,11 @@ export function IdentityHeader({ form }: { form: AddForm }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useFormStyles();
+  const header = useMemo(() => createHeaderStyles(colors), [colors]);
 
   return (
     <View>
-      <View style={headerStyles.wrap}>
+      <View style={header.wrap}>
         <Pressable
           onPress={() => form.setSheet("color")}
           accessibilityLabel={t("add.changeIdentityA11y")}
@@ -34,12 +36,12 @@ export function IdentityHeader({ form }: { form: AddForm }) {
             color={form.color ?? colors.accent}
             size={64}
           />
-          <View style={[headerStyles.pencil, { backgroundColor: colors.surface }]}>
+          <View style={header.pencil}>
             <SymbolView name="pencil" size={12} tintColor={colors.mutedText} />
           </View>
         </Pressable>
 
-        <View style={headerStyles.right}>
+        <View style={header.right}>
           <TextInput
             style={[styles.input, !form.name.trim() && styles.requiredMissing]}
             value={form.name}
@@ -47,10 +49,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
             placeholder={t("add.namePlaceholder")}
             placeholderTextColor={colors.mutedText}
           />
-          <Pressable
-            style={[headerStyles.categoryChip, { borderColor: colors.border }]}
-            onPress={() => form.setSheet("category")}
-          >
+          <Pressable style={header.categoryChip} onPress={() => form.setSheet("category")}>
             {form.selectedCategory?.icon && (
               <SymbolView
                 name={form.selectedCategory.icon as SymbolViewProps["name"]}
@@ -60,7 +59,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
             )}
             <Text
               style={[
-                headerStyles.categoryText,
+                header.categoryText,
                 { color: form.selectedCategory ? colors.text : colors.mutedText },
               ]}
             >
@@ -78,22 +77,11 @@ export function IdentityHeader({ form }: { form: AddForm }) {
       {/* Typed a name we recognise? Offer the brand bank inline — pick one to
           pull in its logo, category and colour (the upfront chooser, in place). */}
       {form.nameSuggestions.length > 0 && (
-        <View
-          style={[
-            headerStyles.suggestBox,
-            { borderColor: colors.border, backgroundColor: colors.surface },
-          ]}
-        >
+        <View style={header.suggestBox}>
           {form.nameSuggestions.map((s, i) => (
             <Pressable
               key={s.id}
-              style={[
-                headerStyles.suggestRow,
-                i > 0 && {
-                  borderTopWidth: StyleSheet.hairlineWidth,
-                  borderTopColor: colors.border,
-                },
-              ]}
+              style={[header.suggestRow, i > 0 && header.suggestRowDivider]}
               onPress={() => form.applySuggestion(s)}
             >
               <BrandBadge
@@ -102,7 +90,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
                 color={s.color ?? colors.accent}
                 size={26}
               />
-              <Text style={[headerStyles.suggestName, { color: colors.text }]} numberOfLines={1}>
+              <Text style={header.suggestName} numberOfLines={1}>
                 {t(`bank.${s.id}`, { defaultValue: s.name })}
               </Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
@@ -114,60 +102,72 @@ export function IdentityHeader({ form }: { form: AddForm }) {
   );
 }
 
-const headerStyles = StyleSheet.create({
-  wrap: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.md,
-    marginBottom: spacing.md,
-  },
-  right: {
-    flex: 1,
-    gap: spacing.sm,
-  },
-  pencil: {
-    position: "absolute",
-    right: -2,
-    bottom: -2,
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  categoryChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    alignSelf: "flex-start",
-    gap: 6,
-    borderWidth: 1,
-    borderRadius: 14,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-  },
-  categoryText: {
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  suggestBox: {
-    borderWidth: 1,
-    borderRadius: radius.md,
-    overflow: "hidden",
-    marginTop: -spacing.sm,
-    marginBottom: spacing.md,
-  },
-  suggestRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-  },
-  suggestName: {
-    flex: 1,
-    fontSize: 15,
-  },
-});
+function createHeaderStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    wrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      marginBottom: spacing.md,
+    },
+    right: {
+      flex: 1,
+      gap: spacing.sm,
+    },
+    pencil: {
+      position: "absolute",
+      right: -2,
+      bottom: -2,
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.surface,
+    },
+    // Same metrics as ui/Chip, plus the icon and the fold chevron.
+    categoryChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      alignSelf: "flex-start",
+      gap: spacing.xs + 2,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.lg,
+      paddingVertical: spacing.xs + 2,
+      paddingHorizontal: spacing.sm + 4,
+    },
+    categoryText: {
+      ...typography.caption,
+      fontWeight: "600",
+    },
+    suggestBox: {
+      borderWidth: 1,
+      borderColor: colors.border,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      overflow: "hidden",
+      marginTop: -spacing.sm,
+      marginBottom: spacing.md,
+    },
+    suggestRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    suggestRowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    suggestName: {
+      flex: 1,
+      ...typography.body,
+      color: colors.text,
+    },
+  });
+}
 
 /** The free-text extras (name + category live in the IdentityHeader). */
 export function DetailsSection({ form }: { form: AddForm }) {
