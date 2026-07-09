@@ -1,0 +1,245 @@
+// The mandatory review screen (PROJECT_BRIEF §6.1 / edge case #11): everything
+// the AI read is shown as editable proposals — nothing is saved until "Add N".
+// Tap a card to fix it in the full Add form; ✗ drops it; unmatched account
+// names become new accounts at confirm time (never silently, always announced
+// on the card). AI output is a draft to check, not data to trust.
+
+import {
+  formatCalendarDate,
+  formatMoney,
+  toMajor,
+  type Account,
+  type ImportDraft,
+  type ImportWarning,
+  type NewAccountInput,
+} from "@keel/core";
+import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+
+import { COLOR_SWATCHES } from "../src/constants";
+import { BrandBadge } from "../src/components/BrandBadge";
+import { HeroCard } from "../src/components/HeroCard";
+import { localizedRecurrence } from "../src/i18n/recurrence";
+import { useAppState } from "../src/state/app-state";
+import { useImportSession } from "../src/state/import-session";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+
+/** Warnings that get their own line; account-unmatched is the account chip. */
+const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
+  "currency-mismatch": "importAI.warnCurrencyMismatch",
+  "currency-defaulted": "importAI.warnCurrencyDefaulted",
+  "category-unknown": "importAI.warnCategoryUnknown",
+  "cadence-defaulted": "importAI.warnCadenceDefaulted",
+  "date-defaulted": "importAI.warnDateDefaulted",
+  "provider-unknown": "importAI.warnProviderUnknown",
+};
+
+export default function ImportReviewScreen() {
+  const router = useRouter();
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { drafts, skipped, removeDraft, clear } = useImportSession();
+  const { accounts, categories, addAccount, addSubscription, addInstallmentPlan } = useAppState();
+
+  const heroSub =
+    skipped > 0
+      ? `${t("importAI.reviewHint")} ${t("importAI.reviewSkipped", { count: skipped })}`
+      : t("importAI.reviewHint");
+
+  const confirmAll = () => {
+    // Unmatched account names become real accounts — one per distinct name,
+    // in the currency of the first draft that mentions it.
+    const createdByName = new Map<string, Account>();
+    const accountIdFor = (draft: ImportDraft): string | undefined => {
+      if (draft.input.accountId) return draft.input.accountId;
+      if (!draft.accountName) return undefined;
+      const key = draft.accountName.toLowerCase();
+      let account = createdByName.get(key);
+      if (!account) {
+        const currency =
+          draft.kind === "subscription"
+            ? draft.input.amount.currency
+            : draft.input.totalAmount.currency;
+        const input: NewAccountInput = {
+          name: draft.accountName,
+          type: "other",
+          currency,
+          color: COLOR_SWATCHES[createdByName.size % COLOR_SWATCHES.length],
+          icon: "building.columns.fill",
+        };
+        account = addAccount(input);
+        createdByName.set(key, account);
+      }
+      return account.id;
+    };
+
+    for (const draft of drafts) {
+      const accountId = accountIdFor(draft);
+      if (draft.kind === "subscription") {
+        addSubscription({ ...draft.input, accountId });
+      } else {
+        addInstallmentPlan({ ...draft.input, accountId });
+      }
+    }
+    clear();
+    router.dismissAll();
+  };
+
+  const renderDraft = ({ item: draft }: { item: ImportDraft }) => {
+    const input = draft.input;
+    const category = categories.find((c) => c.id === input.categoryId);
+    const account = input.accountId ? accounts.find((a) => a.id === input.accountId) : undefined;
+    const amountLine =
+      draft.kind === "subscription"
+        ? `${formatMoney(draft.input.amount)} · ${localizedRecurrence(input.recurrence)}`
+        : t("importAI.splitLine", {
+            total: formatMoney(draft.input.totalAmount),
+            count: draft.input.numberOfInstallments,
+          });
+    const firstDate =
+      draft.kind === "subscription"
+        ? draft.input.firstChargeDate
+        : draft.input.firstInstallmentDate;
+    const trial =
+      draft.kind === "subscription" && draft.input.introOffer
+        ? t(toMajor(draft.input.amount) === 0 ? "importAI.trialLine" : "importAI.changeLine", {
+            amount: formatMoney(draft.input.introOffer.regularAmount),
+            date: formatCalendarDate(draft.input.introOffer.convertsOn),
+          })
+        : null;
+    const warningLines = draft.warnings
+      .map((w) => {
+        const key = WARNING_KEYS[w.code];
+        return key ? t(key, { detail: w.detail }) : null;
+      })
+      .filter((line): line is string => line !== null);
+
+    return (
+      <Pressable
+        style={styles.card}
+        onPress={() => router.push({ pathname: "/add", params: { draftId: draft.id } })}
+      >
+        <BrandBadge
+          domain={input.domain}
+          icon={category?.icon}
+          fallback={input.name.charAt(0).toUpperCase()}
+          color={input.color ?? colors.accent}
+          size={36}
+        />
+        <View style={styles.middle}>
+          <Text style={styles.name} numberOfLines={1}>
+            {input.name}
+          </Text>
+          <Text style={styles.amount}>{amountLine}</Text>
+          <Text style={styles.sub}>
+            {t("importAI.fromDate", { date: formatCalendarDate(firstDate) })}
+            {category
+              ? ` · ${t(`categories.${category.id}`, { defaultValue: category.name })}`
+              : ""}
+            {` · ${t(input.settlementMode === "manual" ? "add.manual" : "add.automatic")}`}
+          </Text>
+          {trial && <Text style={styles.sub}>{trial}</Text>}
+          {/* What the AI wrote in "notes": conversions, assumptions, caveats. */}
+          {input.notes && <Text style={styles.notes}>“{input.notes}”</Text>}
+          {account && (
+            <View style={styles.accountRow}>
+              <View style={[styles.accountDot, { backgroundColor: account.color }]} />
+              <Text style={styles.sub}>{account.name}</Text>
+            </View>
+          )}
+          {!account && draft.accountName && (
+            <Text style={styles.warn}>{t("importAI.newAccount", { name: draft.accountName })}</Text>
+          )}
+          {warningLines.map((line) => (
+            <Text key={line} style={styles.warn}>
+              ⚠ {line}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.actions}>
+          <Pressable
+            onPress={() => removeDraft(draft.id)}
+            hitSlop={10}
+            accessibilityLabel={t("importAI.removeA11y", { name: input.name })}
+          >
+            <SymbolView name="xmark.circle.fill" size={20} tintColor={colors.mutedText} />
+          </Pressable>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </View>
+      </Pressable>
+    );
+  };
+
+  return (
+    <View style={styles.screen}>
+      <FlatList
+        data={drafts}
+        keyExtractor={(d) => d.id}
+        renderItem={renderDraft}
+        contentContainerStyle={styles.listContent}
+        ListHeaderComponent={
+          <HeroCard
+            label={t("importAI.reviewTitle")}
+            amount={t("importAI.reviewHero", { count: drafts.length })}
+            sub={heroSub}
+          />
+        }
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>{t("importAI.reviewEmpty")}</Text>
+          </View>
+        }
+      />
+      {drafts.length > 0 && (
+        <View style={styles.footer}>
+          <Pressable style={styles.confirmButton} onPress={confirmAll}>
+            <Text style={styles.confirmText}>{t("importAI.addAll", { count: drafts.length })}</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    screen: { flex: 1, backgroundColor: colors.background },
+    listContent: { padding: spacing.md, paddingBottom: spacing.xl * 2, gap: spacing.sm },
+    card: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+    },
+    middle: { flex: 1, gap: 2 },
+    name: { ...typography.label, color: colors.text },
+    amount: { ...typography.body, color: colors.text },
+    sub: { ...typography.caption, color: colors.mutedText },
+    notes: { ...typography.caption, color: colors.mutedText, fontStyle: "italic" },
+    warn: { ...typography.caption, color: tones.warning },
+    accountRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs + 2 },
+    accountDot: { width: 8, height: 8, borderRadius: 4 },
+    actions: { alignItems: "flex-end", gap: spacing.md, alignSelf: "stretch" },
+    empty: { alignItems: "center", paddingTop: spacing.xl },
+    emptyText: { ...typography.body, color: colors.mutedText },
+    footer: {
+      padding: spacing.md,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      backgroundColor: colors.background,
+    },
+    confirmButton: {
+      alignItems: "center",
+      backgroundColor: colors.navy,
+      borderRadius: radius.md,
+      paddingVertical: spacing.md,
+    },
+    confirmText: { ...typography.label, color: colors.white },
+  });
+}

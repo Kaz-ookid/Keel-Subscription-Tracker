@@ -29,9 +29,14 @@ const PLAN_TYPES: { value: PlanType; labelKey: string }[] = [
 ];
 
 export default function AddScreen() {
-  const { id, suggestionId } = useLocalSearchParams<{ id?: string; suggestionId?: string }>();
-  // Editing and the To-complete flow arrive with the answer already known.
-  const direct = !!id || !!suggestionId;
+  const { id, suggestionId, draftId } = useLocalSearchParams<{
+    id?: string;
+    suggestionId?: string;
+    draftId?: string;
+  }>();
+  // Editing, the To-complete flow and AI-import drafts arrive with the answer
+  // already known.
+  const direct = !!id || !!suggestionId || !!draftId;
   const [chosen, setChosen] = useState<SuggestedCommitment | undefined>(undefined);
   const [phase, setPhase] = useState<"choose" | "form">(direct ? "form" : "choose");
 
@@ -99,11 +104,11 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
     >
       <Stack.Screen
         options={{
-          title: form.isEditing ? t("titles.edit") : t("titles.newSubscription"),
+          title: form.isEditing || form.isDraft ? t("titles.edit") : t("titles.newSubscription"),
           headerRight: () => (
             <Pressable onPress={form.submit} disabled={!form.canSubmit} hitSlop={12}>
               <Text style={[styles.headerAction, !form.canSubmit && styles.headerActionDisabled]}>
-                {form.isEditing ? t("common.save") : t("common.add")}
+                {form.isEditing || form.isDraft ? t("common.save") : t("common.add")}
               </Text>
             </Pressable>
           ),
@@ -112,7 +117,7 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
 
       <IdentityHeader form={form} />
 
-      {!form.isEditing && (
+      {!form.isEditing && !form.isDraft && (
         <View style={styles.modeSwitch}>
           {PLAN_TYPES.map((m) => {
             const active = form.planType === m.value;

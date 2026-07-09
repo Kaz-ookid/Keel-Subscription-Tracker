@@ -9,6 +9,7 @@
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-picker/picker": "2.11.1",
     "expo": "^54.0.35",
+    "expo-clipboard": "~8.0.8",
     "expo-constants": "~18.0.13",
     "expo-crypto": "~15.0.9",
     "expo-document-picker": "~14.0.8",

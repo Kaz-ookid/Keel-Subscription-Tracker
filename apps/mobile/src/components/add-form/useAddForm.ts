@@ -32,6 +32,7 @@ import { useTranslation } from "react-i18next";
 import { localizedAnchor } from "../../i18n/recurrence";
 import { matchSuggestions } from "../../lib/suggestions";
 import { useAppState } from "../../state/app-state";
+import { useImportSession } from "../../state/import-session";
 
 export type PlanType = "subscription" | "installment";
 
@@ -97,12 +98,16 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const {
     id,
     suggestionId: suggestionIdParam,
+    draftId,
     ...suggested
   } = useLocalSearchParams<{
     id?: string;
     // Set when arriving from the To-complete list: pre-fill, then clear the
     // pending entry on a successful save.
     suggestionId?: string;
+    // Set when arriving from the AI-import review screen: pre-fill from the
+    // session draft and save back to it instead of creating an item.
+    draftId?: string;
     name?: string;
     categoryId?: string;
     unit?: string;
@@ -124,23 +129,34 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   // When an `id` is passed we're editing an existing item; pre-fill from it.
   const editItem = id ? items.find((i) => i.id === id) : undefined;
   const isEditing = !!editItem;
+  // When a `draftId` is passed we're fixing an AI-import proposal: seed from
+  // the session draft and, on save, write back to it (nothing is created
+  // until the review screen's confirm).
+  const { getDraft, updateDraft } = useImportSession();
+  const draft = draftId ? getDraft(draftId) : undefined;
+  const draftRec = draft?.kind === "subscription" ? draft.input : undefined;
+  const draftInst = draft?.kind === "split" ? draft.input : undefined;
+  const isDraft = !!draft;
   // Route params (To-complete flow) win over an in-screen pick; neither
-  // applies when editing. Saving clears any matching pending entry.
-  const suggestion: SuggestionPrefill | undefined = editItem
-    ? undefined
-    : suggestionIdParam
-      ? suggested
-      : prefill;
-  const suggestionId = editItem ? undefined : (suggestionIdParam ?? prefill?.id);
+  // applies when editing or reviewing a draft. Saving clears any matching
+  // pending entry.
+  const suggestion: SuggestionPrefill | undefined =
+    editItem || draft ? undefined : suggestionIdParam ? suggested : prefill;
+  const suggestionId = editItem || draft ? undefined : (suggestionIdParam ?? prefill?.id);
   const editRec =
     editItem && isRecurringSchedule(editItem.schedule) ? editItem.schedule : undefined;
   const editInst =
     editItem && isInstallmentSchedule(editItem.schedule) ? editItem.schedule : undefined;
-  const editAmount = editRec?.amount ?? editInst?.totalAmount;
-  const editFirstDate = editRec?.firstChargeDate ?? editInst?.firstInstallmentDate;
+  // Unified seeds: an edited item's schedule and an import draft's input carry
+  // the same field names, so every initializer below reads one `seed*`.
+  const seedRec = editRec ?? draftRec;
+  const seedInst = editInst ?? draftInst;
+  const seedItem = editItem ?? draft?.input;
+  const editAmount = seedRec?.amount ?? seedInst?.totalAmount;
+  const editFirstDate = seedRec?.firstChargeDate ?? seedInst?.firstInstallmentDate;
 
   const [planType, setPlanType] = useState<PlanType>(() =>
-    editInst ? "installment" : "subscription",
+    seedInst ? "installment" : "subscription",
   );
   // Generic bank entries ("Gym membership") arrive in the user's language;
   // brand names pass through the defaultValue untouched.
@@ -148,7 +164,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     suggestion?.name && suggestionId
       ? t(`bank.${suggestionId}`, { defaultValue: suggestion.name })
       : suggestion?.name;
-  const [name, setName] = useState(() => editItem?.name ?? suggestedName ?? "");
+  const [name, setName] = useState(() => seedItem?.name ?? suggestedName ?? "");
   const [amountText, setAmountText] = useState(() =>
     editAmount ? String(toMajor(editAmount)) : "",
   );
@@ -157,40 +173,40 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     () => editAmount?.currency ?? displayCurrency,
   );
   const [intervalText, setIntervalText] = useState(() =>
-    String(editRec?.recurrence.interval ?? editInst?.recurrence.interval ?? 1),
+    String(seedRec?.recurrence.interval ?? seedInst?.recurrence.interval ?? 1),
   );
   const [unit, setUnit] = useState<TimeUnit>(() => {
-    if (editRec) return editRec.recurrence.unit;
-    if (editInst) return editInst.recurrence.unit;
+    if (seedRec) return seedRec.recurrence.unit;
+    if (seedInst) return seedInst.recurrence.unit;
     return suggestion?.unit === "year" ? "year" : "month";
   });
   const [installmentsText, setInstallmentsText] = useState(() =>
-    editInst ? String(editInst.numberOfInstallments) : "3",
+    seedInst ? String(seedInst.numberOfInstallments) : "3",
   );
   const [amountMode, setAmountMode] = useState<AmountMode>("total");
   // Niche: monthly cycles can repeat "every 1st Thursday" instead of "the 4th".
   const [anchorMode, setAnchorMode] = useState(
-    () => (editRec?.recurrence.anchor ?? editInst?.recurrence.anchor) != null,
+    () => (seedRec?.recurrence.anchor ?? seedInst?.recurrence.anchor) != null,
   );
-  const [provider, setProvider] = useState<BnplProviderId>(() => editInst?.provider ?? "other");
+  const [provider, setProvider] = useState<BnplProviderId>(() => seedInst?.provider ?? "other");
   const [firstDate, setFirstDate] = useState(() =>
     editFirstDate ? fromCalendarDate(editFirstDate) : new Date(),
   );
-  const [endDate, setEndDate] = useState<CalendarDate | null>(() => editRec?.endDate ?? null);
+  const [endDate, setEndDate] = useState<CalendarDate | null>(() => seedRec?.endDate ?? null);
   // Trial / intro offer: the amount field becomes the trial price (0 = free)
   // until `convertsDate`, then `trialRegularText` takes over.
-  const [isTrial, setIsTrialState] = useState(() => editRec?.introOffer != null);
+  const [isTrial, setIsTrialState] = useState(() => seedRec?.introOffer != null);
   const [trialRegularText, setTrialRegularText] = useState(() =>
-    editRec?.introOffer ? String(toMajor(editRec.introOffer.regularAmount)) : "",
+    seedRec?.introOffer ? String(toMajor(seedRec.introOffer.regularAmount)) : "",
   );
   const [convertsDate, setConvertsDate] = useState(() =>
-    editRec?.introOffer ? fromCalendarDate(editRec.introOffer.convertsOn) : new Date(),
+    seedRec?.introOffer ? fromCalendarDate(seedRec.introOffer.convertsOn) : new Date(),
   );
   const [settlementMode, setSettlementMode] = useState<SettlementMode>(
-    () => editItem?.settlementMode ?? "automatic",
+    () => seedItem?.settlementMode ?? "automatic",
   );
   const [reminderKey, setReminderKey] = useState(() =>
-    editItem?.reminder ? String(editItem.reminder.daysBefore) : "never",
+    seedItem?.reminder ? String(seedItem.reminder.daysBefore) : "never",
   );
 
   // Turning a trial on lights up a heads-up reminder by default — the whole
@@ -200,19 +216,19 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     if (next && reminderKey === "never") setReminderKey("2");
   };
   const [categoryId, setCategoryId] = useState<string | undefined>(
-    () => editItem?.categoryId ?? suggestion?.categoryId,
+    () => seedItem?.categoryId ?? suggestion?.categoryId,
   );
-  const [accountId, setAccountId] = useState<string | undefined>(() => editItem?.accountId);
+  const [accountId, setAccountId] = useState<string | undefined>(() => seedItem?.accountId);
   const [color, setColor] = useState<string | undefined>(
-    () => editItem?.color ?? suggestion?.color,
+    () => seedItem?.color ?? suggestion?.color,
   );
   // The brand website behind the logo — seeded from a suggestion or the edited
   // item, and editable: pick a brand by name (applySuggestion) or type a domain
   // for a custom logo.
   const [domain, setDomain] = useState<string | undefined>(
-    () => editItem?.domain ?? suggestion?.domain,
+    () => seedItem?.domain ?? suggestion?.domain,
   );
-  const [notes, setNotes] = useState(() => editItem?.notes ?? "");
+  const [notes, setNotes] = useState(() => seedItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
   const isInstallment = planType === "installment";
@@ -322,7 +338,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   // and when editing; skips brands already tracked by name.
   const takenNames = new Set(items.map((i) => i.name.trim().toLowerCase()));
   const nameSuggestions =
-    isEditing || domain
+    isEditing || isDraft || domain
       ? []
       : matchSuggestions(name).filter((s) => !takenNames.has(s.name.toLowerCase()));
 
@@ -355,6 +371,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         notes: notes.trim() || undefined,
       };
       if (editItem) updateInstallmentPlan(editItem.id, input);
+      else if (draft) updateDraft(draft.id, { kind: "split", input });
       else addInstallmentPlan(input);
     } else {
       // Trial price (0 = free) until conversion; the regular price lives in the
@@ -382,6 +399,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         introOffer,
       };
       if (editItem) updateSubscription(editItem.id, input);
+      else if (draft) updateDraft(draft.id, { kind: "subscription", input });
       else addSubscription(input);
     }
     // The suggestion is now a real commitment — its To-complete row retires
@@ -395,6 +413,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     planType,
     setPlanType,
     isEditing,
+    isDraft,
     isInstallment,
     isAutomatic,
     // Fields
