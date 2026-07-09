@@ -52,16 +52,17 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
+    // Selected = the quiet sea-glass wash (selection, not action).
     pillActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.action,
+      backgroundColor: colors.accentSoft,
+      borderColor: colors.accent,
     },
     label: {
       ...typography.caption,
       color: colors.text,
     },
     labelActive: {
-      color: colors.actionText,
+      color: colors.accent,
       fontWeight: "600",
     },
   });

@@ -28,9 +28,10 @@ import {
 } from "react-native";
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
+import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
 import { useAppState } from "../../state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { UpcomingRow } from "../UpcomingRow";
 
@@ -315,12 +316,11 @@ export function UpcomingView() {
           <Text style={styles.emptyHint}>{t("upcoming.emptyHint")}</Text>
           {/* A truly empty app (e.g. onboarding skipped): offer the way in. */}
           {items.length === 0 && (
-            <Pressable
-              style={styles.getStarted}
+            <Button
+              label={t("common.getStarted")}
               onPress={() => router.push({ pathname: "/onboarding", params: { mode: "start" } })}
-            >
-              <Text style={styles.getStartedText}>{t("common.getStarted")}</Text>
-            </Pressable>
+              style={styles.getStarted}
+            />
           )}
         </View>
       }
@@ -460,14 +460,6 @@ function createStyles(colors: ThemeColors) {
     },
     getStarted: {
       marginTop: spacing.sm,
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.sm + 2,
-      paddingHorizontal: spacing.xl,
-    },
-    getStartedText: {
-      ...typography.label,
-      color: colors.actionText,
     },
     emptyTitle: {
       ...typography.subtitle,

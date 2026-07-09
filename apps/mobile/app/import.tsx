@@ -15,6 +15,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 
 import { InfoPopup } from "../src/components/InfoPopup";
 import { Sheet } from "../src/components/Sheet";
+import { Button } from "../src/components/ui/Button";
 import { useAppState } from "../src/state/app-state";
 import { useImportSession } from "../src/state/import-session";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -123,16 +124,12 @@ export default function ImportScreen() {
       <View style={styles.card}>
         <StepRow n={1} text={t("importAI.step1")} styles={styles} />
         <View style={styles.stepActions}>
-          <Pressable style={styles.copyButton} onPress={() => void copyInstructions()}>
-            <SymbolView
-              name={copied ? "checkmark" : "doc.on.doc"}
-              size={15}
-              tintColor={colors.white}
-            />
-            <Text style={styles.copyText}>
-              {copied ? t("importAI.copied") : t("importAI.copy")}
-            </Text>
-          </Pressable>
+          <Button
+            icon={copied ? "checkmark" : "doc.on.doc"}
+            label={copied ? t("importAI.copied") : t("importAI.copy")}
+            onPress={() => void copyInstructions()}
+            style={styles.copyButton}
+          />
           <Pressable onPress={() => setPopup("instructions")} hitSlop={8}>
             <Text style={styles.quietLink}>{t("importAI.viewInstructions")}</Text>
           </Pressable>
@@ -185,18 +182,17 @@ export default function ImportScreen() {
           </Text>
         )}
         {manualEntry ? (
-          <Pressable
-            style={[styles.readButton, pasted.trim() === "" && styles.readButtonDisabled]}
-            disabled={pasted.trim() === ""}
+          <Button
+            label={t("importAI.read")}
             onPress={() => parseAndGo(pasted)}
-          >
-            <Text style={styles.readText}>{t("importAI.read")}</Text>
-          </Pressable>
+            disabled={pasted.trim() === ""}
+          />
         ) : (
-          <Pressable style={styles.readButton} onPress={() => void pasteAnswer()}>
-            <SymbolView name="doc.on.clipboard" size={16} tintColor={colors.white} />
-            <Text style={styles.readText}>{t("importAI.pasteButton")}</Text>
-          </Pressable>
+          <Button
+            icon="doc.on.clipboard"
+            label={t("importAI.pasteButton")}
+            onPress={() => void pasteAnswer()}
+          />
         )}
         <View style={styles.pasteLinks}>
           {!manualEntry && (
@@ -354,16 +350,11 @@ function createStyles(colors: ThemeColors) {
       paddingTop: spacing.sm,
       paddingLeft: 22 + spacing.sm,
     },
+    // Compact override: the copy CTA sits inline under step 1.
     copyButton: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs + 2,
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
     },
-    copyText: { ...typography.label, color: colors.actionText },
     quietLink: { ...typography.caption, color: colors.accent, fontWeight: "600" },
     linkRow: {
       flexDirection: "row",
@@ -402,17 +393,6 @@ function createStyles(colors: ThemeColors) {
       textAlignVertical: "top",
     },
     error: { ...typography.caption, color: tones.danger },
-    readButton: {
-      flexDirection: "row",
-      justifyContent: "center",
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-    },
-    readButtonDisabled: { opacity: 0.4 },
-    readText: { ...typography.label, color: colors.actionText },
     privacyLink: {
       flexDirection: "row",
       alignItems: "center",

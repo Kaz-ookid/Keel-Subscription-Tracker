@@ -13,6 +13,7 @@ import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
+import { Button } from "../src/components/ui/Button";
 import {
   authenticate,
   getAuthKind,
@@ -135,8 +136,8 @@ export default function OnboardingScreen() {
               <View key={p.titleKey} style={[styles.dot, i === pane && styles.dotActive]} />
             ))}
           </View>
-          <Pressable
-            style={styles.cta}
+          <Button
+            label={pane < TOUR_PANES.length - 1 ? t("onboarding.next") : t("onboarding.continue")}
             onPress={() => {
               if (pane < TOUR_PANES.length - 1) {
                 pagerRef.current?.scrollTo({ x: (pane + 1) * SCREEN_WIDTH, animated: true });
@@ -145,11 +146,8 @@ export default function OnboardingScreen() {
                 setPhase("method");
               }
             }}
-          >
-            <Text style={styles.ctaText}>
-              {pane < TOUR_PANES.length - 1 ? t("onboarding.next") : t("onboarding.continue")}
-            </Text>
-          </Pressable>
+            style={styles.cta}
+          />
         </>
       )}
 
@@ -213,9 +211,7 @@ export default function OnboardingScreen() {
           <View style={styles.pane}>
             <Text style={styles.paneTitle}>{t("onboarding.caughtUpTitle")}</Text>
             <Text style={styles.paneBody}>{t("onboarding.caughtUpBody")}</Text>
-            <Pressable style={styles.cta} onPress={finish}>
-              <Text style={styles.ctaText}>{t("onboarding.done")}</Text>
-            </Pressable>
+            <Button label={t("onboarding.done")} onPress={finish} style={styles.cta} />
           </View>
         ))}
 
@@ -242,15 +238,15 @@ export default function OnboardingScreen() {
                 {!lockOn && <Text style={styles.lockBody}>{t("onboarding.lockBody")}</Text>}
               </View>
               {!lockOn && (
-                <Pressable style={styles.lockCta} onPress={() => void enableLock()}>
-                  <Text style={styles.lockCtaText}>{t("onboarding.lockCta")}</Text>
-                </Pressable>
+                <Button
+                  size="sm"
+                  label={t("onboarding.lockCta")}
+                  onPress={() => void enableLock()}
+                />
               )}
             </View>
           )}
-          <Pressable style={styles.cta} onPress={finish}>
-            <Text style={styles.ctaText}>{t("onboarding.done")}</Text>
-          </Pressable>
+          <Button label={t("onboarding.done")} onPress={finish} style={styles.cta} />
         </View>
       )}
     </View>
@@ -382,13 +378,6 @@ function createStyles(colors: ThemeColors) {
     lockTexts: { flex: 1, gap: 2 },
     lockTitle: { ...typography.label, color: colors.text },
     lockBody: { ...typography.caption, color: colors.mutedText, lineHeight: 17 },
-    lockCta: {
-      backgroundColor: colors.action,
-      borderRadius: radius.sm,
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-    },
-    lockCtaText: { ...typography.caption, fontWeight: "600", color: colors.actionText },
     dots: {
       flexDirection: "row",
       justifyContent: "center",
@@ -404,19 +393,11 @@ function createStyles(colors: ThemeColors) {
     dotActive: {
       backgroundColor: colors.action,
     },
+    // Layout-only: the look comes from ui/Button.
     cta: {
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      paddingHorizontal: spacing.xl,
       marginHorizontal: spacing.lg,
       marginBottom: spacing.lg,
-      alignItems: "center",
       alignSelf: "stretch",
-    },
-    ctaText: {
-      ...typography.label,
-      color: colors.actionText,
     },
   });
 }

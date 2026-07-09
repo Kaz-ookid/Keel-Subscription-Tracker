@@ -24,6 +24,7 @@ import { COLOR_SWATCHES } from "../src/constants";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { HeroCard } from "../src/components/HeroCard";
 import { localizedRecurrence } from "../src/i18n/recurrence";
+import { Button } from "../src/components/ui/Button";
 import { useAppState } from "../src/state/app-state";
 import { useImportSession } from "../src/state/import-session";
 import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -252,9 +253,7 @@ export default function ImportReviewScreen() {
       />
       {drafts.length > 0 && (
         <View style={styles.footer}>
-          <Pressable style={styles.confirmButton} onPress={confirmAll}>
-            <Text style={styles.confirmText}>{t("importAI.addAll", { count: drafts.length })}</Text>
-          </Pressable>
+          <Button label={t("importAI.addAll", { count: drafts.length })} onPress={confirmAll} />
         </View>
       )}
     </View>
@@ -296,12 +295,5 @@ function createStyles(colors: ThemeColors) {
       borderTopColor: colors.border,
       backgroundColor: colors.background,
     },
-    confirmButton: {
-      alignItems: "center",
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-    },
-    confirmText: { ...typography.label, color: colors.actionText },
   });
 }

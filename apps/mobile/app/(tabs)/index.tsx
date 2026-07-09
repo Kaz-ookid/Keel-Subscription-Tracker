@@ -69,7 +69,7 @@ export default function PaymentsScreen() {
           <SymbolView
             name="calendar"
             size={17}
-            tintColor={view === "calendar" ? colors.actionText : colors.text}
+            tintColor={view === "calendar" ? colors.accent : colors.text}
           />
         </Pressable>
       </View>
@@ -115,8 +115,8 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "center",
     },
     calendarToggleActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.action,
+      backgroundColor: colors.accentSoft,
+      borderColor: colors.accent,
     },
     pill: {
       flex: 1,
@@ -124,8 +124,8 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm,
       borderRadius: radius.sm,
     },
-    pillActive: { backgroundColor: colors.action },
+    pillActive: { backgroundColor: colors.accentSoft },
     pillText: { ...typography.label, color: colors.mutedText },
-    pillTextActive: { color: colors.actionText },
+    pillTextActive: { color: colors.accent },
   });
 }

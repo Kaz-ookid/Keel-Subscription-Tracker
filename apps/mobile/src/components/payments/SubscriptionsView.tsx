@@ -66,12 +66,11 @@ export function SubscriptionsView() {
       <View style={styles.center}>
         <Text style={styles.emptyTitle}>{t("allList.emptyTitle")}</Text>
         <Text style={styles.emptyHint}>{t("allList.emptyHint")}</Text>
-        <Pressable
-          style={styles.getStarted}
+        <Button
+          label={t("common.getStarted")}
           onPress={() => router.push({ pathname: "/onboarding", params: { mode: "start" } })}
-        >
-          <Text style={styles.getStartedText}>{t("common.getStarted")}</Text>
-        </Pressable>
+          style={styles.getStarted}
+        />
       </View>
     );
   }
@@ -239,14 +238,6 @@ function createStyles(colors: ThemeColors) {
     },
     getStarted: {
       marginTop: spacing.sm,
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.sm + 2,
-      paddingHorizontal: spacing.xl,
-    },
-    getStartedText: {
-      ...typography.label,
-      color: colors.actionText,
     },
     headerStack: {
       gap: spacing.sm,
