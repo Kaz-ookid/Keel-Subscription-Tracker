@@ -540,7 +540,7 @@ export default function InsightsScreen() {
       {/* The deeper layer: focused tools, one tap away, out of the way. */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>{t("insights.explore")}</Text>
-        <View style={styles.exploreCard}>
+        <Card>
           <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
             <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>{t("titles.byCategory")}</Text>
@@ -564,7 +564,7 @@ export default function InsightsScreen() {
             <Text style={styles.exploreValue}>{creepLabel}</Text>
             <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
-        </View>
+        </Card>
       </View>
     </ScrollView>
   );
@@ -700,11 +700,6 @@ function createStyles(colors: ThemeColors) {
     bnplOwed: {
       ...typography.label,
       color: colors.text,
-    },
-    exploreCard: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
     },
     exploreRow: {
       flexDirection: "row",

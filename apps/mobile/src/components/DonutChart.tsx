@@ -10,7 +10,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
-import { typography, useTheme } from "../theme";
+import { emphasis, typography, useTheme } from "../theme";
 
 export interface DonutSegment {
   key: string;
@@ -101,7 +101,7 @@ export function DonutChart({
             cy={center}
             r={radius}
             stroke={a.color}
-            strokeOpacity={dimmed(a.key) ? 0.25 : 1}
+            strokeOpacity={dimmed(a.key) ? emphasis.dim : 1}
             strokeWidth={thickness}
             fill="none"
             strokeDasharray={`${a.length} ${circumference - a.length}`}
@@ -121,7 +121,7 @@ export function DonutChart({
               position: "absolute",
               left: a.iconX - ICON_SIZE / 2,
               top: a.iconY - ICON_SIZE / 2,
-              opacity: dimmed(a.key) ? 0.25 : 1,
+              opacity: dimmed(a.key) ? emphasis.dim : 1,
             }}
           >
             <SymbolView
