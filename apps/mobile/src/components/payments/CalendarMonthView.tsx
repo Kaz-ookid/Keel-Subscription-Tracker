@@ -35,6 +35,7 @@ import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
+import { Card } from "../ui/Card";
 
 // Monday-first column order, as JS weekday indices (0 = Sunday).
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
@@ -254,15 +255,18 @@ export function CalendarMonthView() {
                     style={[styles.dayCell, isSelected && styles.daySelected]}
                     onPress={() => setSelectedDay(isSelected ? null : date)}
                   >
-                    <Text
-                      style={[
-                        styles.dayNumber,
-                        isToday && styles.dayToday,
-                        hasOverdue && { color: colors.tones.warning },
-                      ]}
-                    >
-                      {Number(date.slice(8, 10))}
-                    </Text>
+                    {/* Today wears a ring; the overdue tint never overrides
+                        it — "today" outranks "late" on the day you're in. */}
+                    <View style={[styles.dayNumberWrap, isToday && styles.todayRing]}>
+                      <Text
+                        style={[
+                          styles.dayNumber,
+                          isToday ? styles.dayToday : hasOverdue && { color: colors.tones.warning },
+                        ]}
+                      >
+                        {Number(date.slice(8, 10))}
+                      </Text>
+                    </View>
                     <View style={styles.dayBadges}>
                       {dayCharges.slice(0, 2).map((c) => {
                         const category = categories.find((cat) => cat.id === c.categoryId);
@@ -292,7 +296,7 @@ export function CalendarMonthView() {
 
       {/* The tapped day's charges — light, in place, read-only. */}
       {selectedDay && selected.length > 0 && (
-        <View style={styles.detailCard}>
+        <Card>
           <View style={styles.detailHeader}>
             <Text style={styles.detailTitle}>
               {Number(selectedDay.slice(8, 10))} {monthLabel}
@@ -344,7 +348,7 @@ export function CalendarMonthView() {
               </Pressable>
             );
           })}
-        </View>
+        </Card>
       )}
     </ScrollView>
   );
@@ -395,8 +399,20 @@ function createStyles(colors: ThemeColors) {
       minHeight: 56,
       borderRadius: radius.sm,
       alignItems: "center",
-      paddingTop: 4,
-      gap: 3,
+      paddingTop: 2,
+      gap: 2,
+    },
+    // Fixed-size slot so ringed and plain days keep identical layout.
+    dayNumberWrap: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    todayRing: {
+      borderWidth: 1.5,
+      borderColor: colors.accent,
     },
     // The dedicated selection token: a quiet sea-glass wash that reads as
     // "chosen" in both schemes (the old background-fill looked like a dead
@@ -414,12 +430,6 @@ function createStyles(colors: ThemeColors) {
     },
     paidBadge: { opacity: emphasis.dim },
     moreBadge: { ...typography.caption, fontSize: 10, color: colors.mutedText },
-    detailCard: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
-    },
     detailHeader: {
       flexDirection: "row",
       justifyContent: "space-between",
