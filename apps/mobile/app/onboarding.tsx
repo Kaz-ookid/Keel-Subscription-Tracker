@@ -1,9 +1,12 @@
 // First-launch onboarding: a three-pane tour of what the app is for, then the
-// brand-bank picker (tap what you pay for → the To-complete list). Also
-// reachable any time from Settings with ?mode=browse, which skips the tour.
+// method step — three doors into a filled-in app (pick from the brand bank,
+// import with AI, or just start using the + button), each one line of
+// hand-holding. Also reachable any time from Settings with ?mode=browse,
+// which skips straight to the picker.
 
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -22,7 +25,7 @@ const TOUR_PANES = [
   { titleKey: "onboarding.tour3Title", bodyKey: "onboarding.tour3Body" },
 ] as const;
 
-type Phase = "tour" | "pick" | "done";
+type Phase = "tour" | "method" | "pick" | "done";
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -55,6 +58,12 @@ export default function OnboardingScreen() {
     router.back();
   };
 
+  // The AI door: onboarding is done its job — hand over to the import hub.
+  const goImport = () => {
+    void markOnboardingSeen();
+    router.replace("/import");
+  };
+
   const onAdd = (selected: SuggestedCommitment[]) => {
     addPendingSuggestions(selected);
     setSavedCount(selected.length);
@@ -66,7 +75,7 @@ export default function OnboardingScreen() {
       {phase === "tour" && (
         <>
           <View style={styles.topBar}>
-            <Pressable onPress={() => setPhase("pick")} hitSlop={12}>
+            <Pressable onPress={() => setPhase("method")} hitSlop={12}>
               <Text style={styles.skip}>{t("onboarding.skip")}</Text>
             </Pressable>
           </View>
@@ -98,7 +107,7 @@ export default function OnboardingScreen() {
                 pagerRef.current?.scrollTo({ x: (pane + 1) * SCREEN_WIDTH, animated: true });
                 setPane(pane + 1);
               } else {
-                setPhase("pick");
+                setPhase("method");
               }
             }}
           >
@@ -107,6 +116,37 @@ export default function OnboardingScreen() {
             </Text>
           </Pressable>
         </>
+      )}
+
+      {phase === "method" && (
+        <View style={styles.methodPane}>
+          <Text style={styles.paneTitle}>{t("onboarding.methodTitle")}</Text>
+          <MethodDoor
+            icon="rectangle.stack.fill"
+            title={t("onboarding.methodPick")}
+            sub={t("onboarding.methodPickSub")}
+            onPress={() => setPhase("pick")}
+            styles={styles}
+            colors={colors}
+          />
+          <MethodDoor
+            icon="sparkles"
+            title={t("onboarding.methodAI")}
+            sub={t("onboarding.methodAISub")}
+            onPress={goImport}
+            styles={styles}
+            colors={colors}
+          />
+          <MethodDoor
+            icon="square.and.pencil"
+            title={t("onboarding.methodManual")}
+            sub={t("onboarding.methodManualSub")}
+            onPress={finish}
+            styles={styles}
+            colors={colors}
+          />
+          <Text style={styles.methodNote}>{t("onboarding.methodNote")}</Text>
+        </View>
       )}
 
       {phase === "pick" &&
@@ -150,6 +190,33 @@ export default function OnboardingScreen() {
         </View>
       )}
     </View>
+  );
+}
+
+function MethodDoor({
+  icon,
+  title,
+  sub,
+  onPress,
+  styles,
+  colors,
+}: {
+  icon: string;
+  title: string;
+  sub: string;
+  onPress: () => void;
+  styles: ReturnType<typeof createStyles>;
+  colors: ThemeColors;
+}) {
+  return (
+    <Pressable style={styles.methodCard} onPress={onPress}>
+      <SymbolView name={icon as never} size={24} tintColor={colors.accent} />
+      <View style={styles.methodTexts}>
+        <Text style={styles.methodTitle}>{title}</Text>
+        <Text style={styles.methodSub}>{sub}</Text>
+      </View>
+      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+    </Pressable>
   );
 }
 
@@ -202,6 +269,31 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       textAlign: "center",
       lineHeight: 24,
+    },
+    methodPane: {
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: spacing.lg,
+      gap: spacing.md,
+    },
+    methodCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.md,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.md,
+    },
+    methodTexts: { flex: 1, gap: 2 },
+    methodTitle: { ...typography.label, color: colors.text, fontSize: 17 },
+    methodSub: { ...typography.caption, color: colors.mutedText, lineHeight: 18 },
+    methodNote: {
+      ...typography.caption,
+      color: colors.mutedText,
+      textAlign: "center",
+      paddingTop: spacing.sm,
     },
     dots: {
       flexDirection: "row",

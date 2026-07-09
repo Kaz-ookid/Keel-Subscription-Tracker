@@ -5,7 +5,8 @@
 // live in useAddForm; the sections and sheets render the same `form`.
 
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -55,8 +56,9 @@ export default function AddScreen() {
   return <FormPhase prefill={chosen} />;
 }
 
-/** Pick a known brand, or bail out to a blank form. Already-tracked names are
- *  hidden (no accidental duplicates); pending ones stay — saving clears them. */
+/** The three doors in: type it from scratch, import a batch with AI, or pick
+ *  a known brand below. Already-tracked names show greyed (no accidental
+ *  duplicates); pending ones stay — saving clears them. */
 function ChoosePhase({
   onPick,
   onCustom,
@@ -64,6 +66,7 @@ function ChoosePhase({
   onPick: (s: SuggestedCommitment) => void;
   onCustom: () => void;
 }) {
+  const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -85,6 +88,14 @@ function ChoosePhase({
         <Text style={styles.customText}>{t("add.startScratch")}</Text>
         <Text style={styles.customHint}>{t("add.scratchHint")}</Text>
       </Pressable>
+      {/* The quiet just-in-time discovery of the AI import (§6.1) — Settings
+          stays its deliberate home. */}
+      <Pressable style={[styles.customRow, styles.aiRow]} onPress={() => router.push("/import")}>
+        <SymbolView name="sparkles" size={16} tintColor={colors.accent} />
+        <Text style={styles.customText}>{t("add.importAI")}</Text>
+        <Text style={styles.customHint}>{t("add.importAIHint")}</Text>
+      </Pressable>
+      <Text style={styles.orPick}>{t("add.orPick")}</Text>
       <SuggestionPicker suggestions={SUGGESTED_COMMITMENTS} addedIds={addedIds} onPick={onPick} />
     </View>
   );
@@ -169,6 +180,18 @@ function createStyles(colors: ThemeColors) {
     customHint: {
       ...typography.caption,
       color: colors.mutedText,
+      flexShrink: 1,
+    },
+    aiRow: {
+      marginTop: 0,
+      alignItems: "center",
+    },
+    orPick: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.mutedText,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.xs,
     },
     modeSwitch: {
       flexDirection: "row",
