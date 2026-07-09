@@ -11,7 +11,7 @@ export const BNPL_PROVIDERS = {
   alma: { label: "Alma", icon: "alma" },
   oney: { label: "Oney", icon: "oney" },
   paypal_pay_in_x: { label: "PayPal Pay in X", icon: "paypal" },
-  cb_nx: { label: "Card — pay in X", icon: "creditcard" },
+  cb_nx: { label: "Card (pay in X)", icon: "creditcard" },
   other: { label: "Other", icon: "ellipsis" },
 } as const satisfies Record<string, EnumDescriptor>;
 

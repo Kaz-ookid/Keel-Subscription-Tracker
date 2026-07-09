@@ -121,65 +121,75 @@ export function SubscriptionsView() {
             />
           )}
           {/* What the onboarding deck collected: each row opens the Add form
-              pre-filled, the ✗ dismisses without adding. */}
-          {pending.length > 0 && (
-            <View>
-              <Pressable style={styles.pendingHeader} onPress={() => setPendingOpen((o) => !o)}>
-                <View style={styles.pendingLine} />
-                <Text style={styles.pendingTitle}>
-                  {t("allList.toComplete", { count: pending.length })}
-                </Text>
-                <SymbolView
-                  name={pendingOpen ? "chevron.up" : "chevron.down"}
-                  size={11}
-                  tintColor={colors.mutedText}
-                />
-                <View style={styles.pendingLine} />
-              </Pressable>
-              {pendingOpen && (
-                <View style={styles.pendingList}>
-                  {/* Back into the bank — todo shopping is resumable. */}
-                  <Pressable
-                    style={styles.browseRow}
-                    onPress={() =>
-                      router.push({ pathname: "/onboarding", params: { mode: "browse" } })
-                    }
-                  >
-                    <SymbolView name="plus.circle" size={18} tintColor={colors.accent} />
-                    <Text style={styles.browseText}>{t("allList.browseMore")}</Text>
-                    <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
-                  </Pressable>
-                  {pending.map((s) => {
-                    const category = DEFAULT_CATEGORIES.find((c) => c.id === s.categoryId);
-                    return (
-                      <View key={s.id} style={styles.pendingRow}>
-                        <BrandBadge
-                          domain={s.domain}
-                          icon={category?.icon}
-                          fallback={s.name.charAt(0).toUpperCase()}
-                          color={s.color ?? colors.accent}
-                          size={36}
-                        />
-                        <Text style={styles.pendingName} numberOfLines={1}>
-                          {t(`bank.${s.id}`, { defaultValue: s.name })}
-                        </Text>
-                        <Pressable style={styles.addPill} onPress={() => fillIn(s)}>
-                          <Text style={styles.addPillText}>{t("common.add")}</Text>
-                        </Pressable>
-                        <Pressable
-                          accessibilityLabel={t("allList.dismissA11y", { name: s.name })}
-                          hitSlop={8}
-                          onPress={() => removePendingSuggestion(s.id)}
-                        >
-                          <SymbolView name="xmark" size={13} tintColor={colors.mutedText} />
-                        </Pressable>
-                      </View>
-                    );
-                  })}
-                </View>
-              )}
-            </View>
-          )}
+              pre-filled, the ✗ dismisses without adding. Rendered even when
+              empty, so the to-do list stays discoverable and fillable. */}
+          <View>
+            <Pressable style={styles.pendingHeader} onPress={() => setPendingOpen((o) => !o)}>
+              <View style={styles.pendingLine} />
+              <Text style={styles.pendingTitle}>
+                {pending.length > 0
+                  ? t("allList.toComplete", { count: pending.length })
+                  : t("allList.toCompleteEmpty")}
+              </Text>
+              <SymbolView
+                name={pendingOpen ? "chevron.up" : "chevron.down"}
+                size={11}
+                tintColor={colors.mutedText}
+              />
+              <View style={styles.pendingLine} />
+            </Pressable>
+            {pendingOpen && (
+              <View style={styles.pendingList}>
+                {/* Back into the bank; todo shopping is resumable. */}
+                <Pressable
+                  style={[styles.browseRow, pending.length === 0 && styles.browseRowOnly]}
+                  onPress={() =>
+                    router.push({ pathname: "/onboarding", params: { mode: "browse" } })
+                  }
+                >
+                  <SymbolView name="plus.circle" size={18} tintColor={colors.accent} />
+                  <View style={styles.browseTexts}>
+                    <Text style={styles.browseText}>
+                      {pending.length > 0
+                        ? t("allList.browseMore")
+                        : t("allList.emptyPendingTitle")}
+                    </Text>
+                    {pending.length === 0 && (
+                      <Text style={styles.browseHint}>{t("allList.emptyPendingHint")}</Text>
+                    )}
+                  </View>
+                  <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                </Pressable>
+                {pending.map((s) => {
+                  const category = DEFAULT_CATEGORIES.find((c) => c.id === s.categoryId);
+                  return (
+                    <View key={s.id} style={styles.pendingRow}>
+                      <BrandBadge
+                        domain={s.domain}
+                        icon={category?.icon}
+                        fallback={s.name.charAt(0).toUpperCase()}
+                        color={s.color ?? colors.accent}
+                        size={36}
+                      />
+                      <Text style={styles.pendingName} numberOfLines={1}>
+                        {t(`bank.${s.id}`, { defaultValue: s.name })}
+                      </Text>
+                      <Pressable style={styles.addPill} onPress={() => fillIn(s)}>
+                        <Text style={styles.addPillText}>{t("common.add")}</Text>
+                      </Pressable>
+                      <Pressable
+                        accessibilityLabel={t("allList.dismissA11y", { name: s.name })}
+                        hitSlop={8}
+                        onPress={() => removePendingSuggestion(s.id)}
+                      >
+                        <SymbolView name="xmark" size={13} tintColor={colors.mutedText} />
+                      </Pressable>
+                    </View>
+                  );
+                })}
+              </View>
+            )}
+          </View>
         </View>
       }
       renderItem={({ item }) => (
@@ -260,11 +270,21 @@ function createStyles(colors: ThemeColors) {
       borderBottomWidth: StyleSheet.hairlineWidth,
       borderBottomColor: colors.border,
     },
+    browseRowOnly: {
+      borderBottomWidth: 0,
+    },
+    browseTexts: {
+      flex: 1,
+      gap: 1,
+    },
     browseText: {
       ...typography.caption,
       fontWeight: "600",
       color: colors.text,
-      flex: 1,
+    },
+    browseHint: {
+      ...typography.caption,
+      color: colors.mutedText,
     },
     pendingName: {
       ...typography.body,
