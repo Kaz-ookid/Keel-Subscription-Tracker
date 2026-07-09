@@ -438,6 +438,10 @@ export const en = {
     unlock: "Unlock",
   },
   settings: {
+    groupGeneral: "General",
+    groupPrivacy: "Privacy",
+    groupBackup: "Backup",
+    groupDebug: "Debug",
     accounts: "Accounts",
     displayCurrency: "Display currency",
     appearance: "Appearance",

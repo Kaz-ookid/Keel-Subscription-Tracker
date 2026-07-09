@@ -263,6 +263,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+      <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
           <SymbolView name="building.columns.fill" size={20} tintColor={colors.accent} />
@@ -328,6 +329,7 @@ export default function SettingsScreen() {
       </Card>
 
       {/* Privacy: the app lock. The OS does the locking; we store one flag. */}
+      <Text style={styles.groupLabel}>{t("settings.groupPrivacy")}</Text>
       <Card>
         <View style={styles.row}>
           <SymbolView
@@ -359,6 +361,7 @@ export default function SettingsScreen() {
       </Card>
 
       {/* The escape hatch: real finances deserve a way out of one local blob. */}
+      <Text style={styles.groupLabel}>{t("settings.groupBackup")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={() => void exportBackup()}>
           <SymbolView name="square.and.arrow.up" size={20} tintColor={colors.accent} />
@@ -372,6 +375,7 @@ export default function SettingsScreen() {
 
       {/* Debug, for dogfooding: seed a realistic household or start clean —
           bracketed by the snapshot slot so real data survives the play. */}
+      <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={confirmSnapshotSave}>
           <SymbolView name="tray.and.arrow.down.fill" size={20} tintColor={colors.accent} />
@@ -504,6 +508,14 @@ function createStyles(colors: ThemeColors) {
       flexGrow: 1,
       padding: spacing.md,
       gap: spacing.md,
+    },
+    // Micro overline naming each card group; pulled tight to its own card
+    // (the screen gap stays between GROUPS, not between label and card).
+    groupLabel: {
+      ...typography.micro,
+      color: colors.mutedText,
+      marginBottom: -spacing.sm,
+      paddingHorizontal: spacing.xs,
     },
     row: {
       flexDirection: "row",

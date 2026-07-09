@@ -438,6 +438,10 @@ export const fr: typeof en = {
     unlock: "Déverrouiller",
   },
   settings: {
+    groupGeneral: "Général",
+    groupPrivacy: "Confidentialité",
+    groupBackup: "Sauvegarde",
+    groupDebug: "Debug",
     accounts: "Comptes",
     displayCurrency: "Devise d'affichage",
     appearance: "Apparence",
