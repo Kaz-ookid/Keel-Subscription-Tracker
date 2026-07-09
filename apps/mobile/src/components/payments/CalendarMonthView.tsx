@@ -33,7 +33,15 @@ import Animated, {
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import {
+  emphasis,
+  radius,
+  spacing,
+  tones,
+  typography,
+  useTheme,
+  type ThemeColors,
+} from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 
 // Monday-first column order, as JS weekday indices (0 = Sunday).
@@ -220,14 +228,14 @@ export function CalendarMonthView() {
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable onPress={() => animateMonth(-1)} hitSlop={10} style={styles.chevronButton}>
-          <SymbolView name="chevron.left" size={14} tintColor={colors.text} />
+          <SymbolView name="chevron.left" size={13} tintColor={colors.text} />
         </Pressable>
         <View style={styles.headerMiddle}>
           <Text style={styles.monthTitle}>{monthLabel}</Text>
           {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
         </View>
         <Pressable onPress={() => animateMonth(1)} hitSlop={10} style={styles.chevronButton}>
-          <SymbolView name="chevron.right" size={14} tintColor={colors.text} />
+          <SymbolView name="chevron.right" size={13} tintColor={colors.text} />
         </Pressable>
       </View>
 
@@ -368,7 +376,7 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       paddingHorizontal: spacing.xs,
     },
-    monthTitle: { ...typography.label, fontSize: 17, color: colors.text },
+    monthTitle: { ...typography.value, color: colors.text },
     monthTotal: { ...typography.caption, color: colors.mutedText },
     grid: {
       backgroundColor: colors.surface,
@@ -380,8 +388,7 @@ function createStyles(colors: ThemeColors) {
     weekday: {
       flex: 1,
       textAlign: "center",
-      ...typography.caption,
-      fontSize: 11,
+      ...typography.micro,
       color: colors.mutedText,
       paddingVertical: spacing.xs,
     },
@@ -407,7 +414,7 @@ function createStyles(colors: ThemeColors) {
       gap: 2,
       paddingHorizontal: 1,
     },
-    paidBadge: { opacity: 0.35 },
+    paidBadge: { opacity: emphasis.dim },
     moreBadge: { ...typography.caption, fontSize: 10, color: colors.mutedText },
     detailCard: {
       backgroundColor: colors.surface,

@@ -238,7 +238,7 @@ export default function ByAccountScreen() {
                     <Text style={styles.rowSub}>{formatCalendarDate(d.date)}</Text>
                   </View>
                   <Text style={styles.detailValue}>{formatMoney(d.amount)}</Text>
-                  <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                  <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                 </Pressable>
               );
             })}
@@ -280,7 +280,7 @@ export default function ByAccountScreen() {
                           : `${formatMoney(plan.nextDue?.amount ?? plan.totalAmount)} · ${t("common.xOfY", { x: plan.paidCount, y: plan.totalCount })}`
                         : ""}
                   </Text>
-                  <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                  <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                 </Pressable>
               );
             })}

@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { suggestionMatches } from "../lib/suggestions";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
@@ -276,7 +276,7 @@ function createStyles(colors: ThemeColors) {
       marginBottom: 4,
     },
     rowAdded: {
-      opacity: 0.45,
+      opacity: emphasis.dim,
     },
     middle: {
       flex: 1,

@@ -184,7 +184,7 @@ export default function ByCategoryScreen() {
                     </Text>
                     <Text style={styles.memberValue}>{totals(member.totals)}</Text>
                     {exists && (
-                      <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                     )}
                   </Pressable>
                 );

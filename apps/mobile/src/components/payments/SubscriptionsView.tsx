@@ -164,7 +164,7 @@ export function SubscriptionsView() {
                       <Text style={styles.browseHint}>{t("allList.emptyPendingHint")}</Text>
                     )}
                   </View>
-                  <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                  <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                 </Pressable>
                 {pending.map((s) => {
                   const category = DEFAULT_CATEGORIES.find((c) => c.id === s.categoryId);

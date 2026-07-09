@@ -15,7 +15,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { useAppState } from "../state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { emphasis, radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
@@ -171,7 +171,7 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.md,
     },
     rowComplete: {
-      opacity: 0.55,
+      opacity: emphasis.dim,
     },
     middle: {
       flex: 1,

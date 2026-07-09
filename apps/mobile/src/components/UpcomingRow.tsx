@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { emphasis, radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
@@ -129,7 +129,7 @@ function createStyles(colors: ThemeColors) {
     },
     // Settled content stays for completeness but doesn't catch the eye.
     dimmed: {
-      opacity: 0.5,
+      opacity: emphasis.dim,
     },
     amountRow: {
       flexDirection: "row",

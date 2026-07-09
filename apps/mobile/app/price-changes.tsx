@@ -136,7 +136,7 @@ function createStyles(colors: ThemeColors) {
     cardTitleBlock: { flex: 1, gap: 1 },
     cardTitle: { ...typography.label, color: colors.text },
     cardSub: { ...typography.caption, color: colors.mutedText },
-    pct: { ...typography.label, fontSize: 18 },
+    pct: { ...typography.value },
     driftRow: {
       flexDirection: "row",
       alignItems: "baseline",
@@ -148,7 +148,7 @@ function createStyles(colors: ThemeColors) {
       textDecorationLine: "line-through",
     },
     driftArrow: { ...typography.body, color: colors.mutedText },
-    driftTo: { ...typography.label, fontSize: 18, color: colors.text },
+    driftTo: { ...typography.value, color: colors.text },
     historyRow: {
       flexDirection: "row",
       alignItems: "center",

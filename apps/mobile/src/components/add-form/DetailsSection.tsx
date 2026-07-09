@@ -105,7 +105,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
               <Text style={[headerStyles.suggestName, { color: colors.text }]} numberOfLines={1}>
                 {t(`bank.${s.id}`, { defaultValue: s.name })}
               </Text>
-              <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
             </Pressable>
           ))}
         </View>

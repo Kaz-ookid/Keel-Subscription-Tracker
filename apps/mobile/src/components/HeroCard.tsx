@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
   /** Small uppercase context line, e.g. "Due this month". */
@@ -34,10 +34,9 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.xs,
     },
     label: {
-      ...typography.caption,
+      ...typography.micro,
       color: colors.white,
-      opacity: 0.75,
-      textTransform: "uppercase",
+      opacity: emphasis.hint,
       letterSpacing: 0.6,
     },
     amount: {
@@ -47,7 +46,7 @@ function createStyles(colors: ThemeColors) {
     sub: {
       ...typography.caption,
       color: colors.white,
-      opacity: 0.75,
+      opacity: emphasis.hint,
     },
   });
 }

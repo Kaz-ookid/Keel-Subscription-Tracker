@@ -448,7 +448,7 @@ export default function InsightsScreen() {
                         <Text style={styles.memberValue}>
                           {recurring ? formatMoney(recurring.amount) : ""}
                         </Text>
-                        <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                        <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                       </Pressable>
                     );
                   })}
@@ -515,7 +515,7 @@ export default function InsightsScreen() {
                           ? `${formatMoney(plan.remainingAmount)} left · ${plan.paidCount} of ${plan.totalCount}`
                           : ""}
                       </Text>
-                      <SymbolView name="chevron.right" size={11} tintColor={colors.mutedText} />
+                      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                     </Pressable>
                   );
                 })}
@@ -531,7 +531,7 @@ export default function InsightsScreen() {
           <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
             <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>{t("titles.byCategory")}</Text>
-            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
           <Pressable
             style={[styles.exploreRow, styles.exploreRowDivider]}
@@ -539,7 +539,7 @@ export default function InsightsScreen() {
           >
             <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
-            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
           {/* Price changes is the long-term, least-used lens — keep it last. */}
           <Pressable
@@ -549,7 +549,7 @@ export default function InsightsScreen() {
             <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
             <Text style={styles.exploreText}>{t("titles.priceChanges")}</Text>
             <Text style={styles.exploreValue}>{creepLabel}</Text>
-            <SymbolView name="chevron.right" size={12} tintColor={colors.mutedText} />
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
         </View>
       </View>
@@ -598,15 +598,11 @@ function createStyles(colors: ThemeColors) {
       gap: 2,
     },
     statLabel: {
-      ...typography.caption,
+      ...typography.micro,
       color: colors.mutedText,
-      textTransform: "uppercase",
-      letterSpacing: 0.4,
-      fontSize: 11,
     },
     statValue: {
-      ...typography.label,
-      fontSize: 18,
+      ...typography.value,
       color: colors.text,
     },
     statHint: {

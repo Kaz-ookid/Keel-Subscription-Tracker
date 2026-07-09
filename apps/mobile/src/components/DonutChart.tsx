@@ -154,8 +154,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 56,
   },
   centerTitle: {
-    fontSize: 22,
-    fontWeight: "700",
+    ...typography.value,
   },
   centerSub: {
     ...typography.caption,

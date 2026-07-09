@@ -435,7 +435,7 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.xs,
       paddingVertical: spacing.sm,
     },
-    name: { ...typography.title, fontSize: 24, color: colors.text },
+    name: { ...typography.h1, color: colors.text },
     subtitle: { ...typography.caption, color: colors.mutedText },
     trialBanner: { color: colors.accent, fontWeight: "600" },
     card: {
