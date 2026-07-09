@@ -343,6 +343,27 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(messySplit.warnings).toContainEqual({ code: "provider-unknown", detail: "sofa4x" });
   });
 
+  it("flags description-like names and duplicates of tracked items", () => {
+    const doc = {
+      items: [
+        { name: "a 1200HKD payment", amount: 5, firstDate: "2026-06-20" },
+        { name: "Purchase", amount: 5, firstDate: "2026-06-20" },
+        { name: "Mobilis Zone 11/12", amount: 5, firstDate: "2026-06-20" },
+        { name: "netflix", amount: 5, firstDate: "2026-06-20" },
+      ],
+    };
+    const { drafts } = parseImportDocument(JSON.stringify(doc), {
+      ...ctx,
+      takenNames: ["Netflix"],
+    });
+    const codes = (name: string) =>
+      drafts.find((d) => d.input.name === name)?.warnings.map((w) => w.code);
+    expect(codes("a 1200HKD payment")).toContain("name-suspect");
+    expect(codes("Purchase")).toContain("name-suspect");
+    expect(codes("Mobilis Zone 11/12")).not.toContain("name-suspect"); // digits alone are fine
+    expect(codes("netflix")).toContain("duplicate"); // case-insensitive vs tracked items
+  });
+
   it("assumes past payments were made unless backlogUnpaid says otherwise", () => {
     const doc = {
       items: [

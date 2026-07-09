@@ -65,8 +65,8 @@ export const fr: typeof en = {
     exampleTitle: "En vrac à quel point ?",
     exampleYouWrite: "Vous donnez à votre IA quelque chose comme :",
     exampleRough:
-      "boursorama:\nnetflix 13.99 par mois vers le 3\nsalle de sport 24.99, je paie moi-même\ndisney+ gratuit jusqu'au 14 juillet puis 8.99\ncanapé klarna, 3x 240, premier le 10 juin",
-    exampleYouGet: "Et après sa réponse, Keel vous montre :",
+      "boursorama:\nnetflix 13.99 par mois vers le 3\nsalle de sport 24.99, je paie moi-même\ndisney+ gratuit jusqu'au 14 juillet puis 8.99\ncanapé klarna, 3x 240, premier le 10 juin\n\nrevolut : spotify 11.99 le 25",
+    exampleYouGet: "Keel vous montre :",
     example1Name: "Netflix",
     example1Sub: "13,99 € / mois · le 3 · Boursorama",
     example2Name: "Salle de sport",
@@ -75,6 +75,8 @@ export const fr: typeof en = {
     example3Sub: "Gratuit jusqu'au 14.07, puis 8,99 € / mois",
     example4Name: "Canapé (Klarna)",
     example4Sub: "720 € · en 3 paiements · Manuel",
+    example5Name: "Spotify",
+    example5Sub: "11,99 € / mois · le 25 · Revolut",
     exampleNote:
       "Des bouts de phrases, des devises mélangées, des captures : tout passe. Vous vérifiez et corrigez tout avant l'enregistrement.",
     pasteButton: "Coller la réponse",
@@ -97,6 +99,8 @@ export const fr: typeof en = {
     reviewHint: "Touchez un élément pour le corriger. Rien n'est enregistré avant l'ajout.",
     reviewSkipped_one: "{{count}} entrée n'a pas pu être lue.",
     reviewSkipped_other: "{{count}} entrées n'ont pas pu être lues.",
+    reviewAttention_one: "{{count}} à revérifier.",
+    reviewAttention_other: "{{count}} à revérifier.",
     reviewEmpty: "Plus rien à ajouter.",
     addAll_one: "Ajouter {{count}} élément à Keel",
     addAll_other: "Ajouter {{count}} éléments à Keel",
@@ -112,6 +116,8 @@ export const fr: typeof en = {
     warnCadenceDefaulted: "Cycle de facturation flou, mensuel supposé",
     warnDateDefaulted: "Une date n'a pas pu être lue, vérifiez les dates",
     warnProviderUnknown: "Fournisseur « {{detail}} » non reconnu",
+    warnNameSuspect: "Le nom ressemble à une description, donnez-lui un vrai nom",
+    warnDuplicate: "« {{detail}} » est déjà dans Keel, ceci créerait un doublon",
     backlogLine: "Les paiements passés arrivent impayés, comme indiqué",
   },
   recurrence: {
@@ -463,7 +469,6 @@ export const fr: typeof en = {
     methodAISub:
       "Donnez à votre IA une liste en vrac ou des captures d'écran : idéal pour en ajouter beaucoup d'un coup.",
     methodManual: "J'ajouterai au fur et à mesure",
-    methodManualSub: "Le bouton + est toujours là ; un ou deux se tapent vite.",
     methodNote: "Combinez comme vous voulez. Tout se vérifie avant d'être enregistré.",
     pickTitle: "Lesquels payez-vous ?",
     caughtUpTitle: "Tout est à jour",

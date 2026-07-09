@@ -84,7 +84,13 @@ export type ImportWarningCode =
   | "cadence-defaulted"
   /** An invalid or missing date was recovered (first date → today) or a
    *  date-bearing field (endDate, priceChange, anchor) was dropped. */
-  | "date-defaulted";
+  | "date-defaulted"
+  /** The name reads like a description or placeholder ("a 1200 HKD payment",
+   *  "Purchase") rather than a real name — worth renaming on review. */
+  | "name-suspect"
+  /** An item with the same name is already tracked — confirming would create
+   *  a duplicate (e.g. the same import pasted twice). */
+  | "duplicate";
 
 export interface ImportWarning {
   code: ImportWarningCode;

@@ -23,12 +23,12 @@ export function InfoPopup({ visible, title, onClose, children }: Props) {
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose}>
-        {/* Stop backdrop-press from closing when the card itself is tapped. */}
-        <Pressable
-          style={[styles.card, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}
-          onPress={(e) => e.stopPropagation()}
-        >
+      <View style={styles.backdrop}>
+        {/* The dimmed area behind the card closes; the card itself is a plain
+            View so its ScrollView owns the pan gesture (a wrapping Pressable
+            used to eat the scroll). */}
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={[styles.card, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <Pressable onPress={onClose} hitSlop={10}>
@@ -42,8 +42,8 @@ export function InfoPopup({ visible, title, onClose, children }: Props) {
           >
             {children}
           </ScrollView>
-        </Pressable>
-      </Pressable>
+        </View>
+      </View>
     </Modal>
   );
 }

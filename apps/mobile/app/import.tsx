@@ -27,7 +27,7 @@ export default function ImportScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, categories, displayCurrency } = useAppState();
+  const { items, accounts, categories, displayCurrency } = useAppState();
   const { startSession } = useImportSession();
 
   const [pasted, setPasted] = useState("");
@@ -59,6 +59,9 @@ export default function ImportScreen() {
       today: today(),
       accounts,
       categories,
+      // Flags anything already tracked — pasting the same answer twice would
+      // otherwise silently double the whole list.
+      takenNames: items.map((i) => i.name),
     });
     if (result.drafts.length === 0) {
       setError(result.error ?? "empty");
@@ -247,7 +250,7 @@ export default function ImportScreen() {
         </View>
         <Text style={styles.exampleLabel}>{t("importAI.exampleYouGet")}</Text>
         <View style={styles.exampleResults}>
-          {([1, 2, 3, 4] as const).map((n) => (
+          {([1, 2, 3, 4, 5] as const).map((n) => (
             <View key={n} style={styles.exampleRow}>
               <Text style={styles.exampleName}>{t(`importAI.example${n}Name`)}</Text>
               <Text style={styles.exampleSub}>{t(`importAI.example${n}Sub`)}</Text>

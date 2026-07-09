@@ -26,6 +26,21 @@ export interface ImportContext {
   accounts: readonly Account[];
   /** Known categories (built-in + user-created), validated by id. */
   categories: readonly Category[];
+  /** Names of items already tracked — matches get a `duplicate` warning so a
+   *  twice-pasted import can't silently double everything. */
+  takenNames?: readonly string[];
+}
+
+// A name that reads like a description, not a name: starts with an article,
+// embeds an amount+currency, is a bare generic word, or is sentence-long.
+const NAME_AMOUNT = /\d+(?:[.,]\d+)?\s*(?:€|\$|£|chf|eur|usd|gbp|hkd|cad|aud|jpy)\b/i;
+const NAME_ARTICLE = /^(?:a|an|un|une)\s/i;
+const NAME_GENERIC = /^(?:payment|purchase|paiement|achat|unknown|inconnu)$/i;
+
+function isSuspectName(name: string): boolean {
+  return (
+    NAME_AMOUNT.test(name) || NAME_ARTICLE.test(name) || NAME_GENERIC.test(name) || name.length > 30
+  );
 }
 
 const TIME_UNITS: readonly TimeUnit[] = ["day", "week", "month", "year"];
@@ -140,7 +155,12 @@ class ItemReader {
   }
 }
 
-function parseItem(value: unknown, id: string, ctx: ImportContext): ImportDraft | null {
+function parseItem(
+  value: unknown,
+  id: string,
+  ctx: ImportContext,
+  takenNames: ReadonlySet<string>,
+): ImportDraft | null {
   const item = asRecord(value);
   if (!item) return null;
 
@@ -156,6 +176,8 @@ function parseItem(value: unknown, id: string, ctx: ImportContext): ImportDraft 
   }
 
   const reader = new ItemReader(ctx);
+  if (isSuspectName(name)) reader.warn("name-suspect");
+  if (takenNames.has(name.toLowerCase())) reader.warn("duplicate", name);
   const currency = reader.currency(item.currency);
   const settlementMode = item.settlement === "manual" ? "manual" : "automatic";
   const categoryId = reader.category(item.category);
@@ -239,10 +261,11 @@ export function parseImportDocument(raw: string, ctx: ImportContext): ImportPars
   if (!items) return { drafts: [], skipped: 0, error: "no-json" };
   if (items.length === 0) return { drafts: [], skipped: 0, error: "empty" };
 
+  const takenNames = new Set((ctx.takenNames ?? []).map((n) => n.trim().toLowerCase()));
   const drafts: ImportDraft[] = [];
   let skipped = 0;
   for (const value of items) {
-    const draft = parseItem(value, `draft-${drafts.length + 1}`, ctx);
+    const draft = parseItem(value, `draft-${drafts.length + 1}`, ctx, takenNames);
     if (draft) drafts.push(draft);
     else skipped++;
   }

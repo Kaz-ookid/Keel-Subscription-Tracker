@@ -35,6 +35,8 @@ const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
   "cadence-defaulted": "importAI.warnCadenceDefaulted",
   "date-defaulted": "importAI.warnDateDefaulted",
   "provider-unknown": "importAI.warnProviderUnknown",
+  "name-suspect": "importAI.warnNameSuspect",
+  duplicate: "importAI.warnDuplicate",
 };
 
 export default function ImportReviewScreen() {
@@ -45,10 +47,18 @@ export default function ImportReviewScreen() {
   const { drafts, skipped, removeDraft, clear } = useImportSession();
   const { accounts, categories, addAccount, addSubscription, addInstallmentPlan } = useAppState();
 
-  const heroSub =
-    skipped > 0
-      ? `${t("importAI.reviewHint")} ${t("importAI.reviewSkipped", { count: skipped })}`
-      : t("importAI.reviewHint");
+  // The light attention report: how many cards carry a flag, an AI note, or
+  // an unpaid backlog — the ones worth a second look before confirming.
+  const attention = drafts.filter(
+    (d) => d.warnings.length > 0 || d.input.notes || !d.settlePast || d.accountName,
+  ).length;
+  const heroSub = [
+    t("importAI.reviewHint"),
+    skipped > 0 ? t("importAI.reviewSkipped", { count: skipped }) : null,
+    attention > 0 ? t("importAI.reviewAttention", { count: attention }) : null,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   const confirmAll = () => {
     // Unmatched account names become real accounts — one per distinct name,

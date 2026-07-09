@@ -63,10 +63,12 @@ export default function OnboardingScreen() {
     router.back();
   };
 
-  // The AI door: onboarding is done its job — hand over to the import hub.
+  // The AI door: hand over to the import hub. Pushed (not replaced) so the
+  // hub's back returns here, to the method step; a finished import dismisses
+  // the whole modal pile at once.
   const goImport = () => {
     void markOnboardingSeen();
-    router.replace("/import");
+    router.push("/import");
   };
 
   const onAdd = (selected: SuggestedCommitment[]) => {
@@ -142,15 +144,11 @@ export default function OnboardingScreen() {
             styles={styles}
             colors={colors}
           />
-          <MethodDoor
-            icon="square.and.pencil"
-            title={t("onboarding.methodManual")}
-            sub={t("onboarding.methodManualSub")}
-            onPress={finish}
-            styles={styles}
-            colors={colors}
-          />
           <Text style={styles.methodNote}>{t("onboarding.methodNote")}</Text>
+          {/* Structurally a skip, not a third door: "no thanks, I'll use +". */}
+          <Pressable onPress={finish} hitSlop={12} style={styles.methodSkip}>
+            <Text style={styles.methodSkipText}>{t("onboarding.methodManual")}</Text>
+          </Pressable>
         </View>
       )}
 
@@ -309,6 +307,14 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       textAlign: "center",
       paddingTop: spacing.sm,
+    },
+    methodSkip: {
+      alignSelf: "center",
+      paddingVertical: spacing.md,
+    },
+    methodSkipText: {
+      ...typography.label,
+      color: colors.accent,
     },
     dots: {
       flexDirection: "row",

@@ -25,7 +25,7 @@ Reply with ONLY a JSON object of the form {"items":[ ... ]}, and present it insi
 
 Each item:
 - "type": "subscription" for anything recurring; "split_payment" for a purchase paid in a fixed number of instalments (pay in 4, BNPL, Klarna, etc.).
-- "name": what the payment is for, kept in the user's own words and language. Do not translate or rename it.
+- "name": what the payment is for, kept in the user's own words and language. Do not translate or rename it. If the input gives no clear name, use a short descriptive one and record in "notes" that the name was guessed.
 - "currency": one of EUR, USD, GBP, CHF, CAD, AUD, JPY. If the amount is in another currency (e.g. HKD), convert it to the equivalent the user states and add a "notes" recording the original. If no currency is given, use the default currency: ${defaultCurrency}.
 - "amount" (subscription) or "total" (split_payment): a decimal in the currency's main unit (17.6 means 17.60). A FREE trial uses "amount": 0.
 - "settlement": "manual" if the user says they pay it themselves / by transfer / marks it manual; otherwise "automatic".
