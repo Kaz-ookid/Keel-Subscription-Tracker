@@ -26,6 +26,7 @@ npm-debug.log*
 # local working notes
 PROJECT_BRIEF.md
 BACKLOG.md
+DESIGN.md
 
 # local data and working assets
 ai-training/
