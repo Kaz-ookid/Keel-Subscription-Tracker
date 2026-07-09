@@ -34,6 +34,10 @@ Each item:
 - "firstDate": "YYYY-MM-DD". A day-of-month only → that day in the current month. "started in March 2026" → that day in March (or the 1st if no day). Resolve relative dates ("last December", "next payment") against today, which is ${today}.
 - "account": the bank/account name as written ("BCV", "Revolut"); omit if none.
 
+Self-reporting (IMPORTANT, the app shows these to the user on the review screen):
+- "assumed": the list of field names you filled by a default assumption instead of reading them from the input, e.g. ["settlement","firstDate"]. Valid names: name, amount, currency, settlement, category, cadence, firstDate, account. Include this on EVERY item where you assumed anything.
+- "uncertain": the list of field names the input truly does not provide, which the user must set. ALWAYS include "name" when no real name or brand is given: still fill "name" with a short placeholder, but declare it here so the app asks the user for a real one.
+
 Optional fields, to include ONLY when present in the input (never invent them):
 - "domain": the bare website used for the logo ("netflix.com"). Include it for every brand whose main website you know for sure, including banks, insurers and public services; omit it rather than guessing.
 - "notes": anything that doesn't fit a field. ALSO use it to record, very briefly, anything you assumed that the input didn't state (a day of the month, a cadence, a converted amount), so the user can check it.
@@ -43,7 +47,7 @@ Optional fields, to include ONLY when present in the input (never invent them):
 - subscription "priceChange": {"newAmount":N,"on":"YYYY-MM-DD"} for a future price change. Use it for trials (amount 0 now → newAmount on the date) AND plain increases/decreases ("goes up to 170 on 26.12.2027", "down to 80 from the next payment").
 - split_payment "installments": N (how many payments); "provider": one of paypal_pay_in_x, klarna, afterpay, alma, oney, cb_nx, other ("PayPal"→paypal_pay_in_x, generic card plan→cb_nx).
 
-Default assumptions, to apply UNLESS the input says otherwise (and note in "notes" when you rely on one):
+Default assumptions, to apply UNLESS the input says otherwise (list every field you assume in that item's "assumed"):
 - All payments due before today were made on time. Only if the user says something is NOT paid, behind, or overdue, add "backlogUnpaid": true to that item.
 - Settlement is "automatic"; the currency is the default currency; a cycle that is implied but not stated is monthly.
 - A start date with no day means the 1st of that month.

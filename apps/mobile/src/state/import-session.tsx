@@ -50,6 +50,10 @@ export function ImportSessionProvider({ children }: { children: ReactNode }) {
                   ...patch,
                   accountName: patch.input.accountId ? undefined : d.accountName,
                   settlePast: d.settlePast,
+                  // The user has looked the item over in the full form — the
+                  // AI's flags and the parser's warnings are resolved.
+                  assumedFields: [],
+                  uncertainFields: [],
                   warnings: [],
                 } as ImportDraft)
               : d,

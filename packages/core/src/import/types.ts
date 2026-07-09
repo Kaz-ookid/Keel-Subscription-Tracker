@@ -40,7 +40,27 @@ interface ImportItemCommon {
   /** Set by the AI ONLY when the user says past payments were NOT made.
    *  Default assumption: everything due before today was paid on time. */
   backlogUnpaid?: boolean;
+  /** Field names the AI filled by a default assumption rather than from the
+   *  input — the review screen shows them as light "assumed" hints. */
+  assumed?: string[];
+  /** Field names the input truly does not provide and the user must set —
+   *  strong review flags. "name" here means a placeholder was invented. */
+  uncertain?: string[];
 }
+
+/** The field names the AI may declare in `assumed` / `uncertain`. */
+export const IMPORT_FIELD_NAMES = [
+  "name",
+  "amount",
+  "currency",
+  "settlement",
+  "category",
+  "cadence",
+  "firstDate",
+  "account",
+] as const;
+
+export type ImportFieldName = (typeof IMPORT_FIELD_NAMES)[number];
 
 export interface ImportSubscriptionItem extends ImportItemCommon {
   type: "subscription";
@@ -106,6 +126,10 @@ interface ImportDraftCommon {
   /** Mark every occurrence due before today as paid when the item lands
    *  (the default; false only when the input said payments are behind). */
   settlePast: boolean;
+  /** Fields the AI declared as assumption-filled — light review hints. */
+  assumedFields: ImportFieldName[];
+  /** Fields the AI declared as missing/unclear — must-check review flags. */
+  uncertainFields: ImportFieldName[];
   warnings: ImportWarning[];
 }
 

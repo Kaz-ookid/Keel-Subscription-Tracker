@@ -10,6 +10,7 @@ import {
   toMajor,
   type Account,
   type ImportDraft,
+  type ImportFieldName,
   type ImportWarning,
   type NewAccountInput,
 } from "@keel/core";
@@ -39,6 +40,18 @@ const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
   duplicate: "importAI.warnDuplicate",
 };
 
+/** Localized field labels for the AI's assumed/uncertain declarations. */
+const FIELD_KEYS: Record<ImportFieldName, string> = {
+  name: "importAI.fieldName",
+  amount: "importAI.fieldAmount",
+  currency: "importAI.fieldCurrency",
+  settlement: "importAI.fieldSettlement",
+  category: "importAI.fieldCategory",
+  cadence: "importAI.fieldCadence",
+  firstDate: "importAI.fieldFirstDate",
+  account: "importAI.fieldAccount",
+};
+
 export default function ImportReviewScreen() {
   const router = useRouter();
   const { colors } = useTheme();
@@ -50,7 +63,12 @@ export default function ImportReviewScreen() {
   // The light attention report: how many cards carry a flag, an AI note, or
   // an unpaid backlog — the ones worth a second look before confirming.
   const attention = drafts.filter(
-    (d) => d.warnings.length > 0 || d.input.notes || !d.settlePast || d.accountName,
+    (d) =>
+      d.warnings.length > 0 ||
+      d.uncertainFields.length > 0 ||
+      d.input.notes ||
+      !d.settlePast ||
+      d.accountName,
   ).length;
   const heroSub = [
     t("importAI.reviewHint"),
@@ -130,10 +148,28 @@ export default function ImportReviewScreen() {
         return key ? t(key, { detail: w.detail }) : null;
       })
       .filter((line): line is string => line !== null);
+    // The per-item report: what MUST be fixed (uncertain) in orange, what was
+    // quietly assumed as one muted hint line.
+    const uncertainLines = draft.uncertainFields.map((f) =>
+      f === "name"
+        ? t("importAI.uncertainName")
+        : t("importAI.uncertainGeneric", { field: t(FIELD_KEYS[f]) }),
+    );
+    const assumedLine =
+      draft.assumedFields.length > 0
+        ? t("importAI.assumedLine", {
+            fields: draft.assumedFields.map((f) => t(FIELD_KEYS[f])).join(" · "),
+          })
+        : null;
+    const flagged =
+      warningLines.length > 0 ||
+      uncertainLines.length > 0 ||
+      (!account && !!draft.accountName) ||
+      !draft.settlePast;
 
     return (
       <Pressable
-        style={styles.card}
+        style={[styles.card, flagged && styles.cardFlagged]}
         onPress={() => router.push({ pathname: "/add", params: { draftId: draft.id } })}
       >
         <BrandBadge
@@ -168,11 +204,17 @@ export default function ImportReviewScreen() {
           {!account && draft.accountName && (
             <Text style={styles.warn}>{t("importAI.newAccount", { name: draft.accountName })}</Text>
           )}
+          {uncertainLines.map((line) => (
+            <Text key={line} style={styles.warn}>
+              ⚠ {line}
+            </Text>
+          ))}
           {warningLines.map((line) => (
             <Text key={line} style={styles.warn}>
               ⚠ {line}
             </Text>
           ))}
+          {assumedLine && <Text style={styles.assumed}>{assumedLine}</Text>}
         </View>
         <View style={styles.actions}>
           <Pressable
@@ -231,11 +273,17 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       padding: spacing.md,
     },
+    // The "needs a look" stripe — flagged cards pop without shouting.
+    cardFlagged: {
+      borderLeftWidth: 3,
+      borderLeftColor: tones.warning,
+    },
     middle: { flex: 1, gap: 2 },
     name: { ...typography.label, color: colors.text },
     amount: { ...typography.body, color: colors.text },
     sub: { ...typography.caption, color: colors.mutedText },
     notes: { ...typography.caption, color: colors.mutedText, fontStyle: "italic" },
+    assumed: { ...typography.caption, color: colors.mutedText },
     warn: { ...typography.caption, color: tones.warning },
     accountRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs + 2 },
     accountDot: { width: 8, height: 8, borderRadius: 4 },

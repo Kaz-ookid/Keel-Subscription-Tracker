@@ -167,9 +167,12 @@ export default function OnboardingScreen() {
                 </Pressable>
               )}
               <Text style={styles.pickTitle}>{t("onboarding.pickTitle")}</Text>
-              <Pressable onPress={finish} hitSlop={12}>
-                <Text style={styles.skip}>{t("onboarding.skip")}</Text>
-              </Pressable>
+              {/* Browse mode's only exit; during onboarding, back covers it. */}
+              {mode === "browse" && (
+                <Pressable onPress={finish} hitSlop={12}>
+                  <Text style={styles.skip}>{t("onboarding.done")}</Text>
+                </Pressable>
+              )}
             </View>
             <SuggestionPicker
               suggestions={SUGGESTED_COMMITMENTS}

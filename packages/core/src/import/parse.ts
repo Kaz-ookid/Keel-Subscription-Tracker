@@ -15,7 +15,14 @@ import type { MonthlyAnchor, RecurrenceRule, TimeUnit } from "../primitives/recu
 import { RECURRENCE_PRESETS } from "../primitives/recurrence";
 import { isCalendarDate, type CalendarDate } from "../primitives/temporal";
 import { extractImportDocument } from "./extract";
-import type { ImportDraft, ImportParseResult, ImportWarning, ImportWarningCode } from "./types";
+import { IMPORT_FIELD_NAMES } from "./types";
+import type {
+  ImportDraft,
+  ImportFieldName,
+  ImportParseResult,
+  ImportWarning,
+  ImportWarningCode,
+} from "./types";
 
 export interface ImportContext {
   /** Used when an item states no usable currency. */
@@ -32,14 +39,19 @@ export interface ImportContext {
 }
 
 // A name that reads like a description, not a name: starts with an article,
-// embeds an amount+currency, is a bare generic word, or is sentence-long.
+// embeds an amount+currency, contains a placeholder word ("purchase",
+// "payment"), or is sentence-long. The AI is asked to declare invented names
+// itself (`uncertain: ["name"]`); this is the safety net when it forgets.
 const NAME_AMOUNT = /\d+(?:[.,]\d+)?\s*(?:€|\$|£|chf|eur|usd|gbp|hkd|cad|aud|jpy)\b/i;
 const NAME_ARTICLE = /^(?:a|an|un|une)\s/i;
-const NAME_GENERIC = /^(?:payment|purchase|paiement|achat|unknown|inconnu)$/i;
+const NAME_PLACEHOLDER = /\b(?:payment|purchase|paiement|achat|unknown|inconnu)\b/i;
 
 function isSuspectName(name: string): boolean {
   return (
-    NAME_AMOUNT.test(name) || NAME_ARTICLE.test(name) || NAME_GENERIC.test(name) || name.length > 30
+    NAME_AMOUNT.test(name) ||
+    NAME_ARTICLE.test(name) ||
+    NAME_PLACEHOLDER.test(name) ||
+    name.length > 30
   );
 }
 
@@ -55,6 +67,12 @@ const asTrimmedString = (value: unknown): string | undefined =>
 
 const asFiniteNumber = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined;
+
+/** The AI's `assumed`/`uncertain` lists, kept to the field names we know. */
+const asFieldList = (value: unknown): ImportFieldName[] =>
+  Array.isArray(value)
+    ? (IMPORT_FIELD_NAMES.filter((f) => value.includes(f)) as ImportFieldName[])
+    : [];
 
 /** One draft in the making: collects warnings while fields resolve. */
 class ItemReader {
@@ -176,7 +194,6 @@ function parseItem(
   }
 
   const reader = new ItemReader(ctx);
-  if (isSuspectName(name)) reader.warn("name-suspect");
   if (takenNames.has(name.toLowerCase())) reader.warn("duplicate", name);
   const currency = reader.currency(item.currency);
   const settlementMode = item.settlement === "manual" ? "manual" : "automatic";
@@ -192,6 +209,14 @@ function parseItem(
   const firstDate = reader.firstDate(item.firstDate);
   // Assume the user paid what was due so far, unless the input said otherwise.
   const settlePast = item.backlogUnpaid !== true;
+  // What the AI declared it assumed or couldn't determine — the review
+  // screen's per-item report. A placeholder name always counts as uncertain,
+  // whether the AI said so or the heuristic caught it.
+  const assumedFields = asFieldList(item.assumed);
+  let uncertainFields = asFieldList(item.uncertain);
+  if (isSuspectName(name) && !uncertainFields.includes("name")) {
+    uncertainFields = ["name", ...uncertainFields];
+  }
 
   const common = {
     name,
@@ -217,7 +242,16 @@ function parseItem(
       firstInstallmentDate: firstDate,
       provider: reader.provider(item.provider),
     };
-    return { id, kind: "split", input, accountName, settlePast, warnings: reader.warnings };
+    return {
+      id,
+      kind: "split",
+      input,
+      accountName,
+      settlePast,
+      assumedFields,
+      uncertainFields,
+      warnings: reader.warnings,
+    };
   }
 
   const amount = asFiniteNumber(item.amount);
@@ -247,7 +281,16 @@ function parseItem(
     endDate: reader.optionalDate(item.endDate, "endDate"),
     introOffer,
   };
-  return { id, kind: "subscription", input, accountName, settlePast, warnings: reader.warnings };
+  return {
+    id,
+    kind: "subscription",
+    input,
+    accountName,
+    settlePast,
+    assumedFields,
+    uncertainFields,
+    warnings: reader.warnings,
+  };
 }
 
 /**

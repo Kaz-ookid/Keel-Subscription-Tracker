@@ -343,11 +343,11 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(messySplit.warnings).toContainEqual({ code: "provider-unknown", detail: "sofa4x" });
   });
 
-  it("flags description-like names and duplicates of tracked items", () => {
+  it("flags description-like names as uncertain and duplicates of tracked items", () => {
     const doc = {
       items: [
         { name: "a 1200HKD payment", amount: 5, firstDate: "2026-06-20" },
-        { name: "Purchase", amount: 5, firstDate: "2026-06-20" },
+        { name: "Hong kong purchase", amount: 5, firstDate: "2026-06-20" },
         { name: "Mobilis Zone 11/12", amount: 5, firstDate: "2026-06-20" },
         { name: "netflix", amount: 5, firstDate: "2026-06-20" },
       ],
@@ -356,12 +356,28 @@ describe("parseImportDocument — tolerance and recovery", () => {
       ...ctx,
       takenNames: ["Netflix"],
     });
-    const codes = (name: string) =>
-      drafts.find((d) => d.input.name === name)?.warnings.map((w) => w.code);
-    expect(codes("a 1200HKD payment")).toContain("name-suspect");
-    expect(codes("Purchase")).toContain("name-suspect");
-    expect(codes("Mobilis Zone 11/12")).not.toContain("name-suspect"); // digits alone are fine
-    expect(codes("netflix")).toContain("duplicate"); // case-insensitive vs tracked items
+    const byName = (name: string) => drafts.find((d) => d.input.name === name);
+    expect(byName("a 1200HKD payment")?.uncertainFields).toContain("name");
+    expect(byName("Hong kong purchase")?.uncertainFields).toContain("name");
+    expect(byName("Mobilis Zone 11/12")?.uncertainFields).not.toContain("name"); // digits alone are fine
+    expect(byName("netflix")?.warnings.map((w) => w.code)).toContain("duplicate");
+  });
+
+  it("keeps the AI's assumed/uncertain declarations, filtered to known fields", () => {
+    const doc = {
+      items: [
+        {
+          name: "Mystery",
+          amount: 5,
+          firstDate: "2026-06-20",
+          assumed: ["settlement", "firstDate", "bogus-field"],
+          uncertain: ["name"],
+        },
+      ],
+    };
+    const draft = parseImportDocument(JSON.stringify(doc), ctx).drafts[0];
+    expect(draft.assumedFields).toEqual(["settlement", "firstDate"]);
+    expect(draft.uncertainFields).toEqual(["name"]);
   });
 
   it("assumes past payments were made unless backlogUnpaid says otherwise", () => {
