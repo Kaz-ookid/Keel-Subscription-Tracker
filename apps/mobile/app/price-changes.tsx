@@ -18,8 +18,10 @@ import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
+import { Card } from "../src/components/ui/Card";
+import { EmptyState } from "../src/components/ui/EmptyState";
 import { useAppState } from "../src/state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 export default function PriceChangesScreen() {
   const { colors } = useTheme();
@@ -41,8 +43,11 @@ export default function PriceChangesScreen() {
   if (changes.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>{t("priceChanges.emptyTitle")}</Text>
-        <Text style={styles.emptyHint}>{t("priceChanges.emptyHint")}</Text>
+        <EmptyState
+          icon="chart.line.uptrend.xyaxis"
+          title={t("priceChanges.emptyTitle")}
+          hint={t("priceChanges.emptyHint")}
+        />
       </View>
     );
   }
@@ -60,7 +65,7 @@ export default function PriceChangesScreen() {
         const pct = Math.round(Math.abs(c.changeRatio) * 100);
         const category = categories.find((cat) => cat.id === c.categoryId);
         return (
-          <View key={c.paymentItemId} style={styles.card}>
+          <Card key={c.paymentItemId} variant="free" style={styles.card}>
             <View style={styles.cardHeader}>
               <BrandBadge
                 domain={c.domain}
@@ -80,7 +85,9 @@ export default function PriceChangesScreen() {
                   })}
                 </Text>
               </View>
-              <Text style={[styles.pct, { color: up ? tones.warning : tones.success }]}>
+              <Text
+                style={[styles.pct, { color: up ? colors.tones.warning : colors.tones.success }]}
+              >
                 {up ? "+" : "−"}
                 {pct}%
               </Text>
@@ -101,7 +108,7 @@ export default function PriceChangesScreen() {
                 <Text style={styles.historyAmount}>{formatMoney(entry.amount)}</Text>
               </View>
             ))}
-          </View>
+          </Card>
         );
       })}
     </ScrollView>
@@ -114,18 +121,10 @@ function createStyles(colors: ThemeColors) {
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     center: {
       flex: 1,
-      alignItems: "center",
       justifyContent: "center",
-      gap: spacing.sm,
       backgroundColor: colors.background,
-      padding: spacing.lg,
     },
-    emptyTitle: { ...typography.subtitle, color: colors.text, fontWeight: "600" },
-    emptyHint: { ...typography.body, color: colors.mutedText, textAlign: "center" },
     card: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
       gap: spacing.sm,
     },
     cardHeader: {

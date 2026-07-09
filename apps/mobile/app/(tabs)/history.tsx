@@ -32,6 +32,7 @@ import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
 import { Segmented } from "../../src/components/Segmented";
 import { Chip } from "../../src/components/ui/Chip";
+import { EmptyState } from "../../src/components/ui/EmptyState";
 import { monthFull } from "../../src/i18n/dates";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -236,11 +237,12 @@ export default function HistoryScreen() {
           );
         }}
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <SymbolView name="clock.fill" size={30} tintColor={colors.mutedText} />
-            <Text style={styles.emptyTitle}>{t("history.emptyTitle")}</Text>
-            <Text style={styles.emptyHint}>{t("history.emptyHint")}</Text>
-          </View>
+          <EmptyState
+            icon="clock.fill"
+            title={t("history.emptyTitle")}
+            hint={t("history.emptyHint")}
+            style={styles.empty}
+          />
         }
       />
     </View>
@@ -294,12 +296,7 @@ function createStyles(colors: ThemeColors) {
     sub: { ...typography.caption, color: colors.mutedText },
     amount: { ...typography.label, color: colors.text },
     empty: {
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.sm,
       paddingTop: spacing.xl * 2,
     },
-    emptyTitle: { ...typography.subtitle, fontWeight: "600", color: colors.text },
-    emptyHint: { ...typography.body, color: colors.mutedText, textAlign: "center" },
   });
 }

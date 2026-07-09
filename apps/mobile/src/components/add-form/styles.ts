@@ -4,7 +4,7 @@
 import { useMemo } from "react";
 import { StyleSheet } from "react-native";
 
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 
 export function useFormStyles() {
   const { colors } = useTheme();
@@ -31,7 +31,7 @@ function createFormStyles(colors: ThemeColors) {
     },
     // Subtle hint for an empty required field (name / amount).
     requiredMissing: {
-      borderColor: tones.warning,
+      borderColor: colors.tones.warning,
     },
     currencyChip: {
       paddingVertical: spacing.xs + 2,

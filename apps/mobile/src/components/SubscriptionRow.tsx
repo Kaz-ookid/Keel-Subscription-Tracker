@@ -15,7 +15,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { useAppState } from "../state/app-state";
-import { emphasis, radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
 
@@ -62,12 +62,12 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     subLine = `${localizedRecurrence(recurring.recurrence)} · ${when}`;
     amount = formatMoney(recurring.amount);
     tag = isManual ? t("row.manual") : t("row.automatic");
-    tagColor = isManual ? tones.warning : tones.info;
+    tagColor = isManual ? colors.tones.warning : colors.tones.info;
     showMarkPaid = canMark;
     // Ticked off for this month: say so instead of offering the button.
     if (isManual && !canMark && !complete && recurring.nextChargeDate > recurring.firstChargeDate) {
       tag = t("row.paidThisCycle");
-      tagColor = tones.success;
+      tagColor = colors.tones.success;
     }
     // A live intro offer: a free trial leads with the price it'll BECOME; a
     // paid price change keeps the current price and just flags the upcoming
@@ -92,7 +92,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     showMarkPaid = canMark;
     if (!canMark && s.paidCount > 0 && !s.isComplete) {
       tag = t("row.paidThisCycle");
-      tagColor = tones.success;
+      tagColor = colors.tones.success;
     } else {
       tag = t("row.payInX");
       tagColor = colors.accent;

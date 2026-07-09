@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 import { useAppState } from "../state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { Sheet } from "./Sheet";
+import { Button } from "./ui/Button";
 
 type SymbolName = SymbolViewProps["name"];
 
@@ -109,9 +110,11 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
                 </Pressable>
               ))}
             </View>
-            <Pressable style={styles.addBtn} onPress={submitNew}>
-              <Text style={styles.addBtnText}>{t("categorySheet.addCategory")}</Text>
-            </Pressable>
+            <Button
+              label={t("categorySheet.addCategory")}
+              onPress={submitNew}
+              disabled={!name.trim()}
+            />
           </View>
         ) : (
           <Pressable style={styles.row} onPress={() => setAdding(true)}>
@@ -182,16 +185,6 @@ function createStyles(colors: ThemeColors) {
     iconChoiceActive: {
       backgroundColor: colors.action,
       borderColor: colors.action,
-    },
-    addBtn: {
-      backgroundColor: colors.action,
-      borderRadius: radius.sm,
-      paddingVertical: spacing.sm,
-      alignItems: "center",
-    },
-    addBtnText: {
-      ...typography.label,
-      color: colors.actionText,
     },
   });
 }

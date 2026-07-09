@@ -24,8 +24,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BrandBadge } from "../src/components/BrandBadge";
 import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
+import { Card } from "../src/components/ui/Card";
+import { EmptyState } from "../src/components/ui/EmptyState";
 import { useAppState } from "../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 export default function ByCategoryScreen() {
   const router = useRouter();
@@ -67,8 +69,11 @@ export default function ByCategoryScreen() {
   if (ordered.length === 0 || grandTotal <= 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>{t("byCategory.emptyTitle")}</Text>
-        <Text style={styles.emptyHint}>{t("byCategory.emptyHint")}</Text>
+        <EmptyState
+          icon="chart.pie"
+          title={t("byCategory.emptyTitle")}
+          hint={t("byCategory.emptyHint")}
+        />
       </View>
     );
   }
@@ -138,7 +143,7 @@ export default function ByCategoryScreen() {
         const share = grandTotal > 0 ? amountIn(g.totals) / grandTotal : 0;
 
         return (
-          <View key={key} style={styles.card}>
+          <Card key={key}>
             <Pressable style={styles.cardBody} onPress={() => setExpanded(open ? null : key)}>
               <View style={styles.cardHeader}>
                 <View style={[styles.dot, { backgroundColor: sliceColor(index) }]} />
@@ -189,7 +194,7 @@ export default function ByCategoryScreen() {
                   </Pressable>
                 );
               })}
-          </View>
+          </Card>
         );
       })}
 
@@ -204,22 +209,12 @@ function createStyles(colors: ThemeColors) {
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
     center: {
       flex: 1,
-      alignItems: "center",
       justifyContent: "center",
-      gap: spacing.sm,
       backgroundColor: colors.background,
-      padding: spacing.lg,
     },
-    emptyTitle: { ...typography.subtitle, color: colors.text, fontWeight: "600" },
-    emptyHint: { ...typography.body, color: colors.mutedText, textAlign: "center" },
     donutWrap: {
       alignItems: "center",
       paddingVertical: spacing.md,
-    },
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
     },
     cardBody: {
       paddingVertical: spacing.md,

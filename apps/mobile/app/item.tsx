@@ -23,9 +23,11 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BrandBadge } from "../src/components/BrandBadge";
+import { Button } from "../src/components/ui/Button";
+import { Card } from "../src/components/ui/Card";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { useAppState } from "../src/state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 function InfoRow({ label, value, styles }: { label: string; value: string; styles: Styles }) {
   return (
@@ -166,18 +168,18 @@ export default function ItemScreen() {
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.subtitle}>{subtitle}</Text>
         {complete && (
-          <Text style={[styles.subtitle, { color: tones.success }]}>
+          <Text style={[styles.subtitle, { color: colors.tones.success }]}>
             {recurring ? t("row.ended") : t("item.fullyPaid")}
           </Text>
         )}
         {paused && (
-          <Text style={[styles.subtitle, { color: tones.warning }]}>{t("row.paused")}</Text>
+          <Text style={[styles.subtitle, { color: colors.tones.warning }]}>{t("row.paused")}</Text>
         )}
         {trialBanner && <Text style={[styles.subtitle, styles.trialBanner]}>{trialBanner}</Text>}
       </View>
 
       {/* Facts */}
-      <View style={styles.card}>
+      <Card>
         {recurring && (
           <>
             <InfoRow
@@ -278,21 +280,19 @@ export default function ItemScreen() {
         {item.notes ? (
           <InfoRow label={t("add.description")} value={item.notes} styles={styles} />
         ) : null}
-      </View>
+      </Card>
 
       {/* The explicit list is the point of Pay-in-X — show every payment. */}
       {installment && plan && (
-        <View style={styles.card}>
+        <Card>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>{t("item.payments")}</Text>
             {plan.paidCount > 0 && (
-              <Pressable
+              <Button
+                size="sm"
+                label={t("common.undoLast")}
                 onPress={() => undoInstallmentPaid(item.id)}
-                style={styles.undoButton}
-                hitSlop={6}
-              >
-                <Text style={styles.undoText}>{t("common.undoLast")}</Text>
-              </Pressable>
+              />
             )}
           </View>
           {installment.installments.map((inst) => {
@@ -310,25 +310,29 @@ export default function ItemScreen() {
                       covered ? "checkmark.circle.fill" : late ? "exclamationmark.circle" : "clock"
                     }
                     size={16}
-                    tintColor={covered ? tones.success : late ? tones.warning : colors.mutedText}
+                    tintColor={
+                      covered
+                        ? colors.tones.success
+                        : late
+                          ? colors.tones.warning
+                          : colors.mutedText
+                    }
                   />
                 </View>
               </View>
             );
           })}
-        </View>
+        </Card>
       )}
 
       {/* The recurring counterpart of the installments list: what was paid or
           skipped, newest first — and the place to undo a mistaken tick. */}
       {recurring && history.length > 0 && (
-        <View style={styles.card}>
+        <Card>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>{t("item.history")}</Text>
             {item.settlementMode === "manual" && (
-              <Pressable onPress={() => undoPaid(item.id)} style={styles.undoButton} hitSlop={6}>
-                <Text style={styles.undoText}>{t("common.undoLast")}</Text>
-              </Pressable>
+              <Button size="sm" label={t("common.undoLast")} onPress={() => undoPaid(item.id)} />
             )}
           </View>
           {history.map((o) => (
@@ -349,17 +353,17 @@ export default function ItemScreen() {
                 <SymbolView
                   name={o.status === "skipped" ? "arrow.right.to.line" : "checkmark.circle.fill"}
                   size={16}
-                  tintColor={o.status === "skipped" ? colors.mutedText : tones.success}
+                  tintColor={o.status === "skipped" ? colors.mutedText : colors.tones.success}
                 />
               </View>
             </View>
           ))}
-        </View>
+        </Card>
       )}
 
       {/* Price changes over time (edge case #1) — only when there were any. */}
       {recurring && recurring.priceHistory.length > 1 && (
-        <View style={styles.card}>
+        <Card>
           <Text style={styles.cardTitle}>{t("item.priceHistory")}</Text>
           {recurring.priceHistory.map((entry, i) => (
             <InfoRow
@@ -369,49 +373,47 @@ export default function ItemScreen() {
               styles={styles}
             />
           ))}
-        </View>
+        </Card>
       )}
 
       {markable && (
-        <Pressable
-          style={styles.primaryBtn}
+        <Button
+          label={t("common.markPaid")}
           onPress={() => (installment ? markInstallmentPaid(item.id) : markPaid(item.id))}
-        >
-          <Text style={styles.primaryBtnText}>{t("common.markPaid")}</Text>
-        </Pressable>
+        />
       )}
       {/* Flexible commitments ("monthly investing") can sit a cycle out —
           skipped, not paid: the month stays honest in the analytics. */}
       {markable && recurring && (
-        <Pressable style={styles.secondaryBtn} onPress={() => skipPayment(item.id)}>
-          <Text style={styles.secondaryBtnText}>
-            {t("item.skipCycle", { date: formatCalendarDate(recurring.nextChargeDate) })}
-          </Text>
-        </Pressable>
+        <Button
+          variant="secondary"
+          label={t("item.skipCycle", { date: formatCalendarDate(recurring.nextChargeDate) })}
+          onPress={() => skipPayment(item.id)}
+        />
       )}
       {paidThisCycle && (
-        <View style={styles.disabledBtn}>
-          <Text style={styles.disabledBtnText}>
-            {t("item.paidForCycle")}
-            {nextAfterCycle
+        <Button
+          variant="secondary"
+          disabled
+          label={
+            t("item.paidForCycle") +
+            (nextAfterCycle
               ? t("item.nextAfter", { date: formatCalendarDate(nextAfterCycle) })
-              : ""}
-          </Text>
-        </View>
+              : "")
+          }
+          onPress={() => {}}
+        />
       )}
 
       {!complete && (
-        <Pressable
-          style={styles.secondaryBtn}
+        <Button
+          variant="secondary"
+          label={paused ? t("item.resume") : t("item.pause")}
           onPress={() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id))}
-        >
-          <Text style={styles.secondaryBtnText}>{paused ? t("item.resume") : t("item.pause")}</Text>
-        </Pressable>
+        />
       )}
 
-      <Pressable style={styles.deleteRow} onPress={confirmDelete}>
-        <Text style={styles.deleteText}>{t("common.delete")}</Text>
-      </Pressable>
+      <Button variant="destructive" label={t("common.delete")} onPress={confirmDelete} />
     </ScrollView>
   );
 }
@@ -438,12 +440,6 @@ function createStyles(colors: ThemeColors) {
     name: { ...typography.h1, color: colors.text },
     subtitle: { ...typography.caption, color: colors.mutedText },
     trialBanner: { color: colors.accent, fontWeight: "600" },
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
-    },
     cardTitle: {
       ...typography.label,
       color: colors.text,
@@ -453,18 +449,6 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "space-between",
       paddingTop: spacing.sm,
-    },
-    // A real button — pale accent TEXT alone read as disabled grey.
-    undoButton: {
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
-      borderRadius: radius.sm,
-      backgroundColor: colors.action,
-    },
-    undoText: {
-      ...typography.caption,
-      color: colors.actionText,
-      fontWeight: "700",
     },
     infoRow: {
       flexDirection: "row",
@@ -482,31 +466,5 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
     },
-    primaryBtn: {
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-    },
-    primaryBtnText: { ...typography.label, color: colors.actionText },
-    disabledBtn: {
-      backgroundColor: colors.surface,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-    },
-    disabledBtnText: { ...typography.label, color: colors.mutedText },
-    secondaryBtn: {
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-    },
-    secondaryBtnText: { ...typography.label, color: colors.text },
-    deleteRow: { alignItems: "center", paddingVertical: spacing.sm },
-    deleteText: { ...typography.label, color: tones.danger },
   });
 }

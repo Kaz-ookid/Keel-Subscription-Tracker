@@ -1,0 +1,47 @@
+// A labelled stat (DESIGN.md §3.4): micro overline, value-size number, quiet
+// hint — the pattern the Insights stat cards hand-rolled. Lives inside a Card.
+
+import { useMemo } from "react";
+import { StyleSheet, Text, View } from "react-native";
+
+import { typography, useTheme, type ThemeColors } from "../../theme";
+
+interface Props {
+  label: string;
+  value: string;
+  hint?: string;
+  /** Tint for the value itself (e.g. a warning-colored drift). */
+  color?: string;
+}
+
+export function StatValue({ label, value, hint, color }: Props) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.value, color != null && { color }]}>{value}</Text>
+      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+    </View>
+  );
+}
+
+function createStyles(colors: ThemeColors) {
+  return StyleSheet.create({
+    container: {
+      gap: 2,
+    },
+    label: {
+      ...typography.micro,
+      color: colors.mutedText,
+    },
+    value: {
+      ...typography.value,
+      color: colors.text,
+    },
+    hint: {
+      ...typography.caption,
+      color: colors.mutedText,
+    },
+  });
+}

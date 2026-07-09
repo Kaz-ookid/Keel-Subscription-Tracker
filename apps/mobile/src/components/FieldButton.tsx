@@ -2,7 +2,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
   label: string;
@@ -25,7 +25,7 @@ export function FieldButton({ label, value, accessory, hint, onPress }: Props) {
       <Text style={styles.label}>{label}</Text>
       <View style={styles.right}>
         {value ? (
-          <Text style={[styles.value, hint && { color: tones.warning }]}>{value}</Text>
+          <Text style={[styles.value, hint && { color: colors.tones.warning }]}>{value}</Text>
         ) : null}
         {accessory}
         <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />

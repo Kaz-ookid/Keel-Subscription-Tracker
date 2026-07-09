@@ -33,15 +33,7 @@ import Animated, {
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
-import {
-  emphasis,
-  radius,
-  spacing,
-  tones,
-  typography,
-  useTheme,
-  type ThemeColors,
-} from "../../theme";
+import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 
 // Monday-first column order, as JS weekday indices (0 = Sunday).
@@ -266,7 +258,7 @@ export function CalendarMonthView() {
                       style={[
                         styles.dayNumber,
                         isToday && styles.dayToday,
-                        hasOverdue && { color: tones.warning },
+                        hasOverdue && { color: colors.tones.warning },
                       ]}
                     >
                       {Number(date.slice(8, 10))}
@@ -324,7 +316,13 @@ export function CalendarMonthView() {
                         : "clock"
                   }
                   size={14}
-                  tintColor={c.paid ? tones.success : c.overdue ? tones.warning : colors.mutedText}
+                  tintColor={
+                    c.paid
+                      ? colors.tones.success
+                      : c.overdue
+                        ? colors.tones.warning
+                        : colors.mutedText
+                  }
                 />
                 <BrandBadge
                   domain={c.domain}

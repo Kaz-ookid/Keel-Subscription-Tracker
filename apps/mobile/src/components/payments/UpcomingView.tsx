@@ -28,10 +28,11 @@ import {
 } from "react-native";
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
-import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
+import { EmptyState } from "../ui/EmptyState";
+import { SectionDivider } from "../ui/SectionDivider";
 import { useAppState } from "../../state/app-state";
-import { spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { UpcomingRow } from "../UpcomingRow";
 
@@ -309,20 +310,22 @@ export function UpcomingView() {
       }
       ListHeaderComponent={header}
       ListEmptyComponent={
-        <View style={styles.empty}>
-          <Text style={styles.emptyTitle}>
-            {t("upcoming.emptyTitle", { date: formatCalendarDate(windowEnd) })}
-          </Text>
-          <Text style={styles.emptyHint}>{t("upcoming.emptyHint")}</Text>
-          {/* A truly empty app (e.g. onboarding skipped): offer the way in. */}
-          {items.length === 0 && (
-            <Button
-              label={t("common.getStarted")}
-              onPress={() => router.push({ pathname: "/onboarding", params: { mode: "start" } })}
-              style={styles.getStarted}
-            />
-          )}
-        </View>
+        <EmptyState
+          icon="calendar"
+          title={t("upcoming.emptyTitle", { date: formatCalendarDate(windowEnd) })}
+          hint={t("upcoming.emptyHint")}
+          style={styles.empty}
+          // A truly empty app (e.g. onboarding skipped): offer the way in.
+          cta={
+            items.length === 0
+              ? {
+                  label: t("common.getStarted"),
+                  onPress: () =>
+                    router.push({ pathname: "/onboarding", params: { mode: "start" } }),
+                }
+              : undefined
+          }
+        />
       }
       renderSectionHeader={({ section }) => {
         if (section.toggle) {
@@ -333,14 +336,16 @@ export function UpcomingView() {
               style={[styles.sectionHeaderWrap, styles.monthBreak]}
               onPress={() => flip((o) => !o)}
             >
-              <View style={styles.monthLine} />
-              <Text style={styles.monthText}>{section.monthLabel}</Text>
-              <SymbolView
-                name={open ? "chevron.up" : "chevron.down"}
-                size={11}
-                tintColor={colors.mutedText}
+              <SectionDivider
+                label={section.monthLabel ?? ""}
+                trailing={
+                  <SymbolView
+                    name={open ? "chevron.up" : "chevron.down"}
+                    size={11}
+                    tintColor={colors.mutedText}
+                  />
+                }
               />
-              <View style={styles.monthLine} />
             </Pressable>
           );
         }
@@ -349,7 +354,9 @@ export function UpcomingView() {
         return (
           <View style={styles.sectionHeaderWrap}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, section.overdue && { color: tones.warning }]}>
+              <Text
+                style={[styles.sectionTitle, section.overdue && { color: colors.tones.warning }]}
+              >
                 {section.title}
               </Text>
               <Text style={styles.sectionTotal}>
@@ -415,25 +422,11 @@ function createStyles(colors: ThemeColors) {
     sectionHeaderWrap: {
       backgroundColor: colors.background,
     },
-    // Light but unmistakable month boundary: NAME between two hairlines.
+    // Light but unmistakable month boundary: the SectionDivider between the
+    // day sections, tappable to fold.
     monthBreak: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
       paddingTop: spacing.lg,
       paddingBottom: spacing.sm,
-    },
-    monthLine: {
-      flex: 1,
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.mutedText,
-    },
-    monthText: {
-      ...typography.caption,
-      color: colors.mutedText,
-      fontWeight: "700",
-      textTransform: "uppercase",
-      letterSpacing: 1,
     },
     sectionHeader: {
       flexDirection: "row",
@@ -454,22 +447,7 @@ function createStyles(colors: ThemeColors) {
       height: spacing.sm,
     },
     empty: {
-      alignItems: "center",
-      gap: spacing.sm,
       paddingVertical: spacing.xl,
-    },
-    getStarted: {
-      marginTop: spacing.sm,
-    },
-    emptyTitle: {
-      ...typography.subtitle,
-      color: colors.text,
-      fontWeight: "600",
-    },
-    emptyHint: {
-      ...typography.body,
-      color: colors.mutedText,
-      textAlign: "center",
     },
   });
 }

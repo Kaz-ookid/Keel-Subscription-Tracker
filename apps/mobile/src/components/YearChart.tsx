@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 export interface YearChartMonth {
   /** Short label under the bar, e.g. "Jun". */
@@ -124,7 +124,7 @@ export function YearChart({
                         styles.bar,
                         {
                           height,
-                          backgroundColor: spiking ? tones.warning : colors.accent,
+                          backgroundColor: spiking ? colors.tones.warning : colors.accent,
                           opacity: i === selected ? 1 : 0.55,
                         },
                       ]}

@@ -7,7 +7,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "destructive";
 export type ButtonSize = "lg" | "sm";
@@ -51,7 +51,7 @@ export function Button({
         ? colors.text
         : variant === "quiet"
           ? colors.accent
-          : tones.danger;
+          : colors.tones.danger;
 
   return (
     <Pressable

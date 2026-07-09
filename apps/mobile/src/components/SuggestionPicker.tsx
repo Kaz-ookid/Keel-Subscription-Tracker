@@ -19,6 +19,7 @@ import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import { suggestionMatches } from "../lib/suggestions";
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
+import { Button } from "./ui/Button";
 
 interface Props {
   suggestions: readonly SuggestedCommitment[];
@@ -192,15 +193,13 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
 
       {!onPick && (
         <View style={styles.footer}>
-          <Pressable
-            style={[styles.cta, checked.size === 0 && styles.ctaDisabled]}
-            disabled={checked.size === 0}
+          <Button
+            label={
+              checked.size === 0 ? t("picker.tapWhat") : t("picker.addN", { count: checked.size })
+            }
             onPress={confirm}
-          >
-            <Text style={styles.ctaText}>
-              {checked.size === 0 ? t("picker.tapWhat") : t("picker.addN", { count: checked.size })}
-            </Text>
-          </Pressable>
+            disabled={checked.size === 0}
+          />
         </View>
       )}
     </View>
@@ -299,19 +298,6 @@ function createStyles(colors: ThemeColors) {
     footer: {
       paddingHorizontal: spacing.md,
       paddingTop: spacing.sm,
-    },
-    cta: {
-      backgroundColor: colors.action,
-      borderRadius: radius.md,
-      paddingVertical: spacing.md,
-      alignItems: "center",
-    },
-    ctaDisabled: {
-      opacity: 0.4,
-    },
-    ctaText: {
-      ...typography.label,
-      color: colors.actionText,
     },
   });
 }

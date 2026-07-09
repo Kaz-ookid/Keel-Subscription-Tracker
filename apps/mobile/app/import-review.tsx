@@ -27,7 +27,7 @@ import { localizedRecurrence } from "../src/i18n/recurrence";
 import { Button } from "../src/components/ui/Button";
 import { useAppState } from "../src/state/app-state";
 import { useImportSession } from "../src/state/import-session";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 /** Warnings that get their own line; account-unmatched is the account chip. */
 const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
@@ -275,7 +275,7 @@ function createStyles(colors: ThemeColors) {
     // The "needs a look" stripe — flagged cards pop without shouting.
     cardFlagged: {
       borderLeftWidth: 3,
-      borderLeftColor: tones.warning,
+      borderLeftColor: colors.tones.warning,
     },
     middle: { flex: 1, gap: 2 },
     name: { ...typography.label, color: colors.text },
@@ -283,7 +283,7 @@ function createStyles(colors: ThemeColors) {
     sub: { ...typography.caption, color: colors.mutedText },
     notes: { ...typography.caption, color: colors.mutedText, fontStyle: "italic" },
     assumed: { ...typography.caption, color: colors.mutedText },
-    warn: { ...typography.caption, color: tones.warning },
+    warn: { ...typography.caption, color: colors.tones.warning },
     accountRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs + 2 },
     accountDot: { width: 8, height: 8, borderRadius: 4 },
     actions: { alignItems: "flex-end", gap: spacing.md, alignSelf: "stretch" },

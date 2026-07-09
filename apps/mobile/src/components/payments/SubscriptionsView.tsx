@@ -22,6 +22,7 @@ import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
 import { Button } from "../ui/Button";
+import { EmptyState } from "../ui/EmptyState";
 
 /** The day of the month an item bills on — its fixed "place" in the list. */
 function billingDay(item: PaymentItem): number {
@@ -64,12 +65,14 @@ export function SubscriptionsView() {
   if (items.length === 0 && pending.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>{t("allList.emptyTitle")}</Text>
-        <Text style={styles.emptyHint}>{t("allList.emptyHint")}</Text>
-        <Button
-          label={t("common.getStarted")}
-          onPress={() => router.push({ pathname: "/onboarding", params: { mode: "start" } })}
-          style={styles.getStarted}
+        <EmptyState
+          icon="list.bullet.rectangle"
+          title={t("allList.emptyTitle")}
+          hint={t("allList.emptyHint")}
+          cta={{
+            label: t("common.getStarted"),
+            onPress: () => router.push({ pathname: "/onboarding", params: { mode: "start" } }),
+          }}
         />
       </View>
     );
@@ -224,20 +227,7 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      gap: spacing.sm,
       backgroundColor: colors.background,
-    },
-    emptyTitle: {
-      ...typography.subtitle,
-      color: colors.text,
-      fontWeight: "600",
-    },
-    emptyHint: {
-      ...typography.body,
-      color: colors.mutedText,
-    },
-    getStarted: {
-      marginTop: spacing.sm,
     },
     headerStack: {
       gap: spacing.sm,

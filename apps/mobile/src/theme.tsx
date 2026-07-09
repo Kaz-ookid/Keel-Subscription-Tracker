@@ -35,6 +35,9 @@ export interface ThemeColors {
   scrim: string;
   /** Categorical chart palette (donut slices, future charts). */
   chart: readonly string[];
+  /** The core's semantic tones, tuned per scheme: darker inks on light
+   *  surfaces, brighter ones for night at sea. */
+  tones: Record<SemanticTone, string>;
 }
 
 const NAVY = "#0B1E3F";
@@ -59,6 +62,13 @@ const light: ThemeColors = {
   selection: "#DCEBE8",
   scrim: "rgba(7,20,41,0.45)",
   chart: ["#3E8578", "#4E79A7", "#E8A87C", "#B56576", "#6C8EBF", "#8FBC94", "#C9A66B", "#7A6C9E"],
+  tones: {
+    neutral: "#6E7B8A",
+    info: "#2E6BD6",
+    success: "#1E9950",
+    warning: "#C07C00",
+    danger: "#DC3B3B",
+  },
 };
 
 const dark: ThemeColors = {
@@ -79,6 +89,13 @@ const dark: ThemeColors = {
   selection: "#1E3A38",
   scrim: "rgba(0,0,0,0.55)",
   chart: ["#8FC7BF", "#7FA6D9", "#E8B48C", "#C97C8C", "#8BA7D9", "#A3CCA8", "#D9BC85", "#9C8FC7"],
+  tones: {
+    neutral: "#8E9BAD",
+    info: "#7CA9EF",
+    success: "#4BC98A",
+    warning: "#F0B35C",
+    danger: "#F2766B",
+  },
 };
 
 export type ColorScheme = "light" | "dark";
@@ -137,16 +154,6 @@ export function contrastText(hex: string): string {
   const b = n & 255;
   return (0.299 * r + 0.587 * g + 0.114 * b) / 255 > 0.62 ? "#111827" : "#FFFFFF";
 }
-
-// The platform's mapping of the core's semantic tones → actual colours. These
-// read acceptably on both light and dark backgrounds, so they stay static.
-export const tones: Record<SemanticTone, string> = {
-  neutral: "#8E8E93",
-  info: "#3B82F6",
-  success: "#22C55E",
-  warning: "#F59E0B",
-  danger: "#EF4444",
-};
 
 export const spacing = {
   xs: 4,

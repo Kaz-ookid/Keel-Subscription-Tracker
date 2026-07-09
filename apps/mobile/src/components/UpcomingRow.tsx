@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { useAppState } from "../state/app-state";
-import { emphasis, radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
 
@@ -80,7 +80,7 @@ export function UpcomingRow({
         <Text style={styles.sub} numberOfLines={1}>
           {/* The Overdue section groups many dates — each row says its own. */}
           {overdue ? (
-            <Text style={{ color: tones.warning }}>
+            <Text style={{ color: colors.tones.warning }}>
               {t("row.due", { date: formatCalendarDate(charge.dueDate) })} ·{" "}
             </Text>
           ) : null}
@@ -90,11 +90,13 @@ export function UpcomingRow({
 
       <View style={styles.right}>
         <View style={[styles.amountRow, settled && styles.dimmed]}>
-          {paid && <SymbolView name="checkmark.circle.fill" size={14} tintColor={tones.success} />}
+          {paid && (
+            <SymbolView name="checkmark.circle.fill" size={14} tintColor={colors.tones.success} />
+          )}
           <Text
             style={[
               styles.amount,
-              overdue && !settled && { color: tones.warning },
+              overdue && !settled && { color: colors.tones.warning },
               settled && { color: colors.mutedText },
               skipped && { textDecorationLine: "line-through" },
             ]}

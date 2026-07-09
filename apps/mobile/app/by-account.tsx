@@ -31,12 +31,13 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
+import { Card } from "../src/components/ui/Card";
 import { Chip } from "../src/components/ui/Chip";
 import { YearChart, type YearChartMonth } from "../src/components/YearChart";
 import { monthFull, monthShort } from "../src/i18n/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { useAppState } from "../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const MONTHS_BACK = 12;
 const MONTHS_AHEAD = 12;
@@ -208,7 +209,7 @@ export default function ByAccountScreen() {
 
       {selectedBucket ? (
         monthDetail.length > 0 ? (
-          <View style={styles.card}>
+          <Card>
             {monthDetail.map((d) => {
               const category = categories.find((c) => c.id === d.categoryId);
               return (
@@ -237,13 +238,13 @@ export default function ByAccountScreen() {
                 </Pressable>
               );
             })}
-          </View>
+          </Card>
         ) : (
           <Text style={styles.emptyNote}>{t("insights.nothing")}</Text>
         )
       ) : (
         scoped.length > 0 && (
-          <View style={styles.card}>
+          <Card>
             {scoped.map((item) => {
               const category = categories.find((c) => c.id === item.categoryId);
               const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
@@ -279,7 +280,7 @@ export default function ByAccountScreen() {
                 </Pressable>
               );
             })}
-          </View>
+          </Card>
         )
       )}
     </ScrollView>
@@ -291,12 +292,6 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     chipRow: { flexDirection: "row", gap: spacing.sm },
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.xs,
-    },
     row: {
       flexDirection: "row",
       alignItems: "center",

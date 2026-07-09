@@ -12,17 +12,10 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 
 import { COLOR_SWATCHES } from "../constants";
 import { useAppState } from "../state/app-state";
-import {
-  contrastText,
-  radius,
-  spacing,
-  tones,
-  typography,
-  useTheme,
-  type ThemeColors,
-} from "../theme";
-import { IconBadge } from "./IconBadge";
+import { contrastText, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { BrandBadge } from "./BrandBadge";
 import { Sheet } from "./Sheet";
+import { Button } from "./ui/Button";
 
 // Users pick the icon directly — "checking/savings/credit card" labels asked a
 // question nobody filling in "Revolut" was thinking about. (The model keeps
@@ -135,12 +128,7 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
         </View>
       </ScrollView>
 
-      <Pressable
-        style={[styles.submitBtn, !name.trim() && styles.submitBtnDisabled]}
-        onPress={submit}
-      >
-        <Text style={styles.submitText}>{submitLabel}</Text>
-      </Pressable>
+      <Button label={submitLabel} onPress={submit} disabled={!name.trim()} />
     </View>
   );
 }
@@ -150,7 +138,7 @@ function AccountLine({ account, colors }: { account: Account; colors: ThemeColor
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <View style={styles.left}>
-      <IconBadge icon={account.icon} color={account.color} size={32} />
+      <BrandBadge icon={account.icon} color={account.color} size={32} />
       <View>
         <Text style={styles.rowText}>{account.name}</Text>
         {account.institution ? <Text style={styles.rowSub}>{account.institution}</Text> : null}
@@ -304,7 +292,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
     },
     requiredMissing: {
-      borderColor: tones.warning,
+      borderColor: colors.tones.warning,
     },
     chipRow: {
       flexDirection: "row",
@@ -348,19 +336,6 @@ function createStyles(colors: ThemeColors) {
       borderRadius: 16,
       alignItems: "center",
       justifyContent: "center",
-    },
-    submitBtn: {
-      backgroundColor: colors.action,
-      borderRadius: radius.sm,
-      paddingVertical: spacing.sm,
-      alignItems: "center",
-    },
-    submitBtnDisabled: {
-      opacity: 0.5,
-    },
-    submitText: {
-      ...typography.label,
-      color: colors.actionText,
     },
   });
 }

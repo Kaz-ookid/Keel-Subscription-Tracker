@@ -23,7 +23,7 @@ import {
 } from "../src/lib/app-lock";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { useAppState } from "../src/state/app-state";
-import { spacing, radius, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, radius, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -231,7 +231,7 @@ export default function OnboardingScreen() {
               <SymbolView
                 name={lockOn ? "checkmark.circle.fill" : "faceid"}
                 size={24}
-                tintColor={lockOn ? tones.success : colors.accent}
+                tintColor={lockOn ? colors.tones.success : colors.accent}
               />
               <View style={styles.lockTexts}>
                 <Text style={styles.lockTitle}>{lockOn ? t("onboarding.lockOn") : lockLabel}</Text>

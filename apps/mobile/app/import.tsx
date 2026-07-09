@@ -18,7 +18,7 @@ import { Sheet } from "../src/components/Sheet";
 import { Button } from "../src/components/ui/Button";
 import { useAppState } from "../src/state/app-state";
 import { useImportSession } from "../src/state/import-session";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../src/theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 type OpenPopup = "instructions" | "where" | "example" | "privacy" | null;
 type PasteError = ImportParseError | "clipboard-empty";
@@ -392,7 +392,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       textAlignVertical: "top",
     },
-    error: { ...typography.caption, color: tones.danger },
+    error: { ...typography.caption, color: colors.tones.danger },
     privacyLink: {
       flexDirection: "row",
       alignItems: "center",

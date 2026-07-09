@@ -44,12 +44,11 @@ import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME } from "../../src/constants";
+import { Card } from "../../src/components/ui/Card";
 import { WheelSheet } from "../../src/components/WheelSheet";
 import { useAppState } from "../../src/state/app-state";
 import {
-  radius,
   spacing,
-  tones,
   typography,
   useTheme,
   useThemeMode,
@@ -264,7 +263,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <View style={styles.card}>
+      <Card>
         <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
           <SymbolView name="building.columns.fill" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.accounts")}</Text>
@@ -326,10 +325,10 @@ export default function SettingsScreen() {
           <Text style={styles.rowText}>{t("settings.importAI")}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-      </View>
+      </Card>
 
       {/* Privacy: the app lock. The OS does the locking; we store one flag. */}
-      <View style={styles.card}>
+      <Card>
         <View style={styles.row}>
           <SymbolView
             name="faceid"
@@ -357,10 +356,10 @@ export default function SettingsScreen() {
           </Pressable>
         )}
         <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
-      </View>
+      </Card>
 
       {/* The escape hatch: real finances deserve a way out of one local blob. */}
-      <View style={styles.card}>
+      <Card>
         <Pressable style={styles.row} onPress={() => void exportBackup()}>
           <SymbolView name="square.and.arrow.up" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.exportBackup")}</Text>
@@ -369,11 +368,11 @@ export default function SettingsScreen() {
           <SymbolView name="square.and.arrow.down" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.restoreBackup")}</Text>
         </Pressable>
-      </View>
+      </Card>
 
       {/* Debug, for dogfooding: seed a realistic household or start clean —
           bracketed by the snapshot slot so real data survives the play. */}
-      <View style={styles.card}>
+      <Card>
         <Pressable style={styles.row} onPress={confirmSnapshotSave}>
           <SymbolView name="tray.and.arrow.down.fill" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.snapshotSave")}</Text>
@@ -402,10 +401,10 @@ export default function SettingsScreen() {
           <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmClear}>
-          <SymbolView name="trash.fill" size={20} tintColor={tones.danger} />
+          <SymbolView name="trash.fill" size={20} tintColor={colors.tones.danger} />
           <Text style={[styles.rowText, styles.dangerText]}>{t("settings.clearAll")}</Text>
         </Pressable>
-      </View>
+      </Card>
 
       <Text style={styles.footer}>
         {APP_NAME}
@@ -506,11 +505,6 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.md,
       gap: spacing.md,
     },
-    card: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-    },
     row: {
       flexDirection: "row",
       alignItems: "center",
@@ -527,7 +521,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
     },
     dangerText: {
-      color: tones.danger,
+      color: colors.tones.danger,
     },
     rowDivider: {
       borderTopWidth: StyleSheet.hairlineWidth,

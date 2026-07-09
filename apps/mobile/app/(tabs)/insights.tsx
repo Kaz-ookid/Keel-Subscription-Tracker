@@ -37,11 +37,14 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
+import { Card } from "../../src/components/ui/Card";
+import { EmptyState } from "../../src/components/ui/EmptyState";
+import { StatValue } from "../../src/components/ui/StatValue";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { monthFull, monthShort } from "../../src/i18n/dates";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 // The chart's slide range: two years back, two years ahead. Plenty of runway
 // in both directions while staying a cheap, plain-View render.
@@ -138,8 +141,11 @@ export default function InsightsScreen() {
   if (yearReal.length === 0 && yearlyTheory.length === 0) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>{t("insights.emptyTitle")}</Text>
-        <Text style={styles.emptyHint}>{t("insights.emptyHint")}</Text>
+        <EmptyState
+          icon="chart.bar.xaxis"
+          title={t("insights.emptyTitle")}
+          hint={t("insights.emptyHint")}
+        />
       </View>
     );
   }
@@ -286,20 +292,22 @@ export default function InsightsScreen() {
 
       {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
       <View style={styles.statRow}>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>{t("insights.thisMonth")}</Text>
-          <Text style={styles.statValue}>
-            {thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
-          </Text>
-          <Text style={styles.statHint}>{t("insights.actuallyLeaves")}</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statLabel}>{t("insights.averagePerMonth")}</Text>
-          <Text style={styles.statValue}>
-            {commitments.monthly.length > 0 ? totals(commitments.monthly) : t("insights.nothing")}
-          </Text>
-          <Text style={styles.statHint}>{ongoingHint}</Text>
-        </View>
+        <Card variant="free" style={styles.statCard}>
+          <StatValue
+            label={t("insights.thisMonth")}
+            value={thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
+            hint={t("insights.actuallyLeaves")}
+          />
+        </Card>
+        <Card variant="free" style={styles.statCard}>
+          <StatValue
+            label={t("insights.averagePerMonth")}
+            value={
+              commitments.monthly.length > 0 ? totals(commitments.monthly) : t("insights.nothing")
+            }
+            hint={ongoingHint}
+          />
+        </Card>
       </View>
 
       <YearChart
@@ -328,9 +336,9 @@ export default function InsightsScreen() {
                 size={14}
                 tintColor={
                   d.kind === "paid"
-                    ? tones.success
+                    ? colors.tones.success
                     : d.kind === "overdue"
-                      ? tones.warning
+                      ? colors.tones.warning
                       : colors.mutedText
                 }
               />
@@ -345,7 +353,12 @@ export default function InsightsScreen() {
                     </Text>
                   ) : null}
                 </Text>
-                <Text style={[styles.detailDate, d.kind === "overdue" && { color: tones.warning }]}>
+                <Text
+                  style={[
+                    styles.detailDate,
+                    d.kind === "overdue" && { color: colors.tones.warning },
+                  ]}
+                >
                   {d.kind === "overdue"
                     ? t("row.due", { date: formatCalendarDate(d.dueDate) })
                     : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
@@ -576,34 +589,12 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.background,
       padding: spacing.lg,
     },
-    emptyTitle: {
-      ...typography.subtitle,
-      color: colors.text,
-      fontWeight: "600",
-    },
-    emptyHint: {
-      ...typography.body,
-      color: colors.mutedText,
-      textAlign: "center",
-    },
     statRow: {
       flexDirection: "row",
       gap: spacing.sm,
     },
     statCard: {
       flex: 1,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      gap: 2,
-    },
-    statLabel: {
-      ...typography.micro,
-      color: colors.mutedText,
-    },
-    statValue: {
-      ...typography.value,
-      color: colors.text,
     },
     statHint: {
       ...typography.caption,

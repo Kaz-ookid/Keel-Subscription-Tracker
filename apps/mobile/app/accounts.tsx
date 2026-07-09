@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { AccountEditSheet } from "../src/components/AccountSheet";
-import { IconBadge } from "../src/components/IconBadge";
+import { BrandBadge } from "../src/components/BrandBadge";
+import { EmptyState } from "../src/components/ui/EmptyState";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -46,9 +47,17 @@ export default function AccountsScreen() {
     <View style={styles.screen}>
       {accounts.length === 0 ? (
         <View style={styles.center}>
-          <Text style={styles.emptyTitle}>{t("accounts.emptyTitle")}</Text>
-          <Text style={styles.emptyHint}>{t("accounts.emptyHint")}</Text>
-          {addRow}
+          <EmptyState
+            icon="creditcard"
+            title={t("accounts.emptyTitle")}
+            hint={t("accounts.emptyHint")}
+            cta={{
+              label: t("accounts.addAccount"),
+              onPress: () => open(),
+              icon: "plus.circle.fill",
+              variant: "quiet",
+            }}
+          />
         </View>
       ) : (
         <FlatList
@@ -63,7 +72,7 @@ export default function AccountsScreen() {
               onPress={() => open(item)}
               onLongPress={() => confirmArchive(item)}
             >
-              <IconBadge icon={item.icon} color={item.color} />
+              <BrandBadge icon={item.icon} color={item.color} />
               <View style={styles.middle}>
                 <Text style={styles.name} numberOfLines={1}>
                   {item.name}
@@ -105,20 +114,7 @@ function createStyles(colors: ThemeColors) {
     },
     center: {
       flex: 1,
-      alignItems: "center",
       justifyContent: "center",
-      gap: spacing.sm,
-      padding: spacing.lg,
-    },
-    emptyTitle: {
-      ...typography.subtitle,
-      color: colors.text,
-      fontWeight: "600",
-    },
-    emptyHint: {
-      ...typography.body,
-      color: colors.mutedText,
-      textAlign: "center",
     },
     row: {
       flexDirection: "row",
