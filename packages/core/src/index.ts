@@ -20,6 +20,13 @@ export * from "./models/payment-item-status";
 export * from "./models/payment-occurrence";
 export * from "./models/receipt-capture";
 
+// AI-assisted import (PROJECT_BRIEF §6.1): tolerant parsing of the AI-produced
+// import document into review-ready drafts, plus the canonical BYO-AI header.
+export * from "./import/extract";
+export * from "./import/parse";
+export * from "./import/prompt";
+export * from "./import/types";
+
 // Forecast / budget calculations (PROJECT_BRIEF §7) — pure projections of
 // future money movement from the schedules above.
 export * from "./calculations/forecast";
