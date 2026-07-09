@@ -20,6 +20,7 @@ export const fr: typeof en = {
     yes: "Oui",
     no: "Non",
     xOfY: "{{x}} sur {{y}}",
+    getStarted: "Commencer",
   },
   tabs: {
     payments: "Paiements",
@@ -453,6 +454,7 @@ export const fr: typeof en = {
     skip: "Passer",
     next: "Suivant",
     continue: "Continuer",
+    back: "Retour",
     methodTitle: "Comment voulez-vous ajouter les vôtres ?",
     methodPick: "Choisir dans une liste",
     methodPickSub: "Touchez les services que vous utilisez ; on pré-remplit les détails.",

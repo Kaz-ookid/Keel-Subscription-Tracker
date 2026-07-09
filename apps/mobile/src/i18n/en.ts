@@ -20,6 +20,7 @@ export const en = {
     yes: "Yes",
     no: "No",
     xOfY: "{{x}} of {{y}}",
+    getStarted: "Get started",
   },
   tabs: {
     payments: "Payments",
@@ -453,6 +454,7 @@ export const en = {
     skip: "Skip",
     next: "Next",
     continue: "Continue",
+    back: "Back",
     methodTitle: "How would you like to add yours?",
     methodPick: "Pick from a list",
     methodPickSub: "Tap the services you use; we pre-fill the details.",

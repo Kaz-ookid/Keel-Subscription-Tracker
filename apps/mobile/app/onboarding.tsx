@@ -36,7 +36,12 @@ export default function OnboardingScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, pending, addPendingSuggestions } = useAppState();
 
-  const [phase, setPhase] = useState<Phase>(mode === "browse" ? "pick" : "tour");
+  // "browse" (Settings, the pending list) jumps straight to the picker;
+  // "start" (the empty-state Get started button) skips the tour but keeps the
+  // method step; a plain open is the full first-launch run.
+  const [phase, setPhase] = useState<Phase>(
+    mode === "browse" ? "pick" : mode === "start" ? "method" : "tour",
+  );
   const [pane, setPane] = useState(0);
   const [savedCount, setSavedCount] = useState(0);
   const pagerRef = useRef<ScrollView>(null);
@@ -153,6 +158,16 @@ export default function OnboardingScreen() {
         (remaining > 0 ? (
           <>
             <View style={styles.pickHeader}>
+              {/* Back to the method step — browse mode has nowhere to go back to. */}
+              {mode !== "browse" && (
+                <Pressable
+                  onPress={() => setPhase("method")}
+                  hitSlop={12}
+                  accessibilityLabel={t("onboarding.back")}
+                >
+                  <SymbolView name="chevron.left" size={18} tintColor={colors.accent} />
+                </Pressable>
+              )}
               <Text style={styles.pickTitle}>{t("onboarding.pickTitle")}</Text>
               <Pressable onPress={finish} hitSlop={12}>
                 <Text style={styles.skip}>{t("onboarding.skip")}</Text>

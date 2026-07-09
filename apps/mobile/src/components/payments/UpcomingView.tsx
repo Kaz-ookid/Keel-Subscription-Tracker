@@ -320,6 +320,15 @@ export function UpcomingView() {
             {t("upcoming.emptyTitle", { date: formatCalendarDate(windowEnd) })}
           </Text>
           <Text style={styles.emptyHint}>{t("upcoming.emptyHint")}</Text>
+          {/* A truly empty app (e.g. onboarding skipped): offer the way in. */}
+          {items.length === 0 && (
+            <Pressable
+              style={styles.getStarted}
+              onPress={() => router.push({ pathname: "/onboarding", params: { mode: "start" } })}
+            >
+              <Text style={styles.getStartedText}>{t("common.getStarted")}</Text>
+            </Pressable>
+          )}
         </View>
       }
       renderSectionHeader={({ section }) => {
@@ -483,6 +492,17 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
       paddingVertical: spacing.xl,
+    },
+    getStarted: {
+      marginTop: spacing.sm,
+      backgroundColor: colors.navy,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm + 2,
+      paddingHorizontal: spacing.xl,
+    },
+    getStartedText: {
+      ...typography.label,
+      color: colors.white,
     },
     emptyTitle: {
       ...typography.subtitle,
