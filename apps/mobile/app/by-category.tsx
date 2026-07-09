@@ -27,14 +27,14 @@ import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
-// Distinct slice hues that read on light and dark; the tail beyond them is
-// grouped into one grey "everything else" slice so the donut stays legible.
-const PALETTE = ["#4E79A7", "#F28E2B", "#E15759", "#76B7B2", "#59A14F", "#EDC948"];
-const TAIL_COLOR = "#9AA0A6";
-
 export default function ByCategoryScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  // Slice hues come from the themed chart palette (per-scheme, DESIGN.md
+  // §3.1); the tail beyond it is grouped into one muted "everything else"
+  // slice so the donut stays legible.
+  const PALETTE = colors.chart;
+  const TAIL_COLOR = colors.mutedText;
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates } = useAppState();

@@ -240,14 +240,14 @@ function createStyles(colors: ThemeColors) {
     },
     getStarted: {
       marginTop: spacing.sm,
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.md,
       paddingVertical: spacing.sm + 2,
       paddingHorizontal: spacing.xl,
     },
     getStartedText: {
       ...typography.label,
-      color: colors.white,
+      color: colors.actionText,
     },
     headerStack: {
       gap: spacing.sm,
@@ -309,7 +309,7 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
     },
     addPill: {
-      backgroundColor: colors.accent,
+      backgroundColor: colors.action,
       borderRadius: radius.sm,
       paddingVertical: spacing.xs,
       paddingHorizontal: spacing.sm,
@@ -317,7 +317,7 @@ function createStyles(colors: ThemeColors) {
     addPillText: {
       ...typography.caption,
       fontWeight: "600",
-      color: colors.white,
+      color: colors.actionText,
     },
   });
 }

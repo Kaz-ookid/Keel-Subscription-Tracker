@@ -207,11 +207,11 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.xs,
       paddingHorizontal: spacing.sm,
       borderRadius: radius.sm,
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
     },
     payText: {
       ...typography.caption,
-      color: colors.white,
+      color: colors.actionText,
       fontWeight: "600",
     },
   });

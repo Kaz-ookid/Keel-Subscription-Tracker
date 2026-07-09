@@ -209,9 +209,9 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm,
       borderRadius: radius.sm,
     },
-    modePillActive: { backgroundColor: colors.navy },
+    modePillActive: { backgroundColor: colors.action },
     modeText: { ...typography.label, color: colors.mutedText },
-    modeTextActive: { color: colors.white },
+    modeTextActive: { color: colors.actionText },
     headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
   });

@@ -393,7 +393,10 @@ function createStyles(colors: ThemeColors) {
       paddingTop: 4,
       gap: 3,
     },
-    daySelected: { backgroundColor: colors.background },
+    // The dedicated selection token: a quiet sea-glass wash that reads as
+    // "chosen" in both schemes (the old background-fill looked like a dead
+    // cell in dark mode).
+    daySelected: { backgroundColor: colors.selection },
     dayNumber: { ...typography.caption, color: colors.text },
     dayToday: { color: colors.accent, fontWeight: "700" },
     dayBadges: {

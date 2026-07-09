@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
+import { radius, spacing, tones, typography, useTheme, type ThemeColors } from "../theme";
 
 export interface YearChartMonth {
   /** Short label under the bar, e.g. "Jun". */
@@ -73,7 +73,7 @@ export function YearChart({
             <Text style={styles.readoutAmount}>{current.formatted}</Text>
           </>
         ) : (
-          <Text style={styles.readoutHint}>Tap a month for its payments</Text>
+          <Text style={styles.readoutHint}>{t("insights.chartTapHint")}</Text>
         )}
       </View>
 
@@ -162,7 +162,7 @@ export function YearChart({
           {t("insights.chartLegend", { amount: averageFormatted })}
         </Text>
         <View style={styles.legendTodayLine} />
-        <Text style={styles.legendText}>now</Text>
+        <Text style={styles.legendText}>{t("insights.chartNow")}</Text>
       </View>
     </View>
   );
@@ -172,7 +172,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
       backgroundColor: colors.surface,
-      borderRadius: 16,
+      borderRadius: radius.lg,
       padding: spacing.md,
       gap: spacing.sm,
     },

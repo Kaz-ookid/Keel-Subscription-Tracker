@@ -355,6 +355,8 @@ export const en = {
     emptyTitle: "Nothing to analyse yet",
     emptyHint: "Add subscriptions and the year ahead appears here.",
     chartLegend: "average · {{amount}}/mo",
+    chartNow: "now",
+    chartTapHint: "Tap a month for its payments",
   },
   byCategory: {
     emptyTitle: "Nothing to split yet",

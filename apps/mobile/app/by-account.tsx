@@ -307,10 +307,10 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
       backgroundColor: colors.surface,
     },
-    chipActive: { backgroundColor: colors.navy, borderColor: colors.navy },
+    chipActive: { backgroundColor: colors.action, borderColor: colors.action },
     chipDot: { width: 8, height: 8, borderRadius: 4 },
     chipText: { ...typography.caption, fontWeight: "600", color: colors.text },
-    chipTextActive: { color: colors.white },
+    chipTextActive: { color: colors.actionText },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,

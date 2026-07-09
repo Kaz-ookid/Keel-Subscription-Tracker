@@ -431,7 +431,7 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.surface,
     },
     chipActive: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderColor: colors.navy,
     },
     chipDot: {
@@ -445,7 +445,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
     },
     chipTextActive: {
-      color: colors.white,
+      color: colors.actionText,
     },
     sectionHeaderWrap: {
       backgroundColor: colors.background,
@@ -495,14 +495,14 @@ function createStyles(colors: ThemeColors) {
     },
     getStarted: {
       marginTop: spacing.sm,
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.md,
       paddingVertical: spacing.sm + 2,
       paddingHorizontal: spacing.xl,
     },
     getStartedText: {
       ...typography.label,
-      color: colors.white,
+      color: colors.actionText,
     },
     emptyTitle: {
       ...typography.subtitle,

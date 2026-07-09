@@ -298,10 +298,10 @@ function createStyles(colors: ThemeColors) {
     },
     confirmButton: {
       alignItems: "center",
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.md,
       paddingVertical: spacing.md,
     },
-    confirmText: { ...typography.label, color: colors.white },
+    confirmText: { ...typography.label, color: colors.actionText },
   });
 }

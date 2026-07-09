@@ -247,8 +247,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     chipActive: {
-      backgroundColor: colors.navy,
-      borderColor: colors.navy,
+      backgroundColor: colors.action,
+      borderColor: colors.action,
     },
     chipText: {
       ...typography.caption,
@@ -256,7 +256,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
     },
     chipTextActive: {
-      color: colors.white,
+      color: colors.actionText,
     },
     list: {
       flex: 1,
@@ -301,7 +301,7 @@ function createStyles(colors: ThemeColors) {
       paddingTop: spacing.sm,
     },
     cta: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.md,
       paddingVertical: spacing.md,
       alignItems: "center",
@@ -311,7 +311,7 @@ function createStyles(colors: ThemeColors) {
     },
     ctaText: {
       ...typography.label,
-      color: colors.white,
+      color: colors.actionText,
     },
   });
 }

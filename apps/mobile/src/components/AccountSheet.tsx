@@ -321,8 +321,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     iconChoiceActive: {
-      backgroundColor: colors.navy,
-      borderColor: colors.navy,
+      backgroundColor: colors.action,
+      borderColor: colors.action,
     },
     chip: {
       paddingVertical: spacing.xs + 2,
@@ -332,15 +332,15 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     chipActive: {
-      backgroundColor: colors.navy,
-      borderColor: colors.navy,
+      backgroundColor: colors.action,
+      borderColor: colors.action,
     },
     chipText: {
       ...typography.label,
       color: colors.text,
     },
     chipTextActive: {
-      color: colors.white,
+      color: colors.actionText,
     },
     swatch: {
       width: 32,
@@ -350,7 +350,7 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "center",
     },
     submitBtn: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.sm,
       paddingVertical: spacing.sm,
       alignItems: "center",
@@ -360,7 +360,7 @@ function createStyles(colors: ThemeColors) {
     },
     submitText: {
       ...typography.label,
-      color: colors.white,
+      color: colors.actionText,
     },
   });
 }

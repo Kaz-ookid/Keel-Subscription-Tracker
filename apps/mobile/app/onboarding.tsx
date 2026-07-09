@@ -383,12 +383,12 @@ function createStyles(colors: ThemeColors) {
     lockTitle: { ...typography.label, color: colors.text },
     lockBody: { ...typography.caption, color: colors.mutedText, lineHeight: 17 },
     lockCta: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.sm,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
     },
-    lockCtaText: { ...typography.caption, fontWeight: "600", color: colors.white },
+    lockCtaText: { ...typography.caption, fontWeight: "600", color: colors.actionText },
     dots: {
       flexDirection: "row",
       justifyContent: "center",
@@ -402,10 +402,10 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.border,
     },
     dotActive: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
     },
     cta: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.md,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.xl,
@@ -416,7 +416,7 @@ function createStyles(colors: ThemeColors) {
     },
     ctaText: {
       ...typography.label,
-      color: colors.white,
+      color: colors.actionText,
     },
   });
 }

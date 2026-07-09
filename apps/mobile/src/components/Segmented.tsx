@@ -53,15 +53,15 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.surface,
     },
     pillActive: {
-      backgroundColor: colors.navy,
-      borderColor: colors.navy,
+      backgroundColor: colors.action,
+      borderColor: colors.action,
     },
     label: {
       ...typography.caption,
       color: colors.text,
     },
     labelActive: {
-      color: colors.white,
+      color: colors.actionText,
       fontWeight: "600",
     },
   });

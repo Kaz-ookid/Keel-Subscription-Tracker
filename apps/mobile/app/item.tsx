@@ -459,11 +459,11 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.xs,
       paddingHorizontal: spacing.sm,
       borderRadius: radius.sm,
-      backgroundColor: colors.accent,
+      backgroundColor: colors.action,
     },
     undoText: {
       ...typography.caption,
-      color: colors.navy,
+      color: colors.actionText,
       fontWeight: "700",
     },
     infoRow: {
@@ -483,12 +483,12 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.sm,
     },
     primaryBtn: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.md,
       paddingVertical: spacing.md,
       alignItems: "center",
     },
-    primaryBtnText: { ...typography.label, color: colors.white },
+    primaryBtnText: { ...typography.label, color: colors.actionText },
     disabledBtn: {
       backgroundColor: colors.surface,
       borderWidth: 1,

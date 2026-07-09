@@ -355,6 +355,8 @@ export const fr: typeof en = {
     emptyTitle: "Rien à analyser pour l'instant",
     emptyHint: "Ajoutez des abonnements et l'année à venir apparaîtra ici.",
     chartLegend: "moyenne · {{amount}}/mois",
+    chartNow: "auj.",
+    chartTapHint: "Touchez un mois pour ses paiements",
   },
   byCategory: {
     emptyTitle: "Rien à répartir pour l'instant",

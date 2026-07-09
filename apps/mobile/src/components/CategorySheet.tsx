@@ -180,18 +180,18 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.border,
     },
     iconChoiceActive: {
-      backgroundColor: colors.navy,
-      borderColor: colors.navy,
+      backgroundColor: colors.action,
+      borderColor: colors.action,
     },
     addBtn: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.action,
       borderRadius: radius.sm,
       paddingVertical: spacing.sm,
       alignItems: "center",
     },
     addBtnText: {
       ...typography.label,
-      color: colors.white,
+      color: colors.actionText,
     },
   });
 }
