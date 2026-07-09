@@ -14,7 +14,6 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { InfoPopup } from "../src/components/InfoPopup";
-import { Sheet } from "../src/components/Sheet";
 import { Button } from "../src/components/ui/Button";
 import { useAppState } from "../src/state/app-state";
 import { useImportSession } from "../src/state/import-session";
@@ -213,15 +212,16 @@ export default function ImportScreen() {
         <Text style={styles.quietLink}>{t("importAI.privacyLink")}</Text>
       </Pressable>
 
-      <Sheet
+      {/* The full instructions are informative content, so they share the
+          popup shape with every other explainer — just taller (§3.5). */}
+      <InfoPopup
         visible={popup === "instructions"}
         title={t("importAI.viewInstructionsTitle")}
         onClose={() => setPopup(null)}
+        tall
       >
-        <ScrollView contentContainerStyle={styles.sheetBody}>
-          <Text style={styles.promptText}>{prompt()}</Text>
-        </ScrollView>
-      </Sheet>
+        <Text style={styles.promptText}>{prompt()}</Text>
+      </InfoPopup>
 
       <InfoPopup
         visible={popup === "where"}
@@ -400,7 +400,6 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.xs + 2,
       paddingVertical: spacing.sm,
     },
-    sheetBody: { padding: spacing.lg },
     sheetText: { ...typography.body, color: colors.text, lineHeight: 23 },
     promptText: { ...typography.caption, color: colors.text, fontFamily: "Menlo", lineHeight: 18 },
     exampleLabel: { ...typography.caption, fontWeight: "700", color: colors.mutedText },

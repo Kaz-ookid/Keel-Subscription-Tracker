@@ -1,7 +1,8 @@
 // A light explainer popup: a rounded card that slides over a dimmed backdrop,
-// closes on tap-outside or the ✕. For short helper content (tips, privacy
-// notes) where the full-height page Sheet feels heavy. Content scrolls when
-// taller than ~65% of the screen; padding is generous on purpose.
+// closes on tap-outside or the ✕. ALL informative content uses this shape
+// (window taxonomy, DESIGN.md §3.5) — short tips at the default height, long
+// reads (the full AI instructions) as the `tall` variant. It never contains
+// navigation; padding is generous on purpose.
 
 import { SymbolView } from "expo-symbols";
 import { useMemo, type ReactNode } from "react";
@@ -14,10 +15,13 @@ interface Props {
   visible: boolean;
   title: string;
   onClose: () => void;
+  /** Near-full-height card for long content; the backdrop stays visible so it
+   *  still reads as a popup, not a screen. */
+  tall?: boolean;
   children: ReactNode;
 }
 
-export function InfoPopup({ visible, title, onClose, children }: Props) {
+export function InfoPopup({ visible, title, onClose, tall, children }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -28,7 +32,13 @@ export function InfoPopup({ visible, title, onClose, children }: Props) {
             View so its ScrollView owns the pan gesture (a wrapping Pressable
             used to eat the scroll). */}
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
-        <View style={[styles.card, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
+        <View
+          style={[
+            styles.card,
+            tall && styles.cardTall,
+            { paddingBottom: Math.max(insets.bottom, spacing.lg) },
+          ]}
+        >
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
             <Pressable onPress={onClose} hitSlop={10}>
@@ -62,6 +72,9 @@ function createStyles(colors: ThemeColors) {
       paddingTop: spacing.lg,
       paddingHorizontal: spacing.lg,
       maxHeight: "72%",
+    },
+    cardTall: {
+      maxHeight: "88%",
     },
     header: {
       flexDirection: "row",

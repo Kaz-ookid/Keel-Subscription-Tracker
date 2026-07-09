@@ -1,4 +1,5 @@
 import { currencyLabel, type Account } from "@keel/core";
+import { Stack } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,15 +37,22 @@ export default function AccountsScreen() {
       },
     ]);
 
-  const addRow = (
-    <Pressable style={styles.addRow} onPress={() => open()}>
-      <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
-      <Text style={styles.addText}>{t("accounts.addAccount")}</Text>
-    </Pressable>
-  );
-
   return (
     <View style={styles.screen}>
+      {/* The screen's single primary action lives in the header (§3.5). */}
+      <Stack.Screen
+        options={{
+          headerRight: () => (
+            <Pressable
+              onPress={() => open()}
+              hitSlop={12}
+              accessibilityLabel={t("accounts.addAccount")}
+            >
+              <SymbolView name="plus" size={20} tintColor={colors.white} />
+            </Pressable>
+          ),
+        }}
+      />
       {accounts.length === 0 ? (
         <View style={styles.center}>
           <EmptyState
@@ -65,7 +73,6 @@ export default function AccountsScreen() {
           data={accounts}
           keyExtractor={(a) => a.id}
           contentContainerStyle={styles.listContent}
-          ListFooterComponent={addRow}
           renderItem={({ item }) => (
             <Pressable
               style={styles.row}
@@ -139,17 +146,6 @@ function createStyles(colors: ThemeColors) {
     currency: {
       ...typography.label,
       color: colors.mutedText,
-    },
-    addRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.sm,
-      paddingVertical: spacing.md,
-    },
-    addText: {
-      ...typography.label,
-      color: colors.accent,
     },
   });
 }
