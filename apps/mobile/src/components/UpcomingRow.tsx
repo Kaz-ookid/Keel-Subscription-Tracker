@@ -61,7 +61,10 @@ export function UpcomingRow({
   if (skipped) parts.push(t("row.skipped"));
 
   return (
-    <Pressable onPress={onPress} style={styles.row}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+    >
       {/* Dim the content, not the whole row — Undo must keep full strength. */}
       <View style={settled && styles.dimmed}>
         <BrandBadge
@@ -126,6 +129,7 @@ function createStyles(colors: ThemeColors) {
     dimmed: {
       opacity: emphasis.dim,
     },
+    rowPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
     amountRow: {
       flexDirection: "row",
       alignItems: "center",

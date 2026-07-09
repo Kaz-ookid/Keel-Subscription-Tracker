@@ -197,14 +197,15 @@ export function CalendarMonthView() {
     const dir = delta > 0 ? 1 : -1; // next → slide out left; prev → out right
     // A reanimated shared value is driven by assigning `.value` — that's the
     // library's API, not a state mutation the lint rule should police.
+    // 125 + 125 = the 250ms transition standard (DESIGN.md §3.6).
     // eslint-disable-next-line react-hooks/immutability
     slideX.value = withSequence(
-      withTiming(-dir * SCREEN_W, { duration: 150 }),
+      withTiming(-dir * SCREEN_W, { duration: 125 }),
       // Off-screen: swap the month, then jump to the entry side to slide in.
       withTiming(dir * SCREEN_W, { duration: 0 }, (finished) => {
         if (finished) runOnJS(shiftMonth)(delta);
       }),
-      withTiming(0, { duration: 150 }),
+      withTiming(0, { duration: 125 }),
     );
   };
 

@@ -37,11 +37,13 @@ export function Button({
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  const container = [
+  // Press feedback (DESIGN.md §3.6): a slight settle, one look everywhere.
+  const container = ({ pressed }: { pressed: boolean }) => [
     styles.base,
     size === "lg" ? styles.lg : styles.sm,
     styles[variant],
     disabled && styles.disabled,
+    pressed && styles.pressed,
     style,
   ];
   const textColor =
@@ -102,6 +104,7 @@ function createStyles(colors: ThemeColors) {
     quiet: {},
     destructive: {},
     disabled: { opacity: 0.4 },
+    pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
     textLg: { ...typography.label },
     textSm: { ...typography.caption, fontWeight: "600" },
   });

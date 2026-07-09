@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { hapticMarkPaid } from "../../lib/haptics";
 import { useAppState } from "../../state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
@@ -203,9 +204,11 @@ export function SubscriptionsView() {
         <SubscriptionRow
           item={item}
           onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-          onMarkPaid={() =>
-            isInstallmentSchedule(item.schedule) ? markInstallmentPaid(item.id) : markPaid(item.id)
-          }
+          onMarkPaid={() => {
+            hapticMarkPaid();
+            if (isInstallmentSchedule(item.schedule)) markInstallmentPaid(item.id);
+            else markPaid(item.id);
+          }}
           onDelete={() => removeSubscription(item.id)}
         />
       )}

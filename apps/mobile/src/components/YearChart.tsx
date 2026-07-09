@@ -107,11 +107,14 @@ export function YearChart({
               ) : null,
             )}
 
-            {/* The "now" landmark: future lies to the right of this line. */}
+            {/* The "now" landmark: future lies to the right of this line.
+                The dot riding its top is the buoy (DESIGN.md §3.7 C). */}
             <View
               style={[styles.todayLine, { left: (todayIndex + 1) * SLOT - COL_GAP / 2 - 1 }]}
               pointerEvents="none"
-            />
+            >
+              <View style={styles.buoy} />
+            </View>
 
             <View style={styles.bars}>
               {months.map((m, i) => {
@@ -229,7 +232,16 @@ function createStyles(colors: ThemeColors) {
       width: 2,
       borderRadius: 1,
       backgroundColor: colors.mutedText,
-      opacity: 0.45,
+      opacity: emphasis.dim,
+    },
+    buoy: {
+      position: "absolute",
+      top: -1,
+      left: -2,
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.accent,
     },
     // Quieter than the "now" landmark: a hairline with the year written
     // vertically along it, marking each January like a roadside milestone.

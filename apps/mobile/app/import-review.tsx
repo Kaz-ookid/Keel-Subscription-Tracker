@@ -22,6 +22,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { COLOR_SWATCHES } from "../src/constants";
 import { BrandBadge } from "../src/components/BrandBadge";
+import { hapticImportConfirm } from "../src/lib/haptics";
 import { HeroCard } from "../src/components/HeroCard";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { Button } from "../src/components/ui/Button";
@@ -80,6 +81,7 @@ export default function ImportReviewScreen() {
     .join(" ");
 
   const confirmAll = () => {
+    hapticImportConfirm();
     // Unmatched account names become real accounts — one per distinct name,
     // in the currency of the first draft that mentions it.
     const createdByName = new Map<string, Account>();

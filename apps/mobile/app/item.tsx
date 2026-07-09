@@ -26,6 +26,7 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { Button } from "../src/components/ui/Button";
 import { Card } from "../src/components/ui/Card";
 import { localizedRecurrence } from "../src/i18n/recurrence";
+import { hapticMarkPaid } from "../src/lib/haptics";
 import { useAppState } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -379,7 +380,11 @@ export default function ItemScreen() {
       {markable && (
         <Button
           label={t("common.markPaid")}
-          onPress={() => (installment ? markInstallmentPaid(item.id) : markPaid(item.id))}
+          onPress={() => {
+            hapticMarkPaid();
+            if (installment) markInstallmentPaid(item.id);
+            else markPaid(item.id);
+          }}
         />
       )}
       {/* Flexible commitments ("monthly investing") can sit a cycle out —

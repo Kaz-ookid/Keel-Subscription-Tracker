@@ -123,7 +123,11 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     <Pressable
       onPress={onPress}
       onLongPress={confirmDelete}
-      style={[styles.row, (complete || item.status === "paused") && styles.rowComplete]}
+      style={({ pressed }) => [
+        styles.row,
+        (complete || item.status === "paused") && styles.rowComplete,
+        pressed && styles.rowPressed,
+      ]}
     >
       <BrandBadge
         domain={item.domain}
@@ -170,6 +174,7 @@ function createStyles(colors: ThemeColors) {
     rowComplete: {
       opacity: emphasis.dim,
     },
+    rowPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
     middle: {
       flex: 1,
       gap: 2,

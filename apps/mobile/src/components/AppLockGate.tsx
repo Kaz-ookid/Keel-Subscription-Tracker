@@ -7,6 +7,7 @@
 //   3. The lock screen itself: Face ID fires by itself; the Unlock button is
 //      only the retry. The device passcode always works as fallback.
 
+import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,8 +25,10 @@ import {
 import { radius, spacing, typography } from "../theme";
 
 // The cover is deliberately brand-navy in both themes (the theme's `navy`) —
-// it reads as a splash, not as a broken screen.
+// it reads as a splash, not as a broken screen. The gradient partner is the
+// theme's `navyDeep` (§3.6: hero, lock and onboarding share it).
 const NAVY = "#0B1E3F";
+const NAVY_DEEP = "#071429";
 
 export function AppLockGate() {
   const { t } = useTranslation();
@@ -116,6 +119,7 @@ export function AppLockGate() {
   return (
     <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
       <View style={styles.cover}>
+        <LinearGradient colors={[NAVY, NAVY_DEEP]} style={StyleSheet.absoluteFill} />
         <View style={styles.badge}>
           <SymbolView name={locked ? "lock.fill" : "shield.fill"} size={30} tintColor={NAVY} />
         </View>

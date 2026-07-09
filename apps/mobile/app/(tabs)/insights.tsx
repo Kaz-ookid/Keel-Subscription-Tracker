@@ -288,6 +288,7 @@ export default function InsightsScreen() {
         label={t("insights.yearInTotal", { year })}
         amount={yearReal.length > 0 ? totals(yearReal) : t("insights.nothingPlanned")}
         sub={heroSub}
+        draft={averageTheory > 0 ? amountIn(thisMonthReal) / averageTheory : undefined}
       />
 
       {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
