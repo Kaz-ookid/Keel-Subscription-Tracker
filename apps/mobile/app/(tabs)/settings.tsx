@@ -2,7 +2,14 @@
 // management, which is set up once and then mostly left alone (that's why it
 // lives here rather than occupying a whole tab).
 
-import { CURRENCIES, currencyLabel, today, type CurrencyCode } from "@keel/core";
+import {
+  calendarDate,
+  CURRENCIES,
+  currencyLabel,
+  formatCalendarDate,
+  today,
+  type CurrencyCode,
+} from "@keel/core";
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
 import { Picker as RNPicker } from "@react-native-picker/picker";
@@ -11,7 +18,16 @@ import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, AppState, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  AppState,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
@@ -68,6 +84,9 @@ export default function SettingsScreen() {
     loadDemoData,
     exportData,
     importData,
+    snapshotSavedAt,
+    saveSnapshot,
+    restoreSnapshot,
   } = useAppState();
   const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
@@ -99,6 +118,37 @@ export default function SettingsScreen() {
     });
     return () => subscription.remove();
   }, []);
+
+  // The safety net around the destructive debug actions below: stash the real
+  // data in an on-device slot, play with demo/empty data, then put it back.
+  const snapshotLabel = snapshotSavedAt
+    ? formatCalendarDate(calendarDate(snapshotSavedAt.slice(0, 10)))
+    : "";
+
+  const confirmSnapshotSave = () => {
+    if (!snapshotSavedAt) {
+      saveSnapshot();
+      return;
+    }
+    Alert.alert(
+      t("settings.snapshotSave"),
+      t("settings.snapshotOverwriteMsg", { date: snapshotLabel }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("settings.replace"), style: "destructive", onPress: saveSnapshot },
+      ],
+    );
+  };
+
+  const confirmSnapshotRestore = () =>
+    Alert.alert(
+      t("settings.snapshotRestore"),
+      t("settings.snapshotRestoreMsg", { date: snapshotLabel }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        { text: t("settings.replace"), style: "destructive", onPress: restoreSnapshot },
+      ],
+    );
 
   const confirmClear = () =>
     Alert.alert(t("settings.clearAll"), t("settings.clearMsg"), [
@@ -169,7 +219,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View style={styles.screen}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.card}>
         <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
           <SymbolView name="building.columns.fill" size={20} tintColor={colors.accent} />
@@ -240,9 +290,21 @@ export default function SettingsScreen() {
         </Pressable>
       </View>
 
-      {/* Debug, for dogfooding: seed a realistic household or start clean. */}
+      {/* Debug, for dogfooding: seed a realistic household or start clean —
+          bracketed by the snapshot slot so real data survives the play. */}
       <View style={styles.card}>
-        <Pressable style={styles.row} onPress={confirmSample}>
+        <Pressable style={styles.row} onPress={confirmSnapshotSave}>
+          <SymbolView name="tray.and.arrow.down.fill" size={20} tintColor={colors.accent} />
+          <Text style={styles.rowText}>{t("settings.snapshotSave")}</Text>
+          <Text style={styles.rowValue}>{snapshotLabel}</Text>
+        </Pressable>
+        {snapshotSavedAt !== null && (
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSnapshotRestore}>
+            <SymbolView name="tray.and.arrow.up.fill" size={20} tintColor={colors.accent} />
+            <Text style={styles.rowText}>{t("settings.snapshotRestore")}</Text>
+          </Pressable>
+        )}
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSample}>
           <SymbolView name="wand.and.stars" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
         </Pressable>
@@ -322,7 +384,7 @@ export default function SettingsScreen() {
           ))}
         </Picker>
       </WheelSheet>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -331,6 +393,11 @@ function createStyles(colors: ThemeColors) {
     screen: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    // flexGrow keeps the footer's "auto" top margin working when the content
+    // is shorter than the screen; the list scrolls once it grows past it.
+    content: {
+      flexGrow: 1,
       padding: spacing.md,
       gap: spacing.md,
     },

@@ -332,6 +332,11 @@ export const en = {
     browseCommon: "Browse common subscriptions",
     exportBackup: "Export backup",
     restoreBackup: "Restore backup",
+    snapshotSave: "Save data snapshot",
+    snapshotRestore: "Restore data snapshot",
+    snapshotOverwriteMsg:
+      "Replaces the snapshot saved on {{date}} with the data currently in the app.",
+    snapshotRestoreMsg: "Replaces everything with the data stashed on {{date}}.",
     loadSample: "Load sample data",
     loadDemo: "Load demo accounts",
     testOnboarding: "Test onboarding (wipes data)",

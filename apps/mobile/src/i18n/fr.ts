@@ -332,6 +332,11 @@ export const fr: typeof en = {
     browseCommon: "Parcourir les abonnements courants",
     exportBackup: "Exporter une sauvegarde",
     restoreBackup: "Restaurer une sauvegarde",
+    snapshotSave: "Enregistrer un instantané",
+    snapshotRestore: "Restaurer l'instantané",
+    snapshotOverwriteMsg:
+      "Remplace l'instantané enregistré le {{date}} par les données actuelles de l'app.",
+    snapshotRestoreMsg: "Remplace tout par les données mises de côté le {{date}}.",
     loadSample: "Charger des données d'exemple",
     loadDemo: "Charger les comptes démo",
     testOnboarding: "Tester l'accueil (efface tout)",

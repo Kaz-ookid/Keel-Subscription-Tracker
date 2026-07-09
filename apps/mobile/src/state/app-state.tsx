@@ -48,7 +48,14 @@ import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { syncReminders } from "../lib/notifications";
 import { buildDemoData } from "../lib/demo-data";
 import { buildSampleData } from "../lib/sample-data";
-import { loadState, parsePersistedState, saveState, type PersistedState } from "../lib/storage";
+import {
+  loadSnapshot,
+  loadState,
+  parsePersistedState,
+  saveSnapshot as persistSnapshot,
+  saveState,
+  type PersistedState,
+} from "../lib/storage";
 
 // Built-in seed categories presented as full Category records.
 const BUILTIN_CATEGORIES: Category[] = DEFAULT_CATEGORIES.map((c) => ({
@@ -117,6 +124,13 @@ interface AppStateValue {
   exportData: () => PersistedState;
   /** Restore a backup (replaces everything); false when the JSON is invalid. */
   importData: (json: string) => boolean;
+  /** Debug: when the on-device snapshot was stashed (null when there is none). */
+  snapshotSavedAt: string | null;
+  /** Debug: stash the current data in the snapshot slot (overwrites it), so
+   *  demo data / clear all can be played with and undone. */
+  saveSnapshot: () => void;
+  /** Debug: replace everything with the stashed snapshot. */
+  restoreSnapshot: () => void;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -142,6 +156,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
   const [rates, setRates] = useState<ExchangeRates | null>(null);
   const [pending, setPending] = useState<SuggestedCommitment[]>([]);
+  const [snapshotSavedAt, setSnapshotSavedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -163,6 +178,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setDisplayCurrency(state.displayCurrency);
       setPending(state.pending);
       setLoading(false);
+    });
+    // Surface the stashed snapshot's date (if any) on the restore button.
+    void loadSnapshot().then((snapshot) => {
+      if (snapshot) setSnapshotSavedAt(snapshot.savedAt);
     });
     // Rates: last cached ones first (works offline), then today's, quietly.
     void loadCachedRates().then((cached) => {
@@ -403,6 +422,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       return true;
     };
 
+    const saveSnapshot = () => {
+      void persistSnapshot(exportData()).then(setSnapshotSavedAt);
+    };
+
+    const restoreSnapshot = () => {
+      void loadSnapshot().then((snapshot) => {
+        if (!snapshot) return;
+        setItems(snapshot.state.items);
+        setOccurrences(snapshot.state.occurrences);
+        setCustomCategories(snapshot.state.categories);
+        setAccounts(snapshot.state.accounts);
+        setDisplayCurrency(snapshot.state.displayCurrency);
+        setPending(snapshot.state.pending);
+      });
+    };
+
     return {
       items,
       occurrences,
@@ -436,8 +471,21 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       removePendingSuggestion,
       exportData,
       importData,
+      snapshotSavedAt,
+      saveSnapshot,
+      restoreSnapshot,
     };
-  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, rates, loading]);
+  }, [
+    items,
+    occurrences,
+    customCategories,
+    accounts,
+    displayCurrency,
+    pending,
+    snapshotSavedAt,
+    rates,
+    loading,
+  ]);
 
   return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
 }

@@ -17,6 +17,7 @@ import {
 } from "@keel/core";
 
 const STORAGE_KEY = "keel.subscriptions.v1";
+const SNAPSHOT_KEY = "keel.snapshot.v1";
 
 export interface PersistedState {
   items: PaymentItem[];
@@ -42,28 +43,34 @@ const EMPTY: PersistedState = {
   pending: [],
 };
 
+/** Lenient coercion of an already-parsed value into our shape.
+ *  Null when it doesn't even resemble a PersistedState. */
+function coercePersistedState(parsed: unknown): PersistedState | null {
+  // Back-compat: an earlier build stored a bare PaymentItem[] array.
+  if (Array.isArray(parsed)) {
+    return { ...EMPTY, items: parsed as PaymentItem[] };
+  }
+  if (typeof parsed !== "object" || parsed === null) return null;
+  const blob = parsed as Record<string, unknown>;
+  if (!Array.isArray(blob.items)) return null;
+  return {
+    items: blob.items,
+    occurrences: Array.isArray(blob.occurrences) ? blob.occurrences : [],
+    categories: Array.isArray(blob.categories) ? blob.categories : [],
+    accounts: Array.isArray(blob.accounts) ? blob.accounts : [],
+    displayCurrency:
+      typeof blob.displayCurrency === "string" && blob.displayCurrency in CURRENCIES
+        ? (blob.displayCurrency as CurrencyCode)
+        : DEFAULT_CURRENCY,
+    pending: Array.isArray(blob.pending) ? blob.pending : [],
+  };
+}
+
 /** Lenient parse of a persisted blob (storage or an imported backup file).
  *  Null when the JSON doesn't even resemble our shape. */
 export function parsePersistedState(raw: string): PersistedState | null {
   try {
-    const parsed = JSON.parse(raw);
-    // Back-compat: an earlier build stored a bare PaymentItem[] array.
-    if (Array.isArray(parsed)) {
-      return { ...EMPTY, items: parsed as PaymentItem[] };
-    }
-    if (typeof parsed !== "object" || parsed === null) return null;
-    if (!Array.isArray(parsed.items)) return null;
-    return {
-      items: parsed.items,
-      occurrences: Array.isArray(parsed.occurrences) ? parsed.occurrences : [],
-      categories: Array.isArray(parsed.categories) ? parsed.categories : [],
-      accounts: Array.isArray(parsed.accounts) ? parsed.accounts : [],
-      displayCurrency:
-        typeof parsed.displayCurrency === "string" && parsed.displayCurrency in CURRENCIES
-          ? (parsed.displayCurrency as CurrencyCode)
-          : DEFAULT_CURRENCY,
-      pending: Array.isArray(parsed.pending) ? parsed.pending : [],
-    };
+    return coercePersistedState(JSON.parse(raw));
   } catch {
     return null;
   }
@@ -78,4 +85,32 @@ export async function loadState(): Promise<PersistedState> {
 
 export async function saveState(state: PersistedState): Promise<void> {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+/** A stashed copy of the user's data, so debug actions (demo data, clear all)
+ *  can be undone. One slot: saving again overwrites the previous snapshot. */
+export interface Snapshot {
+  /** ISO timestamp of when the snapshot was taken. */
+  savedAt: string;
+  state: PersistedState;
+}
+
+export async function saveSnapshot(state: PersistedState): Promise<string> {
+  const savedAt = new Date().toISOString();
+  await AsyncStorage.setItem(SNAPSHOT_KEY, JSON.stringify({ savedAt, state }));
+  return savedAt;
+}
+
+export async function loadSnapshot(): Promise<Snapshot | null> {
+  const raw = await AsyncStorage.getItem(SNAPSHOT_KEY);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const state = coercePersistedState(parsed.state);
+    if (!state || typeof parsed.savedAt !== "string") return null;
+    return { savedAt: parsed.savedAt, state };
+  } catch {
+    return null;
+  }
 }
