@@ -28,6 +28,7 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 
 import { localizedAnchor } from "../../i18n/recurrence";
 import { matchSuggestions } from "../../lib/suggestions";
@@ -398,8 +399,42 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         notes: notes.trim() || undefined,
         introOffer,
       };
-      if (editItem) updateSubscription(editItem.id, input);
-      else if (draft) updateDraft(draft.id, { kind: "subscription", input });
+      if (editItem) {
+        // An amount edit means one of two very different things: the provider
+        // really changed the price (worth recording — the Price-changes
+        // insight reads it), or the old number was a typo (recording it would
+        // invent a raise that never happened). Only the user knows which.
+        const currentAmount =
+          editItem.schedule.kind === "RECURRING" ? editItem.schedule.amount : undefined;
+        const amountEdited =
+          currentAmount &&
+          (currentAmount.amount !== input.amount.amount ||
+            currentAmount.currency !== input.amount.currency) &&
+          !introOffer;
+        if (amountEdited) {
+          Alert.alert(t("add.priceEditTitle"), t("add.priceEditBody"), [
+            { text: t("common.cancel"), style: "cancel" },
+            {
+              text: t("add.priceEditFix"),
+              onPress: () => {
+                updateSubscription(editItem.id, input, "correction");
+                if (suggestionId) removePendingSuggestion(suggestionId);
+                router.back();
+              },
+            },
+            {
+              text: t("add.priceEditChange"),
+              onPress: () => {
+                updateSubscription(editItem.id, input, "change");
+                if (suggestionId) removePendingSuggestion(suggestionId);
+                router.back();
+              },
+            },
+          ]);
+          return;
+        }
+        updateSubscription(editItem.id, input);
+      } else if (draft) updateDraft(draft.id, { kind: "subscription", input });
       else addSubscription(input);
     }
     // The suggestion is now a real commitment — its To-complete row retires

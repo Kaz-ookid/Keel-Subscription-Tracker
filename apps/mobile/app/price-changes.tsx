@@ -11,10 +11,12 @@ import {
   summarizePriceChanges,
   sumByCurrency,
   today,
+  type CalendarDate,
 } from "@keel/core";
+import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
@@ -27,9 +29,26 @@ export default function PriceChangesScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, categories, displayCurrency, rates } = useAppState();
+  const { items, categories, displayCurrency, rates, revertPriceChange } = useAppState();
 
   const changes = summarizePriceChanges(items, today());
+
+  // A recorded change can be a mistake (a typo fixed as an edit): every
+  // change row can be erased, reverting the price when it was the latest.
+  const confirmRemove = (paymentItemId: string, name: string, effectiveFrom: CalendarDate) => {
+    Alert.alert(
+      t("priceChanges.removeTitle", { name }),
+      t("priceChanges.removeBody", { date: formatCalendarDate(effectiveFrom) }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: () => revertPriceChange(paymentItemId, effectiveFrom),
+        },
+      ],
+    );
+  };
   const creep = sumByCurrency(
     changes.map((c) =>
       money(c.monthlyCurrent.amount - c.monthlyOriginal.amount, c.monthlyCurrent.currency),
@@ -105,7 +124,19 @@ export default function PriceChangesScreen() {
                   {i === 0 ? t("priceChanges.signedUp") : t("priceChanges.changedAt")} ·{" "}
                   {formatCalendarDate(entry.effectiveFrom)}
                 </Text>
-                <Text style={styles.historyAmount}>{formatMoney(entry.amount)}</Text>
+                <View style={styles.historyRight}>
+                  <Text style={styles.historyAmount}>{formatMoney(entry.amount)}</Text>
+                  {/* The signup price is not a change; only changes can go. */}
+                  {i > 0 && (
+                    <Pressable
+                      hitSlop={8}
+                      onPress={() => confirmRemove(c.paymentItemId, c.name, entry.effectiveFrom)}
+                      accessibilityLabel={t("priceChanges.removeA11y")}
+                    >
+                      <SymbolView name="xmark.circle.fill" size={15} tintColor={colors.mutedText} />
+                    </Pressable>
+                  )}
+                </View>
               </View>
             ))}
           </Card>
@@ -155,6 +186,7 @@ function createStyles(colors: ThemeColors) {
       paddingTop: spacing.xs,
     },
     historyDate: { ...typography.caption, color: colors.mutedText },
+    historyRight: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     historyAmount: { ...typography.caption, color: colors.text },
   });
 }

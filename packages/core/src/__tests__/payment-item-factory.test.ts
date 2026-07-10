@@ -17,6 +17,7 @@ import {
   pausePaymentItem,
   recordRecurringPayment,
   RECURRENCE_PRESETS,
+  removePriceChange,
   resumePaymentItem,
   rewindRecurringPayment,
   sumMoney,
@@ -236,6 +237,63 @@ describe("update helpers", () => {
     if (!isRecurringSchedule(repriced.schedule)) throw new Error("expected recurring");
     expect(repriced.schedule.priceHistory).toHaveLength(2);
     expect(repriced.schedule.priceHistory[1].amount).toEqual({ amount: 1999, currency: "EUR" });
+  });
+
+  it("a correction rewrites the latest price in place instead of appending", () => {
+    // Signed up with a typo (15.99 should have been 12.99): the fix must not
+    // read as a price change.
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    const fixed = updateRecurringPaymentItem(
+      existing,
+      { ...input, amount: fromMajor(12.99, "EUR") },
+      { now: now(), priceEdit: "correction" },
+    );
+    if (!isRecurringSchedule(fixed.schedule)) throw new Error("expected recurring");
+    expect(fixed.schedule.priceHistory).toEqual([
+      { amount: { amount: 1299, currency: "EUR" }, effectiveFrom: "2026-01-15" },
+    ]);
+    expect(fixed.schedule.amount).toEqual({ amount: 1299, currency: "EUR" });
+  });
+
+  it("a correction that restores the previous price collapses the bogus change", () => {
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    // A mistaken "change" to 19.99 got recorded…
+    const mistaken = updateRecurringPaymentItem(
+      existing,
+      { ...input, amount: fromMajor(19.99, "EUR") },
+      { now: now() },
+    );
+    // …then corrected back to the real price: history collapses to one entry.
+    const healed = updateRecurringPaymentItem(
+      mistaken,
+      { ...input, amount: fromMajor(15.99, "EUR") },
+      { now: now(), priceEdit: "correction" },
+    );
+    if (!isRecurringSchedule(healed.schedule)) throw new Error("expected recurring");
+    expect(healed.schedule.priceHistory).toEqual([
+      { amount: { amount: 1599, currency: "EUR" }, effectiveFrom: "2026-01-15" },
+    ]);
+  });
+
+  it("removePriceChange erases a recorded change and reverts the price", () => {
+    const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
+    const repriced = updateRecurringPaymentItem(
+      existing,
+      { ...input, amount: fromMajor(19.99, "EUR") },
+      { now: now() },
+    );
+    if (!isRecurringSchedule(repriced.schedule)) throw new Error("expected recurring");
+    const effectiveFrom = repriced.schedule.priceHistory[1].effectiveFrom;
+
+    const reverted = removePriceChange(repriced, { effectiveFrom, now: now() });
+    if (!isRecurringSchedule(reverted.schedule)) throw new Error("expected recurring");
+    expect(reverted.schedule.priceHistory).toHaveLength(1);
+    expect(reverted.schedule.amount).toEqual({ amount: 1599, currency: "EUR" });
+
+    // The signup entry is not a change: asking to remove it is a no-op.
+    expect(
+      removePriceChange(reverted, { effectiveFrom: calendarDate("2026-01-15"), now: now() }),
+    ).toBe(reverted);
   });
 
   it("edits an installment plan, regenerating installments, keeping id + createdAt", () => {

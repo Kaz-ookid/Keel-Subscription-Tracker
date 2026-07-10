@@ -23,6 +23,7 @@ import {
   now,
   pausePaymentItem,
   recordRecurringPayment,
+  removePriceChange,
   resumePaymentItem,
   rewindRecurringPayment,
   skipRecurringPayment,
@@ -81,10 +82,18 @@ interface AppStateValue {
   addSubscription: (input: NewRecurringInput, options?: AddItemOptions) => void;
   /** Create a BNPL "Pay in X" installment plan. */
   addInstallmentPlan: (input: NewInstallmentInput, options?: AddItemOptions) => void;
-  /** Edit an existing recurring subscription. */
-  updateSubscription: (id: string, input: NewRecurringInput) => void;
+  /** Edit an existing recurring subscription. An amount edit is a real
+   *  price "change" (recorded) or a typo "correction" (rewritten in place). */
+  updateSubscription: (
+    id: string,
+    input: NewRecurringInput,
+    priceEdit?: "change" | "correction",
+  ) => void;
   /** Edit an existing installment plan. */
   updateInstallmentPlan: (id: string, input: NewInstallmentInput) => void;
+  /** Erase a wrongly recorded price change; the standing price reverts when
+   *  the erased entry was the latest. */
+  revertPriceChange: (id: string, effectiveFrom: CalendarDate) => void;
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
@@ -253,7 +262,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setItems((prev) => [item, ...prev]);
     };
 
-    const updateSubscription = (id: string, input: NewRecurringInput) => {
+    const updateSubscription = (
+      id: string,
+      input: NewRecurringInput,
+      priceEdit?: "change" | "correction",
+    ) => {
       // The latest recorded charge anchors the recomputed next-charge cursor so it
       // never regresses behind a charge that already happened.
       const lastChargedDate = occurrences.reduce<CalendarDate | undefined>(
@@ -262,8 +275,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       );
       setItems((prev) =>
         prev.map((i) =>
-          i.id === id ? updateRecurringPaymentItem(i, input, { now: now(), lastChargedDate }) : i,
+          i.id === id
+            ? updateRecurringPaymentItem(i, input, { now: now(), lastChargedDate, priceEdit })
+            : i,
         ),
+      );
+    };
+
+    const revertPriceChange = (id: string, effectiveFrom: CalendarDate) => {
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? removePriceChange(i, { effectiveFrom, now: now() }) : i)),
       );
     };
 
@@ -471,6 +492,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       addInstallmentPlan,
       updateSubscription,
       updateInstallmentPlan,
+      revertPriceChange,
       removeSubscription,
       markPaid,
       skipPayment,

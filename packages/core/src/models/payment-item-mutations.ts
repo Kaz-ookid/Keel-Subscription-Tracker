@@ -16,7 +16,12 @@ import {
   type NewInstallmentInput,
   type NewRecurringInput,
 } from "./payment-item-factory";
-import { effectiveRecurringAmount, type PaymentItem, type RecurringSchedule } from "./payment-item";
+import {
+  effectiveRecurringAmount,
+  type PaymentItem,
+  type PriceHistoryEntry,
+  type RecurringSchedule,
+} from "./payment-item";
 import type { PaymentOccurrence } from "./payment-occurrence";
 
 /**
@@ -51,6 +56,24 @@ export interface UpdateContext {
    * a charge that already happened. Omit when nothing has been charged yet.
    */
   lastChargedDate?: CalendarDate;
+  /**
+   * What an amount edit MEANS. "change" (default): the provider raised or
+   * lowered the price — append to `priceHistory` so the Price-changes insight
+   * sees it. "correction": the old number was the user's typo, not a real
+   * change — rewrite the latest entry in place, never recording a change.
+   */
+  priceEdit?: "change" | "correction";
+}
+
+/** Collapse neighbors that no longer differ (a rewrite/removal can leave two
+ *  equal prices side by side — that is no change at all). */
+function dedupeConsecutiveAmounts(history: PriceHistoryEntry[]): PriceHistoryEntry[] {
+  return history.filter(
+    (e, i) =>
+      i === 0 ||
+      e.amount.amount !== history[i - 1].amount.amount ||
+      e.amount.currency !== history[i - 1].amount.currency,
+  );
 }
 
 /**
@@ -82,24 +105,55 @@ export function updateRecurringPaymentItem(
     ? nextDueDate(input.firstChargeDate, input.recurrence, ctx.lastChargedDate)
     : input.firstChargeDate;
 
-  // Keep the price history; append only when the amount changed.
-  const lastPrice = previous.priceHistory[previous.priceHistory.length - 1]?.amount;
+  // Keep the price history; act only when the amount actually changed. A
+  // "change" appends (the Price-changes insight reads it); a "correction"
+  // rewrites the latest entry in place — a typo was never a price change.
+  const lastEntry = previous.priceHistory[previous.priceHistory.length - 1];
   const amountChanged =
-    !lastPrice ||
-    lastPrice.amount !== input.amount.amount ||
-    lastPrice.currency !== input.amount.currency;
-  const priceHistory = amountChanged
-    ? [
-        ...previous.priceHistory,
-        { amount: input.amount, effectiveFrom: calendarDate(ctx.now.slice(0, 10)) },
-      ]
-    : previous.priceHistory;
+    !lastEntry ||
+    lastEntry.amount.amount !== input.amount.amount ||
+    lastEntry.amount.currency !== input.amount.currency;
+  let priceHistory = previous.priceHistory;
+  if (amountChanged) {
+    priceHistory =
+      ctx.priceEdit === "correction" && lastEntry
+        ? dedupeConsecutiveAmounts([
+            ...previous.priceHistory.slice(0, -1),
+            { ...lastEntry, amount: input.amount },
+          ])
+        : [
+            ...previous.priceHistory,
+            { amount: input.amount, effectiveFrom: calendarDate(ctx.now.slice(0, 10)) },
+          ];
+  }
 
   return {
     ...rebuilt,
     createdAt: existing.createdAt,
     schedule: { ...rebuilt.schedule, nextChargeDate, priceHistory },
   };
+}
+
+/**
+ * Erase one recorded price change — the repair for "I saved a wrong amount
+ * and the fix got recorded as a raise". Removes the `priceHistory` entry at
+ * `effectiveFrom` (never the first: that's the signup price, not a change),
+ * collapses any now-equal neighbors, and, when the removed entry was the
+ * latest, reverts the standing amount to the price before it. No-op on
+ * non-recurring items or when no such entry exists.
+ */
+export function removePriceChange(
+  item: PaymentItem,
+  ctx: { effectiveFrom: CalendarDate; now: Timestamp },
+): PaymentItem {
+  if (item.schedule.kind !== "RECURRING") return item;
+  const schedule = item.schedule;
+  const idx = schedule.priceHistory.findIndex((e) => e.effectiveFrom === ctx.effectiveFrom);
+  if (idx <= 0) return item;
+  const wasLast = idx === schedule.priceHistory.length - 1;
+  const priceHistory = dedupeConsecutiveAmounts(schedule.priceHistory.filter((_, i) => i !== idx));
+  const amount = wasLast ? priceHistory[priceHistory.length - 1].amount : schedule.amount;
+  return { ...item, updatedAt: ctx.now, schedule: { ...schedule, amount, priceHistory } };
 }
 
 export interface UpdateInstallmentContext {
