@@ -4,6 +4,10 @@
 // its schedule. Tapping a day opens its charges below (the same pattern as
 // tapping a bar on the Insights year chart). Past months read the ledger,
 // the future is projected — the same sources as the list view.
+//
+// Month changes ride a native pager (the same physics as the Upcoming ↔ All
+// swipe): the neighbor month is really under your finger, the gesture can be
+// held and pulled back. Three pages recenter invisibly after each landing.
 
 import {
   calendarDate,
@@ -16,20 +20,15 @@ import {
   today,
   type CalendarDate,
   type Money,
+  type PaymentItem,
+  type PaymentOccurrence,
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Dimensions, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import { Directions, Gesture, GestureDetector } from "react-native-gesture-handler";
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withSequence,
-  withTiming,
-} from "react-native-reanimated";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import PagerView from "react-native-pager-view";
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
@@ -39,9 +38,6 @@ import { Card } from "../ui/Card";
 
 // Monday-first column order, as JS weekday indices (0 = Sunday).
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
-
-// Slide distance for the month-change animation. Portrait-locked, so one read.
-const SCREEN_W = Dimensions.get("window").width;
 
 interface DayCharge {
   key: string;
@@ -65,6 +61,98 @@ function firstOfShiftedMonth(asOf: CalendarDate, delta: number): CalendarDate {
   return calendarDate(`${y}-${m}-01`);
 }
 
+/** Every charge of one month on its due day — the list view's three sources
+ *  (ledger, covered installments, projection), never double-counted. */
+function monthCharges(
+  items: readonly PaymentItem[],
+  occurrences: readonly PaymentOccurrence[],
+  monthKey: string,
+  monthEnd: CalendarDate,
+  asOf: CalendarDate,
+): DayCharge[] {
+  const byId = new Map(items.map((i) => [i.id, i]));
+  return [
+    ...occurrences.flatMap((o) => {
+      if (o.status !== "charged" || o.dueDate.slice(0, 7) !== monthKey) return [];
+      const item = byId.get(o.paymentItemId);
+      if (!item) return [];
+      return [
+        {
+          key: o.id,
+          paymentItemId: item.id,
+          name: item.name,
+          dueDate: o.dueDate,
+          amount: o.amount,
+          domain: item.domain,
+          color: item.color,
+          categoryId: item.categoryId,
+          paid: true,
+          overdue: false,
+        },
+      ];
+    }),
+    ...items.flatMap((item) => {
+      if (!isInstallmentSchedule(item.schedule)) return [];
+      const count = item.schedule.installments.length;
+      return item.schedule.installments
+        .filter(
+          (inst) =>
+            COVERED_INSTALLMENT_STATUSES.includes(inst.status) &&
+            inst.dueDate.slice(0, 7) === monthKey,
+        )
+        .map((inst) => ({
+          key: inst.id,
+          paymentItemId: item.id,
+          name: item.name,
+          dueDate: inst.dueDate,
+          amount: inst.amount,
+          domain: item.domain,
+          color: item.color,
+          categoryId: item.categoryId,
+          paid: true,
+          overdue: false,
+          installmentIndex: inst.index,
+          installmentCount: count,
+        }));
+    }),
+    ...projectCharges(items, monthEnd)
+      .filter((c) => c.dueDate.slice(0, 7) === monthKey)
+      .map((c) => ({
+        key: `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
+        paymentItemId: c.paymentItemId,
+        name: c.name,
+        dueDate: c.dueDate,
+        amount: c.amount,
+        domain: c.domain,
+        color: c.color,
+        categoryId: c.categoryId,
+        paid: false,
+        overdue: c.dueDate < asOf,
+        installmentIndex: c.installmentIndex,
+        installmentCount: c.installmentCount,
+      })),
+  ];
+}
+
+/** Monday-first grid rows for a month: leading blanks, then every day. */
+function monthWeeks(monthStart: CalendarDate, monthEnd: CalendarDate): (CalendarDate | null)[][] {
+  const y = Number(monthStart.slice(0, 4));
+  const m = Number(monthStart.slice(5, 7));
+  const monthKey = monthStart.slice(0, 7);
+  const daysInMonth = Number(monthEnd.slice(8, 10));
+  const leading = (new Date(y, m - 1, 1).getDay() + 6) % 7;
+  const cells: (CalendarDate | null)[] = [
+    ...Array.from({ length: leading }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) =>
+      calendarDate(`${monthKey}-${String(i + 1).padStart(2, "0")}`),
+    ),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+  const rows: (CalendarDate | null)[][] = [];
+  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
+  return rows;
+}
+
 export function CalendarMonthView() {
   const router = useRouter();
   const { colors } = useTheme();
@@ -75,105 +163,22 @@ export function CalendarMonthView() {
   const asOf = today();
   const [offset, setOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<CalendarDate | null>(asOf);
+  const pagerRef = useRef<PagerView>(null);
 
   const monthStart = firstOfShiftedMonth(asOf, offset);
   const monthEnd = endOfMonth(monthStart);
   const monthKey = monthStart.slice(0, 7);
 
-  // Every charge of the shown month on its due day — the list view's three
-  // sources (ledger, covered installments, projection), never double-counted.
-  const charges = useMemo<DayCharge[]>(() => {
-    const byId = new Map(items.map((i) => [i.id, i]));
-    return [
-      ...occurrences.flatMap((o) => {
-        if (o.status !== "charged" || o.dueDate.slice(0, 7) !== monthKey) return [];
-        const item = byId.get(o.paymentItemId);
-        if (!item) return [];
-        return [
-          {
-            key: o.id,
-            paymentItemId: item.id,
-            name: item.name,
-            dueDate: o.dueDate,
-            amount: o.amount,
-            domain: item.domain,
-            color: item.color,
-            categoryId: item.categoryId,
-            paid: true,
-            overdue: false,
-          },
-        ];
-      }),
-      ...items.flatMap((item) => {
-        if (!isInstallmentSchedule(item.schedule)) return [];
-        const count = item.schedule.installments.length;
-        return item.schedule.installments
-          .filter(
-            (inst) =>
-              COVERED_INSTALLMENT_STATUSES.includes(inst.status) &&
-              inst.dueDate.slice(0, 7) === monthKey,
-          )
-          .map((inst) => ({
-            key: inst.id,
-            paymentItemId: item.id,
-            name: item.name,
-            dueDate: inst.dueDate,
-            amount: inst.amount,
-            domain: item.domain,
-            color: item.color,
-            categoryId: item.categoryId,
-            paid: true,
-            overdue: false,
-            installmentIndex: inst.index,
-            installmentCount: count,
-          }));
-      }),
-      ...projectCharges(items, monthEnd)
-        .filter((c) => c.dueDate.slice(0, 7) === monthKey)
-        .map((c) => ({
-          key: `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
-          paymentItemId: c.paymentItemId,
-          name: c.name,
-          dueDate: c.dueDate,
-          amount: c.amount,
-          domain: c.domain,
-          color: c.color,
-          categoryId: c.categoryId,
-          paid: false,
-          overdue: c.dueDate < asOf,
-          installmentIndex: c.installmentIndex,
-          installmentCount: c.installmentCount,
-        })),
-    ];
-  }, [items, occurrences, monthKey, monthEnd, asOf]);
-
-  const byDay = useMemo(() => {
-    const map = new Map<string, DayCharge[]>();
-    for (const c of charges) {
-      const list = map.get(c.dueDate);
-      if (list) list.push(c);
-      else map.set(c.dueDate, [c]);
-    }
-    return map;
-  }, [charges]);
-
-  // Monday-first grid: leading blanks, then every day of the month.
-  const weeks = useMemo(() => {
-    const y = Number(monthStart.slice(0, 4));
-    const m = Number(monthStart.slice(5, 7));
-    const daysInMonth = Number(monthEnd.slice(8, 10));
-    const leading = (new Date(y, m - 1, 1).getDay() + 6) % 7;
-    const cells: (CalendarDate | null)[] = [
-      ...Array.from({ length: leading }, () => null),
-      ...Array.from({ length: daysInMonth }, (_, i) =>
-        calendarDate(`${monthKey}-${String(i + 1).padStart(2, "0")}`),
-      ),
-    ];
-    while (cells.length % 7 !== 0) cells.push(null);
-    const rows: (CalendarDate | null)[][] = [];
-    for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
-    return rows;
-  }, [monthStart, monthEnd, monthKey]);
+  // The center month's charges back the header total and the day detail card
+  // (each pager page computes its own copy for display). Cheap at this scale,
+  // so plain recomputation — no memo to fight the compiler over.
+  const charges = monthCharges(items, occurrences, monthKey, monthEnd, asOf);
+  const byDay = new Map<string, DayCharge[]>();
+  for (const c of charges) {
+    const list = byDay.get(c.dueDate);
+    if (list) list.push(c);
+    else byDay.set(c.dueDate, [c]);
+  }
 
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);
@@ -189,111 +194,60 @@ export function CalendarMonthView() {
     setSelectedDay(next === 0 ? asOf : null);
   };
 
-  // Animated month change: the grid slides out one way and the new month
-  // slides in from the other. Driven by the chevrons and by swiping the grid.
-  const slideX = useSharedValue(0);
-  const gridStyle = useAnimatedStyle(() => ({ transform: [{ translateX: slideX.value }] }));
-  const animateMonth = (delta: number) => {
-    const dir = delta > 0 ? 1 : -1; // next → slide out left; prev → out right
-    // A reanimated shared value is driven by assigning `.value` — that's the
-    // library's API, not a state mutation the lint rule should police.
-    // 125 + 125 = the 250ms transition standard (DESIGN.md §3.6).
-    // eslint-disable-next-line react-hooks/immutability
-    slideX.value = withSequence(
-      withTiming(-dir * SCREEN_W, { duration: 125 }),
-      // Off-screen: swap the month, then jump to the entry side to slide in.
-      withTiming(dir * SCREEN_W, { duration: 0 }, (finished) => {
-        if (finished) runOnJS(shiftMonth)(delta);
-      }),
-      withTiming(0, { duration: 125 }),
-    );
-  };
+  // The pager holds [previous, shown, next]; landing off-center shifts the
+  // window and this effect snaps back to the middle page, without animation,
+  // once the re-centered months are in place.
+  useEffect(() => {
+    pagerRef.current?.setPageWithoutAnimation(1);
+  }, [offset]);
 
-  const monthSwipe = Gesture.Exclusive(
-    Gesture.Fling()
-      .direction(Directions.LEFT)
-      .onEnd(() => runOnJS(animateMonth)(1)),
-    Gesture.Fling()
-      .direction(Directions.RIGHT)
-      .onEnd(() => runOnJS(animateMonth)(-1)),
-  );
+  // The pager needs a bounded height; the shown month dictates it (5- and
+  // 6-week months differ by a row).
+  const gridHeight = 40 + monthWeeks(monthStart, monthEnd).length * 58;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.header}>
-        <Pressable onPress={() => animateMonth(-1)} hitSlop={10} style={styles.chevronButton}>
+        <Pressable
+          onPress={() => pagerRef.current?.setPage(0)}
+          hitSlop={10}
+          style={styles.chevronButton}
+        >
           <SymbolView name="chevron.left" size={13} tintColor={colors.text} />
         </Pressable>
         <View style={styles.headerMiddle}>
           <Text style={styles.monthTitle}>{monthLabel}</Text>
           {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
         </View>
-        <Pressable onPress={() => animateMonth(1)} hitSlop={10} style={styles.chevronButton}>
+        <Pressable
+          onPress={() => pagerRef.current?.setPage(2)}
+          hitSlop={10}
+          style={styles.chevronButton}
+        >
           <SymbolView name="chevron.right" size={13} tintColor={colors.text} />
         </Pressable>
       </View>
 
-      <GestureDetector gesture={monthSwipe}>
-        <Animated.View style={[styles.grid, gridStyle]}>
-          <View style={styles.weekRow}>
-            {WEEKDAY_ORDER.map((d) => (
-              <Text key={d} style={styles.weekday}>
-                {weekdayShort(d)}
-              </Text>
-            ))}
+      <PagerView
+        ref={pagerRef}
+        style={{ height: gridHeight }}
+        initialPage={1}
+        onPageSelected={(e) => {
+          const delta = e.nativeEvent.position - 1;
+          if (delta !== 0) shiftMonth(delta);
+        }}
+      >
+        {[-1, 0, 1].map((d) => (
+          <View key={`m${offset + d}`} collapsable={false}>
+            <MonthGrid
+              offset={offset + d}
+              asOf={asOf}
+              selectedDay={selectedDay}
+              onSelectDay={(date) => setSelectedDay(selectedDay === date ? null : date)}
+            />
           </View>
-          {weeks.map((week, w) => (
-            <View key={w} style={styles.weekRow}>
-              {week.map((date, i) => {
-                if (!date) return <View key={`blank-${i}`} style={styles.dayCell} />;
-                const dayCharges = byDay.get(date) ?? [];
-                const isToday = date === asOf;
-                const isSelected = date === selectedDay;
-                const hasOverdue = dayCharges.some((c) => c.overdue);
-                return (
-                  <Pressable
-                    key={date}
-                    style={[styles.dayCell, isSelected && styles.daySelected]}
-                    onPress={() => setSelectedDay(isSelected ? null : date)}
-                  >
-                    {/* Today wears a ring; the overdue tint never overrides
-                        it — "today" outranks "late" on the day you're in. */}
-                    <View style={[styles.dayNumberWrap, isToday && styles.todayRing]}>
-                      <Text
-                        style={[
-                          styles.dayNumber,
-                          isToday ? styles.dayToday : hasOverdue && { color: colors.tones.warning },
-                        ]}
-                      >
-                        {Number(date.slice(8, 10))}
-                      </Text>
-                    </View>
-                    <View style={styles.dayBadges}>
-                      {dayCharges.slice(0, 2).map((c) => {
-                        const category = categories.find((cat) => cat.id === c.categoryId);
-                        return (
-                          <View key={c.key} style={c.paid && styles.paidBadge}>
-                            <BrandBadge
-                              domain={c.domain}
-                              icon={category?.icon}
-                              fallback={c.name.charAt(0).toUpperCase()}
-                              color={c.color ?? colors.accent}
-                              size={18}
-                            />
-                          </View>
-                        );
-                      })}
-                      {dayCharges.length > 2 && (
-                        <Text style={styles.moreBadge}>+{dayCharges.length - 2}</Text>
-                      )}
-                    </View>
-                  </Pressable>
-                );
-              })}
-            </View>
-          ))}
-        </Animated.View>
-      </GestureDetector>
+        ))}
+      </PagerView>
 
       {/* The tapped day's charges — light, in place, read-only. */}
       {selectedDay && selected.length > 0 && (
@@ -352,6 +306,98 @@ export function CalendarMonthView() {
         </Card>
       )}
     </ScrollView>
+  );
+}
+
+/** One month's grid, self-contained so the pager's neighbor pages are real
+ *  content under the finger, not placeholders. */
+function MonthGrid({
+  offset,
+  asOf,
+  selectedDay,
+  onSelectDay,
+}: {
+  offset: number;
+  asOf: CalendarDate;
+  selectedDay: CalendarDate | null;
+  onSelectDay: (date: CalendarDate) => void;
+}) {
+  const { colors } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const { items, occurrences, categories } = useAppState();
+
+  const monthStart = firstOfShiftedMonth(asOf, offset);
+  const monthEnd = endOfMonth(monthStart);
+  const monthKey = monthStart.slice(0, 7);
+
+  const byDay = new Map<string, DayCharge[]>();
+  for (const c of monthCharges(items, occurrences, monthKey, monthEnd, asOf)) {
+    const list = byDay.get(c.dueDate);
+    if (list) list.push(c);
+    else byDay.set(c.dueDate, [c]);
+  }
+  const weeks = monthWeeks(monthStart, monthEnd);
+
+  return (
+    <View style={styles.grid}>
+      <View style={styles.weekRow}>
+        {WEEKDAY_ORDER.map((d) => (
+          <Text key={d} style={styles.weekday}>
+            {weekdayShort(d)}
+          </Text>
+        ))}
+      </View>
+      {weeks.map((week, w) => (
+        <View key={w} style={styles.weekRow}>
+          {week.map((date, i) => {
+            if (!date) return <View key={`blank-${i}`} style={styles.dayCell} />;
+            const dayCharges = byDay.get(date) ?? [];
+            const isToday = date === asOf;
+            const isSelected = date === selectedDay;
+            const hasOverdue = dayCharges.some((c) => c.overdue);
+            return (
+              <Pressable
+                key={date}
+                style={[styles.dayCell, isSelected && styles.daySelected]}
+                onPress={() => onSelectDay(date)}
+              >
+                {/* Today wears a ring; the overdue tint never overrides
+                    it — "today" outranks "late" on the day you're in. */}
+                <View style={[styles.dayNumberWrap, isToday && styles.todayRing]}>
+                  <Text
+                    style={[
+                      styles.dayNumber,
+                      isToday ? styles.dayToday : hasOverdue && { color: colors.tones.warning },
+                    ]}
+                  >
+                    {Number(date.slice(8, 10))}
+                  </Text>
+                </View>
+                <View style={styles.dayBadges}>
+                  {dayCharges.slice(0, 2).map((c) => {
+                    const category = categories.find((cat) => cat.id === c.categoryId);
+                    return (
+                      <View key={c.key} style={c.paid && styles.paidBadge}>
+                        <BrandBadge
+                          domain={c.domain}
+                          icon={category?.icon}
+                          fallback={c.name.charAt(0).toUpperCase()}
+                          color={c.color ?? colors.accent}
+                          size={18}
+                        />
+                      </View>
+                    );
+                  })}
+                  {dayCharges.length > 2 && (
+                    <Text style={styles.moreBadge}>+{dayCharges.length - 2}</Text>
+                  )}
+                </View>
+              </Pressable>
+            );
+          })}
+        </View>
+      ))}
+    </View>
   );
 }
 

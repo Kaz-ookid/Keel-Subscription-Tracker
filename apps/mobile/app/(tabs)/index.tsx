@@ -7,7 +7,10 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import PagerView from "react-native-pager-view";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+
+type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
 
 import { CalendarMonthView } from "../../src/components/payments/CalendarMonthView";
 import { HarborView } from "../../src/components/payments/HarborView";
@@ -62,14 +65,22 @@ export default function PaymentsScreen() {
   const highlightX = useSharedValue(0);
   const highlightOpacity = useSharedValue(1);
   const pillWidth = trackWidth > 0 ? (trackWidth - 2 - 6 - 3) / 2 : 0; // border+padding+gap
+  // Upcoming ↔ All live in a native pager: the swipe is interactive (hold it
+  // mid-way, pull it back) and the selection wash tracks the finger 1:1.
+  const pagerRef = useRef<PagerView>(null);
+  const onPageScroll = (e: PagerScrollEvent) => {
+    // Reanimated shared values are driven by assigning `.value`; here the
+    // pager's native scroll IS the animation, so no withTiming on top of it.
+    highlightX.value = (e.nativeEvent.position + e.nativeEvent.offset) * (pillWidth + 3);
+  };
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
     if (view === "upcoming" || view === "all") {
-      const target = (view === "all" ? 1 : 0) * (pillWidth + 3);
-      // Coming back from calendar/harbor the wash is invisible: snap it under
-      // the right pill first, then fade in — never slide while hidden.
-      if (highlightOpacity.value < 0.05) highlightX.value = target;
-      else highlightX.value = withTiming(target, { duration: 200 });
+      // The pager's own scroll slides the wash; this effect only brings it
+      // back when returning from calendar/harbor: snap under the right pill
+      // while invisible, then fade in.
+      if (highlightOpacity.value < 0.05)
+        highlightX.value = (view === "all" ? 1 : 0) * (pillWidth + 3);
       highlightOpacity.value = withTiming(1, { duration: 150 });
     } else {
       // Leaving for calendar/harbor: fade where it stands. Moving it too read
@@ -82,6 +93,8 @@ export default function PaymentsScreen() {
     opacity: highlightOpacity.value,
   }));
 
+  const onPills = view === "upcoming" || view === "all";
+
   return (
     <View style={styles.screen}>
       <View style={styles.switchWrap}>
@@ -89,10 +102,17 @@ export default function PaymentsScreen() {
           {pillWidth > 0 && (
             <Animated.View style={[styles.highlight, { width: pillWidth }, highlightStyle]} />
           )}
-          {VIEWS.map((v) => {
+          {VIEWS.map((v, index) => {
             const active = view === v.value;
             return (
-              <Pressable key={v.value} onPress={() => setView(v.value)} style={styles.pill}>
+              <Pressable
+                key={v.value}
+                onPress={() => {
+                  if (onPills) pagerRef.current?.setPage(index);
+                  setView(v.value);
+                }}
+                style={styles.pill}
+              >
                 <Text style={[styles.pillText, active && styles.pillTextActive]}>
                   {t(v.labelKey)}
                 </Text>
@@ -126,10 +146,26 @@ export default function PaymentsScreen() {
         )}
       </View>
 
-      {view === "upcoming" && <UpcomingView />}
-      {view === "all" && <SubscriptionsView />}
-      {view === "calendar" && <CalendarMonthView />}
-      {view === "harbor" && <HarborView />}
+      {onPills ? (
+        <PagerView
+          ref={pagerRef}
+          style={styles.pager}
+          initialPage={view === "all" ? 1 : 0}
+          onPageScroll={onPageScroll}
+          onPageSelected={(e) => setView(e.nativeEvent.position === 1 ? "all" : "upcoming")}
+        >
+          <View key="upcoming" style={styles.page} collapsable={false}>
+            <UpcomingView />
+          </View>
+          <View key="all" style={styles.page} collapsable={false}>
+            <SubscriptionsView />
+          </View>
+        </PagerView>
+      ) : view === "calendar" ? (
+        <CalendarMonthView />
+      ) : (
+        <HarborView />
+      )}
     </View>
   );
 }
@@ -140,6 +176,8 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: colors.background,
     },
+    pager: { flex: 1 },
+    page: { flex: 1 },
     switchWrap: {
       flexDirection: "row",
       alignItems: "center",
