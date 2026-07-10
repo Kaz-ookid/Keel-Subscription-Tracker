@@ -1,11 +1,11 @@
 // The Harbor view (DESIGN.md §3.7 B, experimental — behind the Settings debug
-// toggle): active commitments as moored buoys in a harbor, seen from above
-// the water. Buoy SIZE maps monthly cost, DISTANCE from the pier (bottom)
-// maps days until the next charge, the brand logo rides each buoy inside a
-// float ring in the item's color, and charges due within a week are roped to
-// the pier. Paused items sit grey on a shelf; tap anything to open its item.
-// The scene is drawn, not implied: gradient water with ripples, a plank pier
-// with bollards, lapping waves at its edge, a sail on the horizon.
+// toggle): the year's charges as a fleet arriving at an industrial quay.
+// Every BILLING DAY is one vessel; payments due the same day sail together as
+// containers on the same ship. What a day costs decides its vessel (container
+// ship → launch → wooden crate → lost cardboard box) and its size; distance
+// from the quay maps days until the charge, on a square-root scale a full
+// year deep. The screen opens at the quay and scrolls up into open water.
+// Paused items sit grey on a shelf; tap any cargo to open its item.
 
 import {
   isInstallmentSchedule,
@@ -33,36 +33,52 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import Svg, { Line, Path, Rect } from "react-native-svg";
+import Svg, { G, Line, Path, Rect } from "react-native-svg";
 
 import { useAppState } from "../../state/app-state";
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { EmptyState } from "../ui/EmptyState";
 import { Waterline } from "../Waterline";
+import {
+  harborPalette,
+  vesselGeometry,
+  vesselKind,
+  VesselSprite,
+  visibleCargo,
+  type VesselGeometry,
+  type VesselKind,
+} from "./HarborVessels";
 
 const CANVAS_HEIGHT = 1180;
-const PIER_HEIGHT = 34;
+const QUAY_HEIGHT = 44;
 const LAP_HEIGHT = 10;
 // A full year of sea, on a square-root scale: the next weeks get the most
-// water, the far future compresses toward the horizon. The screen opens at
-// the pier and scrolls up into the distance.
+// water, the far future compresses toward the horizon.
 const HORIZON_DAYS = 365;
-const MAX_BUOYS = 40;
-const MIN_R = 17;
-const MAX_R = 34;
+const MAX_VESSELS = 22;
 const TOP_PAD = 64; // room for the paused shelf and the horizon sail
 
-/** 0 (at the pier) → 1 (horizon), sqrt-compressed. */
+/** 0 (at the quay) → 1 (horizon), sqrt-compressed. */
 function distanceFraction(days: number): number {
   return Math.sqrt(Math.min(days, HORIZON_DAYS) / HORIZON_DAYS);
 }
 
-interface Buoy {
+interface Cargo {
   item: PaymentItem;
-  daysUntil: number;
   monthly: number;
-  r: number;
+}
+
+interface Vessel {
+  key: string;
+  daysUntil: number;
+  total: number;
+  cargo: Cargo[];
+  hiddenCargo: number;
+  kind: VesselKind;
+  geo: VesselGeometry;
+  facing: 1 | -1;
+  /** Waterline anchor (center-x on the water). */
   x: number;
   y: number;
 }
@@ -71,8 +87,8 @@ function daysBetween(from: CalendarDate, to: CalendarDate): number {
   return Math.round((Date.parse(to) - Date.parse(from)) / 86_400_000);
 }
 
-/** A buoy's gentle 1-2px float, phase-shifted per buoy so the harbor never
- *  moves in lockstep. */
+/** A vessel's gentle 1-2px bob, phase-shifted so the fleet never moves in
+ *  lockstep. */
 function Drift({ index, children }: { index: number; children: React.ReactNode }) {
   const dy = useSharedValue(0);
   useEffect(() => {
@@ -96,37 +112,12 @@ export function HarborView() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, categories, displayCurrency, rates } = useAppState();
   const [width, setWidth] = useState(0);
-  // Open at the pier (today); the year of sea is above, one scroll away.
+  // Open at the quay (today); the year of sea is above, one scroll away.
   const scrollRef = useRef<ScrollView>(null);
-  const openedAtPier = useRef(false);
+  const openedAtQuay = useRef(false);
 
   const asOf = today();
-
-  // The scene's own palette rides the theme: night water vs day water.
-  const sea =
-    scheme === "dark"
-      ? {
-          deep: "#060D1C",
-          shallow: "#14294A",
-          ripple: "rgba(143,199,191,0.14)",
-          rope: "rgba(237,241,245,0.30)",
-          wood: "#4A3A26",
-          woodDark: "#372B1B",
-          woodLight: "#5C4930",
-          sail: "rgba(237,241,245,0.35)",
-          reflection: "rgba(0,0,0,0.35)",
-        }
-      : {
-          deep: "#8FB6C4",
-          shallow: "#C6E0E4",
-          ripple: "rgba(255,255,255,0.45)",
-          rope: "rgba(7,20,41,0.35)",
-          wood: "#8A6A45",
-          woodDark: "#6E5334",
-          woodLight: "#A5825A",
-          sail: "rgba(7,20,41,0.35)",
-          reflection: "rgba(7,20,41,0.15)",
-        };
+  const sea = harborPalette(scheme === "dark" ? "dark" : "light");
 
   // Everything in display-currency terms so sizes compare honestly.
   const numeric = (value: Money): number => {
@@ -138,9 +129,9 @@ export function HarborView() {
     return value.amount;
   };
 
-  const pierTop = CANVAS_HEIGHT - PIER_HEIGHT;
+  const quayTop = CANVAS_HEIGHT - QUAY_HEIGHT;
 
-  const { buoys, paused, overflow } = useMemo(() => {
+  const { vessels, paused, overflow } = useMemo(() => {
     const live = items.filter((i) => i.status === "active" && !isPaymentItemComplete(i, asOf));
     const pausedItems = items.filter((i) => i.status === "paused");
 
@@ -150,7 +141,7 @@ export function HarborView() {
         return [
           {
             item,
-            daysUntil: Math.max(0, daysBetween(asOf, s.nextChargeDate)),
+            date: s.nextChargeDate,
             monthly: numeric(monthlyEquivalent(s.amount, s.recurrence)),
           },
         ];
@@ -158,51 +149,75 @@ export function HarborView() {
       if (isInstallmentSchedule(item.schedule)) {
         const plan = summarizeInstallmentPlan(item.schedule);
         if (!plan.nextDue) return [];
-        return [
-          {
-            item,
-            daysUntil: Math.max(0, daysBetween(asOf, plan.nextDue.dueDate)),
-            // A plan's "displacement" is its per-installment bite.
-            monthly: numeric(plan.nextDue.amount),
-          },
-        ];
+        // A plan's "displacement" is its per-installment bite.
+        return [{ item, date: plan.nextDue.dueDate, monthly: numeric(plan.nextDue.amount) }];
       }
       return [];
     });
 
-    candidates.sort((a, b) => b.monthly - a.monthly);
-    const kept = candidates.slice(0, MAX_BUOYS);
-    const maxMonthly = Math.max(1, ...kept.map((c) => c.monthly));
+    // One vessel per billing day: same-day payments sail together.
+    const byDay = new Map<CalendarDate, Cargo[]>();
+    for (const c of candidates) {
+      const bucket = byDay.get(c.date);
+      if (bucket) bucket.push(c);
+      else byDay.set(c.date, [c]);
+    }
+    const groups = Array.from(byDay.entries()).map(([date, cargo]) => ({
+      date,
+      daysUntil: Math.max(0, daysBetween(asOf, date)),
+      cargo: cargo.sort((a, b) => b.monthly - a.monthly),
+      total: cargo.reduce((sum, c) => sum + c.monthly, 0),
+    }));
+    groups.sort((a, b) => b.total - a.total);
+    const kept = groups.slice(0, MAX_VESSELS);
+    const cut = groups.slice(MAX_VESSELS).reduce((sum, g) => sum + g.cargo.length, 0);
+    const maxTotal = Math.max(1, ...kept.map((g) => g.total));
 
-    // Place big spenders first: golden-ratio x spread, nudged until buoys
+    // Place the big days first: golden-ratio x spread, nudged until hulls
     // stop overlapping. Deterministic, so the harbor doesn't reshuffle.
-    const placed: Buoy[] = [];
+    const placed: Vessel[] = [];
     const w = Math.max(width, 1);
-    kept.forEach((c, i) => {
-      const r = MIN_R + Math.sqrt(c.monthly / maxMonthly) * (MAX_R - MIN_R);
-      const y =
-        pierTop -
-        LAP_HEIGHT -
-        r -
-        4 -
-        distanceFraction(c.daysUntil) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * r - 8);
-      let x = r + 8 + ((i * 0.61803) % 1) * (w - 2 * r - 16);
+    const yNear = quayTop - LAP_HEIGHT - 12;
+    const yFar = TOP_PAD + 52;
+    kept.forEach((g, i) => {
+      const share = g.total / maxTotal;
+      const kind = vesselKind(g.cargo.length, share);
+      const geo = vesselGeometry(kind, g.cargo.length, share);
+      const shown = visibleCargo(kind, g.cargo.length);
+      const y = yNear - distanceFraction(g.daysUntil) * (yNear - yFar);
+      const xMin = geo.w / 2 + 6;
+      const xMax = w - geo.w / 2 - 6;
+      let x = xMin + ((i * 0.61803) % 1) * Math.max(xMax - xMin, 1);
       let tries = 0;
-      while (
-        tries < 40 &&
-        placed.some((p) => (p.x - x) ** 2 + (p.y - y) ** 2 < (p.r + r + 6) ** 2)
-      ) {
-        x = r + 8 + (((x - r - 8) / Math.max(w - 2 * r - 16, 1) + 0.17) % 1) * (w - 2 * r - 16);
+      const collides = (px: number) =>
+        placed.some(
+          (p) =>
+            Math.abs(p.x - px) < (p.geo.w + geo.w) / 2 + 8 &&
+            Math.abs(p.y - y) < (p.geo.h + geo.h) / 2 + 4,
+        );
+      while (tries < 40 && collides(x)) {
+        x = xMin + (((x - xMin) / Math.max(xMax - xMin, 1) + 0.19) % 1) * Math.max(xMax - xMin, 1);
         tries += 1;
       }
-      placed.push({ ...c, r, x, y });
+      placed.push({
+        key: g.date,
+        daysUntil: g.daysUntil,
+        total: g.total,
+        cargo: g.cargo.slice(0, shown),
+        hiddenCargo: g.cargo.length - shown,
+        kind,
+        geo,
+        facing: i % 2 === 0 ? 1 : -1,
+        x,
+        y,
+      });
     });
 
-    return { buoys: placed, paused: pausedItems, overflow: candidates.length - kept.length };
+    return { vessels: placed, paused: pausedItems, overflow: cut };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, asOf, width, displayCurrency, rates]);
 
-  if (buoys.length === 0 && paused.length === 0) {
+  if (vessels.length === 0 && paused.length === 0) {
     return (
       <View style={styles.center}>
         <EmptyState
@@ -214,24 +229,23 @@ export function HarborView() {
     );
   }
 
+  // Depth lines share the fleet's anchor scale: a ship due in exactly 30 days
+  // sits with its waterline ON the 30 d line.
   const gridDays = [7, 30, 90, 180, 365];
-  const gridY = (d: number) =>
-    pierTop -
-    LAP_HEIGHT -
-    MIN_R -
-    4 -
-    distanceFraction(d) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * MIN_R - 8);
+  const yNear = quayTop - LAP_HEIGHT - 12;
+  const yFar = TOP_PAD + 52;
+  const gridY = (d: number) => yNear - distanceFraction(d) * (yNear - yFar);
 
   // Deterministic ripple scatter across the open water.
   const ripples =
     width > 0
       ? Array.from({ length: 30 }, (_, i) => ({
           x: 16 + ((i * 0.37 + 0.11) % 1) * (width - 48),
-          y: TOP_PAD + ((i * 0.59 + 0.07) % 1) * (pierTop - TOP_PAD - 70),
+          y: TOP_PAD + ((i * 0.59 + 0.07) % 1) * (quayTop - TOP_PAD - 70),
         }))
       : [];
 
-  const plankCount = width > 0 ? Math.ceil(width / 26) : 0;
+  const craneX = width * 0.7;
 
   return (
     <ScrollView
@@ -239,14 +253,14 @@ export function HarborView() {
       style={styles.screen}
       contentContainerStyle={styles.content}
       onContentSizeChange={() => {
-        if (!openedAtPier.current) {
-          openedAtPier.current = true;
+        if (!openedAtQuay.current) {
+          openedAtQuay.current = true;
           scrollRef.current?.scrollToEnd({ animated: false });
         }
       }}
     >
       <View style={styles.canvas} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-        {/* Open water: deeper (darker) the farther from the pier. */}
+        {/* Open water: deeper (darker) the farther from the quay. */}
         <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
 
         {width > 0 && (
@@ -262,6 +276,20 @@ export function HarborView() {
               />
             ))}
 
+            {/* Gulls over the far water. */}
+            <Path
+              d={`M ${width * 0.32} 46 q 4 -5 8 0 q 4 -5 8 0`}
+              stroke={sea.sail}
+              strokeWidth={1.4}
+              fill="none"
+            />
+            <Path
+              d={`M ${width * 0.46} 62 q 3 -4 6 0 q 3 -4 6 0`}
+              stroke={sea.sail}
+              strokeWidth={1.2}
+              fill="none"
+            />
+
             {/* Depth lines: the distance axis, quiet but present. */}
             {gridDays.map((d) => (
               <Line
@@ -276,57 +304,146 @@ export function HarborView() {
               />
             ))}
 
-            {/* Mooring ropes: anything due within a week is tied up. */}
-            {buoys
-              .filter((b) => b.daysUntil <= 7)
-              .map((b) => (
-                <Path
-                  key={`rope-${b.item.id}`}
-                  d={`M ${b.x} ${pierTop + 6} Q ${b.x + 12} ${(pierTop + b.y + b.r) / 2} ${b.x} ${
-                    b.y + b.r - 2
-                  }`}
-                  stroke={sea.rope}
-                  strokeWidth={1.4}
-                  fill="none"
-                />
-              ))}
-
-            {/* The pier: planks, a lit top edge, bollards to tie up to. */}
-            <Rect x={0} y={pierTop} width={width} height={PIER_HEIGHT} fill={sea.wood} />
-            <Rect x={0} y={pierTop} width={width} height={2.5} fill={sea.woodLight} />
-            {Array.from({ length: plankCount }, (_, i) => (
+            {/* The quay: poured concrete with expansion joints and a
+                hazard-striped edge; TODAY is painted on the slab. */}
+            <Rect x={0} y={quayTop} width={width} height={QUAY_HEIGHT} fill={sea.concrete} />
+            <Rect x={0} y={quayTop} width={width} height={2} fill={sea.concreteEdge} />
+            <Rect x={0} y={quayTop + 2} width={width} height={5} fill={sea.hazard} />
+            {Array.from({ length: Math.ceil(width / 14) + 1 }, (_, i) => (
+              <Path
+                key={`hz-${i}`}
+                d={`M ${i * 14} ${quayTop + 7} l 7 -5 l 4 0 l -7 5 Z`}
+                fill={sea.hazardDark}
+              />
+            ))}
+            {Array.from({ length: Math.floor(width / 56) }, (_, i) => (
               <Line
-                key={`plank-${i}`}
-                x1={i * 26 + 13}
-                x2={i * 26 + 13}
-                y1={pierTop + 3}
+                key={`joint-${i}`}
+                x1={(i + 1) * 56}
+                x2={(i + 1) * 56}
+                y1={quayTop + 9}
                 y2={CANVAS_HEIGHT}
-                stroke={sea.woodDark}
-                strokeWidth={1.2}
+                stroke={sea.joint}
+                strokeWidth={1}
               />
             ))}
-            {[0.12, 0.5, 0.88].map((f) => (
+
+            {/* Steel bollards along the edge. */}
+            {[0.3, 0.55, 0.82].map((f) => (
+              <G key={`bollard-${f}`}>
+                <Rect
+                  x={f * width - 3.5}
+                  y={quayTop - 8}
+                  width={7}
+                  height={10}
+                  rx={2}
+                  fill={sea.steelDark}
+                />
+                <Rect
+                  x={f * width - 5.5}
+                  y={quayTop - 11}
+                  width={11}
+                  height={4.5}
+                  rx={2}
+                  fill={sea.steel}
+                />
+              </G>
+            ))}
+
+            {/* Container stacks waiting on the quay corners. */}
+            {(
+              [
+                { x: 8, y: quayTop - 13, c: 0 },
+                { x: 8, y: quayTop - 26, c: 1 },
+                { x: 46, y: quayTop - 13, c: 2 },
+                { x: width - 44, y: quayTop - 13, c: 3 },
+                { x: width - 40, y: quayTop - 26, c: 4 },
+              ] as const
+            ).map((s, i) => (
+              <G key={`stack-${i}`} opacity={0.92}>
+                <Rect
+                  x={s.x}
+                  y={s.y}
+                  width={36}
+                  height={12}
+                  rx={1.5}
+                  fill={colors.chart[s.c % colors.chart.length]}
+                />
+                {[9, 18, 27].map((dx) => (
+                  <Line
+                    key={`corr-${dx}`}
+                    x1={s.x + dx}
+                    y1={s.y + 1.5}
+                    x2={s.x + dx}
+                    y2={s.y + 10.5}
+                    stroke="rgba(0,0,0,0.2)"
+                    strokeWidth={1.2}
+                  />
+                ))}
+              </G>
+            ))}
+
+            {/* The gantry crane, mid-lift over the water. */}
+            <G>
+              <Rect x={craneX - 16} y={quayTop - 52} width={6} height={56} fill={sea.steel} />
+              <Rect x={craneX + 10} y={quayTop - 52} width={6} height={56} fill={sea.steel} />
+              <Line
+                x1={craneX - 13}
+                y1={quayTop - 10}
+                x2={craneX + 13}
+                y2={quayTop - 34}
+                stroke={sea.steelDark}
+                strokeWidth={2}
+              />
+              <Rect x={craneX - 84} y={quayTop - 58} width={140} height={5} fill={sea.steel} />
+              <Rect x={craneX - 4} y={quayTop - 73} width={8} height={15} fill={sea.steel} />
+              <Line
+                x1={craneX}
+                y1={quayTop - 71}
+                x2={craneX - 82}
+                y2={quayTop - 56}
+                stroke={sea.steelDark}
+                strokeWidth={1.4}
+              />
+              <Line
+                x1={craneX}
+                y1={quayTop - 71}
+                x2={craneX + 54}
+                y2={quayTop - 56}
+                stroke={sea.steelDark}
+                strokeWidth={1.4}
+              />
+              <Rect x={craneX + 42} y={quayTop - 52} width={14} height={9} fill={sea.steelDark} />
+              {/* Trolley, cable, and the container on the hook. */}
+              <Rect x={craneX - 62} y={quayTop - 54} width={10} height={7} fill={sea.hazard} />
+              <Line
+                x1={craneX - 57}
+                y1={quayTop - 47}
+                x2={craneX - 57}
+                y2={quayTop - 32}
+                stroke={sea.steelDark}
+                strokeWidth={1.4}
+              />
               <Rect
-                key={`bollard-${f}`}
-                x={f * width - 4}
-                y={pierTop - 9}
-                width={8}
+                x={craneX - 68}
+                y={quayTop - 32}
+                width={22}
                 height={12}
-                rx={2.5}
-                fill={sea.woodDark}
+                rx={1.5}
+                fill={colors.chart[5 % colors.chart.length]}
               />
-            ))}
+            </G>
           </Svg>
         )}
 
-        {/* Water lapping against the pier. */}
+        {/* Water lapping against the quay. */}
         {width > 0 && (
           <View style={styles.lapWrap} pointerEvents="none">
             <Waterline height={LAP_HEIGHT} width={width} color={colors.accentStrong} />
           </View>
         )}
 
-        {/* Distance labels ride their lines, out of the buoys' way. */}
+        {/* Distance labels ride their lines, out of the fleet's way. */}
         {width > 0 &&
           gridDays.map((d) => (
             <Text key={`label-${d}`} style={[styles.gridLabel, { top: gridY(d) - 16 }]}>
@@ -365,39 +482,77 @@ export function HarborView() {
           </View>
         )}
 
+        {/* The fleet. Each vessel is a billing day; badges are its cargo. */}
         {width > 0 &&
-          buoys.map((b, i) => {
-            const category = categories.find((c) => c.id === b.item.categoryId);
+          vessels.map((v, i) => {
+            const single = v.cargo.length === 1 && v.hiddenCargo === 0;
+            const open = (item: PaymentItem) =>
+              router.push({ pathname: "/item", params: { id: item.id } });
             return (
-              <Pressable
-                key={b.item.id}
-                style={[
-                  styles.buoy,
-                  { left: b.x - b.r, top: b.y - b.r, width: b.r * 2, height: b.r * 2 + 8 },
-                ]}
-                onPress={() => router.push({ pathname: "/item", params: { id: b.item.id } })}
-                accessibilityLabel={b.item.name}
+              <View
+                key={v.key}
+                style={{
+                  position: "absolute",
+                  left: v.x - v.geo.w / 2,
+                  top: v.y - v.geo.waterY,
+                  width: v.geo.w,
+                  height: v.geo.h,
+                }}
               >
                 <Drift index={i}>
-                  {/* The float ring wears the item's color; the logo rides it. */}
-                  <View style={[styles.buoyRing, { borderColor: b.item.color ?? colors.accent }]}>
-                    <BrandBadge
-                      domain={b.item.domain}
-                      icon={category?.icon}
-                      fallback={b.item.name.charAt(0).toUpperCase()}
-                      color={b.item.color ?? colors.accent}
-                      size={b.r * 2 - 12}
+                  <Pressable
+                    onPress={single ? () => open(v.cargo[0].item) : undefined}
+                    accessibilityLabel={v.cargo.map((c) => c.item.name).join(", ")}
+                  >
+                    <VesselSprite
+                      kind={v.kind}
+                      geo={v.geo}
+                      palette={sea}
+                      facing={v.facing}
+                      cargoColors={v.cargo.map((c) => c.item.color ?? colors.accent)}
                     />
-                  </View>
-                  {/* Its shadow on the water. */}
-                  <View
-                    style={[
-                      styles.reflection,
-                      { width: b.r * 1.4, backgroundColor: sea.reflection },
-                    ]}
-                  />
+                    {v.cargo.map((c, j) => {
+                      const anchor = v.geo.badges[j];
+                      if (!anchor) return null;
+                      const bx = v.facing === -1 ? v.geo.w - anchor.x : anchor.x;
+                      const category = categories.find((cat) => cat.id === c.item.categoryId);
+                      return (
+                        <Pressable
+                          key={c.item.id}
+                          onPress={() => open(c.item)}
+                          hitSlop={6}
+                          accessibilityLabel={c.item.name}
+                          style={{
+                            position: "absolute",
+                            left: bx - anchor.size / 2,
+                            top: anchor.y - anchor.size / 2,
+                          }}
+                        >
+                          <BrandBadge
+                            domain={c.item.domain}
+                            icon={category?.icon}
+                            fallback={c.item.name.charAt(0).toUpperCase()}
+                            color={c.item.color ?? colors.accent}
+                            size={anchor.size}
+                          />
+                        </Pressable>
+                      );
+                    })}
+                    {v.hiddenCargo > 0 && (
+                      <View
+                        style={[
+                          styles.cargoMore,
+                          v.facing === -1 ? { top: 8, left: 2 } : { top: 8, right: 2 },
+                        ]}
+                      >
+                        <Text style={styles.cargoMoreText}>
+                          {t("harbor.more", { count: v.hiddenCargo })}
+                        </Text>
+                      </View>
+                    )}
+                  </Pressable>
                 </Drift>
-              </Pressable>
+              </View>
             );
           })}
 
@@ -407,9 +562,9 @@ export function HarborView() {
           </View>
         )}
 
-        {/* The pier is today. Everything drifts toward it as its charge nears. */}
-        <View style={styles.pierLabelWrap} pointerEvents="none">
-          <Text style={styles.pierLabel}>{t("harbor.dock")}</Text>
+        {/* The quay is today. Everything sails toward it as its charge nears. */}
+        <View style={styles.quayLabelWrap} pointerEvents="none">
+          <Text style={styles.quayLabel}>{t("harbor.dock")}</Text>
         </View>
       </View>
 
@@ -436,7 +591,7 @@ function createStyles(colors: ThemeColors) {
       position: "absolute",
       left: 0,
       right: 0,
-      bottom: PIER_HEIGHT - 1,
+      bottom: QUAY_HEIGHT - 1,
       height: LAP_HEIGHT + 6,
     },
     gridLabel: {
@@ -466,25 +621,20 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       marginRight: spacing.xs,
     },
-    buoy: {
+    cargoMore: {
       position: "absolute",
-      alignItems: "center",
+      backgroundColor: colors.surface,
+      borderRadius: radius.sm,
+      paddingHorizontal: 4,
+      paddingVertical: 1,
     },
-    buoyRing: {
-      borderRadius: 999,
-      padding: 2,
-      borderWidth: 3.5,
-      backgroundColor: colors.white,
-    },
-    reflection: {
-      alignSelf: "center",
-      height: 5,
-      borderRadius: 3,
-      marginTop: 3,
+    cargoMoreText: {
+      ...typography.micro,
+      color: colors.mutedText,
     },
     overflowChip: {
       position: "absolute",
-      bottom: PIER_HEIGHT + spacing.sm + LAP_HEIGHT,
+      bottom: QUAY_HEIGHT + spacing.sm + LAP_HEIGHT,
       right: spacing.sm,
       backgroundColor: colors.surface,
       borderRadius: radius.lg,
@@ -496,18 +646,19 @@ function createStyles(colors: ThemeColors) {
       fontWeight: "600",
       color: colors.mutedText,
     },
-    pierLabelWrap: {
+    quayLabelWrap: {
       position: "absolute",
       left: 0,
       right: 0,
       bottom: 0,
-      height: PIER_HEIGHT,
+      height: QUAY_HEIGHT - 10,
       alignItems: "center",
       justifyContent: "center",
     },
-    pierLabel: {
+    // Stenciled on the slab: the theme's text color reads on both concretes.
+    quayLabel: {
       ...typography.micro,
-      color: colors.white,
+      color: colors.text,
       opacity: emphasis.hint,
       letterSpacing: 1.2,
     },

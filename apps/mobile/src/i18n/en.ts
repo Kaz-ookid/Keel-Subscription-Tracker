@@ -427,8 +427,9 @@ export const en = {
     paused: "Paused",
     more: "+{{count}}",
     emptyTitle: "Nothing at anchor yet",
-    emptyHint: "Add subscriptions and they moor here, sized by what they cost each month.",
-    legend: "Closer to the dock: due sooner. Bigger: costs more per month.",
+    emptyHint: "Add subscriptions and they arrive here by ship, sized by what they cost.",
+    legend:
+      "Each vessel is one billing day, sized by its cost. Same-day payments share a ship; the closest to the quay is due first.",
   },
   applock: {
     lockFaceId: "Lock with Face ID",
