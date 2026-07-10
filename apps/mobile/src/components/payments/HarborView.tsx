@@ -29,6 +29,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
+  FadeIn,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -453,7 +454,13 @@ export function HarborView() {
       contentContainerStyle={styles.content}
       contentOffset={{ x: 0, y: CANVAS_HEIGHT }}
     >
-      <View style={styles.canvas} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      {/* The scene assembles organically: water first, then the fleet fades
+          in from the quay outward, the crane joining last — no single pop. */}
+      <Animated.View
+        style={styles.canvas}
+        entering={FadeIn.duration(200)}
+        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      >
         {/* Open water: deeper (darker) the farther from the quay. */}
         <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
 
@@ -687,8 +694,10 @@ export function HarborView() {
             Only the near fleet bobs; the far one rides still water. */}
         {width > 0 &&
           vessels.map((v, i) => (
-            <View
+            <Animated.View
               key={v.key}
+              // Nearest arrivals surface first; the far fleet follows.
+              entering={FadeIn.delay(60 + Math.min(400, v.daysUntil * 6)).duration(180)}
               // The transform scales around the box center; the top offset
               // compensates so the waterline still lands exactly on v.y.
               style={{
@@ -755,13 +764,19 @@ export function HarborView() {
                   )}
                 </Pressable>
               </MaybeDrift>
-            </View>
+            </Animated.View>
           ))}
 
         {/* The crane stands NEAREST the viewer: drawn over the fleet, so an
             arriving hull passes behind its legs and boom, never through. */}
         {width > 0 && (
-          <DockLife craneX={craneX} craneBase={craneBase} sea={sea} chart={colors.chart} />
+          <Animated.View
+            style={StyleSheet.absoluteFill}
+            entering={FadeIn.delay(180).duration(240)}
+            pointerEvents="none"
+          >
+            <DockLife craneX={craneX} craneBase={craneBase} sea={sea} chart={colors.chart} />
+          </Animated.View>
         )}
 
         {/* The day bubble: what lands that day, anchored to the hull. */}
@@ -824,7 +839,7 @@ export function HarborView() {
         <View style={styles.quayLabelWrap} pointerEvents="none">
           <Text style={styles.quayLabel}>{t("harbor.dock")}</Text>
         </View>
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 }

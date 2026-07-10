@@ -36,20 +36,18 @@ export function ScheduleView({
 
   if (lens === "harbor" && harborEnabled) {
     return (
-      <Animated.View style={styles.fill} entering={FadeIn.duration(220)}>
-        {/* The same header slot as the calendar's: the toggle stays put. */}
-        <View style={styles.lensRow}>
-          <View style={styles.lensSpacer} />
-          <Pressable
-            style={styles.lensButton}
-            onPress={() => onLens("grid")}
-            accessibilityLabel={t("payments.calendarA11y")}
-          >
-            <SymbolView name="arrow.backward" size={15} tintColor={colors.text} />
-          </Pressable>
-        </View>
+      <View style={styles.fill}>
+        {/* Full-bleed sea; the way back floats over the water so nothing
+            cuts the scene short. */}
         <HarborView />
-      </Animated.View>
+        <Pressable
+          style={styles.lensButton}
+          onPress={() => onLens("grid")}
+          accessibilityLabel={t("payments.calendarA11y")}
+        >
+          <SymbolView name="arrow.backward" size={15} tintColor={colors.text} />
+        </Pressable>
+      </View>
     );
   }
   return (
@@ -62,22 +60,21 @@ export function ScheduleView({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     fill: { flex: 1 },
-    // Mirrors the calendar header's geometry (content padding + 32pt button)
-    // so the toggle sits in the identical screen position in both lenses.
-    lensRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.md,
-    },
-    lensSpacer: { flex: 1 },
+    // Floats over the canvas top-right corner, clear of the paused shelf.
     lensButton: {
+      position: "absolute",
+      top: spacing.md + spacing.sm,
+      right: spacing.md + spacing.sm,
       width: 32,
       height: 32,
       borderRadius: radius.sm,
       backgroundColor: colors.surface,
       alignItems: "center",
       justifyContent: "center",
+      shadowColor: "#000",
+      shadowOpacity: 0.25,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 2 },
     },
   });
 }
