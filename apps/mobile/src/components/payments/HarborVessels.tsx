@@ -2,8 +2,9 @@
 // vessel, and what the day costs decides what carries it: a container ship,
 // a small cargo launch, a wooden crate, or a lost cardboard box. Sprites are
 // side-view silhouettes placed on the top-down sea (the classic harbor-map
-// trick) and anchored on their waterline; brand badges ride the cargo, so
-// the ship is the day and the containers are the payments.
+// trick) and anchored on their waterline. Each PAYMENT is a piece of cargo:
+// its container/crate scales with the charge amount and wears the brand
+// badge on its face, so nothing looks glued on top.
 
 import Svg, { G, Line, Path, Rect } from "react-native-svg";
 
@@ -16,6 +17,7 @@ export interface HarborPalette {
   sail: string;
   wood: string;
   woodDark: string;
+  wall: string;
   concrete: string;
   concreteEdge: string;
   hazard: string;
@@ -29,7 +31,6 @@ export interface HarborPalette {
   window: string;
   cardboard: string;
   cardboardDark: string;
-  submerge: string;
   wake: string;
 }
 
@@ -43,8 +44,9 @@ export function harborPalette(scheme: "light" | "dark"): HarborPalette {
         sail: "rgba(237,241,245,0.35)",
         wood: "#4A3A26",
         woodDark: "#372B1B",
-        concrete: "#222933",
-        concreteEdge: "#303945",
+        wall: "#1B222D",
+        concrete: "#242B36",
+        concreteEdge: "#39424F",
         hazard: "#C99F3A",
         hazardDark: "#161C26",
         joint: "rgba(0,0,0,0.35)",
@@ -56,7 +58,6 @@ export function harborPalette(scheme: "light" | "dark"): HarborPalette {
         window: "#2C3644",
         cardboard: "#A98A5F",
         cardboardDark: "#846A47",
-        submerge: "rgba(6,13,28,0.45)",
         wake: "rgba(237,241,245,0.35)",
       }
     : {
@@ -66,8 +67,9 @@ export function harborPalette(scheme: "light" | "dark"): HarborPalette {
         sail: "rgba(7,20,41,0.35)",
         wood: "#8A6A45",
         woodDark: "#6E5334",
+        wall: "#8E98A4",
         concrete: "#B9C0C9",
-        concreteEdge: "#CBD2DA",
+        concreteEdge: "#D4DAE1",
         hazard: "#E5B93F",
         hazardDark: "#3A404A",
         joint: "rgba(7,20,41,0.18)",
@@ -79,7 +81,6 @@ export function harborPalette(scheme: "light" | "dark"): HarborPalette {
         window: "#46505D",
         cardboard: "#C9A876",
         cardboardDark: "#A0855C",
-        submerge: "rgba(63,110,128,0.35)",
         wake: "rgba(255,255,255,0.6)",
       };
 }
@@ -95,72 +96,100 @@ export function vesselKind(cargoCount: number, share: number): VesselKind {
   return "box";
 }
 
+/** A piece of cargo on the sprite; the badge sits centered on its face. */
+export interface CargoRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
 export interface VesselGeometry {
   w: number;
   h: number;
   /** Sprite-top → waterline distance; vessels anchor on this line. */
   waterY: number;
-  /** Badge centers in sprite coordinates, one per visible cargo. */
-  badges: { x: number; y: number; size: number }[];
+  /** One rect per visible cargo, in sprite coordinates. */
+  cargo: CargoRect[];
+  /** Sprite tilt in degrees (the lost parcel lists a little). */
+  tilt?: number;
 }
 
-// Ship deck hardware, shared by geometry and drawing.
-const SHIP = { contW: 22, contH: 15, gap: 3, bridgeW: 15, margin: 9, off: 6 };
-const BOAT = { crateW: 18, crateH: 13, off: 5 };
+/** The badge that fits a cargo face. */
+export function badgeFor(rect: CargoRect): { x: number; y: number; size: number } {
+  return {
+    x: rect.x + rect.w / 2,
+    y: rect.y + rect.h / 2,
+    size: Math.max(13, Math.min(rect.w, rect.h) - 3),
+  };
+}
 
 /** How many cargo a hull can SHOW; the rest becomes the vessel's +N chip. */
 export function visibleCargo(kind: VesselKind, cargoCount: number): number {
   return Math.min(cargoCount, kind === "ship" ? 4 : 2);
 }
 
+const SHIP = { off: 6, stern: 8, bridgeW: 15, gap: 3 };
+const BOAT = { off: 5, stern: 4, cabinW: 12, gap: 3 };
+
+/**
+ * `cargoShares` is one 0..1 value per VISIBLE cargo (its charge relative to
+ * the fleet's biggest single charge); `dayShare` is the whole day's total
+ * relative to the fleet's biggest day.
+ */
 export function vesselGeometry(
   kind: VesselKind,
-  cargoCount: number,
-  share: number,
+  cargoShares: number[],
+  dayShare: number,
 ): VesselGeometry {
-  const n = visibleCargo(kind, cargoCount);
   if (kind === "ship") {
-    // The hull stretches for its cargo and swells a little with its share.
-    const boost = Math.round(share * 18);
-    const w =
-      SHIP.off * 2 +
-      SHIP.margin * 2 +
-      SHIP.bridgeW +
-      4 +
-      n * (SHIP.contW + SHIP.gap) -
-      SHIP.gap +
-      boost;
-    const cargoX0 = SHIP.off + SHIP.margin + SHIP.bridgeW + 4 + boost / 2;
-    return {
-      w: Math.max(88, w),
-      h: 56,
-      waterY: 46,
-      badges: Array.from({ length: n }, (_, i) => ({
-        x: cargoX0 + i * (SHIP.contW + SHIP.gap) + SHIP.contW / 2,
-        y: 18.5,
-        size: 20,
-      })),
-    };
+    // Containers grow with their charge; the hull stretches to hold them.
+    const boost = Math.round(dayShare * 14);
+    const deckY = 32;
+    let x = SHIP.off + SHIP.stern + SHIP.bridgeW + 4 + boost / 2;
+    const cargo: CargoRect[] = cargoShares.map((s) => {
+      const w = Math.round(20 + 14 * Math.sqrt(s));
+      const h = Math.round(16 + 8 * Math.sqrt(s));
+      const rect = { x, y: deckY - h, w, h };
+      x += w + SHIP.gap;
+      return rect;
+    });
+    const w = x - SHIP.gap + 12 + boost / 2 + SHIP.off;
+    return { w: Math.max(92, w), h: 56, waterY: 46, cargo };
   }
   if (kind === "boat") {
-    const boost = Math.round(share * 10);
-    const w = BOAT.off * 2 + 30 + n * (BOAT.crateW + 3) + boost;
-    const cargoX0 = BOAT.off + 22 + boost / 2;
-    return {
-      w,
-      h: 44,
-      waterY: 34,
-      badges: Array.from({ length: n }, (_, i) => ({
-        x: cargoX0 + i * (BOAT.crateW + 3) + BOAT.crateW / 2,
-        y: 15,
-        size: 18,
-      })),
-    };
+    const boost = Math.round(dayShare * 8);
+    const deckY = 26;
+    let x = BOAT.off + BOAT.stern + BOAT.cabinW + 4 + boost / 2;
+    const cargo: CargoRect[] = cargoShares.map((s) => {
+      const w = Math.round(16 + 10 * Math.sqrt(s));
+      const h = Math.round(14 + 6 * Math.sqrt(s));
+      const rect = { x, y: deckY - h, w, h };
+      x += w + BOAT.gap;
+      return rect;
+    });
+    const w = x - BOAT.gap + 10 + boost / 2 + BOAT.off;
+    return { w, h: 44, waterY: 34, cargo };
   }
   if (kind === "crate") {
-    return { w: 36, h: 38, waterY: 28, badges: [{ x: 18, y: 16, size: 20 }] };
+    // A floating crate rides low: about a quarter of it under the water.
+    const side = Math.round(26 + 14 * Math.sqrt(cargoShares[0] ?? 0));
+    const w = side + 12;
+    const h = side + 14;
+    const waterY = h - 9;
+    return { w, h, waterY, cargo: [{ x: 6, y: waterY + 5 - side, w: side, h: side }] };
   }
-  return { w: 34, h: 36, waterY: 26, badges: [{ x: 17, y: 15, size: 18 }] };
+  const side = Math.round(22 + 12 * Math.sqrt(cargoShares[0] ?? 0));
+  const w = side + 12;
+  const h = side + 14;
+  const waterY = h - 9;
+  return {
+    w,
+    h,
+    waterY,
+    cargo: [{ x: 6, y: waterY + 4 - side, w: side, h: side }],
+    tilt: -9,
+  };
 }
 
 interface SpriteProps {
@@ -180,13 +209,11 @@ export function VesselSprite({ kind, geo, palette, facing, cargoColors }: Sprite
       <G transform={facing === -1 ? `translate(${w},0) scale(-1,1)` : undefined}>
         {kind === "ship" && <ShipBody geo={geo} palette={palette} cargoColors={cargoColors} />}
         {kind === "boat" && <BoatBody geo={geo} palette={palette} />}
-        {kind === "crate" && <CrateBody palette={palette} />}
-        {kind === "box" && <BoxBody palette={palette} />}
-        {/* Below the waterline everything dims into the water. */}
-        <Rect x={0} y={waterY} width={w} height={h - waterY} fill={palette.submerge} />
+        {kind === "crate" && <CrateBody geo={geo} palette={palette} />}
+        {kind === "box" && <BoxBody geo={geo} palette={palette} />}
         {/* The water it sits in: short wake strokes at the hull. */}
-        <Line x1={0} y1={waterY} x2={8} y2={waterY} stroke={palette.wake} strokeWidth={1.4} />
-        <Line x1={w - 8} y1={waterY} x2={w} y2={waterY} stroke={palette.wake} strokeWidth={1.4} />
+        <Line x1={0} y1={waterY} x2={7} y2={waterY} stroke={palette.wake} strokeWidth={1.4} />
+        <Line x1={w - 7} y1={waterY} x2={w} y2={waterY} stroke={palette.wake} strokeWidth={1.4} />
       </G>
     </Svg>
   );
@@ -208,38 +235,39 @@ function ShipBody({
     <>
       {/* Hull: raked stern, bow slanting into the water. */}
       <Path
-        d={`M ${x0} 26 L ${x1 - 10} 26 L ${x1} ${waterY} L ${x1 - 5} 50 L ${x0 + 6} 50 L ${x0} ${waterY} Z`}
+        d={`M ${x0} 32 L ${x1 - 10} 32 L ${x1} ${waterY} L ${x1 - 5} 50 L ${x0 + 6} 50 L ${x0} ${waterY} Z`}
         fill={palette.hull}
       />
       {/* Boot stripe just above the waterline. */}
       <Rect x={x0 + 4} y={42.5} width={x1 - x0 - 10} height={2.5} fill={palette.stripe} />
       {/* Bridge castle at the stern, with its window band. */}
-      <Rect x={x0 + 4} y={8} width={SHIP.bridgeW} height={18} rx={1.5} fill={palette.bridge} />
-      <Rect x={x0 + 6.5} y={11} width={SHIP.bridgeW - 5} height={3} fill={palette.window} />
-      {/* Containers on deck, one per payment, in each brand's color. */}
-      {geo.badges.map((b, i) => (
+      <Rect x={x0 + 4} y={12} width={SHIP.bridgeW} height={20} rx={1.5} fill={palette.bridge} />
+      <Rect x={x0 + 6.5} y={15} width={SHIP.bridgeW - 5} height={3} fill={palette.window} />
+      {/* Containers on deck, one per payment, sized by its charge and
+          painted in the brand's color; the badge sits on this face. */}
+      {geo.cargo.map((c, i) => (
         <G key={`cont-${i}`}>
           <Rect
-            x={b.x - SHIP.contW / 2}
-            y={11}
-            width={SHIP.contW}
-            height={SHIP.contH}
+            x={c.x}
+            y={c.y}
+            width={c.w}
+            height={c.h}
             rx={1.5}
             fill={cargoColors[i] ?? palette.steel}
           />
           <Line
-            x1={b.x - 4}
-            y1={12.5}
-            x2={b.x - 4}
-            y2={24.5}
+            x1={c.x + 3}
+            y1={c.y + 1.5}
+            x2={c.x + 3}
+            y2={c.y + c.h - 1.5}
             stroke="rgba(0,0,0,0.18)"
             strokeWidth={1.4}
           />
           <Line
-            x1={b.x + 4}
-            y1={12.5}
-            x2={b.x + 4}
-            y2={24.5}
+            x1={c.x + c.w - 3}
+            y1={c.y + 1.5}
+            x2={c.x + c.w - 3}
+            y2={c.y + c.h - 1.5}
             stroke="rgba(0,0,0,0.18)"
             strokeWidth={1.4}
           />
@@ -257,28 +285,23 @@ function BoatBody({ geo, palette }: { geo: VesselGeometry; palette: HarborPalett
     <>
       {/* A working launch: light hull, dark gunwale, wheelhouse at the stern. */}
       <Path
-        d={`M ${x0} 22 L ${x1 - 6} 22 Q ${x1} 23 ${x1 - 4} 30 L ${x1 - 8} 38 L ${x0 + 8} 38 Q ${x0 + 1} 29 ${x0} 22 Z`}
+        d={`M ${x0} 26 L ${x1 - 6} 26 Q ${x1} 27 ${x1 - 4} 32 L ${x1 - 8} 38 L ${x0 + 8} 38 Q ${x0 + 1} 31 ${x0} 26 Z`}
         fill={palette.bridge}
       />
-      <Rect x={x0 + 1} y={22} width={x1 - x0 - 4} height={2.5} fill={palette.hull} />
-      <Rect x={x0 + 4} y={10} width={12} height={12} rx={1.5} fill={palette.hull} />
-      <Rect x={x0 + 6} y={12.5} width={8} height={3} fill={palette.bridge} />
-      {/* Crated cargo on the open deck. */}
-      {geo.badges.map((b, i) => (
+      <Rect x={x0 + 1} y={26} width={x1 - x0 - 4} height={2.5} fill={palette.hull} />
+      <Rect x={x0 + 4} y={14} width={BOAT.cabinW} height={12} rx={1.5} fill={palette.hull} />
+      <Rect x={x0 + 6} y={16.5} width={BOAT.cabinW - 4} height={3} fill={palette.bridge} />
+      {/* Crated cargo on the open deck, sized by its charge. */}
+      {geo.cargo.map((c, i) => (
         <G key={`crate-${i}`}>
+          <Rect x={c.x} y={c.y} width={c.w} height={c.h} rx={1} fill={palette.wood} />
           <Rect
-            x={b.x - BOAT.crateW / 2}
-            y={9}
-            width={BOAT.crateW}
-            height={BOAT.crateH}
+            x={c.x}
+            y={c.y}
+            width={c.w}
+            height={c.h}
             rx={1}
-            fill={palette.wood}
-          />
-          <Line
-            x1={b.x - BOAT.crateW / 2 + 1}
-            y1={15.5}
-            x2={b.x + BOAT.crateW / 2 - 1}
-            y2={15.5}
+            fill="none"
             stroke={palette.woodDark}
             strokeWidth={1.2}
           />
@@ -288,18 +311,33 @@ function BoatBody({ geo, palette }: { geo: VesselGeometry; palette: HarborPalett
   );
 }
 
-function CrateBody({ palette }: { palette: HarborPalette }) {
+function CrateBody({ geo, palette }: { geo: VesselGeometry; palette: HarborPalette }) {
+  const c = geo.cargo[0];
   return (
     <>
-      {/* A wooden crate riding low, half under the waterline. */}
-      <Rect x={5} y={6} width={26} height={24} rx={2} fill={palette.wood} />
-      <Line x1={6} y1={14} x2={30} y2={14} stroke={palette.woodDark} strokeWidth={1.4} />
-      <Line x1={6} y1={22} x2={30} y2={22} stroke={palette.woodDark} strokeWidth={1.4} />
+      {/* A wooden crate riding low in the water. */}
+      <Rect x={c.x} y={c.y} width={c.w} height={c.h} rx={2} fill={palette.wood} />
+      <Line
+        x1={c.x + 1}
+        y1={c.y + c.h * 0.3}
+        x2={c.x + c.w - 1}
+        y2={c.y + c.h * 0.3}
+        stroke={palette.woodDark}
+        strokeWidth={1.4}
+      />
+      <Line
+        x1={c.x + 1}
+        y1={c.y + c.h * 0.7}
+        x2={c.x + c.w - 1}
+        y2={c.y + c.h * 0.7}
+        stroke={palette.woodDark}
+        strokeWidth={1.4}
+      />
       <Rect
-        x={5}
-        y={6}
-        width={26}
-        height={24}
+        x={c.x}
+        y={c.y}
+        width={c.w}
+        height={c.h}
         rx={2}
         fill="none"
         stroke={palette.woodDark}
@@ -309,14 +347,24 @@ function CrateBody({ palette }: { palette: HarborPalette }) {
   );
 }
 
-function BoxBody({ palette }: { palette: HarborPalette }) {
+function BoxBody({ geo, palette }: { geo: VesselGeometry; palette: HarborPalette }) {
+  const c = geo.cargo[0];
+  const cx = c.x + c.w / 2;
+  const cy = c.y + c.h / 2;
   return (
     // A parcel that fell off some ship, listing a few degrees.
-    <G transform="rotate(-9 17 15)">
-      <Rect x={6} y={7} width={22} height={19} rx={1.5} fill={palette.cardboard} />
+    <G transform={`rotate(${geo.tilt ?? 0} ${cx} ${cy})`}>
+      <Rect x={c.x} y={c.y} width={c.w} height={c.h} rx={1.5} fill={palette.cardboard} />
       {/* Packing tape and the open-flap crease. */}
-      <Rect x={15.5} y={7} width={3} height={19} fill={palette.cardboardDark} />
-      <Line x1={6} y1={11} x2={28} y2={11} stroke={palette.cardboardDark} strokeWidth={1.2} />
+      <Rect x={cx - 1.5} y={c.y} width={3} height={c.h} fill={palette.cardboardDark} />
+      <Line
+        x1={c.x}
+        y1={c.y + 4}
+        x2={c.x + c.w}
+        y2={c.y + 4}
+        stroke={palette.cardboardDark}
+        strokeWidth={1.2}
+      />
     </G>
   );
 }

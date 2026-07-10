@@ -427,6 +427,7 @@ export const fr: typeof en = {
     year: "1 an",
     paused: "En pause",
     more: "+{{count}}",
+    dayTotal: "Ce jour-là",
     emptyTitle: "Rien au mouillage pour l'instant",
     emptyHint:
       "Ajoutez des abonnements et ils arriveront ici par bateau, à la taille de leur coût.",

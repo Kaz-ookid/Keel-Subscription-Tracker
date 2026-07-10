@@ -1,23 +1,24 @@
 // The Harbor view (DESIGN.md §3.7 B, experimental — behind the Settings debug
-// toggle): the year's charges as a fleet arriving at an industrial quay.
-// Every BILLING DAY is one vessel; payments due the same day sail together as
-// containers on the same ship. What a day costs decides its vessel (container
-// ship → launch → wooden crate → lost cardboard box) and its size; distance
-// from the quay maps days until the charge, on a square-root scale a full
-// year deep. The screen opens at the quay and scrolls up into open water.
-// Paused items sit grey on a shelf; tap any cargo to open its item.
+// toggle): the coming YEAR of charges as a fleet arriving at an industrial
+// quay. Every projected charge sails in — a monthly subscription appears
+// twelve times up the sea, not just once. Each billing day is one vessel;
+// same-day payments share it as cargo. Vessel type and size follow the DAY'S
+// charge total (container ship → launch → crate → lost box), each cargo piece
+// scales with ITS charge, and distance from the quay maps days until due on a
+// square-root scale. Tapping a vessel opens a day bubble (what lands, for how
+// much); tapping a bubble row opens the item. Opens at the quay, scrolls out.
 
 import {
-  isInstallmentSchedule,
-  isPaymentItemComplete,
-  isRecurringSchedule,
+  addRecurrence,
+  formatCalendarDate,
+  formatMoney,
+  formatTotalsIn,
   mergeTotals,
-  monthlyEquivalent,
-  summarizeInstallmentPlan,
+  projectCharges,
   today,
   type CalendarDate,
   type Money,
-  type PaymentItem,
+  type ProjectedCharge,
 } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -41,6 +42,7 @@ import { BrandBadge } from "../BrandBadge";
 import { EmptyState } from "../ui/EmptyState";
 import { Waterline } from "../Waterline";
 import {
+  badgeFor,
   harborPalette,
   vesselGeometry,
   vesselKind,
@@ -51,13 +53,18 @@ import {
 } from "./HarborVessels";
 
 const CANVAS_HEIGHT = 1180;
-const QUAY_HEIGHT = 44;
+// The quay is an elevated structure now: a seawall the water laps against,
+// a hazard-striped lip, then the walk surface with the yard on it.
+const QUAY_HEIGHT = 64;
+const WALL_H = 22;
+const HAZARD_H = 6;
 const LAP_HEIGHT = 10;
 // A full year of sea, on a square-root scale: the next weeks get the most
 // water, the far future compresses toward the horizon.
 const HORIZON_DAYS = 365;
-const MAX_VESSELS = 22;
+const MAX_VESSELS = 40;
 const TOP_PAD = 64; // room for the paused shelf and the horizon sail
+const BUBBLE_W = 232;
 
 /** 0 (at the quay) → 1 (horizon), sqrt-compressed. */
 function distanceFraction(days: number): number {
@@ -65,16 +72,18 @@ function distanceFraction(days: number): number {
 }
 
 interface Cargo {
-  item: PaymentItem;
-  monthly: number;
+  charge: ProjectedCharge;
+  value: number;
 }
 
 interface Vessel {
-  key: string;
+  key: CalendarDate;
   daysUntil: number;
   total: number;
+  /** ALL of the day's cargo (the bubble lists everything)… */
   cargo: Cargo[];
-  hiddenCargo: number;
+  /** …but the sprite only shows the first `shown`. */
+  shown: number;
   kind: VesselKind;
   geo: VesselGeometry;
   facing: 1 | -1;
@@ -112,6 +121,8 @@ export function HarborView() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, categories, displayCurrency, rates } = useAppState();
   const [width, setWidth] = useState(0);
+  // The day bubble: which vessel's cargo is being previewed.
+  const [selectedKey, setSelectedKey] = useState<CalendarDate | null>(null);
   // Open at the quay (today); the year of sea is above, one scroll away.
   const scrollRef = useRef<ScrollView>(null);
   const openedAtQuay = useRef(false);
@@ -130,81 +141,84 @@ export function HarborView() {
   };
 
   const quayTop = CANVAS_HEIGHT - QUAY_HEIGHT;
+  const surfaceTop = quayTop + WALL_H + HAZARD_H;
 
   const { vessels, paused, overflow } = useMemo(() => {
-    const live = items.filter((i) => i.status === "active" && !isPaymentItemComplete(i, asOf));
     const pausedItems = items.filter((i) => i.status === "paused");
 
-    const candidates = live.flatMap((item) => {
-      if (isRecurringSchedule(item.schedule)) {
-        const s = item.schedule;
-        return [
-          {
-            item,
-            date: s.nextChargeDate,
-            monthly: numeric(monthlyEquivalent(s.amount, s.recurrence)),
-          },
-        ];
-      }
-      if (isInstallmentSchedule(item.schedule)) {
-        const plan = summarizeInstallmentPlan(item.schedule);
-        if (!plan.nextDue) return [];
-        // A plan's "displacement" is its per-installment bite.
-        return [{ item, date: plan.nextDue.dueDate, monthly: numeric(plan.nextDue.amount) }];
-      }
-      return [];
-    });
+    // The same projection engine as the Upcoming list, a year deep: EVERY
+    // future charge sails, sized by the amount actually leaving that day
+    // (a 500/year plan is a big ship on its one day, not a small box).
+    const horizonEnd = addRecurrence(asOf, { unit: "month", interval: 12 });
+    const charges = projectCharges(items, horizonEnd);
 
     // One vessel per billing day: same-day payments sail together.
     const byDay = new Map<CalendarDate, Cargo[]>();
-    for (const c of candidates) {
-      const bucket = byDay.get(c.date);
-      if (bucket) bucket.push(c);
-      else byDay.set(c.date, [c]);
+    for (const charge of charges) {
+      const cargo = { charge, value: numeric(charge.amount) };
+      const bucket = byDay.get(charge.dueDate);
+      if (bucket) bucket.push(cargo);
+      else byDay.set(charge.dueDate, [cargo]);
     }
     const groups = Array.from(byDay.entries()).map(([date, cargo]) => ({
       date,
       daysUntil: Math.max(0, daysBetween(asOf, date)),
-      cargo: cargo.sort((a, b) => b.monthly - a.monthly),
-      total: cargo.reduce((sum, c) => sum + c.monthly, 0),
+      cargo: cargo.sort((a, b) => b.value - a.value),
+      total: cargo.reduce((sum, c) => sum + c.value, 0),
     }));
-    groups.sort((a, b) => b.total - a.total);
+    // The nearest days matter most; the far horizon compresses anyway.
+    groups.sort((a, b) => a.daysUntil - b.daysUntil);
     const kept = groups.slice(0, MAX_VESSELS);
     const cut = groups.slice(MAX_VESSELS).reduce((sum, g) => sum + g.cargo.length, 0);
-    const maxTotal = Math.max(1, ...kept.map((g) => g.total));
+    const maxDay = Math.max(1, ...kept.map((g) => g.total));
+    const maxCharge = Math.max(1, ...kept.flatMap((g) => g.cargo.map((c) => c.value)));
 
-    // Place the big days first: golden-ratio x spread, nudged until hulls
-    // stop overlapping. Deterministic, so the harbor doesn't reshuffle.
+    // Place the big days first: golden-ratio x spread, nudged (x, then a few
+    // y steps) until hulls stop overlapping. Deterministic, no reshuffling.
+    const order = [...kept].sort((a, b) => b.total - a.total);
     const placed: Vessel[] = [];
     const w = Math.max(width, 1);
     const yNear = quayTop - LAP_HEIGHT - 12;
     const yFar = TOP_PAD + 52;
-    kept.forEach((g, i) => {
-      const share = g.total / maxTotal;
-      const kind = vesselKind(g.cargo.length, share);
-      const geo = vesselGeometry(kind, g.cargo.length, share);
+    order.forEach((g, i) => {
+      const dayShare = g.total / maxDay;
+      const kind = vesselKind(g.cargo.length, dayShare);
       const shown = visibleCargo(kind, g.cargo.length);
-      const y = yNear - distanceFraction(g.daysUntil) * (yNear - yFar);
+      const geo = vesselGeometry(
+        kind,
+        g.cargo.slice(0, shown).map((c) => c.value / maxCharge),
+        dayShare,
+      );
+      const yIdeal = yNear - distanceFraction(g.daysUntil) * (yNear - yFar);
       const xMin = geo.w / 2 + 6;
       const xMax = w - geo.w / 2 - 6;
-      let x = xMin + ((i * 0.61803) % 1) * Math.max(xMax - xMin, 1);
-      let tries = 0;
-      const collides = (px: number) =>
+      const collides = (px: number, py: number) =>
         placed.some(
           (p) =>
             Math.abs(p.x - px) < (p.geo.w + geo.w) / 2 + 8 &&
-            Math.abs(p.y - y) < (p.geo.h + geo.h) / 2 + 4,
+            Math.abs(p.y - py) < (p.geo.h + geo.h) / 2 + 4,
         );
-      while (tries < 40 && collides(x)) {
-        x = xMin + (((x - xMin) / Math.max(xMax - xMin, 1) + 0.19) % 1) * Math.max(xMax - xMin, 1);
-        tries += 1;
+      let x = xMin + ((i * 0.61803) % 1) * Math.max(xMax - xMin, 1);
+      let y = yIdeal;
+      outer: for (const dy of [0, -18, 18, -36, 36]) {
+        const py = Math.min(Math.max(yIdeal + dy, yFar), yNear);
+        let px = x;
+        for (let tries = 0; tries < 24; tries += 1) {
+          if (!collides(px, py)) {
+            x = px;
+            y = py;
+            break outer;
+          }
+          px =
+            xMin + (((px - xMin) / Math.max(xMax - xMin, 1) + 0.19) % 1) * Math.max(xMax - xMin, 1);
+        }
       }
       placed.push({
         key: g.date,
         daysUntil: g.daysUntil,
         total: g.total,
-        cargo: g.cargo.slice(0, shown),
-        hiddenCargo: g.cargo.length - shown,
+        cargo: g.cargo,
+        shown,
         kind,
         geo,
         facing: i % 2 === 0 ? 1 : -1,
@@ -245,7 +259,24 @@ export function HarborView() {
         }))
       : [];
 
-  const craneX = width * 0.7;
+  const craneX = width * 0.68;
+  const craneBase = CANVAS_HEIGHT - 12;
+  const selected = selectedKey ? (vessels.find((v) => v.key === selectedKey) ?? null) : null;
+
+  // The day bubble's frame: above the vessel when there's room, else below,
+  // clamped inside the canvas, its tip pointing back at the hull.
+  const bubble = (() => {
+    if (!selected || width === 0) return null;
+    const rowCount = selected.cargo.length;
+    const height = 44 + rowCount * 34 + (rowCount > 1 ? 28 : 0);
+    const above = selected.y - selected.geo.waterY - height - 12 >= 8;
+    const top = above
+      ? selected.y - selected.geo.waterY - height - 10
+      : selected.y + (selected.geo.h - selected.geo.waterY) + 12;
+    const left = Math.min(Math.max(selected.x - BUBBLE_W / 2, 8), width - BUBBLE_W - 8);
+    const tipX = Math.min(Math.max(selected.x - left - 7, 14), BUBBLE_W - 28);
+    return { top, left, tipX, above };
+  })();
 
   return (
     <ScrollView
@@ -304,131 +335,189 @@ export function HarborView() {
               />
             ))}
 
-            {/* The quay: poured concrete with expansion joints and a
-                hazard-striped edge; TODAY is painted on the slab. */}
-            <Rect x={0} y={quayTop} width={width} height={QUAY_HEIGHT} fill={sea.concrete} />
-            <Rect x={0} y={quayTop} width={width} height={2} fill={sea.concreteEdge} />
-            <Rect x={0} y={quayTop + 2} width={width} height={5} fill={sea.hazard} />
+            {/* The seawall the water laps against: the quay has HEIGHT. */}
+            <Rect x={0} y={quayTop} width={width} height={WALL_H} fill={sea.wall} />
+            {Array.from({ length: Math.floor(width / 90) + 1 }, (_, i) => (
+              <Line
+                key={`stain-${i}`}
+                x1={i * 90 + 34}
+                x2={i * 90 + 34}
+                y1={quayTop + 4}
+                y2={quayTop + WALL_H}
+                stroke="rgba(0,0,0,0.22)"
+                strokeWidth={2}
+              />
+            ))}
+
+            {/* The hazard-striped lip of the surface. */}
+            <Rect x={0} y={quayTop + WALL_H} width={width} height={HAZARD_H} fill={sea.hazard} />
             {Array.from({ length: Math.ceil(width / 14) + 1 }, (_, i) => (
               <Path
                 key={`hz-${i}`}
-                d={`M ${i * 14} ${quayTop + 7} l 7 -5 l 4 0 l -7 5 Z`}
+                d={`M ${i * 14} ${quayTop + WALL_H + HAZARD_H} l 7 -${HAZARD_H} l 4 0 l -7 ${HAZARD_H} Z`}
                 fill={sea.hazardDark}
               />
             ))}
+
+            {/* The walk surface: concrete, expansion joints, TODAY stencil. */}
+            <Rect
+              x={0}
+              y={surfaceTop}
+              width={width}
+              height={CANVAS_HEIGHT - surfaceTop}
+              fill={sea.concrete}
+            />
+            <Line
+              x1={0}
+              x2={width}
+              y1={surfaceTop + 1}
+              y2={surfaceTop + 1}
+              stroke={sea.concreteEdge}
+              strokeWidth={1.5}
+            />
             {Array.from({ length: Math.floor(width / 56) }, (_, i) => (
               <Line
                 key={`joint-${i}`}
                 x1={(i + 1) * 56}
                 x2={(i + 1) * 56}
-                y1={quayTop + 9}
+                y1={surfaceTop + 3}
                 y2={CANVAS_HEIGHT}
                 stroke={sea.joint}
                 strokeWidth={1}
               />
             ))}
 
-            {/* Steel bollards along the edge. */}
-            {[0.3, 0.55, 0.82].map((f) => (
+            {/* Steel bollards on the lip. */}
+            {[0.26, 0.5, 0.9].map((f) => (
               <G key={`bollard-${f}`}>
                 <Rect
-                  x={f * width - 3.5}
-                  y={quayTop - 8}
-                  width={7}
-                  height={10}
+                  x={f * width - 4}
+                  y={surfaceTop - 2}
+                  width={8}
+                  height={9}
                   rx={2}
                   fill={sea.steelDark}
                 />
                 <Rect
-                  x={f * width - 5.5}
-                  y={quayTop - 11}
-                  width={11}
-                  height={4.5}
-                  rx={2}
+                  x={f * width - 6}
+                  y={surfaceTop - 5}
+                  width={12}
+                  height={5}
+                  rx={2.5}
                   fill={sea.steel}
                 />
               </G>
             ))}
 
-            {/* Container stacks waiting on the quay corners. */}
+            {/* Container stacks in the yard, rising past the wall (the same
+                cheap isometry as the fleet: front face + lit top + dark side). */}
             {(
               [
-                { x: 8, y: quayTop - 13, c: 0 },
-                { x: 8, y: quayTop - 26, c: 1 },
-                { x: 46, y: quayTop - 13, c: 2 },
-                { x: width - 44, y: quayTop - 13, c: 3 },
-                { x: width - 40, y: quayTop - 26, c: 4 },
+                { x: 10, y: CANVAS_HEIGHT - 16, c: 0 },
+                { x: 10, y: CANVAS_HEIGHT - 30, c: 1 },
+                { x: 12, y: CANVAS_HEIGHT - 44, c: 2 },
+                { x: 52, y: CANVAS_HEIGHT - 16, c: 3 },
+                { x: 52, y: CANVAS_HEIGHT - 30, c: 4 },
+                { x: width - 48, y: CANVAS_HEIGHT - 16, c: 5 },
+                { x: width - 48, y: CANVAS_HEIGHT - 30, c: 6 },
               ] as const
-            ).map((s, i) => (
-              <G key={`stack-${i}`} opacity={0.92}>
-                <Rect
-                  x={s.x}
-                  y={s.y}
-                  width={36}
-                  height={12}
-                  rx={1.5}
-                  fill={colors.chart[s.c % colors.chart.length]}
-                />
-                {[9, 18, 27].map((dx) => (
-                  <Line
-                    key={`corr-${dx}`}
-                    x1={s.x + dx}
-                    y1={s.y + 1.5}
-                    x2={s.x + dx}
-                    y2={s.y + 10.5}
-                    stroke="rgba(0,0,0,0.2)"
-                    strokeWidth={1.2}
+            ).map((s, i) => {
+              const color = colors.chart[s.c % colors.chart.length];
+              return (
+                <G key={`stack-${i}`} opacity={0.92}>
+                  <Rect x={s.x} y={s.y} width={36} height={13} rx={1} fill={color} />
+                  <Path
+                    d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
+                    fill={color}
                   />
-                ))}
-              </G>
-            ))}
+                  <Path
+                    d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
+                    fill="rgba(255,255,255,0.25)"
+                  />
+                  <Path
+                    d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
+                    fill={color}
+                  />
+                  <Path
+                    d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
+                    fill="rgba(0,0,0,0.3)"
+                  />
+                  {[9, 18, 27].map((dx) => (
+                    <Line
+                      key={`corr-${dx}`}
+                      x1={s.x + dx}
+                      y1={s.y + 1.5}
+                      x2={s.x + dx}
+                      y2={s.y + 11.5}
+                      stroke="rgba(0,0,0,0.2)"
+                      strokeWidth={1.2}
+                    />
+                  ))}
+                </G>
+              );
+            })}
 
-            {/* The gantry crane, mid-lift over the water. */}
+            {/* The gantry crane, standing on the yard, boom out over the sea,
+                mid-lift. */}
             <G>
-              <Rect x={craneX - 16} y={quayTop - 52} width={6} height={56} fill={sea.steel} />
-              <Rect x={craneX + 10} y={quayTop - 52} width={6} height={56} fill={sea.steel} />
+              <Rect x={craneX - 18} y={craneBase - 108} width={6} height={108} fill={sea.steel} />
+              <Rect x={craneX + 12} y={craneBase - 108} width={6} height={108} fill={sea.steel} />
               <Line
-                x1={craneX - 13}
-                y1={quayTop - 10}
-                x2={craneX + 13}
-                y2={quayTop - 34}
+                x1={craneX - 15}
+                y1={craneBase - 30}
+                x2={craneX + 15}
+                y2={craneBase - 70}
                 stroke={sea.steelDark}
                 strokeWidth={2}
               />
-              <Rect x={craneX - 84} y={quayTop - 58} width={140} height={5} fill={sea.steel} />
-              <Rect x={craneX - 4} y={quayTop - 73} width={8} height={15} fill={sea.steel} />
+              <Line
+                x1={craneX + 15}
+                y1={craneBase - 30}
+                x2={craneX - 15}
+                y2={craneBase - 70}
+                stroke={sea.steelDark}
+                strokeWidth={2}
+              />
+              <Rect x={craneX - 95} y={craneBase - 114} width={150} height={6} fill={sea.steel} />
+              <Rect x={craneX - 4} y={craneBase - 132} width={8} height={18} fill={sea.steel} />
               <Line
                 x1={craneX}
-                y1={quayTop - 71}
-                x2={craneX - 82}
-                y2={quayTop - 56}
+                y1={craneBase - 130}
+                x2={craneX - 92}
+                y2={craneBase - 111}
                 stroke={sea.steelDark}
                 strokeWidth={1.4}
               />
               <Line
                 x1={craneX}
-                y1={quayTop - 71}
-                x2={craneX + 54}
-                y2={quayTop - 56}
-                stroke={sea.steelDark}
-                strokeWidth={1.4}
-              />
-              <Rect x={craneX + 42} y={quayTop - 52} width={14} height={9} fill={sea.steelDark} />
-              {/* Trolley, cable, and the container on the hook. */}
-              <Rect x={craneX - 62} y={quayTop - 54} width={10} height={7} fill={sea.hazard} />
-              <Line
-                x1={craneX - 57}
-                y1={quayTop - 47}
-                x2={craneX - 57}
-                y2={quayTop - 32}
+                y1={craneBase - 130}
+                x2={craneX + 52}
+                y2={craneBase - 111}
                 stroke={sea.steelDark}
                 strokeWidth={1.4}
               />
               <Rect
-                x={craneX - 68}
-                y={quayTop - 32}
-                width={22}
-                height={12}
+                x={craneX + 38}
+                y={craneBase - 108}
+                width={15}
+                height={10}
+                fill={sea.steelDark}
+              />
+              {/* Trolley, cable, and the container on the hook. */}
+              <Rect x={craneX - 72} y={craneBase - 109} width={11} height={8} fill={sea.hazard} />
+              <Line
+                x1={craneX - 66.5}
+                y1={craneBase - 101}
+                x2={craneX - 66.5}
+                y2={craneBase - 72}
+                stroke={sea.steelDark}
+                strokeWidth={1.4}
+              />
+              <Rect
+                x={craneX - 78}
+                y={craneBase - 72}
+                width={23}
+                height={13}
                 rx={1.5}
                 fill={colors.chart[5 % colors.chart.length]}
               />
@@ -436,7 +525,7 @@ export function HarborView() {
           </Svg>
         )}
 
-        {/* Water lapping against the quay. */}
+        {/* Water lapping against the seawall. */}
         {width > 0 && (
           <View style={styles.lapWrap} pointerEvents="none">
             <Waterline height={LAP_HEIGHT} width={width} color={colors.accentStrong} />
@@ -482,79 +571,133 @@ export function HarborView() {
           </View>
         )}
 
-        {/* The fleet. Each vessel is a billing day; badges are its cargo. */}
+        {/* The fleet. Each vessel is a billing day; tap it for the day. */}
         {width > 0 &&
-          vessels.map((v, i) => {
-            const single = v.cargo.length === 1 && v.hiddenCargo === 0;
-            const open = (item: PaymentItem) =>
-              router.push({ pathname: "/item", params: { id: item.id } });
-            return (
-              <View
-                key={v.key}
-                style={{
-                  position: "absolute",
-                  left: v.x - v.geo.w / 2,
-                  top: v.y - v.geo.waterY,
-                  width: v.geo.w,
-                  height: v.geo.h,
-                }}
-              >
-                <Drift index={i}>
-                  <Pressable
-                    onPress={single ? () => open(v.cargo[0].item) : undefined}
-                    accessibilityLabel={v.cargo.map((c) => c.item.name).join(", ")}
-                  >
-                    <VesselSprite
-                      kind={v.kind}
-                      geo={v.geo}
-                      palette={sea}
-                      facing={v.facing}
-                      cargoColors={v.cargo.map((c) => c.item.color ?? colors.accent)}
-                    />
-                    {v.cargo.map((c, j) => {
-                      const anchor = v.geo.badges[j];
-                      if (!anchor) return null;
-                      const bx = v.facing === -1 ? v.geo.w - anchor.x : anchor.x;
-                      const category = categories.find((cat) => cat.id === c.item.categoryId);
-                      return (
-                        <Pressable
-                          key={c.item.id}
-                          onPress={() => open(c.item)}
-                          hitSlop={6}
-                          accessibilityLabel={c.item.name}
-                          style={{
-                            position: "absolute",
-                            left: bx - anchor.size / 2,
-                            top: anchor.y - anchor.size / 2,
-                          }}
-                        >
-                          <BrandBadge
-                            domain={c.item.domain}
-                            icon={category?.icon}
-                            fallback={c.item.name.charAt(0).toUpperCase()}
-                            color={c.item.color ?? colors.accent}
-                            size={anchor.size}
-                          />
-                        </Pressable>
-                      );
-                    })}
-                    {v.hiddenCargo > 0 && (
+          vessels.map((v, i) => (
+            <View
+              key={v.key}
+              style={{
+                position: "absolute",
+                left: v.x - v.geo.w / 2,
+                top: v.y - v.geo.waterY,
+                width: v.geo.w,
+                height: v.geo.h,
+              }}
+            >
+              <Drift index={i}>
+                <Pressable
+                  onPress={() => setSelectedKey(selectedKey === v.key ? null : v.key)}
+                  accessibilityLabel={v.cargo.map((c) => c.charge.name).join(", ")}
+                >
+                  <VesselSprite
+                    kind={v.kind}
+                    geo={v.geo}
+                    palette={sea}
+                    facing={v.facing}
+                    cargoColors={v.cargo
+                      .slice(0, v.shown)
+                      .map((c) => c.charge.color ?? colors.accent)}
+                  />
+                  {v.cargo.slice(0, v.shown).map((c, j) => {
+                    const rect = v.geo.cargo[j];
+                    if (!rect) return null;
+                    const anchor = badgeFor(rect);
+                    const bx = v.facing === -1 ? v.geo.w - anchor.x : anchor.x;
+                    const category = categories.find((cat) => cat.id === c.charge.categoryId);
+                    return (
                       <View
-                        style={[
-                          styles.cargoMore,
-                          v.facing === -1 ? { top: 8, left: 2 } : { top: 8, right: 2 },
-                        ]}
+                        key={`${c.charge.paymentItemId}-${j}`}
+                        pointerEvents="none"
+                        style={{
+                          position: "absolute",
+                          left: bx - anchor.size / 2,
+                          top: anchor.y - anchor.size / 2,
+                          transform: v.geo.tilt ? [{ rotate: `${v.geo.tilt}deg` }] : undefined,
+                        }}
                       >
-                        <Text style={styles.cargoMoreText}>
-                          {t("harbor.more", { count: v.hiddenCargo })}
-                        </Text>
+                        <BrandBadge
+                          domain={c.charge.domain}
+                          icon={category?.icon}
+                          fallback={c.charge.name.charAt(0).toUpperCase()}
+                          color={c.charge.color ?? colors.accent}
+                          size={anchor.size}
+                        />
                       </View>
-                    )}
+                    );
+                  })}
+                  {v.cargo.length > v.shown && (
+                    <View
+                      style={[
+                        styles.cargoMore,
+                        v.facing === -1 ? { top: 8, left: 2 } : { top: 8, right: 2 },
+                      ]}
+                    >
+                      <Text style={styles.cargoMoreText}>
+                        {t("harbor.more", { count: v.cargo.length - v.shown })}
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+              </Drift>
+            </View>
+          ))}
+
+        {/* The day bubble: tap water to dismiss, tap a row for the item. */}
+        {selected && bubble && (
+          <>
+            <Pressable style={StyleSheet.absoluteFill} onPress={() => setSelectedKey(null)} />
+            <View style={[styles.bubble, { top: bubble.top, left: bubble.left, width: BUBBLE_W }]}>
+              <Text style={styles.bubbleTitle}>
+                {formatCalendarDate(selected.key)} ·{" "}
+                {t("harbor.days", { count: selected.daysUntil })}
+              </Text>
+              {selected.cargo.map((c, j) => {
+                const category = categories.find((cat) => cat.id === c.charge.categoryId);
+                return (
+                  <Pressable
+                    key={`${c.charge.paymentItemId}-${j}`}
+                    style={styles.bubbleRow}
+                    onPress={() => {
+                      setSelectedKey(null);
+                      router.push({ pathname: "/item", params: { id: c.charge.paymentItemId } });
+                    }}
+                  >
+                    <BrandBadge
+                      domain={c.charge.domain}
+                      icon={category?.icon}
+                      fallback={c.charge.name.charAt(0).toUpperCase()}
+                      color={c.charge.color ?? colors.accent}
+                      size={22}
+                    />
+                    <Text style={styles.bubbleName} numberOfLines={1}>
+                      {c.charge.name}
+                    </Text>
+                    <Text style={styles.bubbleAmount}>{formatMoney(c.charge.amount)}</Text>
                   </Pressable>
-                </Drift>
-              </View>
-            );
-          })}
+                );
+              })}
+              {selected.cargo.length > 1 && (
+                <View style={styles.bubbleTotalRow}>
+                  <Text style={styles.bubbleTotalLabel}>{t("harbor.dayTotal")}</Text>
+                  <Text style={styles.bubbleTotalValue}>
+                    {formatTotalsIn(
+                      selected.cargo.map((c) => c.charge.amount),
+                      displayCurrency,
+                      rates,
+                    )}
+                  </Text>
+                </View>
+              )}
+              <View
+                style={[
+                  styles.bubbleTip,
+                  bubble.above ? styles.bubbleTipDown : styles.bubbleTipUp,
+                  { left: bubble.tipX },
+                ]}
+              />
+            </View>
+          </>
+        )}
 
         {overflow > 0 && (
           <View style={styles.overflowChip}>
@@ -591,7 +734,7 @@ function createStyles(colors: ThemeColors) {
       position: "absolute",
       left: 0,
       right: 0,
-      bottom: QUAY_HEIGHT - 1,
+      bottom: QUAY_HEIGHT - 8,
       height: LAP_HEIGHT + 6,
     },
     gridLabel: {
@@ -632,6 +775,60 @@ function createStyles(colors: ThemeColors) {
       ...typography.micro,
       color: colors.mutedText,
     },
+    bubble: {
+      position: "absolute",
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      shadowColor: "#000",
+      shadowOpacity: 0.3,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+    },
+    bubbleTitle: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.mutedText,
+      paddingBottom: spacing.xs,
+    },
+    bubbleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingVertical: 6,
+    },
+    bubbleName: { ...typography.label, color: colors.text, flex: 1 },
+    bubbleAmount: { ...typography.caption, color: colors.mutedText },
+    bubbleTotalRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+      paddingTop: spacing.xs,
+      marginTop: 2,
+    },
+    bubbleTotalLabel: { ...typography.caption, color: colors.mutedText },
+    bubbleTotalValue: { ...typography.caption, fontWeight: "600", color: colors.text },
+    bubbleTip: {
+      position: "absolute",
+      width: 0,
+      height: 0,
+      borderLeftWidth: 7,
+      borderRightWidth: 7,
+      borderLeftColor: "transparent",
+      borderRightColor: "transparent",
+    },
+    bubbleTipDown: {
+      bottom: -8,
+      borderTopWidth: 8,
+      borderTopColor: colors.surface,
+    },
+    bubbleTipUp: {
+      top: -8,
+      borderBottomWidth: 8,
+      borderBottomColor: colors.surface,
+    },
     overflowChip: {
       position: "absolute",
       bottom: QUAY_HEIGHT + spacing.sm + LAP_HEIGHT,
@@ -651,7 +848,7 @@ function createStyles(colors: ThemeColors) {
       left: 0,
       right: 0,
       bottom: 0,
-      height: QUAY_HEIGHT - 10,
+      height: QUAY_HEIGHT - WALL_H - HAZARD_H,
       alignItems: "center",
       justifyContent: "center",
     },

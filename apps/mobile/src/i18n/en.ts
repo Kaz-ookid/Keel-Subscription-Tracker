@@ -426,6 +426,7 @@ export const en = {
     year: "1 y",
     paused: "Paused",
     more: "+{{count}}",
+    dayTotal: "That day",
     emptyTitle: "Nothing at anchor yet",
     emptyHint: "Add subscriptions and they arrive here by ship, sized by what they cost.",
     legend:
