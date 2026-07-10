@@ -1,10 +1,12 @@
-﻿// History: the itemized spending ledger — every actual charge, newest first,
-// searchable and filterable (range / account / category). The statement view,
-// complementary to Insights (the shape) and the Calendar (one month). All the
-// "what actually went out" math is buildSpendLedger in @keel/core; this screen
-// filters, groups by month, and formats.
+﻿// History: the bank-statement view — every charge that ACTUALLY happened,
+// newest first, searchable, filterable by account, grouped by month with
+// totals. Its one job (nothing else covers it): find a real past charge
+// across everything ("did that really bill me, when, how much"). Insights
+// answers one month at a time, item pages one commitment at a time.
+// Deliberately lean: search, chips, list — no hero, no range pickers
+// (2026-07-10 rethink; the month sections ARE the range control).
 //
-// Lives under Insights > Explore (its tab was retired 2026-07-10: a real
+// Lives under Insights > Explore (its tab was retired the same day: a real
 // feature, but too low-frequency for tab-level weight).
 
 import {
@@ -14,7 +16,6 @@ import {
   formatMoney,
   formatTotalsIn,
   today,
-  type CalendarDate,
   type LedgerEntry,
 } from "@keel/core";
 import { useRouter } from "expo-router";
@@ -32,23 +33,11 @@ import {
 } from "react-native";
 
 import { BrandBadge } from "../src/components/BrandBadge";
-import { HeroCard } from "../src/components/HeroCard";
-import { Segmented } from "../src/components/Segmented";
 import { Chip } from "../src/components/ui/Chip";
 import { EmptyState } from "../src/components/ui/EmptyState";
 import { monthFull } from "../src/i18n/dates";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
-
-type Range = "3m" | "6m" | "12m" | "all";
-const RANGE_MONTHS: Record<Exclude<Range, "all">, number> = { "3m": 3, "6m": 6, "12m": 12 };
-
-function firstOfShiftedMonth(asOf: CalendarDate, delta: number): CalendarDate {
-  const total = Number(asOf.slice(0, 4)) * 12 + (Number(asOf.slice(5, 7)) - 1) + delta;
-  const y = Math.floor(total / 12);
-  const m = String((total % 12) + 1).padStart(2, "0");
-  return calendarDate(`${y}-${m}-01`);
-}
 
 interface MonthSection {
   title: string;
@@ -65,26 +54,15 @@ export default function HistoryScreen() {
   const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppState();
   const asOf = today();
 
-  const [range, setRange] = useState<Range>("12m");
-  // "all" | accountId | "none"; "all" | categoryId.
+  // "all" | accountId | "none".
   const [accountFilter, setAccountFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [search, setSearch] = useState("");
 
-  const from =
-    range === "all"
-      ? calendarDate("1970-01-01")
-      : firstOfShiftedMonth(asOf, -(RANGE_MONTHS[range] - 1));
+  // Everything ever charged: the month sections are the range control.
   const ledger = useMemo(
-    () => buildSpendLedger(items, occurrences, from, asOf),
-    [items, occurrences, from, asOf],
+    () => buildSpendLedger(items, occurrences, calendarDate("1970-01-01"), asOf),
+    [items, occurrences, asOf],
   );
-
-  // Categories that actually appear in the range — the only ones worth a chip.
-  const presentCategories = useMemo(() => {
-    const present = new Set(ledger.map((e) => e.categoryId));
-    return categories.filter((c) => present.has(c.id));
-  }, [ledger, categories]);
 
   const q = search.trim().toLowerCase();
   const sections = useMemo<MonthSection[]>(() => {
@@ -93,7 +71,6 @@ export default function HistoryScreen() {
       if (accountFilter === "none" && e.accountId) continue;
       if (accountFilter !== "all" && accountFilter !== "none" && e.accountId !== accountFilter)
         continue;
-      if (categoryFilter !== "all" && e.categoryId !== categoryFilter) continue;
       if (q && !e.name.toLowerCase().includes(q)) continue;
       const key = e.date.slice(0, 7);
       const head = groups[groups.length - 1];
@@ -107,12 +84,10 @@ export default function HistoryScreen() {
         });
     }
     return groups;
-  }, [ledger, accountFilter, categoryFilter, q]);
+  }, [ledger, accountFilter, q]);
 
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);
-  const allAmounts = sections.flatMap((s) => s.data.map((e) => e.amount));
-  const count = allAmounts.length;
 
   const accountChips = [
     { id: "all", label: t("history.filterAll") },
@@ -137,17 +112,6 @@ export default function HistoryScreen() {
           />
         </View>
 
-        <Segmented
-          options={[
-            { value: "3m" as Range, label: t("history.range3m") },
-            { value: "6m" as Range, label: t("history.range6m") },
-            { value: "12m" as Range, label: t("history.range12m") },
-            { value: "all" as Range, label: t("history.rangeAll") },
-          ]}
-          value={range}
-          onChange={setRange}
-        />
-
         {accounts.length > 0 && (
           <ScrollView
             horizontal
@@ -165,29 +129,6 @@ export default function HistoryScreen() {
             ))}
           </ScrollView>
         )}
-
-        {presentCategories.length > 1 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.chips}
-          >
-            {[
-              { id: "all", label: t("history.filterAll") },
-              ...presentCategories.map((c) => ({
-                id: c.id,
-                label: t(`categories.${c.id}`, { defaultValue: c.name }),
-              })),
-            ].map((chip) => (
-              <Chip
-                key={chip.id}
-                label={chip.label}
-                selected={categoryFilter === chip.id}
-                onPress={() => setCategoryFilter(chip.id)}
-              />
-            ))}
-          </ScrollView>
-        )}
       </View>
 
       <SectionList
@@ -196,13 +137,6 @@ export default function HistoryScreen() {
         keyboardShouldPersistTaps="handled"
         stickySectionHeadersEnabled={false}
         contentContainerStyle={styles.listContent}
-        ListHeaderComponent={
-          <HeroCard
-            label={t("history.spent")}
-            amount={count > 0 ? totals(allAmounts) : t("history.nothingSpent")}
-            sub={t("history.count", { count })}
-          />
-        }
         renderSectionHeader={({ section }) => (
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>

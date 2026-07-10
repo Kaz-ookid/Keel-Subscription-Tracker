@@ -212,10 +212,6 @@ export default function ByCategoryScreen() {
           </Animated.View>
         );
       })}
-
-      <Animated.Text layout={foldLayout} style={styles.note}>
-        {t("byCategory.note", { year })}
-      </Animated.Text>
     </ScrollView>
   );
 }
@@ -257,6 +253,5 @@ function createStyles(colors: ThemeColors) {
     },
     memberName: { ...typography.body, color: colors.text, flex: 1 },
     memberValue: { ...typography.caption, color: colors.mutedText },
-    note: { ...typography.caption, color: colors.mutedText, paddingTop: spacing.sm },
   });
 }

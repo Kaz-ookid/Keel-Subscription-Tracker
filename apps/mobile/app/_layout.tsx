@@ -38,9 +38,22 @@ function RootNavigator() {
     return () => subscription.remove();
   }, [router]);
 
+  // The navigation theme's background is what peeks out BETWEEN cards during
+  // swipe-back and modal transitions: it must be our background, not the
+  // library default (which flashes white in dark mode).
+  const base = scheme === "dark" ? DarkTheme : DefaultTheme;
+  const navTheme = {
+    ...base,
+    colors: {
+      ...base.colors,
+      background: colors.background,
+      card: colors.navy,
+    },
+  };
+
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={scheme === "dark" ? DarkTheme : DefaultTheme}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+      <ThemeProvider value={navTheme}>
         <AppStateProvider>
           <ImportSessionProvider>
             <Stack

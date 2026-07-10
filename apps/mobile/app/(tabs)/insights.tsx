@@ -84,7 +84,9 @@ export default function InsightsScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
-  const [selected, setSelected] = useState<number | null>(MONTHS_BACK);
+  // Nothing is pre-selected: the chart opens clean, and its readout invites
+  // the tap ("Tap a month…") until the user picks one.
+  const [selected, setSelected] = useState<number | null>(null);
   // The expanded billing-cycle card ("interval-unit", or "bnpl").
   const [expandedCadence, setExpandedCadence] = useState<string | null>(null);
 
@@ -512,13 +514,17 @@ export default function InsightsScreen() {
                     />
                   </View>
                 </View>
-                <View style={styles.shareTrack}>
-                  <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
-                  <View style={{ flex: 1 - bnplPaidShare }} />
+                {/* The plan total rides beside the bar, not under it — no
+                    extra line for a few words. */}
+                <View style={styles.bnplTrackRow}>
+                  <View style={[styles.shareTrack, styles.bnplTrack]}>
+                    <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
+                    <View style={{ flex: 1 - bnplPaidShare }} />
+                  </View>
+                  <Text style={styles.statHint}>
+                    {t("insights.ofTotal", { total: totals(bnplTotal) })}
+                  </Text>
                 </View>
-                <Text style={styles.statHint}>
-                  {t("insights.ofTotalHint", { total: totals(bnplTotal) })}
-                </Text>
               </Pressable>
               {expandedCadence === "bnpl" && (
                 <Animated.View entering={foldIn} exiting={foldOut}>
@@ -752,6 +758,14 @@ function createStyles(colors: ThemeColors) {
     exploreValue: {
       ...typography.caption,
       color: colors.mutedText,
+    },
+    bnplTrackRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+    },
+    bnplTrack: {
+      flex: 1,
     },
     shareTrack: {
       flexDirection: "row",

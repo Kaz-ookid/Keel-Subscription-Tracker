@@ -25,7 +25,7 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
@@ -38,6 +38,10 @@ import { Card } from "../ui/Card";
 
 // Monday-first column order, as JS weekday indices (0 = Sunday).
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
+
+// The pager's fixed month window: this many months back and ahead (the same
+// four-year span as the Insights chart).
+const MONTHS_REACH = 24;
 
 interface DayCharge {
   key: string;
@@ -164,6 +168,11 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
   const [offset, setOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<CalendarDate | null>(asOf);
   const pagerRef = useRef<PagerView>(null);
+  // Stable callback so the memoized month grids don't re-render per swipe.
+  const onSelectDay = useCallback(
+    (date: CalendarDate) => setSelectedDay((prev) => (prev === date ? null : date)),
+    [],
+  );
 
   const monthStart = firstOfShiftedMonth(asOf, offset);
   const monthEnd = endOfMonth(monthStart);
@@ -187,29 +196,22 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
 
   const monthLabel = `${monthFull(Number(monthStart.slice(5, 7)) - 1)} ${monthStart.slice(0, 4)}`;
 
-  const shiftMonth = (delta: number) => {
-    const next = offset + delta;
-    setOffset(next);
-    // Landing back on the current month re-selects today; elsewhere, nothing.
-    setSelectedDay(next === 0 ? asOf : null);
-  };
+  // A FIXED window of months, one pager page each, no re-centering: the swipe
+  // is a pure native gesture that nothing programmatic ever fights, so rapid
+  // flings land exactly where they were thrown (the 3-page re-centering trick
+  // raced fast swipes and lagged). Only pages near the viewport render their
+  // grid; the rest stay empty until the window approaches.
+  const currentPage = offset + MONTHS_REACH;
 
-  // The pager holds [previous, shown, next]; landing off-center shifts the
-  // window and this effect snaps back to the middle page, without animation,
-  // once the re-centered months are in place.
-  useEffect(() => {
-    pagerRef.current?.setPageWithoutAnimation(1);
-  }, [offset]);
-
-  // The pager needs a bounded height; the shown month dictates it (5- and
-  // 6-week months differ by a row).
-  const gridHeight = 40 + monthWeeks(monthStart, monthEnd).length * 58;
+  // Uniform pager height (6-week months set the bar) — a fixed frame beats a
+  // height that jumps between months mid-swipe.
+  const gridHeight = 40 + 6 * 58;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Pressable
-          onPress={() => pagerRef.current?.setPage(0)}
+          onPress={() => pagerRef.current?.setPage(currentPage - 1)}
           hitSlop={10}
           style={styles.chevronButton}
         >
@@ -220,7 +222,7 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
           {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
         </View>
         <Pressable
-          onPress={() => pagerRef.current?.setPage(2)}
+          onPress={() => pagerRef.current?.setPage(currentPage + 1)}
           hitSlop={10}
           style={styles.chevronButton}
         >
@@ -242,22 +244,29 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
       <PagerView
         ref={pagerRef}
         style={{ height: gridHeight }}
-        initialPage={1}
+        initialPage={MONTHS_REACH}
         onPageSelected={(e) => {
-          const delta = e.nativeEvent.position - 1;
-          if (delta !== 0) shiftMonth(delta);
+          const next = e.nativeEvent.position - MONTHS_REACH;
+          setOffset(next);
+          // Landing back on the current month re-selects today.
+          setSelectedDay(next === 0 ? asOf : null);
         }}
       >
-        {[-1, 0, 1].map((d) => (
-          <View key={`m${offset + d}`} collapsable={false}>
-            <MonthGrid
-              offset={offset + d}
-              asOf={asOf}
-              selectedDay={selectedDay}
-              onSelectDay={(date) => setSelectedDay(selectedDay === date ? null : date)}
-            />
-          </View>
-        ))}
+        {Array.from({ length: MONTHS_REACH * 2 + 1 }, (_, p) => {
+          const d = p - MONTHS_REACH;
+          return (
+            <View key={`m${d}`} collapsable={false}>
+              {Math.abs(d - offset) <= 2 && (
+                <MonthGrid
+                  offset={d}
+                  asOf={asOf}
+                  selectedDay={selectedDay}
+                  onSelectDay={onSelectDay}
+                />
+              )}
+            </View>
+          );
+        })}
       </PagerView>
 
       {/* The tapped day's charges — light, in place, read-only. */}
@@ -321,8 +330,9 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
 }
 
 /** One month's grid, self-contained so the pager's neighbor pages are real
- *  content under the finger, not placeholders. */
-function MonthGrid({
+ *  content under the finger. Memoized: a swipe only mounts the grids that
+ *  newly enter the render window, everything else is untouched. */
+const MonthGrid = memo(function MonthGrid({
   offset,
   asOf,
   selectedDay,
@@ -410,7 +420,7 @@ function MonthGrid({
       ))}
     </View>
   );
-}
+});
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({

@@ -108,12 +108,14 @@ export function YearChart({
             )}
 
             {/* The "now" landmark: future lies to the right of this line.
-                The dot riding its top is the buoy (DESIGN.md §3.7 C). */}
+                The dot riding its top is the buoy (DESIGN.md §3.7 C), and the
+                line names itself right here instead of in a legend. */}
             <View
               style={[styles.todayLine, { left: (todayIndex + 1) * SLOT - COL_GAP / 2 - 1 }]}
               pointerEvents="none"
             >
               <View style={styles.buoy} />
+              <Text style={styles.nowText}>{t("insights.chartNow")}</Text>
             </View>
 
             <View style={styles.bars}>
@@ -167,8 +169,6 @@ export function YearChart({
         <Text style={styles.legendText}>
           {t("insights.chartLegend", { amount: averageFormatted })}
         </Text>
-        <View style={styles.legendTodayLine} />
-        <Text style={styles.legendText}>{t("insights.chartNow")}</Text>
       </View>
     </View>
   );
@@ -243,6 +243,15 @@ function createStyles(colors: ThemeColors) {
       borderRadius: 3,
       backgroundColor: colors.accent,
     },
+    // The line's own name, riding beside the buoy at the top.
+    nowText: {
+      position: "absolute",
+      top: -2,
+      left: 7,
+      fontSize: 9,
+      color: colors.mutedText,
+      width: 40,
+    },
     // Quieter than the "now" landmark: a hairline with the year written
     // vertically along it, marking each January like a roadside milestone.
     yearMark: {
@@ -290,14 +299,6 @@ function createStyles(colors: ThemeColors) {
     legendDashes: {
       flexDirection: "row",
       gap: 3,
-    },
-    legendTodayLine: {
-      width: 2,
-      height: 10,
-      borderRadius: 1,
-      backgroundColor: colors.mutedText,
-      opacity: 0.45,
-      marginLeft: spacing.sm,
     },
     legendText: {
       ...typography.caption,
