@@ -81,7 +81,7 @@ export function SubscriptionsView() {
 
   const fillIn = (s: SuggestedCommitment) =>
     router.push({
-      pathname: "/add",
+      pathname: "/add/form",
       params: {
         suggestionId: s.id,
         name: s.name,

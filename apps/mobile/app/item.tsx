@@ -148,7 +148,7 @@ export default function ItemScreen() {
           title: t("titles.details"),
           headerRight: () => (
             <Pressable
-              onPress={() => router.push({ pathname: "/add", params: { id: item.id } })}
+              onPress={() => router.push({ pathname: "/add/form", params: { id: item.id } })}
               hitSlop={12}
             >
               <Text style={styles.headerAction}>{t("common.edit")}</Text>

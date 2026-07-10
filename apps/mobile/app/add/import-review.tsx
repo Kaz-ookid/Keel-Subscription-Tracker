@@ -21,15 +21,15 @@ import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { COLOR_SWATCHES } from "../src/constants";
-import { BrandBadge } from "../src/components/BrandBadge";
-import { hapticImportConfirm } from "../src/lib/haptics";
-import { HeroCard } from "../src/components/HeroCard";
-import { localizedRecurrence } from "../src/i18n/recurrence";
-import { Button } from "../src/components/ui/Button";
-import { useAppState } from "../src/state/app-state";
-import { useImportSession } from "../src/state/import-session";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { COLOR_SWATCHES } from "../../src/constants";
+import { BrandBadge } from "../../src/components/BrandBadge";
+import { hapticImportConfirm } from "../../src/lib/haptics";
+import { HeroCard } from "../../src/components/HeroCard";
+import { localizedRecurrence } from "../../src/i18n/recurrence";
+import { Button } from "../../src/components/ui/Button";
+import { useAppState } from "../../src/state/app-state";
+import { useImportSession } from "../../src/state/import-session";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 /** Warnings that get their own line; account-unmatched is the account chip. */
 const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
@@ -182,7 +182,7 @@ export default function ImportReviewScreen() {
     return (
       <Pressable
         style={[styles.card, flagged && styles.cardFlagged]}
-        onPress={() => router.push({ pathname: "/add", params: { draftId: draft.id } })}
+        onPress={() => router.push({ pathname: "/add/form", params: { draftId: draft.id } })}
       >
         <BrandBadge
           domain={input.domain}

@@ -419,7 +419,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
               onPress: () => {
                 updateSubscription(editItem.id, input, "correction");
                 if (suggestionId) removePendingSuggestion(suggestionId);
-                router.back();
+                router.dismiss();
               },
             },
             {
@@ -427,7 +427,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
               onPress: () => {
                 updateSubscription(editItem.id, input, "change");
                 if (suggestionId) removePendingSuggestion(suggestionId);
-                router.back();
+                router.dismiss();
               },
             },
           ]);
@@ -440,7 +440,10 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     // The suggestion is now a real commitment — its To-complete row retires
     // (a no-op when it was never pending, e.g. picked in the Add flow).
     if (suggestionId) removePendingSuggestion(suggestionId);
-    router.back();
+    // A draft save pops back to the review list (same stack); every other
+    // save is done with the whole sheet.
+    if (isDraft) router.back();
+    else router.dismiss();
   };
 
   return {

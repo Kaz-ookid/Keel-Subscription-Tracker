@@ -97,7 +97,7 @@ export default function OnboardingScreen() {
   // the whole modal pile at once.
   const goImport = () => {
     void markOnboardingSeen();
-    router.push("/import");
+    router.push({ pathname: "/add/import", params: { direct: "1" } });
   };
 
   const onAdd = (selected: SuggestedCommitment[]) => {

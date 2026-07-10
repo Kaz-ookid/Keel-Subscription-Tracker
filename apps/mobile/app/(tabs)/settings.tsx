@@ -328,7 +328,10 @@ export default function SettingsScreen() {
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         {/* The deliberate home of the AI import (§6.1) — the Add flow only hints. */}
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => router.push("/import")}>
+        <Pressable
+          style={[styles.row, styles.rowDivider]}
+          onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
+        >
           <SymbolView name="sparkles" size={20} tintColor={colors.accent} />
           <Text style={styles.rowText}>{t("settings.importAI")}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />

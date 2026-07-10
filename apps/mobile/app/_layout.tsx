@@ -8,7 +8,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "../src/i18n";
 import { AppLockGate } from "../src/components/AppLockGate";
-import { ModalClose } from "../src/components/ModalClose";
 import { AppStateProvider } from "../src/state/app-state";
 import { ImportSessionProvider } from "../src/state/import-session";
 import { ThemePreferenceProvider, useTheme } from "../src/theme";
@@ -71,30 +70,10 @@ function RootNavigator() {
                 name="onboarding"
                 options={{ presentation: "fullScreenModal", headerShown: false }}
               />
-              <Stack.Screen
-                name="add"
-                options={{
-                  presentation: "modal",
-                  title: t("titles.newSubscription"),
-                  headerLeft: () => <ModalClose />,
-                }}
-              />
-              <Stack.Screen
-                name="import"
-                options={{
-                  presentation: "modal",
-                  title: t("titles.importAI"),
-                  headerLeft: () => <ModalClose />,
-                }}
-              />
-              <Stack.Screen
-                name="import-review"
-                options={{
-                  presentation: "modal",
-                  title: t("titles.importReview"),
-                  headerLeft: () => <ModalClose />,
-                }}
-              />
+              {/* The add flow (chooser, form, AI import, review) is a nested
+                  stack so every step gets a REAL native back button; it
+                  draws its own headers. */}
+              <Stack.Screen name="add" options={{ presentation: "modal", headerShown: false }} />
               <Stack.Screen name="item" options={{ title: t("titles.details") }} />
               <Stack.Screen name="accounts" options={{ title: t("titles.accounts") }} />
               <Stack.Screen name="price-changes" options={{ title: t("titles.priceChanges") }} />

@@ -7,23 +7,28 @@
 
 import { buildImportPrompt, parseImportDocument, today, type ImportParseError } from "@keel/core";
 import * as Clipboard from "expo-clipboard";
-import { useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { InfoPopup } from "../src/components/InfoPopup";
-import { Button } from "../src/components/ui/Button";
-import { useAppState } from "../src/state/app-state";
-import { useImportSession } from "../src/state/import-session";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { InfoPopup } from "../../src/components/InfoPopup";
+import { ModalClose } from "../../src/components/ModalClose";
+import { Button } from "../../src/components/ui/Button";
+import { useAppState } from "../../src/state/app-state";
+import { useImportSession } from "../../src/state/import-session";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 type OpenPopup = "instructions" | "where" | "example" | "privacy" | null;
 type PasteError = ImportParseError | "clipboard-empty";
 
 export default function ImportScreen() {
   const router = useRouter();
+  // Settings and onboarding open the import directly (?direct=1): it is then
+  // the sheet's first screen and needs its own leave affordance. From the
+  // add chooser it is a push, and the system back button appears on its own.
+  const { direct } = useLocalSearchParams<{ direct?: string }>();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -69,7 +74,7 @@ export default function ImportScreen() {
     }
     setError(null);
     startSession(result.drafts, result.skipped);
-    router.push("/import-review");
+    router.push("/add/import-review");
   };
 
   // One tap: read the clipboard and go straight to review. On failure the
@@ -97,6 +102,7 @@ export default function ImportScreen() {
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
     >
+      {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
       {/* The two delivery paths, as they'll eventually look side by side. */}
       <View style={styles.methods}>
         <View style={[styles.methodCard, styles.methodActive]}>
