@@ -52,12 +52,16 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
     [suggestions, region],
   );
 
-  // Chips for every category that actually has browsable entries, in the
-  // usual likelihood order, behind a leading "All".
+  // Chips for every category that actually has browsable entries, sorted by
+  // their LOCALIZED label so the row reads alphabetically in any language.
   const chips = useMemo(() => {
     const present = new Set(browsable.map((s) => s.categoryId ?? "other"));
-    return SUGGESTION_CATEGORY_ORDER.filter((id) => present.has(id));
-  }, [browsable]);
+    const label = (id: string) =>
+      t(`categories.${id}`, { defaultValue: CATEGORY_NAMES.get(id) ?? id });
+    return SUGGESTION_CATEGORY_ORDER.filter((id) => present.has(id)).sort((a, b) =>
+      label(a).localeCompare(label(b)),
+    );
+  }, [browsable, t]);
 
   const visible = useMemo(() => {
     const trimmed = query.trim();
