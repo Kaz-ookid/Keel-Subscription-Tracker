@@ -4,15 +4,21 @@ import {
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
+  mergeTotals,
+  monthlyEquivalent,
   summarizeCommitments,
   summarizeInstallmentPlan,
   today,
+  type CurrencyCode,
+  type ExchangeRates,
+  type Money,
   type PaymentItem,
   type SuggestedCommitment,
 } from "@keel/core";
+import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -24,6 +30,22 @@ import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
 import { Button } from "../ui/Button";
 import { EmptyState } from "../ui/EmptyState";
+import { WheelSheet } from "../WheelSheet";
+
+// Same JSX-friendly cast as the Settings wheels.
+const Picker = RNPicker as unknown as ComponentType<{
+  selectedValue: string;
+  onValueChange: (value: string) => void;
+  children: ReactNode;
+}> & { Item: typeof RNPicker.Item };
+
+/** How the catalog is ordered; "day" is the stable default. */
+type SortKey = "day" | "price" | "name";
+const SORT_LABEL_KEY: Record<SortKey, string> = {
+  day: "allList.sortDay",
+  price: "allList.sortPrice",
+  name: "allList.sortName",
+};
 
 /** The day of the month an item bills on — its fixed "place" in the list. */
 function billingDay(item: PaymentItem): number {
@@ -33,6 +55,32 @@ function billingDay(item: PaymentItem): number {
     return Number((s.nextDue?.dueDate ?? s.finalDueDate).slice(8, 10));
   }
   return 32;
+}
+
+/** Per-month bite in display-currency terms, for the price ordering: the
+ *  monthly equivalent of a subscription, the per-installment amount of a
+ *  Pay-in-X plan. */
+function monthlyValue(
+  item: PaymentItem,
+  displayCurrency: CurrencyCode,
+  rates: ExchangeRates | null,
+): number {
+  const numeric = (value: Money): number => {
+    if (value.currency === displayCurrency) return value.amount;
+    if (rates) {
+      const merged = mergeTotals([value], displayCurrency, rates);
+      if (merged) return merged.total.amount;
+    }
+    return value.amount;
+  };
+  if (isRecurringSchedule(item.schedule)) {
+    return numeric(monthlyEquivalent(item.schedule.amount, item.schedule.recurrence));
+  }
+  if (isInstallmentSchedule(item.schedule)) {
+    const s = summarizeInstallmentPlan(item.schedule);
+    if (s.nextDue) return numeric(s.nextDue.amount);
+  }
+  return 0;
 }
 
 /** The catalog: every item (including ended/paused ones a timeline can't show). */
@@ -54,6 +102,10 @@ export function SubscriptionsView() {
   } = useAppState();
   // Open by default — the whole point of the list is to be acted on.
   const [pendingOpen, setPendingOpen] = useState(true);
+  // Catalog ordering: stable billing-day by default; the control above the
+  // list names the current order and opens the picker.
+  const [sort, setSort] = useState<SortKey>("day");
+  const [sortSheet, setSortSheet] = useState(false);
 
   if (loading) {
     return (
@@ -95,13 +147,21 @@ export function SubscriptionsView() {
   const asOf = today();
   const commitments = summarizeCommitments(items, asOf);
 
-  // A predictable, non-changing order: by the day of the month each item
-  // bills on (the 5th before the 15th), finished items sinking to the bottom.
-  // Sorting by "next charge" instead would reshuffle the list all the time.
+  // Finished items always sink to the bottom; within the live ones the
+  // chosen order applies. The default is the day of the month each item
+  // bills on (the 5th before the 15th) — predictable and non-reshuffling,
+  // where "next charge" would reorder the list all the time.
   const sorted = [...items].sort((a, b) => {
     const doneA = isPaymentItemComplete(a, asOf) ? 1 : 0;
     const doneB = isPaymentItemComplete(b, asOf) ? 1 : 0;
     if (doneA !== doneB) return doneA - doneB;
+    if (sort === "price") {
+      return (
+        monthlyValue(b, displayCurrency, rates) - monthlyValue(a, displayCurrency, rates) ||
+        a.name.localeCompare(b.name)
+      );
+    }
+    if (sort === "name") return a.name.localeCompare(b.name);
     return billingDay(a) - billingDay(b) || a.name.localeCompare(b.name);
   });
 
@@ -198,6 +258,17 @@ export function SubscriptionsView() {
               </View>
             )}
           </View>
+
+          {/* Names the current order; tapping opens the picker. */}
+          <Pressable
+            style={styles.sortRow}
+            onPress={() => setSortSheet(true)}
+            accessibilityLabel={t("allList.sortA11y")}
+            hitSlop={8}
+          >
+            <SymbolView name="arrow.up.arrow.down" size={11} tintColor={colors.mutedText} />
+            <Text style={styles.sortText}>{t(SORT_LABEL_KEY[sort])}</Text>
+          </Pressable>
         </View>
       }
       renderItem={({ item }) => (
@@ -212,6 +283,19 @@ export function SubscriptionsView() {
           onDelete={() => removeSubscription(item.id)}
         />
       )}
+      ListFooterComponent={
+        <WheelSheet
+          visible={sortSheet}
+          title={t("allList.sortTitle")}
+          onClose={() => setSortSheet(false)}
+        >
+          <Picker selectedValue={sort} onValueChange={(v) => setSort(v as SortKey)}>
+            <Picker.Item label={t("allList.sortDay")} value="day" color={colors.text} />
+            <Picker.Item label={t("allList.sortPrice")} value="price" color={colors.text} />
+            <Picker.Item label={t("allList.sortName")} value="name" color={colors.text} />
+          </Picker>
+        </WheelSheet>
+      }
     />
   );
 }
@@ -290,6 +374,18 @@ function createStyles(colors: ThemeColors) {
       ...typography.body,
       color: colors.text,
       flex: 1,
+    },
+    sortRow: {
+      alignSelf: "flex-end",
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      paddingVertical: spacing.xs,
+    },
+    sortText: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.mutedText,
     },
   });
 }

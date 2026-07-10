@@ -200,6 +200,11 @@ export const fr: typeof en = {
   allList: {
     committedMonthly: "Engagé par mois",
     nothingYet: "Encore rien",
+    sortTitle: "Trier par",
+    sortDay: "Jour de facturation",
+    sortPrice: "Prix, du plus cher",
+    sortName: "Nom",
+    sortA11y: "Changer l'ordre de la liste",
     bnplOwed: "Paiement échelonné encore dû : {{amount}}",
     emptyTitle: "Pas encore d'abonnements",
     emptyHint: "Touchez ＋ pour ajouter le premier.",

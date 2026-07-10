@@ -199,6 +199,11 @@ export const en = {
   allList: {
     committedMonthly: "Committed monthly",
     nothingYet: "Nothing yet",
+    sortTitle: "Order by",
+    sortDay: "Billing day",
+    sortPrice: "Price, highest first",
+    sortName: "Name",
+    sortA11y: "Change the list order",
     bnplOwed: "Split payments still owed: {{amount}}",
     emptyTitle: "No subscriptions yet",
     emptyHint: "Tap ＋ to add your first one.",
