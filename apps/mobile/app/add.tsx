@@ -10,6 +10,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { SlideInLeft, SlideInRight } from "react-native-reanimated";
 
 import { AmountSection } from "../src/components/add-form/AmountSection";
 import {
@@ -20,6 +21,7 @@ import {
 import { FormSheets } from "../src/components/add-form/FormSheets";
 import { ScheduleSection } from "../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../src/components/add-form/useAddForm";
+import { ModalClose } from "../src/components/ModalClose";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -40,21 +42,43 @@ export default function AddScreen() {
   const direct = !!id || !!suggestionId || !!draftId;
   const [chosen, setChosen] = useState<SuggestedCommitment | undefined>(undefined);
   const [phase, setPhase] = useState<"choose" | "form">(direct ? "form" : "choose");
+  // The modal's own slide-up covers the first mount; only PHASE swaps get the
+  // lateral drill-in/out slides.
+  const [navigated, setNavigated] = useState(false);
 
   if (phase === "choose") {
     return (
-      <ChoosePhase
-        onPick={(s) => {
-          setChosen(s);
-          setPhase("form");
-        }}
-        onCustom={() => setPhase("form")}
-      />
+      <Animated.View
+        style={flexStyles.flex}
+        entering={navigated ? SlideInLeft.duration(250) : undefined}
+      >
+        <ChoosePhase
+          onPick={(s) => {
+            setNavigated(true);
+            setChosen(s);
+            setPhase("form");
+          }}
+          onCustom={() => {
+            setNavigated(true);
+            setChosen(undefined);
+            setPhase("form");
+          }}
+        />
+      </Animated.View>
     );
   }
   // Mounted only after the choice — the form hook initialises its state once.
-  return <FormPhase prefill={chosen} />;
+  return (
+    <Animated.View
+      style={flexStyles.flex}
+      entering={direct ? undefined : SlideInRight.duration(250)}
+    >
+      <FormPhase prefill={chosen} onBack={direct ? undefined : () => setPhase("choose")} />
+    </Animated.View>
+  );
 }
+
+const flexStyles = StyleSheet.create({ flex: { flex: 1 } });
 
 /** The three doors in: type it from scratch, import a batch with AI, or pick
  *  a known brand below. Already-tracked names show greyed (no accidental
@@ -83,7 +107,13 @@ function ChoosePhase({
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: t("titles.newCommitment"), headerRight: undefined }} />
+      <Stack.Screen
+        options={{
+          title: t("titles.newCommitment"),
+          headerLeft: () => <ModalClose />,
+          headerRight: undefined,
+        }}
+      />
       <Pressable style={styles.customRow} onPress={onCustom}>
         <Text style={styles.customText}>{t("add.startScratch")}</Text>
         <Text style={styles.customHint}>{t("add.scratchHint")}</Text>
@@ -101,7 +131,7 @@ function ChoosePhase({
   );
 }
 
-function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
+function FormPhase({ prefill, onBack }: { prefill?: SuggestedCommitment; onBack?: () => void }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -116,6 +146,21 @@ function FormPhase({ prefill }: { prefill?: SuggestedCommitment }) {
       <Stack.Screen
         options={{
           title: form.isEditing || form.isDraft ? t("titles.edit") : t("titles.newSubscription"),
+          // Reached from the chooser: LEFT goes BACK to it (a chevron). The ✕
+          // only ever closes the whole task sheet, so it stays on direct
+          // entries (edit, To-complete, AI drafts) where there is no chooser.
+          headerLeft: onBack
+            ? () => (
+                <Pressable
+                  onPress={onBack}
+                  hitSlop={12}
+                  accessibilityLabel={t("titles.newCommitment")}
+                  style={styles.headerBack}
+                >
+                  <SymbolView name="chevron.left" size={17} tintColor={colors.white} />
+                </Pressable>
+              )
+            : () => <ModalClose />,
           headerRight: () => (
             <Pressable onPress={form.submit} disabled={!form.canSubmit} hitSlop={12}>
               <Text style={[styles.headerAction, !form.canSubmit && styles.headerActionDisabled]}>
@@ -214,5 +259,11 @@ function createStyles(colors: ThemeColors) {
     modeTextActive: { color: colors.accent },
     headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
+    headerBack: {
+      width: 28,
+      height: 28,
+      alignItems: "center",
+      justifyContent: "center",
+    },
   });
 }

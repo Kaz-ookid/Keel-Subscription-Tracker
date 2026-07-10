@@ -11,7 +11,9 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AppState, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { AppState, Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+
+import { Waterline } from "./Waterline";
 
 import { APP_NAME } from "../constants";
 import {
@@ -120,6 +122,8 @@ export function AppLockGate() {
     <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
       <View style={styles.cover}>
         <LinearGradient colors={[NAVY, NAVY_DEEP]} style={StyleSheet.absoluteFill} />
+        {/* The brand's water, calm at the foot of the lock (§3.7 D). */}
+        <Waterline height={36} width={Dimensions.get("window").width} color="#7FB8B0" />
         <View style={styles.badge}>
           <SymbolView name={locked ? "lock.fill" : "shield.fill"} size={30} tintColor={NAVY} />
         </View>

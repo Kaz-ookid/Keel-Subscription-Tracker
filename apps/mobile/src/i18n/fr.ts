@@ -419,6 +419,11 @@ export const fr: typeof en = {
     namePlaceholder: "Nom de la catégorie",
     addCategory: "Ajouter une catégorie",
   },
+  hero: {
+    aboveAverage: "Eau haute : {{pct}} % au-dessus d'un mois habituel",
+    belowAverage: "Ligne haute : {{pct}} % en dessous d'un mois habituel",
+    atAverage: "Au niveau d'un mois habituel",
+  },
   harbor: {
     dock: "Aujourd'hui",
     days: "{{count}} j",

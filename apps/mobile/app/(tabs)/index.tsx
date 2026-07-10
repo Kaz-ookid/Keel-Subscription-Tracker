@@ -7,6 +7,7 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
 
 import { CalendarMonthView } from "../../src/components/payments/CalendarMonthView";
 import { HarborView } from "../../src/components/payments/HarborView";
@@ -100,10 +101,19 @@ export default function PaymentsScreen() {
         )}
       </View>
 
-      {view === "upcoming" && <UpcomingView />}
-      {view === "all" && <SubscriptionsView />}
-      {view === "calendar" && <CalendarMonthView />}
-      {view === "harbor" && <HarborView />}
+      {/* Fade-through on view switches (§3.6): keyed remount so the old view
+          fades out while the new one fades in. */}
+      <Animated.View
+        key={view}
+        entering={FadeIn.duration(150)}
+        exiting={FadeOut.duration(100)}
+        style={styles.viewWrap}
+      >
+        {view === "upcoming" && <UpcomingView />}
+        {view === "all" && <SubscriptionsView />}
+        {view === "calendar" && <CalendarMonthView />}
+        {view === "harbor" && <HarborView />}
+      </Animated.View>
     </View>
   );
 }
@@ -113,6 +123,9 @@ function createStyles(colors: ThemeColors) {
     screen: {
       flex: 1,
       backgroundColor: colors.background,
+    },
+    viewWrap: {
+      flex: 1,
     },
     switchWrap: {
       flexDirection: "row",

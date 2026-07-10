@@ -32,6 +32,7 @@ import {
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
 import { hapticMarkPaid } from "../../lib/haptics";
+import { animateFold } from "../../lib/motion";
 import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
@@ -351,7 +352,10 @@ export function UpcomingView() {
           return (
             <Pressable
               style={[styles.sectionHeaderWrap, styles.monthBreak]}
-              onPress={() => flip((o) => !o)}
+              onPress={() => {
+                animateFold();
+                flip((o) => !o);
+              }}
             >
               <SectionDivider
                 label={section.monthLabel ?? ""}

@@ -419,6 +419,11 @@ export const en = {
     namePlaceholder: "Category name",
     addCategory: "Add category",
   },
+  hero: {
+    aboveAverage: "Water high: {{pct}}% above your usual month",
+    belowAverage: "Riding high: {{pct}}% below your usual month",
+    atAverage: "Riding level with your usual month",
+  },
   harbor: {
     dock: "Today",
     days: "{{count}} d",

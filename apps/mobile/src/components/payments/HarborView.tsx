@@ -1,9 +1,11 @@
 // The Harbor view (DESIGN.md §3.7 B, experimental — behind the Settings debug
-// toggle): active commitments as moored buoys in a top-down harbor. Buoy SIZE
-// maps monthly cost, DISTANCE from the dock (bottom) maps days until the next
-// charge, the brand logo rides each buoy, paused items sit grey at the edge.
-// Tap a buoy to open its item. Every mapping is written out in the legend —
-// a signature visual must stay legible or it's decoration.
+// toggle): active commitments as moored buoys in a harbor, seen from above
+// the water. Buoy SIZE maps monthly cost, DISTANCE from the pier (bottom)
+// maps days until the next charge, the brand logo rides each buoy inside a
+// float ring in the item's color, and charges due within a week are roped to
+// the pier. Paused items sit grey on a shelf; tap anything to open its item.
+// The scene is drawn, not implied: gradient water with ripples, a plank pier
+// with bollards, lapping waves at its edge, a sail on the horizon.
 
 import {
   isInstallmentSchedule,
@@ -17,7 +19,9 @@ import {
   type Money,
   type PaymentItem,
 } from "@keel/core";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -29,18 +33,22 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
+import Svg, { Line, Path, Rect } from "react-native-svg";
 
 import { useAppState } from "../../state/app-state";
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { EmptyState } from "../ui/EmptyState";
+import { Waterline } from "../Waterline";
 
-const CANVAS_HEIGHT = 440;
-const DOCK_HEIGHT = 26;
+const CANVAS_HEIGHT = 460;
+const PIER_HEIGHT = 34;
+const LAP_HEIGHT = 10;
 const HORIZON_DAYS = 60;
 const MAX_BUOYS = 24;
-const MIN_R = 16;
+const MIN_R = 17;
 const MAX_R = 34;
+const TOP_PAD = 64; // room for the paused shelf and the horizon sail
 
 interface Buoy {
   item: PaymentItem;
@@ -75,13 +83,39 @@ function Drift({ index, children }: { index: number; children: React.ReactNode }
 
 export function HarborView() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, categories, displayCurrency, rates } = useAppState();
   const [width, setWidth] = useState(0);
 
   const asOf = today();
+
+  // The scene's own palette rides the theme: night water vs day water.
+  const sea =
+    scheme === "dark"
+      ? {
+          deep: "#060D1C",
+          shallow: "#14294A",
+          ripple: "rgba(143,199,191,0.14)",
+          rope: "rgba(237,241,245,0.30)",
+          wood: "#4A3A26",
+          woodDark: "#372B1B",
+          woodLight: "#5C4930",
+          sail: "rgba(237,241,245,0.35)",
+          reflection: "rgba(0,0,0,0.35)",
+        }
+      : {
+          deep: "#8FB6C4",
+          shallow: "#C6E0E4",
+          ripple: "rgba(255,255,255,0.45)",
+          rope: "rgba(7,20,41,0.35)",
+          wood: "#8A6A45",
+          woodDark: "#6E5334",
+          woodLight: "#A5825A",
+          sail: "rgba(7,20,41,0.35)",
+          reflection: "rgba(7,20,41,0.15)",
+        };
 
   // Everything in display-currency terms so sizes compare honestly.
   const numeric = (value: Money): number => {
@@ -92,6 +126,8 @@ export function HarborView() {
     }
     return value.amount;
   };
+
+  const pierTop = CANVAS_HEIGHT - PIER_HEIGHT;
 
   const { buoys, paused, overflow } = useMemo(() => {
     const live = items.filter((i) => i.status === "active" && !isPaymentItemComplete(i, asOf));
@@ -131,19 +167,22 @@ export function HarborView() {
     // stop overlapping. Deterministic, so the harbor doesn't reshuffle.
     const placed: Buoy[] = [];
     const w = Math.max(width, 1);
-    const topPad = MAX_R + spacing.md + 28; // room for the paused shelf
-    const dockY = CANVAS_HEIGHT - DOCK_HEIGHT;
     kept.forEach((c, i) => {
       const r = MIN_R + Math.sqrt(c.monthly / maxMonthly) * (MAX_R - MIN_R);
       const clampedDays = Math.min(c.daysUntil, HORIZON_DAYS);
-      const y = dockY - r - 6 - (clampedDays / HORIZON_DAYS) * (dockY - topPad - 2 * r);
-      let x = r + 6 + ((i * 0.61803) % 1) * (w - 2 * r - 12);
+      const y =
+        pierTop -
+        LAP_HEIGHT -
+        r -
+        4 -
+        (clampedDays / HORIZON_DAYS) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * r - 8);
+      let x = r + 8 + ((i * 0.61803) % 1) * (w - 2 * r - 16);
       let tries = 0;
       while (
         tries < 40 &&
-        placed.some((p) => (p.x - x) ** 2 + (p.y - y) ** 2 < (p.r + r + 4) ** 2)
+        placed.some((p) => (p.x - x) ** 2 + (p.y - y) ** 2 < (p.r + r + 6) ** 2)
       ) {
-        x = r + 6 + (((x - r - 6) / Math.max(w - 2 * r - 12, 1) + 0.17) % 1) * (w - 2 * r - 12);
+        x = r + 8 + (((x - r - 8) / Math.max(w - 2 * r - 16, 1) + 0.17) % 1) * (w - 2 * r - 16);
         tries += 1;
       }
       placed.push({ ...c, r, x, y });
@@ -166,21 +205,121 @@ export function HarborView() {
   }
 
   const gridDays = [7, 30, 60];
-  const dockY = CANVAS_HEIGHT - DOCK_HEIGHT;
-  const topPad = MAX_R + spacing.md + 28;
+  const gridY = (d: number) =>
+    pierTop -
+    LAP_HEIGHT -
+    MIN_R -
+    4 -
+    (d / HORIZON_DAYS) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * MIN_R - 8);
+
+  // Deterministic ripple scatter across the open water.
+  const ripples =
+    width > 0
+      ? Array.from({ length: 12 }, (_, i) => ({
+          x: 16 + ((i * 0.37 + 0.11) % 1) * (width - 48),
+          y: TOP_PAD + ((i * 0.59 + 0.07) % 1) * (pierTop - TOP_PAD - 70),
+        }))
+      : [];
+
+  const plankCount = width > 0 ? Math.ceil(width / 26) : 0;
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
       <View style={styles.canvas} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-        {/* Depth lines: the distance axis, written out. */}
-        {gridDays.map((d) => {
-          const y = dockY - MIN_R - 6 - (d / HORIZON_DAYS) * (dockY - topPad - 2 * MIN_R);
-          return (
-            <View key={d} style={[styles.gridLine, { top: y }]} pointerEvents="none">
-              <Text style={styles.gridLabel}>{t("harbor.days", { count: d })}</Text>
-            </View>
-          );
-        })}
+        {/* Open water: deeper (darker) the farther from the pier. */}
+        <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
+
+        {width > 0 && (
+          <Svg width={width} height={CANVAS_HEIGHT} style={StyleSheet.absoluteFill}>
+            {/* Ripples on the open water. */}
+            {ripples.map((p, i) => (
+              <Path
+                key={`ripple-${i}`}
+                d={`M ${p.x} ${p.y} q 7 -3 14 0 q 7 3 14 0`}
+                stroke={sea.ripple}
+                strokeWidth={1.2}
+                fill="none"
+              />
+            ))}
+
+            {/* Depth lines: the distance axis, quiet but present. */}
+            {gridDays.map((d) => (
+              <Line
+                key={`grid-${d}`}
+                x1={0}
+                x2={width}
+                y1={gridY(d)}
+                y2={gridY(d)}
+                stroke={sea.ripple}
+                strokeWidth={StyleSheet.hairlineWidth}
+                strokeDasharray="6 8"
+              />
+            ))}
+
+            {/* Mooring ropes: anything due within a week is tied up. */}
+            {buoys
+              .filter((b) => b.daysUntil <= 7)
+              .map((b) => (
+                <Path
+                  key={`rope-${b.item.id}`}
+                  d={`M ${b.x} ${pierTop + 6} Q ${b.x + 12} ${(pierTop + b.y + b.r) / 2} ${b.x} ${
+                    b.y + b.r - 2
+                  }`}
+                  stroke={sea.rope}
+                  strokeWidth={1.4}
+                  fill="none"
+                />
+              ))}
+
+            {/* The pier: planks, a lit top edge, bollards to tie up to. */}
+            <Rect x={0} y={pierTop} width={width} height={PIER_HEIGHT} fill={sea.wood} />
+            <Rect x={0} y={pierTop} width={width} height={2.5} fill={sea.woodLight} />
+            {Array.from({ length: plankCount }, (_, i) => (
+              <Line
+                key={`plank-${i}`}
+                x1={i * 26 + 13}
+                x2={i * 26 + 13}
+                y1={pierTop + 3}
+                y2={CANVAS_HEIGHT}
+                stroke={sea.woodDark}
+                strokeWidth={1.2}
+              />
+            ))}
+            {[0.12, 0.5, 0.88].map((f) => (
+              <Rect
+                key={`bollard-${f}`}
+                x={f * width - 4}
+                y={pierTop - 9}
+                width={8}
+                height={12}
+                rx={2.5}
+                fill={sea.woodDark}
+              />
+            ))}
+          </Svg>
+        )}
+
+        {/* Water lapping against the pier. */}
+        {width > 0 && (
+          <View style={styles.lapWrap} pointerEvents="none">
+            <Waterline height={LAP_HEIGHT} width={width} color={colors.accentStrong} />
+          </View>
+        )}
+
+        {/* Distance labels ride their lines, out of the buoys' way. */}
+        {width > 0 &&
+          gridDays.map((d) => (
+            <Text key={`label-${d}`} style={[styles.gridLabel, { top: gridY(d) - 16 }]}>
+              {t("harbor.days", { count: d })}
+            </Text>
+          ))}
+
+        {/* A sail out on the horizon — the harbor is somewhere. */}
+        <View style={styles.sail} pointerEvents="none">
+          <Drift index={99}>
+            <SymbolView name="sailboat.fill" size={22} tintColor={sea.sail} />
+          </Drift>
+        </View>
 
         {/* The paused shelf: parked, grey, out of the water. */}
         {paused.length > 0 && (
@@ -191,7 +330,6 @@ export function HarborView() {
               return (
                 <Pressable
                   key={item.id}
-                  style={styles.pausedBadge}
                   onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
                 >
                   <BrandBadge
@@ -215,21 +353,29 @@ export function HarborView() {
                 key={b.item.id}
                 style={[
                   styles.buoy,
-                  { left: b.x - b.r, top: b.y - b.r, width: b.r * 2, height: b.r * 2 },
+                  { left: b.x - b.r, top: b.y - b.r, width: b.r * 2, height: b.r * 2 + 8 },
                 ]}
                 onPress={() => router.push({ pathname: "/item", params: { id: b.item.id } })}
                 accessibilityLabel={b.item.name}
               >
                 <Drift index={i}>
-                  <View style={styles.buoyRing}>
+                  {/* The float ring wears the item's color; the logo rides it. */}
+                  <View style={[styles.buoyRing, { borderColor: b.item.color ?? colors.accent }]}>
                     <BrandBadge
                       domain={b.item.domain}
                       icon={category?.icon}
                       fallback={b.item.name.charAt(0).toUpperCase()}
                       color={b.item.color ?? colors.accent}
-                      size={b.r * 2 - 6}
+                      size={b.r * 2 - 12}
                     />
                   </View>
+                  {/* Its shadow on the water. */}
+                  <View
+                    style={[
+                      styles.reflection,
+                      { width: b.r * 1.4, backgroundColor: sea.reflection },
+                    ]}
+                  />
                 </Drift>
               </Pressable>
             );
@@ -241,9 +387,9 @@ export function HarborView() {
           </View>
         )}
 
-        {/* The dock: today. Everything drifts toward it as its charge nears. */}
-        <View style={styles.dock}>
-          <Text style={styles.dockLabel}>{t("harbor.dock")}</Text>
+        {/* The pier is today. Everything drifts toward it as its charge nears. */}
+        <View style={styles.pierLabelWrap} pointerEvents="none">
+          <Text style={styles.pierLabel}>{t("harbor.dock")}</Text>
         </View>
       </View>
 
@@ -263,23 +409,28 @@ function createStyles(colors: ThemeColors) {
     },
     canvas: {
       height: CANVAS_HEIGHT,
-      backgroundColor: colors.surface2,
       borderRadius: radius.lg,
       overflow: "hidden",
     },
-    gridLine: {
+    lapWrap: {
       position: "absolute",
       left: 0,
       right: 0,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-      borderStyle: "dashed",
+      bottom: PIER_HEIGHT - 1,
+      height: LAP_HEIGHT + 6,
     },
     gridLabel: {
-      ...typography.micro,
+      position: "absolute",
+      right: spacing.sm,
+      ...typography.caption,
+      fontSize: 11,
       color: colors.mutedText,
-      paddingLeft: spacing.sm,
-      paddingTop: 1,
+    },
+    sail: {
+      position: "absolute",
+      top: 34,
+      left: spacing.lg,
+      opacity: 0.9,
     },
     pausedShelf: {
       position: "absolute",
@@ -295,22 +446,25 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       marginRight: spacing.xs,
     },
-    pausedBadge: {},
     buoy: {
       position: "absolute",
       alignItems: "center",
-      justifyContent: "center",
     },
     buoyRing: {
       borderRadius: 999,
       padding: 2,
-      borderWidth: 1.5,
-      borderColor: colors.accentStrong,
-      backgroundColor: colors.surface,
+      borderWidth: 3.5,
+      backgroundColor: colors.white,
+    },
+    reflection: {
+      alignSelf: "center",
+      height: 5,
+      borderRadius: 3,
+      marginTop: 3,
     },
     overflowChip: {
       position: "absolute",
-      bottom: DOCK_HEIGHT + spacing.sm,
+      bottom: PIER_HEIGHT + spacing.sm + LAP_HEIGHT,
       right: spacing.sm,
       backgroundColor: colors.surface,
       borderRadius: radius.lg,
@@ -322,20 +476,20 @@ function createStyles(colors: ThemeColors) {
       fontWeight: "600",
       color: colors.mutedText,
     },
-    dock: {
+    pierLabelWrap: {
       position: "absolute",
       left: 0,
       right: 0,
       bottom: 0,
-      height: DOCK_HEIGHT,
-      backgroundColor: colors.navy,
+      height: PIER_HEIGHT,
       alignItems: "center",
       justifyContent: "center",
     },
-    dockLabel: {
+    pierLabel: {
       ...typography.micro,
       color: colors.white,
       opacity: emphasis.hint,
+      letterSpacing: 1.2,
     },
     legend: {
       ...typography.caption,

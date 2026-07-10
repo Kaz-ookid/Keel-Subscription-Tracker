@@ -26,6 +26,7 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
 import { Card } from "../src/components/ui/Card";
 import { EmptyState } from "../src/components/ui/EmptyState";
+import { animateFold } from "../src/lib/motion";
 import { useAppState } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -144,7 +145,13 @@ export default function ByCategoryScreen() {
 
         return (
           <Card key={key}>
-            <Pressable style={styles.cardBody} onPress={() => setExpanded(open ? null : key)}>
+            <Pressable
+              style={styles.cardBody}
+              onPress={() => {
+                animateFold();
+                setExpanded(open ? null : key);
+              }}
+            >
               <View style={styles.cardHeader}>
                 <View style={[styles.dot, { backgroundColor: sliceColor(index) }]} />
                 <Text style={styles.cardLabel}>

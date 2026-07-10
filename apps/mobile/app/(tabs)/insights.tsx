@@ -43,6 +43,7 @@ import { StatValue } from "../../src/components/ui/StatValue";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { monthFull, monthShort } from "../../src/i18n/dates";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
+import { animateFold } from "../../src/lib/motion";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
@@ -407,7 +408,10 @@ export default function InsightsScreen() {
               <View key={key} style={styles.cadenceRow}>
                 <Pressable
                   style={styles.cadenceBody}
-                  onPress={() => setExpandedCadence(open ? null : key)}
+                  onPress={() => {
+                    animateFold();
+                    setExpandedCadence(open ? null : key);
+                  }}
                 >
                   <View style={styles.cadenceHeader}>
                     <Text style={styles.cadenceLabel}>
@@ -476,7 +480,10 @@ export default function InsightsScreen() {
             <View style={styles.cadenceRow}>
               <Pressable
                 style={styles.cadenceBody}
-                onPress={() => setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl")}
+                onPress={() => {
+                  animateFold();
+                  setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl");
+                }}
               >
                 <View style={styles.cadenceHeader}>
                   <Text style={styles.cadenceLabel}>

@@ -1,5 +1,6 @@
 import { LinearGradient } from "expo-linear-gradient";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
@@ -23,6 +24,7 @@ interface Props {
  *  say "vs average") the animated waterline. */
 export function HeroCard({ label, amount, sub, draft }: Props) {
   const { colors } = useTheme();
+  const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [width, setWidth] = useState(0);
 
@@ -30,6 +32,17 @@ export function HeroCard({ label, amount, sub, draft }: Props) {
   // an outlier month never floods the text.
   const waterHeight =
     draft !== undefined ? 18 + Math.max(-0.5, Math.min(draft - 1, 1)) * 24 : undefined;
+  // The water is data, so it says what it means: the sea-glass caption is the
+  // waterline's own color, tying the words to the level.
+  const pct = draft !== undefined ? Math.round((draft - 1) * 100) : 0;
+  const waterCaption =
+    draft === undefined
+      ? undefined
+      : pct >= 5
+        ? t("hero.aboveAverage", { pct })
+        : pct <= -5
+          ? t("hero.belowAverage", { pct: -pct })
+          : t("hero.atAverage");
 
   return (
     <View style={styles.card} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
@@ -43,6 +56,7 @@ export function HeroCard({ label, amount, sub, draft }: Props) {
         {amount}
       </Animated.Text>
       {sub ? <Text style={styles.sub}>{sub}</Text> : null}
+      {waterCaption ? <Text style={styles.waterCaption}>{waterCaption}</Text> : null}
     </View>
   );
 }
@@ -70,6 +84,12 @@ function createStyles(colors: ThemeColors) {
       ...typography.caption,
       color: colors.white,
       opacity: emphasis.hint,
+    },
+    waterCaption: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.accentStrong,
+      marginTop: spacing.xs,
     },
   });
 }

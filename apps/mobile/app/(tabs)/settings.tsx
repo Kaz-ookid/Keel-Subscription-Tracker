@@ -32,6 +32,7 @@ import {
 
 import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
 import { loadHarborEnabled, setHarborEnabled } from "../../src/lib/experiments";
+import { animateFold } from "../../src/lib/motion";
 import {
   authenticate,
   getAuthKind,
@@ -129,6 +130,7 @@ export default function SettingsScreen() {
   const toggleLock = async (next: boolean) => {
     const ok = await authenticate(t(next ? "applock.confirmPrompt" : "applock.disablePrompt"));
     if (!ok) return;
+    animateFold();
     setLockEnabled(next);
     await persistLockEnabled(next);
   };
