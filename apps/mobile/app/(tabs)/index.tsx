@@ -12,9 +12,10 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 
 type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
 
-import { ScheduleView } from "../../src/components/payments/ScheduleView";
+import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
+import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -35,6 +36,18 @@ export default function PaymentsScreen() {
   const [view, setView] = useState<PaymentsView>("upcoming");
   const router = useRouter();
   const { items, accounts, loading } = useAppState();
+
+  // The schedule slot's lens lives HERE so the calendar toggle can always
+  // bring the grid back, even while the harbor is showing.
+  const [scheduleLens, setScheduleLens] = useState<ScheduleLens>("grid");
+  const [harborEnabled, setHarborEnabled] = useState(false);
+  useEffect(() => {
+    void loadHarborEnabled().then(setHarborEnabled);
+    return onHarborChange((enabled) => {
+      setHarborEnabled(enabled);
+      if (!enabled) setScheduleLens("grid");
+    });
+  }, []);
 
   // First launch only: a truly empty app (no items, no accounts) and the tour
   // never shown → open onboarding. Checked once per mount, after hydration.
@@ -111,7 +124,12 @@ export default function PaymentsScreen() {
         </View>
         <Pressable
           accessibilityLabel={t("payments.calendarA11y")}
-          onPress={() => setView("calendar")}
+          onPress={() => {
+            // Always lands on the GRID: pressing it while the harbor lens is
+            // up is the way back to the calendar.
+            setView("calendar");
+            setScheduleLens("grid");
+          }}
           style={[styles.calendarToggle, view === "calendar" && styles.calendarToggleActive]}
         >
           <SymbolView
@@ -138,7 +156,7 @@ export default function PaymentsScreen() {
           </View>
         </PagerView>
       ) : (
-        <ScheduleView />
+        <ScheduleView lens={scheduleLens} onLens={setScheduleLens} harborEnabled={harborEnabled} />
       )}
     </View>
   );

@@ -24,7 +24,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -287,9 +287,6 @@ export function HarborView() {
   const [width, setWidth] = useState(0);
   // The day bubble: which vessel's cargo is being previewed.
   const [selectedKey, setSelectedKey] = useState<CalendarDate | null>(null);
-  // Open at the quay (today); the year of sea is above, one scroll away.
-  const scrollRef = useRef<ScrollView>(null);
-  const openedAtQuay = useRef(false);
 
   const asOf = today();
   const sea = harborPalette(scheme === "dark" ? "dark" : "light");
@@ -449,16 +446,12 @@ export function HarborView() {
   })();
 
   return (
+    // Opens AT the quay: the initial offset overshoots and clamps to the
+    // bottom, so there is no first frame at the horizon and no visible jump.
     <ScrollView
-      ref={scrollRef}
       style={styles.screen}
       contentContainerStyle={styles.content}
-      onContentSizeChange={() => {
-        if (!openedAtQuay.current) {
-          openedAtQuay.current = true;
-          scrollRef.current?.scrollToEnd({ animated: false });
-        }
-      }}
+      contentOffset={{ x: 0, y: CANVAS_HEIGHT }}
     >
       <View style={styles.canvas} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {/* Open water: deeper (darker) the farther from the quay. */}
