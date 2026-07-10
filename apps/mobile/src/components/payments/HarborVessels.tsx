@@ -142,14 +142,18 @@ export function vesselGeometry(
   cargoShares: number[],
   dayShare: number,
 ): VesselGeometry {
+  // WIDE size ranges on purpose (dogfood round 6: a 2-franc crate must never
+  // resemble a 350-franc one): the sqrt keeps small values visible, the span
+  // does the talking. The caller also scales the whole sprite by the day's
+  // share, so kind + cargo size + hull scale stack up.
   if (kind === "ship") {
     // Containers grow with their charge; the hull stretches to hold them.
-    const boost = Math.round(dayShare * 14);
+    const boost = Math.round(dayShare * 20);
     const deckY = 32;
     let x = SHIP.off + SHIP.stern + SHIP.bridgeW + 4 + boost / 2;
     const cargo: CargoRect[] = cargoShares.map((s) => {
-      const w = Math.round(20 + 14 * Math.sqrt(s));
-      const h = Math.round(16 + 8 * Math.sqrt(s));
+      const w = Math.round(16 + 22 * Math.sqrt(s));
+      const h = Math.round(14 + 12 * Math.sqrt(s));
       const rect = { x, y: deckY - h, w, h };
       x += w + SHIP.gap;
       return rect;
@@ -158,12 +162,12 @@ export function vesselGeometry(
     return { w: Math.max(92, w), h: 56, waterY: 46, cargo };
   }
   if (kind === "boat") {
-    const boost = Math.round(dayShare * 8);
+    const boost = Math.round(dayShare * 10);
     const deckY = 26;
     let x = BOAT.off + BOAT.stern + BOAT.cabinW + 4 + boost / 2;
     const cargo: CargoRect[] = cargoShares.map((s) => {
-      const w = Math.round(16 + 10 * Math.sqrt(s));
-      const h = Math.round(14 + 6 * Math.sqrt(s));
+      const w = Math.round(14 + 14 * Math.sqrt(s));
+      const h = Math.round(12 + 10 * Math.sqrt(s));
       const rect = { x, y: deckY - h, w, h };
       x += w + BOAT.gap;
       return rect;
@@ -173,13 +177,13 @@ export function vesselGeometry(
   }
   if (kind === "crate") {
     // A floating crate rides low: about a quarter of it under the water.
-    const side = Math.round(26 + 14 * Math.sqrt(cargoShares[0] ?? 0));
+    const side = Math.round(22 + 20 * Math.sqrt(cargoShares[0] ?? 0));
     const w = side + 12;
     const h = side + 14;
     const waterY = h - 9;
     return { w, h, waterY, cargo: [{ x: 6, y: waterY + 5 - side, w: side, h: side }] };
   }
-  const side = Math.round(22 + 12 * Math.sqrt(cargoShares[0] ?? 0));
+  const side = Math.round(18 + 16 * Math.sqrt(cargoShares[0] ?? 0));
   const w = side + 12;
   const h = side + 14;
   const waterY = h - 9;

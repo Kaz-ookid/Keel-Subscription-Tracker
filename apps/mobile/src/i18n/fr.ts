@@ -430,8 +430,6 @@ export const fr: typeof en = {
     emptyTitle: "Rien au mouillage pour l'instant",
     emptyHint:
       "Ajoutez des abonnements et ils arriveront ici par bateau, à la taille de leur coût.",
-    legend:
-      "Chaque navire est un jour de facturation, à la taille de son montant. Les paiements du même jour partagent un navire ; le plus proche du quai passe en premier.",
   },
   applock: {
     lockFaceId: "Verrouiller avec Face ID",

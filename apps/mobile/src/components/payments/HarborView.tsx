@@ -5,8 +5,9 @@
 // same-day payments share it as cargo. Vessel type and size follow the DAY'S
 // charge total (container ship → launch → crate → lost box), each cargo piece
 // scales with ITS charge, and distance from the quay maps days until due on a
-// square-root scale. Tapping a vessel opens a day bubble (what lands, for how
-// much); tapping a bubble row opens the item. Opens at the quay, scrolls out.
+// linear scale (equal water is equal time). Tapping a vessel opens a day
+// bubble (what lands, for how much); tapping a bubble row opens the item.
+// Opens at the quay, scrolls out.
 
 import {
   addRecurrence,
@@ -35,7 +36,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
-import Svg, { Circle, G, Line, Path, Rect } from "react-native-svg";
+import Svg, { G, Line, Path, Rect } from "react-native-svg";
 
 import { useAppState } from "../../state/app-state";
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
@@ -54,7 +55,9 @@ import {
   type VesselKind,
 } from "./HarborVessels";
 
-const CANVAS_HEIGHT = 1600;
+// Tall on purpose: ~8px per day so the fleet has open water between billing
+// days instead of hulls rafting up against each other.
+const CANVAS_HEIGHT = 3120;
 // The quay is an elevated structure now: a seawall the water laps against,
 // a hazard-striped lip, then the walk surface with the yard on it.
 const QUAY_HEIGHT = 64;
@@ -90,6 +93,9 @@ interface Vessel {
   shown: number;
   kind: VesselKind;
   geo: VesselGeometry;
+  /** Whole-sprite scale from the day's share: pocket-money days shrink,
+   *  the biggest day looms. */
+  scale: number;
   facing: 1 | -1;
   /** Waterline anchor (center-x on the water). */
   x: number;
@@ -118,6 +124,54 @@ function Drift({ index, children }: { index: number; children: React.ReactNode }
   return <Animated.View style={style}>{children}</Animated.View>;
 }
 
+/** The tide. Ripple strokes drift toward the quay in slow, phase-shifted
+ *  sheets that fade in and out, so the water itself says which way the
+ *  fleet is headed: down, toward today. */
+function Tide({
+  width,
+  ripples,
+  color,
+  phase,
+}: {
+  width: number;
+  ripples: { x: number; y: number }[];
+  color: string;
+  /** 0..1 stagger so the two sheets never breathe together. */
+  phase: number;
+}) {
+  const t = useSharedValue(phase);
+  useEffect(() => {
+    t.value = phase;
+    t.value = withRepeat(
+      withTiming(phase + 1, { duration: 9000, easing: Easing.linear }),
+      -1,
+      false,
+    );
+  }, [t, phase]);
+  const style = useAnimatedStyle(() => {
+    const f = t.value % 1;
+    return {
+      transform: [{ translateY: f * 72 - 36 }],
+      opacity: Math.sin(Math.PI * f) * 0.9,
+    };
+  });
+  return (
+    <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, style]}>
+      <Svg width={width} height={CANVAS_HEIGHT}>
+        {ripples.map((p, i) => (
+          <Path
+            key={`tide-${i}`}
+            d={`M ${p.x} ${p.y} q 7 -3 14 0 q 7 3 14 0`}
+            stroke={color}
+            strokeWidth={1.2}
+            fill="none"
+          />
+        ))}
+      </Svg>
+    </Animated.View>
+  );
+}
+
 /** Bob only when asked (hooks can't be conditional, wrappers can). */
 function MaybeDrift({
   active,
@@ -132,18 +186,16 @@ function MaybeDrift({
   return <Drift index={index}>{children}</Drift>;
 }
 
-/** The working dock. The crane's trolley shuttles between the yard and the
- *  water side, lowering its container at each end (it picks up from behind
- *  the stacks and swings out over the wall); a truck hauls a delivery across
- *  the yard every so often. All loops are long and quiet: alive, not busy. */
+/** The working crane, drawn as the scene's FOREGROUND layer: it stands on
+ *  the quay nearest the viewer, so arriving hulls pass behind it. The
+ *  trolley shuttles between the yard and the water side, lowering its
+ *  container at each end. One long quiet loop: alive, not busy. */
 function DockLife({
-  width,
   craneX,
   craneBase,
   sea,
   chart,
 }: {
-  width: number;
   craneX: number;
   craneBase: number;
   sea: HarborPalette;
@@ -152,7 +204,6 @@ function DockLife({
   // Trolley travel (relative to the crane's center) and hook drop.
   const tx = useSharedValue(17);
   const drop = useSharedValue(0);
-  const truckX = useSharedValue(width + 80);
   useEffect(() => {
     // One 11.6s crane cycle: dwell, swing out, work the hook, swing home.
     tx.value = 17;
@@ -181,64 +232,42 @@ function DockLife({
       -1,
       false,
     );
-    // The truck crosses the yard, then the road stays empty for a while.
-    truckX.value = width + 80;
-    truckX.value = withRepeat(
-      withSequence(
-        withTiming(width + 80, { duration: 4000 }),
-        withTiming(-90, { duration: 9500, easing: Easing.linear }),
-        withTiming(width + 80, { duration: 1 }),
-      ),
-      -1,
-      false,
-    );
-  }, [tx, drop, truckX, width]);
+  }, [tx, drop]);
   const trolleyStyle = useAnimatedStyle(() => ({ transform: [{ translateX: tx.value }] }));
   const cableStyle = useAnimatedStyle(() => ({ height: 16 + drop.value }));
-  const truckStyle = useAnimatedStyle(() => ({ transform: [{ translateX: truckX.value }] }));
   return (
-    <>
-      {/* The crane's moving parts: trolley, cable, container on the hook. */}
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      {/* The structure: legs, braces, boom, apex, stays, counterweight. */}
+      <Svg
+        width={170}
+        height={140}
+        style={[styles2.craneSvg, { left: craneX - 100, top: craneBase - 136 }]}
+      >
+        <Rect x={82} y={28} width={6} height={108} fill={sea.steel} />
+        <Rect x={112} y={28} width={6} height={108} fill={sea.steel} />
+        <Line x1={85} y1={106} x2={115} y2={66} stroke={sea.steelDark} strokeWidth={2} />
+        <Line x1={115} y1={106} x2={85} y2={66} stroke={sea.steelDark} strokeWidth={2} />
+        <Rect x={5} y={22} width={150} height={6} fill={sea.steel} />
+        <Rect x={96} y={4} width={8} height={18} fill={sea.steel} />
+        <Line x1={100} y1={6} x2={8} y2={25} stroke={sea.steelDark} strokeWidth={1.4} />
+        <Line x1={100} y1={6} x2={152} y2={25} stroke={sea.steelDark} strokeWidth={1.4} />
+        <Rect x={138} y={28} width={15} height={10} fill={sea.steelDark} />
+      </Svg>
+      {/* The moving parts: trolley, cable, container on the hook. */}
       <Animated.View
-        pointerEvents="none"
         style={[styles2.craneAssembly, { top: craneBase - 109, left: craneX - 12 }, trolleyStyle]}
       >
         <View style={[styles2.trolley, { backgroundColor: sea.hazard }]} />
         <Animated.View style={[styles2.cable, { backgroundColor: sea.steelDark }, cableStyle]} />
         <View style={[styles2.hookContainer, { backgroundColor: chart[5 % chart.length] }]} />
       </Animated.View>
-      {/* A delivery truck crossing the yard. */}
-      <Animated.View
-        pointerEvents="none"
-        style={[styles2.truck, { top: CANVAS_HEIGHT - 34 }, truckStyle]}
-      >
-        <Svg width={64} height={26}>
-          <Rect x={17} y={15} width={45} height={5} fill={sea.steelDark} />
-          <Rect x={2} y={7} width={15} height={13} rx={2} fill={sea.steel} />
-          <Rect x={4.5} y={9.5} width={7} height={5} fill={sea.bridge} />
-          <Rect x={19} y={3} width={32} height={12} rx={1} fill={chart[1 % chart.length]} />
-          {[27, 35, 43].map((x) => (
-            <Line
-              key={`tc-${x}`}
-              x1={x}
-              y1={4.5}
-              x2={x}
-              y2={13.5}
-              stroke="rgba(0,0,0,0.2)"
-              strokeWidth={1.2}
-            />
-          ))}
-          <Circle cx={9} cy={22} r={4} fill={sea.hazardDark} />
-          <Circle cx={26} cy={22} r={4} fill={sea.hazardDark} />
-          <Circle cx={52} cy={22} r={4} fill={sea.hazardDark} />
-        </Svg>
-      </Animated.View>
-    </>
+    </View>
   );
 }
 
 // DockLife's fixed shapes (theme-independent geometry; colors come inline).
 const styles2 = StyleSheet.create({
+  craneSvg: { position: "absolute" },
   craneAssembly: {
     position: "absolute",
     width: 24,
@@ -247,7 +276,6 @@ const styles2 = StyleSheet.create({
   trolley: { width: 11, height: 8, borderRadius: 1 },
   cable: { width: 2 },
   hookContainer: { width: 23, height: 13, borderRadius: 1.5 },
-  truck: { position: "absolute", left: 0 },
 });
 
 export function HarborView() {
@@ -324,18 +352,23 @@ export function HarborView() {
         g.cargo.slice(0, shown).map((c) => c.value / maxCharge),
         dayShare,
       );
+      // On top of kind and cargo size, the whole sprite scales with the
+      // day's weight: 2 francs must never resemble 350.
+      const scale = 0.8 + 0.5 * Math.sqrt(dayShare);
+      const sw = geo.w * scale;
+      const sh = geo.h * scale;
       const yIdeal = yNear - distanceFraction(g.daysUntil) * (yNear - yFar);
-      const xMin = geo.w / 2 + 6;
-      const xMax = w - geo.w / 2 - 6;
+      const xMin = sw / 2 + 6;
+      const xMax = w - sw / 2 - 6;
       const collides = (px: number, py: number) =>
         placed.some(
           (p) =>
-            Math.abs(p.x - px) < (p.geo.w + geo.w) / 2 + 8 &&
-            Math.abs(p.y - py) < (p.geo.h + geo.h) / 2 + 4,
+            Math.abs(p.x - px) < (p.geo.w * p.scale + sw) / 2 + 12 &&
+            Math.abs(p.y - py) < (p.geo.h * p.scale + sh) / 2 + 10,
         );
       let x = xMin + ((i * 0.61803) % 1) * Math.max(xMax - xMin, 1);
       let y = yIdeal;
-      outer: for (const dy of [0, -18, 18, -36, 36]) {
+      outer: for (const dy of [0, -20, 20, -40, 40, -60, 60]) {
         const py = Math.min(Math.max(yIdeal + dy, yFar), yNear);
         let px = x;
         for (let tries = 0; tries < 24; tries += 1) {
@@ -356,6 +389,7 @@ export function HarborView() {
         shown,
         kind,
         geo,
+        scale,
         facing: i % 2 === 0 ? 1 : -1,
         x,
         y,
@@ -404,10 +438,11 @@ export function HarborView() {
     if (!selected || width === 0) return null;
     const rowCount = selected.cargo.length;
     const height = 44 + rowCount * 34 + (rowCount > 1 ? 28 : 0);
-    const above = selected.y - selected.geo.waterY - height - 12 >= 8;
-    const top = above
-      ? selected.y - selected.geo.waterY - height - 10
-      : selected.y + (selected.geo.h - selected.geo.waterY) + 12;
+    // The sprite's visual extents under its scale transform.
+    const topEdge = selected.y - selected.geo.waterY * selected.scale;
+    const bottomEdge = selected.y + (selected.geo.h - selected.geo.waterY) * selected.scale;
+    const above = topEdge - height - 12 >= 8;
+    const top = above ? topEdge - height - 10 : bottomEdge + 12;
     const left = Math.min(Math.max(selected.x - BUBBLE_W / 2, 8), width - BUBBLE_W - 8);
     const tipX = Math.min(Math.max(selected.x - left - 7, 14), BUBBLE_W - 28);
     return { top, left, tipX, above };
@@ -429,6 +464,24 @@ export function HarborView() {
         {/* Open water: deeper (darker) the farther from the quay. */}
         <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
 
+        {/* The tide: two sheets of ripples drifting toward the quay. */}
+        {width > 0 && (
+          <>
+            <Tide
+              width={width}
+              ripples={ripples.filter((_, i) => i % 2 === 0)}
+              color={sea.ripple}
+              phase={0}
+            />
+            <Tide
+              width={width}
+              ripples={ripples.filter((_, i) => i % 2 === 1)}
+              color={sea.ripple}
+              phase={0.5}
+            />
+          </>
+        )}
+
         {/* Water lapping at the seawall: UNDER the quay drawing, so the wall
             and the crane stand in front of the waves, not behind them. */}
         {width > 0 && (
@@ -439,17 +492,6 @@ export function HarborView() {
 
         {width > 0 && (
           <Svg width={width} height={CANVAS_HEIGHT} style={StyleSheet.absoluteFill}>
-            {/* Ripples on the open water. */}
-            {ripples.map((p, i) => (
-              <Path
-                key={`ripple-${i}`}
-                d={`M ${p.x} ${p.y} q 7 -3 14 0 q 7 3 14 0`}
-                stroke={sea.ripple}
-                strokeWidth={1.2}
-                fill="none"
-              />
-            ))}
-
             {/* Gulls over the far water. */}
             <Path
               d={`M ${width * 0.32} 46 q 4 -5 8 0 q 4 -5 8 0`}
@@ -599,66 +641,7 @@ export function HarborView() {
                 </G>
               );
             })}
-
-            {/* The gantry crane, standing on the yard, boom out over the sea,
-                mid-lift. */}
-            <G>
-              <Rect x={craneX - 18} y={craneBase - 108} width={6} height={108} fill={sea.steel} />
-              <Rect x={craneX + 12} y={craneBase - 108} width={6} height={108} fill={sea.steel} />
-              <Line
-                x1={craneX - 15}
-                y1={craneBase - 30}
-                x2={craneX + 15}
-                y2={craneBase - 70}
-                stroke={sea.steelDark}
-                strokeWidth={2}
-              />
-              <Line
-                x1={craneX + 15}
-                y1={craneBase - 30}
-                x2={craneX - 15}
-                y2={craneBase - 70}
-                stroke={sea.steelDark}
-                strokeWidth={2}
-              />
-              <Rect x={craneX - 95} y={craneBase - 114} width={150} height={6} fill={sea.steel} />
-              <Rect x={craneX - 4} y={craneBase - 132} width={8} height={18} fill={sea.steel} />
-              <Line
-                x1={craneX}
-                y1={craneBase - 130}
-                x2={craneX - 92}
-                y2={craneBase - 111}
-                stroke={sea.steelDark}
-                strokeWidth={1.4}
-              />
-              <Line
-                x1={craneX}
-                y1={craneBase - 130}
-                x2={craneX + 52}
-                y2={craneBase - 111}
-                stroke={sea.steelDark}
-                strokeWidth={1.4}
-              />
-              <Rect
-                x={craneX + 38}
-                y={craneBase - 108}
-                width={15}
-                height={10}
-                fill={sea.steelDark}
-              />
-            </G>
           </Svg>
-        )}
-
-        {/* The dock at work: crane cycle and the occasional truck. */}
-        {width > 0 && (
-          <DockLife
-            width={width}
-            craneX={craneX}
-            craneBase={craneBase}
-            sea={sea}
-            chart={colors.chart}
-          />
         )}
 
         {/* Distance labels ride their lines, out of the fleet's way. */}
@@ -713,12 +696,15 @@ export function HarborView() {
           vessels.map((v, i) => (
             <View
               key={v.key}
+              // The transform scales around the box center; the top offset
+              // compensates so the waterline still lands exactly on v.y.
               style={{
                 position: "absolute",
                 left: v.x - v.geo.w / 2,
-                top: v.y - v.geo.waterY,
+                top: v.y - v.geo.h / 2 - (v.geo.waterY - v.geo.h / 2) * v.scale,
                 width: v.geo.w,
                 height: v.geo.h,
+                transform: [{ scale: v.scale }],
               }}
             >
               <MaybeDrift active={v.daysUntil <= DRIFT_DAYS} index={i}>
@@ -778,6 +764,12 @@ export function HarborView() {
               </MaybeDrift>
             </View>
           ))}
+
+        {/* The crane stands NEAREST the viewer: drawn over the fleet, so an
+            arriving hull passes behind its legs and boom, never through. */}
+        {width > 0 && (
+          <DockLife craneX={craneX} craneBase={craneBase} sea={sea} chart={colors.chart} />
+        )}
 
         {/* The day bubble: what lands that day, anchored to the hull. */}
         {selected && bubble && (
@@ -840,8 +832,6 @@ export function HarborView() {
           <Text style={styles.quayLabel}>{t("harbor.dock")}</Text>
         </View>
       </View>
-
-      <Text style={styles.legend}>{t("harbor.legend")}</Text>
     </ScrollView>
   );
 }
@@ -975,11 +965,6 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       opacity: emphasis.hint,
       letterSpacing: 1.2,
-    },
-    legend: {
-      ...typography.caption,
-      color: colors.mutedText,
-      textAlign: "center",
     },
   });
 }

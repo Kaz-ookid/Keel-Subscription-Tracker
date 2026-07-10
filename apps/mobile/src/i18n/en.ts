@@ -428,8 +428,6 @@ export const en = {
     dayTotal: "That day",
     emptyTitle: "Nothing at anchor yet",
     emptyHint: "Add subscriptions and they arrive here by ship, sized by what they cost.",
-    legend:
-      "Each vessel is one billing day, sized by its cost. Same-day payments share a ship; the closest to the quay is due first.",
   },
   applock: {
     lockFaceId: "Lock with Face ID",
