@@ -2,59 +2,45 @@
 // LEFT as an ✕ on every pageSheet modal, so the system back chevron never
 // masquerades as navigation inside a task. Confirming stays top right.
 //
-// Both glyphs are drawn as SVG strokes at exact coordinates inside a fixed
-// 28pt box: the ✕ crosses at (14,14), the chevron's bounds straddle x=14.
-// No font metrics, no background shape, nothing left to optically drift.
+// Both ride react-navigation's own HeaderBackButton, so they sit at the EXACT
+// native position and size of every other screen's back chevron (the item
+// screen's back button is the reference). The ✕ only swaps the glyph.
 
+import { HeaderBackButton } from "@react-navigation/elements";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 export function ModalClose() {
   const router = useRouter();
   return (
-    <Pressable
+    <HeaderBackButton
       onPress={() => router.back()}
-      hitSlop={12}
+      tintColor="#FFFFFF"
       accessibilityLabel="Close"
-      style={styles.box}
-    >
-      <Svg width={28} height={28}>
-        <Path
-          d="M 9.5 9.5 L 18.5 18.5 M 18.5 9.5 L 9.5 18.5"
-          stroke="#FFFFFF"
-          strokeWidth={2.2}
-          strokeLinecap="round"
-        />
-      </Svg>
-    </Pressable>
+      displayMode="minimal"
+      backImage={({ tintColor }) => (
+        <Svg width={24} height={24}>
+          <Path
+            d="M 7.5 7.5 L 16.5 16.5 M 16.5 7.5 L 7.5 16.5"
+            stroke={tintColor}
+            strokeWidth={2.4}
+            strokeLinecap="round"
+          />
+        </Svg>
+      )}
+    />
   );
 }
 
 /** Header back to a previous PHASE inside the same sheet (e.g. the add
- *  chooser). Same box and stroke as the ✕ so the two share one geometry. */
+ *  chooser): the untouched native chevron, same metrics everywhere. */
 export function ModalBack({ onPress, label }: { onPress: () => void; label: string }) {
   return (
-    <Pressable onPress={onPress} hitSlop={12} accessibilityLabel={label} style={styles.box}>
-      <Svg width={28} height={28}>
-        <Path
-          d="M 16.5 7.5 L 11.5 14 L 16.5 20.5"
-          stroke="#FFFFFF"
-          strokeWidth={2.2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </Svg>
-    </Pressable>
+    <HeaderBackButton
+      onPress={onPress}
+      tintColor="#FFFFFF"
+      accessibilityLabel={label}
+      displayMode="minimal"
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  box: {
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
