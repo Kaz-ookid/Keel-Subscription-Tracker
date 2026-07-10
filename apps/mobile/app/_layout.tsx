@@ -96,7 +96,6 @@ function RootNavigator() {
                 }}
               />
               <Stack.Screen name="item" options={{ title: t("titles.details") }} />
-              <Stack.Screen name="history" options={{ title: t("titles.history") }} />
               <Stack.Screen name="accounts" options={{ title: t("titles.accounts") }} />
               <Stack.Screen name="price-changes" options={{ title: t("titles.priceChanges") }} />
               <Stack.Screen name="by-account" options={{ title: t("titles.byAccount") }} />

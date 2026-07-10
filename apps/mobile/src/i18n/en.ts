@@ -30,7 +30,6 @@ export const en = {
   },
   titles: {
     details: "Details",
-    history: "History",
     accounts: "Accounts",
     priceChanges: "Price changes",
     byAccount: "By account",
@@ -376,12 +375,6 @@ export const en = {
     plusOwed: "plus {{amount}} of split payments still owed",
     commitments_one: "{{count}} commitment",
     commitments_other: "{{count}} commitments",
-  },
-  history: {
-    searchPlaceholder: "Search payments",
-    filterAll: "All",
-    emptyTitle: "Nothing here yet",
-    emptyHint: "No payments match these filters.",
   },
   priceChanges: {
     heroLabel: "Price creep",

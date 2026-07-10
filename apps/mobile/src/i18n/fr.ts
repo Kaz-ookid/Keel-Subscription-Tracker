@@ -30,7 +30,6 @@ export const fr: typeof en = {
   },
   titles: {
     details: "Détails",
-    history: "Historique",
     accounts: "Comptes",
     priceChanges: "Changements de prix",
     byAccount: "Par compte",
@@ -377,12 +376,6 @@ export const fr: typeof en = {
     plusOwed: "plus {{amount}} de paiement échelonné encore dû",
     commitments_one: "{{count}} engagement",
     commitments_other: "{{count}} engagements",
-  },
-  history: {
-    searchPlaceholder: "Rechercher un paiement",
-    filterAll: "Tout",
-    emptyTitle: "Rien pour l'instant",
-    emptyHint: "Aucun paiement ne correspond à ces filtres.",
   },
   priceChanges: {
     heroLabel: "Dérive des prix",
