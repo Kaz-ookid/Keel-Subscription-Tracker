@@ -264,6 +264,7 @@ function createStyles(colors: ThemeColors) {
       height: 28,
       alignItems: "center",
       justifyContent: "center",
+      marginLeft: 6,
     },
   });
 }

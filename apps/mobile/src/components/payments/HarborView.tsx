@@ -22,7 +22,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -41,14 +41,22 @@ import { BrandBadge } from "../BrandBadge";
 import { EmptyState } from "../ui/EmptyState";
 import { Waterline } from "../Waterline";
 
-const CANVAS_HEIGHT = 460;
+const CANVAS_HEIGHT = 1180;
 const PIER_HEIGHT = 34;
 const LAP_HEIGHT = 10;
-const HORIZON_DAYS = 60;
-const MAX_BUOYS = 24;
+// A full year of sea, on a square-root scale: the next weeks get the most
+// water, the far future compresses toward the horizon. The screen opens at
+// the pier and scrolls up into the distance.
+const HORIZON_DAYS = 365;
+const MAX_BUOYS = 40;
 const MIN_R = 17;
 const MAX_R = 34;
 const TOP_PAD = 64; // room for the paused shelf and the horizon sail
+
+/** 0 (at the pier) → 1 (horizon), sqrt-compressed. */
+function distanceFraction(days: number): number {
+  return Math.sqrt(Math.min(days, HORIZON_DAYS) / HORIZON_DAYS);
+}
 
 interface Buoy {
   item: PaymentItem;
@@ -88,6 +96,9 @@ export function HarborView() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, categories, displayCurrency, rates } = useAppState();
   const [width, setWidth] = useState(0);
+  // Open at the pier (today); the year of sea is above, one scroll away.
+  const scrollRef = useRef<ScrollView>(null);
+  const openedAtPier = useRef(false);
 
   const asOf = today();
 
@@ -169,13 +180,12 @@ export function HarborView() {
     const w = Math.max(width, 1);
     kept.forEach((c, i) => {
       const r = MIN_R + Math.sqrt(c.monthly / maxMonthly) * (MAX_R - MIN_R);
-      const clampedDays = Math.min(c.daysUntil, HORIZON_DAYS);
       const y =
         pierTop -
         LAP_HEIGHT -
         r -
         4 -
-        (clampedDays / HORIZON_DAYS) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * r - 8);
+        distanceFraction(c.daysUntil) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * r - 8);
       let x = r + 8 + ((i * 0.61803) % 1) * (w - 2 * r - 16);
       let tries = 0;
       while (
@@ -204,18 +214,18 @@ export function HarborView() {
     );
   }
 
-  const gridDays = [7, 30, 60];
+  const gridDays = [7, 30, 90, 180, 365];
   const gridY = (d: number) =>
     pierTop -
     LAP_HEIGHT -
     MIN_R -
     4 -
-    (d / HORIZON_DAYS) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * MIN_R - 8);
+    distanceFraction(d) * (pierTop - LAP_HEIGHT - TOP_PAD - 2 * MIN_R - 8);
 
   // Deterministic ripple scatter across the open water.
   const ripples =
     width > 0
-      ? Array.from({ length: 12 }, (_, i) => ({
+      ? Array.from({ length: 30 }, (_, i) => ({
           x: 16 + ((i * 0.37 + 0.11) % 1) * (width - 48),
           y: TOP_PAD + ((i * 0.59 + 0.07) % 1) * (pierTop - TOP_PAD - 70),
         }))
@@ -224,7 +234,17 @@ export function HarborView() {
   const plankCount = width > 0 ? Math.ceil(width / 26) : 0;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      ref={scrollRef}
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      onContentSizeChange={() => {
+        if (!openedAtPier.current) {
+          openedAtPier.current = true;
+          scrollRef.current?.scrollToEnd({ animated: false });
+        }
+      }}
+    >
       <View style={styles.canvas} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
         {/* Open water: deeper (darker) the farther from the pier. */}
         <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
@@ -310,7 +330,7 @@ export function HarborView() {
         {width > 0 &&
           gridDays.map((d) => (
             <Text key={`label-${d}`} style={[styles.gridLabel, { top: gridY(d) - 16 }]}>
-              {t("harbor.days", { count: d })}
+              {d === 365 ? t("harbor.year") : t("harbor.days", { count: d })}
             </Text>
           ))}
 

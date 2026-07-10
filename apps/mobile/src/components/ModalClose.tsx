@@ -27,5 +27,8 @@ const styles = StyleSheet.create({
     height: 28,
     alignItems: "center",
     justifyContent: "center",
+    // iOS places headerLeft tight to the edge; nudge into the title's optical
+    // column so the glyph doesn't read as hugging the border.
+    marginLeft: 6,
   },
 });

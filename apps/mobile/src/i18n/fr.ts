@@ -121,7 +121,9 @@ export const fr: typeof en = {
     backlogLine: "Les paiements passés arrivent impayés, comme indiqué",
     uncertainName: "Aucun vrai nom n'a été donné, choisissez-en un",
     uncertainGeneric: "À vérifier : {{field}}",
-    assumedLine: "Supposé : {{fields}}",
+    warnSettlementAssumedAuto:
+      "Marqué comme prélevé automatiquement, vérifiez que c'est bien le cas",
+    warnSettlementAssumedManual: "Marqué comme payé à la main, vérifiez que c'est bien le cas",
     fieldName: "nom",
     fieldAmount: "montant",
     fieldCurrency: "devise",
@@ -419,14 +421,10 @@ export const fr: typeof en = {
     namePlaceholder: "Nom de la catégorie",
     addCategory: "Ajouter une catégorie",
   },
-  hero: {
-    aboveAverage: "Eau haute : {{pct}} % au-dessus d'un mois habituel",
-    belowAverage: "Ligne haute : {{pct}} % en dessous d'un mois habituel",
-    atAverage: "Au niveau d'un mois habituel",
-  },
   harbor: {
     dock: "Aujourd'hui",
     days: "{{count}} j",
+    year: "1 an",
     paused: "En pause",
     more: "+{{count}}",
     emptyTitle: "Rien au mouillage pour l'instant",

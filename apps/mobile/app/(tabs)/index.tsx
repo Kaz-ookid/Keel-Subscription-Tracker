@@ -7,7 +7,7 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { CalendarMonthView } from "../../src/components/payments/CalendarMonthView";
 import { HarborView } from "../../src/components/payments/HarborView";
@@ -56,18 +56,36 @@ export default function PaymentsScreen() {
     });
   }, [loading, items, accounts, router]);
 
+  // The selection wash SLIDES between the two pills instead of teleporting,
+  // and fades out when the calendar/harbor toggles own the selection.
+  const [trackWidth, setTrackWidth] = useState(0);
+  const highlightX = useSharedValue(0);
+  const highlightOpacity = useSharedValue(1);
+  const pillWidth = trackWidth > 0 ? (trackWidth - 2 - 6 - 3) / 2 : 0; // border+padding+gap
+  useEffect(() => {
+    const index = view === "all" ? 1 : 0;
+    // Reanimated shared values are driven by assigning `.value`.
+    highlightX.value = withTiming(index * (pillWidth + 3), { duration: 200 });
+    highlightOpacity.value = withTiming(view === "upcoming" || view === "all" ? 1 : 0, {
+      duration: 150,
+    });
+  }, [view, pillWidth, highlightX, highlightOpacity]);
+  const highlightStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: highlightX.value }],
+    opacity: highlightOpacity.value,
+  }));
+
   return (
     <View style={styles.screen}>
       <View style={styles.switchWrap}>
-        <View style={styles.switch}>
+        <View style={styles.switch} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
+          {pillWidth > 0 && (
+            <Animated.View style={[styles.highlight, { width: pillWidth }, highlightStyle]} />
+          )}
           {VIEWS.map((v) => {
             const active = view === v.value;
             return (
-              <Pressable
-                key={v.value}
-                onPress={() => setView(v.value)}
-                style={[styles.pill, active && styles.pillActive]}
-              >
+              <Pressable key={v.value} onPress={() => setView(v.value)} style={styles.pill}>
                 <Text style={[styles.pillText, active && styles.pillTextActive]}>
                   {t(v.labelKey)}
                 </Text>
@@ -101,19 +119,10 @@ export default function PaymentsScreen() {
         )}
       </View>
 
-      {/* Fade-through on view switches (§3.6): keyed remount so the old view
-          fades out while the new one fades in. */}
-      <Animated.View
-        key={view}
-        entering={FadeIn.duration(150)}
-        exiting={FadeOut.duration(100)}
-        style={styles.viewWrap}
-      >
-        {view === "upcoming" && <UpcomingView />}
-        {view === "all" && <SubscriptionsView />}
-        {view === "calendar" && <CalendarMonthView />}
-        {view === "harbor" && <HarborView />}
-      </Animated.View>
+      {view === "upcoming" && <UpcomingView />}
+      {view === "all" && <SubscriptionsView />}
+      {view === "calendar" && <CalendarMonthView />}
+      {view === "harbor" && <HarborView />}
     </View>
   );
 }
@@ -123,9 +132,6 @@ function createStyles(colors: ThemeColors) {
     screen: {
       flex: 1,
       backgroundColor: colors.background,
-    },
-    viewWrap: {
-      flex: 1,
     },
     switchWrap: {
       flexDirection: "row",
@@ -164,7 +170,15 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm,
       borderRadius: radius.sm,
     },
-    pillActive: { backgroundColor: colors.accentSoft },
+    // The sliding selection wash behind the pills.
+    highlight: {
+      position: "absolute",
+      top: 3,
+      bottom: 3,
+      left: 3,
+      borderRadius: radius.sm,
+      backgroundColor: colors.accentSoft,
+    },
     pillText: { ...typography.label, color: colors.mutedText },
     pillTextActive: { color: colors.accent },
   });

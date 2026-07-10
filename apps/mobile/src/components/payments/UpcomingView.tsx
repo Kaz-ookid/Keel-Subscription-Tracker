@@ -7,13 +7,10 @@ import {
   formatCalendarDate,
   formatTotalsIn,
   isInstallmentSchedule,
-  mergeTotals,
   projectCharges,
   sumByCurrency,
-  summarizeCommitments,
   today,
   type CalendarDate,
-  type Money,
   type ProjectedCharge,
 } from "@keel/core";
 import { useRouter } from "expo-router";
@@ -263,18 +260,6 @@ export function UpcomingView() {
     if (nextMonthOpen) sections.push(...nextSections);
   }
 
-  // The waterline's level: this month's due total vs the monthly average
-  // commitment, both merged into the display currency.
-  const numeric = (values: Money[]): number => {
-    if (rates) {
-      const merged = mergeTotals(values, displayCurrency, rates);
-      if (merged) return merged.total.amount;
-    }
-    return values.find((v) => v.currency === displayCurrency)?.amount ?? 0;
-  };
-  const monthlyAverage = numeric(summarizeCommitments(items, asOf).monthly);
-  const draft = monthlyAverage > 0 ? numeric(dueThisMonth) / monthlyAverage : undefined;
-
   const heroLabel = selectedAccount
     ? t("upcoming.heroNeeds", { name: selectedAccount.name })
     : filter === "none"
@@ -292,7 +277,6 @@ export function UpcomingView() {
         label={heroLabel}
         amount={dueThisMonth.length > 0 ? totals(dueThisMonth) : t("upcoming.nothingDue")}
         sub={heroSub}
-        draft={draft}
       />
 
       {accounts.length > 0 && (

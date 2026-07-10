@@ -34,6 +34,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
@@ -65,6 +66,8 @@ function capitalize(s: string): string {
 
 interface MonthDetail {
   key: string;
+  /** The owning item — every visible payment can open its detail screen. */
+  paymentItemId: string;
   name: string;
   dueDate: CalendarDate;
   amount: Money;
@@ -245,6 +248,7 @@ export default function InsightsScreen() {
       .filter((o) => o.status === "charged" && o.dueDate.slice(0, 7) === selectedKey)
       .map((o) => ({
         key: o.id,
+        paymentItemId: o.paymentItemId,
         name: itemNames.get(o.paymentItemId) ?? "(removed)",
         dueDate: o.dueDate,
         amount: o.amount,
@@ -262,6 +266,7 @@ export default function InsightsScreen() {
         )
         .map((inst) => ({
           key: inst.id,
+          paymentItemId: item.id,
           name: item.name,
           dueDate: inst.dueDate,
           amount: inst.amount,
@@ -274,6 +279,7 @@ export default function InsightsScreen() {
       .filter((c) => c.dueDate.slice(0, 7) === selectedKey)
       .map((c) => ({
         key: `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
+        paymentItemId: c.paymentItemId,
         name: c.name,
         dueDate: c.dueDate,
         amount: c.amount,
@@ -289,7 +295,6 @@ export default function InsightsScreen() {
         label={t("insights.yearInTotal", { year })}
         amount={yearReal.length > 0 ? totals(yearReal) : t("insights.nothingPlanned")}
         sub={heroSub}
-        draft={averageTheory > 0 ? amountIn(thisMonthReal) / averageTheory : undefined}
       />
 
       {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
@@ -326,7 +331,11 @@ export default function InsightsScreen() {
       {details.length > 0 && (
         <ScrollView style={styles.detailCard} nestedScrollEnabled>
           {details.map((d) => (
-            <View key={d.key} style={styles.detailRow}>
+            <Pressable
+              key={d.key}
+              style={styles.detailRow}
+              onPress={() => router.push({ pathname: "/item", params: { id: d.paymentItemId } })}
+            >
               <SymbolView
                 name={
                   d.kind === "paid"
@@ -367,7 +376,7 @@ export default function InsightsScreen() {
                 </Text>
               </View>
               <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
-            </View>
+            </Pressable>
           ))}
         </ScrollView>
       )}
@@ -432,44 +441,49 @@ export default function InsightsScreen() {
                     </View>
                   </View>
                 </Pressable>
-                {open &&
-                  members.map((item) => {
-                    const category = categories.find((c) => c.id === item.categoryId);
-                    const recurring = isRecurringSchedule(item.schedule)
-                      ? item.schedule
-                      : undefined;
-                    return (
-                      <Pressable
-                        key={item.id}
-                        style={styles.memberRow}
-                        onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-                      >
-                        <BrandBadge
-                          domain={item.domain}
-                          icon={category?.icon}
-                          fallback={item.name.charAt(0).toUpperCase()}
-                          color={item.color ?? colors.accent}
-                          size={28}
-                        />
-                        <View style={styles.memberMiddle}>
-                          <Text style={styles.memberName} numberOfLines={1}>
-                            {item.name}
-                          </Text>
-                          {/* In the catch-all "Other" bucket, each item shows
-                              its own cadence — the headline can't. */}
-                          {g.kind === "other" && recurring && (
-                            <Text style={styles.memberCadence} numberOfLines={1}>
-                              {capitalize(localizedRecurrence(recurring.recurrence))}
+                {open && (
+                  <Animated.View entering={FadeInDown.duration(200)}>
+                    {members.map((item) => {
+                      const category = categories.find((c) => c.id === item.categoryId);
+                      const recurring = isRecurringSchedule(item.schedule)
+                        ? item.schedule
+                        : undefined;
+                      return (
+                        <Pressable
+                          key={item.id}
+                          style={styles.memberRow}
+                          onPress={() =>
+                            router.push({ pathname: "/item", params: { id: item.id } })
+                          }
+                        >
+                          <BrandBadge
+                            domain={item.domain}
+                            icon={category?.icon}
+                            fallback={item.name.charAt(0).toUpperCase()}
+                            color={item.color ?? colors.accent}
+                            size={28}
+                          />
+                          <View style={styles.memberMiddle}>
+                            <Text style={styles.memberName} numberOfLines={1}>
+                              {item.name}
                             </Text>
-                          )}
-                        </View>
-                        <Text style={styles.memberValue}>
-                          {recurring ? formatMoney(recurring.amount) : ""}
-                        </Text>
-                        <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-                      </Pressable>
-                    );
-                  })}
+                            {/* In the catch-all "Other" bucket, each item shows
+                              its own cadence — the headline can't. */}
+                            {g.kind === "other" && recurring && (
+                              <Text style={styles.memberCadence} numberOfLines={1}>
+                                {capitalize(localizedRecurrence(recurring.recurrence))}
+                              </Text>
+                            )}
+                          </View>
+                          <Text style={styles.memberValue}>
+                            {recurring ? formatMoney(recurring.amount) : ""}
+                          </Text>
+                          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+                        </Pressable>
+                      );
+                    })}
+                  </Animated.View>
+                )}
               </View>
             );
           })}
@@ -509,37 +523,40 @@ export default function InsightsScreen() {
                   {t("insights.ofTotalHint", { total: totals(bnplTotal) })}
                 </Text>
               </Pressable>
-              {expandedCadence === "bnpl" &&
-                planItems.map((item) => {
-                  const category = categories.find((c) => c.id === item.categoryId);
-                  const plan = isInstallmentSchedule(item.schedule)
-                    ? summarizeInstallmentPlan(item.schedule)
-                    : undefined;
-                  return (
-                    <Pressable
-                      key={item.id}
-                      style={styles.memberRow}
-                      onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-                    >
-                      <BrandBadge
-                        domain={item.domain}
-                        icon={category?.icon}
-                        fallback={item.name.charAt(0).toUpperCase()}
-                        color={item.color ?? colors.accent}
-                        size={28}
-                      />
-                      <Text style={styles.memberName} numberOfLines={1}>
-                        {item.name}
-                      </Text>
-                      <Text style={styles.memberValue}>
-                        {plan
-                          ? `${formatMoney(plan.remainingAmount)} left · ${plan.paidCount} of ${plan.totalCount}`
-                          : ""}
-                      </Text>
-                      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-                    </Pressable>
-                  );
-                })}
+              {expandedCadence === "bnpl" && (
+                <Animated.View entering={FadeInDown.duration(200)}>
+                  {planItems.map((item) => {
+                    const category = categories.find((c) => c.id === item.categoryId);
+                    const plan = isInstallmentSchedule(item.schedule)
+                      ? summarizeInstallmentPlan(item.schedule)
+                      : undefined;
+                    return (
+                      <Pressable
+                        key={item.id}
+                        style={styles.memberRow}
+                        onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
+                      >
+                        <BrandBadge
+                          domain={item.domain}
+                          icon={category?.icon}
+                          fallback={item.name.charAt(0).toUpperCase()}
+                          color={item.color ?? colors.accent}
+                          size={28}
+                        />
+                        <Text style={styles.memberName} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <Text style={styles.memberValue}>
+                          {plan
+                            ? `${formatMoney(plan.remainingAmount)} left · ${plan.paidCount} of ${plan.totalCount}`
+                            : ""}
+                        </Text>
+                        <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+                      </Pressable>
+                    );
+                  })}
+                </Animated.View>
+              )}
             </View>
           )}
         </View>

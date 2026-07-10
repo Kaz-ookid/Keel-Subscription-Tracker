@@ -1,16 +1,19 @@
-// A plain display donut: proportions at a glance, the headline number in the
-// hole, and each slice's icon sitting just outside the ring at the slice's
+// A display donut: proportions at a glance, the headline number in the hole,
+// and each slice's icon sitting just outside the ring at the slice's
 // mid-angle (tinted in the slice color) — the chart names its own parts
-// without a legend lookup. Display-only by design: the interaction (expand,
-// navigate) belongs to the legend rows next to it, which carry the same
-// colors.
+// without a legend lookup. Slivers keep their color but drop the icon so the
+// rim never crowds. With `onSelectKey`, tapping the ring selects the slice
+// under the finger — the same selection the legend rows drive.
 
 import { useMemo } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
 import { emphasis, typography, useTheme } from "../theme";
+
+// Below this share of the total, a slice is a sliver: no rim icon.
+const ICON_MIN_SHARE = 0.03;
 
 export interface DonutSegment {
   key: string;
@@ -28,8 +31,11 @@ interface Props {
   /** Smaller line under it (e.g. "2026 · 52 €/mo"). */
   centerSub?: string;
   /** When set, every other slice (and its icon) dims — ties the open legend
-   *  row to its slice without making the SVG itself interactive. */
+   *  row to its slice. */
   selectedKey?: string | null;
+  /** Fired with the tapped slice's key (ring taps only); the caller owns the
+   *  toggle logic, so donut and legend stay one selection. */
+  onSelectKey?: (key: string) => void;
   size?: number;
   thickness?: number;
 }
@@ -43,6 +49,7 @@ export function DonutChart({
   centerTitle,
   centerSub,
   selectedKey,
+  onSelectKey,
   size = 200,
   thickness = 22,
 }: Props) {
@@ -81,8 +88,26 @@ export function DonutChart({
 
   const dimmed = (key: string) => selectedKey != null && key !== selectedKey;
 
+  // Ring taps: find the slice under the finger from its angle and distance.
+  const handleTap = (e: GestureResponderEvent) => {
+    if (!onSelectKey) return;
+    const dx = e.nativeEvent.locationX - center;
+    const dy = e.nativeEvent.locationY - center;
+    const dist = Math.hypot(dx, dy);
+    if (dist < radius - thickness / 2 - 8 || dist > radius + thickness / 2 + 10) return;
+    // Angle from 12 o'clock, clockwise, matching the arcs' offset direction.
+    const angle = (Math.atan2(dy, dx) + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
+    const position = (angle / (2 * Math.PI)) * circumference;
+    const hit = arcs.find((a) => position >= a.offset && position < a.offset + a.length + gap);
+    if (hit) onSelectKey(hit.key);
+  };
+
   return (
-    <View style={{ width: canvas, height: canvas, alignItems: "center", justifyContent: "center" }}>
+    <Pressable
+      onPress={handleTap}
+      disabled={!onSelectKey}
+      style={{ width: canvas, height: canvas, alignItems: "center", justifyContent: "center" }}
+    >
       <Svg width={canvas} height={canvas}>
         {arcs.length === 0 && (
           <Circle
@@ -113,7 +138,7 @@ export function DonutChart({
         ))}
       </Svg>
       {arcs.map((a) =>
-        a.icon ? (
+        a.icon && a.share >= ICON_MIN_SHARE ? (
           <View
             key={`icon-${a.key}`}
             pointerEvents="none"
@@ -142,7 +167,7 @@ export function DonutChart({
           </Text>
         ) : null}
       </View>
-    </View>
+    </Pressable>
   );
 }
 

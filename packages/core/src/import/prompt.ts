@@ -31,7 +31,7 @@ Each item:
 - "settlement": "manual" if the user says they pay it themselves / by transfer / marks it manual; otherwise "automatic".
 - "category": the closest of: streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other. Use "other" if unsure. (rent→housing, loan/pension/bank fee→finance, transit→transport, ISP/mobile→communications, TV-licence/electricity→utilities, gym→health, union/association→memberships, cloud/AI/app→software.)
 - "cadence": {"unit":"day"|"week"|"month"|"year","interval":N}. monthly={"unit":"month","interval":1}; "every 2 months"={"unit":"month","interval":2}; yearly={"unit":"year","interval":1}.
-- "firstDate": "YYYY-MM-DD". A day-of-month only → that day in the current month. "started in March 2026" → that day in March (or the 1st if no day). Resolve relative dates ("last December", "next payment") against today, which is ${today}.
+- "firstDate": "YYYY-MM-DD". Any day the user mentions is the billing day and MUST be kept: "the 26th", "on the 26th of the month", "vers le 3" → the 26th (or 3rd) of the current month. "started in March 2026" → that day in March. Resolve relative dates ("last December", "next payment") against today, which is ${today}.
 - "account": the bank/account name as written ("BCV", "Revolut"); omit if none.
 
 Self-reporting (IMPORTANT, the app shows these to the user on the review screen):
@@ -50,7 +50,7 @@ Optional fields, to include ONLY when present in the input (never invent them):
 Default assumptions, to apply UNLESS the input says otherwise (list every field you assume in that item's "assumed"):
 - All payments due before today were made on time. Only if the user says something is NOT paid, behind, or overdue, add "backlogUnpaid": true to that item.
 - Settlement is "automatic"; the currency is the default currency; a cycle that is implied but not stated is monthly.
-- A start date with no day means the 1st of that month.
+- Only when NO day of the month appears anywhere for an item, use the 1st of the relevant month (and list "firstDate" in that item's "assumed"). Never move a day the user actually gave.
 
 Rules:
 - Output valid JSON only, with the exact field names above.

@@ -19,6 +19,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { COLOR_SWATCHES } from "../src/constants";
 import { BrandBadge } from "../src/components/BrandBadge";
@@ -59,6 +60,7 @@ export default function ImportReviewScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const insets = useSafeAreaInsets();
   const { drafts, skipped, removeDraft, clear } = useImportSession();
   const { accounts, categories, addAccount, addSubscription, addInstallmentPlan } = useAppState();
 
@@ -68,6 +70,7 @@ export default function ImportReviewScreen() {
     (d) =>
       d.warnings.length > 0 ||
       d.uncertainFields.length > 0 ||
+      d.assumedFields.includes("settlement") ||
       d.input.notes ||
       !d.settlePast ||
       d.accountName,
@@ -151,19 +154,25 @@ export default function ImportReviewScreen() {
         return key ? t(key, { detail: w.detail }) : null;
       })
       .filter((line): line is string => line !== null);
-    // The per-item report: what MUST be fixed (uncertain) in orange, what was
-    // quietly assumed as one muted hint line.
+    // The per-item report: everything the user should look at, in orange. An
+    // assumed settlement gets its own actionable line ("Assumed: x · y" read
+    // as noise); the other assumed fields already surface through warnings.
     const uncertainLines = draft.uncertainFields.map((f) =>
       f === "name"
         ? t("importAI.uncertainName")
         : t("importAI.uncertainGeneric", { field: t(FIELD_KEYS[f]) }),
     );
-    const assumedLine =
-      draft.assumedFields.length > 0
-        ? t("importAI.assumedLine", {
-            fields: draft.assumedFields.map((f) => t(FIELD_KEYS[f])).join(" · "),
-          })
-        : null;
+    const settlementAssumed =
+      draft.assumedFields.includes("settlement") && !draft.uncertainFields.includes("settlement");
+    if (settlementAssumed) {
+      uncertainLines.push(
+        t(
+          input.settlementMode === "manual"
+            ? "importAI.warnSettlementAssumedManual"
+            : "importAI.warnSettlementAssumedAuto",
+        ),
+      );
+    }
     const flagged =
       warningLines.length > 0 ||
       uncertainLines.length > 0 ||
@@ -192,7 +201,7 @@ export default function ImportReviewScreen() {
             {category
               ? ` · ${t(`categories.${category.id}`, { defaultValue: category.name })}`
               : ""}
-            {` · ${t(input.settlementMode === "manual" ? "add.manual" : "add.automatic")}`}
+            {` · ${t(input.settlementMode === "manual" ? "row.manual" : "row.automatic")}`}
           </Text>
           {trial && <Text style={styles.sub}>{trial}</Text>}
           {/* What the AI wrote in "notes": conversions, assumptions, caveats. */}
@@ -217,7 +226,6 @@ export default function ImportReviewScreen() {
               ⚠ {line}
             </Text>
           ))}
-          {assumedLine && <Text style={styles.assumed}>{assumedLine}</Text>}
         </View>
         <View style={styles.actions}>
           <Pressable
@@ -254,7 +262,9 @@ export default function ImportReviewScreen() {
         }
       />
       {drafts.length > 0 && (
-        <View style={styles.footer}>
+        // The screen lives in a page sheet, which eats the bottom inset —
+        // pad the footer so the confirm never sits half off-screen.
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
           <Button label={t("importAI.addAll", { count: drafts.length })} onPress={confirmAll} />
         </View>
       )}
@@ -284,7 +294,6 @@ function createStyles(colors: ThemeColors) {
     amount: { ...typography.body, color: colors.text },
     sub: { ...typography.caption, color: colors.mutedText },
     notes: { ...typography.caption, color: colors.mutedText, fontStyle: "italic" },
-    assumed: { ...typography.caption, color: colors.mutedText },
     warn: { ...typography.caption, color: colors.tones.warning },
     accountRow: { flexDirection: "row", alignItems: "center", gap: spacing.xs + 2 },
     accountDot: { width: 8, height: 8, borderRadius: 4 },

@@ -21,6 +21,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { BrandBadge } from "../src/components/BrandBadge";
 import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
@@ -134,6 +135,14 @@ export default function ByCategoryScreen() {
                 ? expanded
                 : "tail"
           }
+          // Ring taps drive the SAME selection as the legend cards below.
+          // The merged tail slice stands for several categories, so it
+          // doesn't pick one.
+          onSelectKey={(key) => {
+            if (key === "tail") return;
+            animateFold();
+            setExpanded(expanded === key ? null : key);
+          }}
         />
       </View>
 
@@ -172,35 +181,38 @@ export default function ByCategoryScreen() {
               </View>
             </Pressable>
 
-            {open &&
-              g.items.map((member) => {
-                const exists = items.some((i) => i.id === member.paymentItemId);
-                return (
-                  <Pressable
-                    key={member.paymentItemId}
-                    style={styles.memberRow}
-                    disabled={!exists}
-                    onPress={() =>
-                      router.push({ pathname: "/item", params: { id: member.paymentItemId } })
-                    }
-                  >
-                    <BrandBadge
-                      domain={member.domain}
-                      icon={category?.icon}
-                      fallback={member.name.charAt(0).toUpperCase()}
-                      color={member.color ?? colors.accent}
-                      size={28}
-                    />
-                    <Text style={styles.memberName} numberOfLines={1}>
-                      {member.name}
-                    </Text>
-                    <Text style={styles.memberValue}>{totals(member.totals)}</Text>
-                    {exists && (
-                      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-                    )}
-                  </Pressable>
-                );
-              })}
+            {open && (
+              <Animated.View entering={FadeInDown.duration(200)}>
+                {g.items.map((member) => {
+                  const exists = items.some((i) => i.id === member.paymentItemId);
+                  return (
+                    <Pressable
+                      key={member.paymentItemId}
+                      style={styles.memberRow}
+                      disabled={!exists}
+                      onPress={() =>
+                        router.push({ pathname: "/item", params: { id: member.paymentItemId } })
+                      }
+                    >
+                      <BrandBadge
+                        domain={member.domain}
+                        icon={category?.icon}
+                        fallback={member.name.charAt(0).toUpperCase()}
+                        color={member.color ?? colors.accent}
+                        size={28}
+                      />
+                      <Text style={styles.memberName} numberOfLines={1}>
+                        {member.name}
+                      </Text>
+                      <Text style={styles.memberValue}>{totals(member.totals)}</Text>
+                      {exists && (
+                        <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+                      )}
+                    </Pressable>
+                  );
+                })}
+              </Animated.View>
+            )}
           </Card>
         );
       })}
