@@ -2,48 +2,59 @@
 // LEFT as an ✕ on every pageSheet modal, so the system back chevron never
 // masquerades as navigation inside a task. Confirming stays top right.
 //
-// Both glyphs sit in a tinted CIRCLE (the iOS sheet-control pattern): flexbox
-// centers the symbol on the circle's exact geometric center, so there is no
-// optical nudging to get wrong — the circle itself is the visual reference.
+// Both glyphs are drawn as SVG strokes at exact coordinates inside a fixed
+// 28pt box: the ✕ crosses at (14,14), the chevron's bounds straddle x=14.
+// No font metrics, no background shape, nothing left to optically drift.
 
 import { useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { Pressable, StyleSheet } from "react-native";
+import Svg, { Path } from "react-native-svg";
 
 export function ModalClose() {
   const router = useRouter();
   return (
     <Pressable
       onPress={() => router.back()}
-      hitSlop={10}
+      hitSlop={12}
       accessibilityLabel="Close"
-      style={styles.circle}
+      style={styles.box}
     >
-      <SymbolView name="xmark" size={13} weight="semibold" tintColor="#FFFFFF" />
+      <Svg width={28} height={28}>
+        <Path
+          d="M 9.5 9.5 L 18.5 18.5 M 18.5 9.5 L 9.5 18.5"
+          stroke="#FFFFFF"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+        />
+      </Svg>
     </Pressable>
   );
 }
 
 /** Header back to a previous PHASE inside the same sheet (e.g. the add
- *  chooser). Same circle as the ✕ so the two share one geometry. */
+ *  chooser). Same box and stroke as the ✕ so the two share one geometry. */
 export function ModalBack({ onPress, label }: { onPress: () => void; label: string }) {
   return (
-    <Pressable onPress={onPress} hitSlop={10} accessibilityLabel={label} style={styles.circle}>
-      {/* SF chevrons carry their optical compensation inside the glyph box,
-          so plain centering is correct here too. */}
-      <SymbolView name="chevron.left" size={13} weight="semibold" tintColor="#FFFFFF" />
+    <Pressable onPress={onPress} hitSlop={12} accessibilityLabel={label} style={styles.box}>
+      <Svg width={28} height={28}>
+        <Path
+          d="M 16.5 7.5 L 11.5 14 L 16.5 20.5"
+          stroke="#FFFFFF"
+          strokeWidth={2.2}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </Svg>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  circle: {
+  box: {
     width: 28,
     height: 28,
-    borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    // Headers are navy in both schemes; a soft white wash draws the circle.
-    backgroundColor: "rgba(255,255,255,0.16)",
   },
 });

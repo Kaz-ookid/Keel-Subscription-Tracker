@@ -17,21 +17,13 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  SectionList,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
 import { hapticMarkPaid } from "../../lib/haptics";
 import Animated from "react-native-reanimated";
 
-import { foldIn } from "../../lib/motion";
+import { foldIn, foldLayout, foldOut } from "../../lib/motion";
 import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
@@ -305,17 +297,14 @@ export function UpcomingView() {
     </View>
   );
 
+  // A plain ScrollView instead of a SectionList: the window is two months of
+  // rows (a few dozen), and only a scroll view lets the folds run the same
+  // reanimated accordion as every other screen (foldLayout on every block, so
+  // opening a fold slides the whole timeline instead of popping it).
   return (
-    <SectionList
-      style={styles.list}
-      contentContainerStyle={styles.listContent}
-      sections={sections}
-      stickySectionHeadersEnabled
-      keyExtractor={(c) =>
-        `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}-${c.paid ? "p" : c.skipped ? "s" : "u"}`
-      }
-      ListHeaderComponent={header}
-      ListEmptyComponent={
+    <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+      {header}
+      {sections.length === 0 && (
         <EmptyState
           icon="calendar"
           title={t("upcoming.emptyTitle", { date: formatCalendarDate(windowEnd) })}
@@ -332,76 +321,84 @@ export function UpcomingView() {
               : undefined
           }
         />
-      }
-      renderSectionHeader={({ section }) => {
-        if (section.toggle) {
-          const open = section.toggle === "paid" ? paidOpen : nextMonthOpen;
-          const flip = section.toggle === "paid" ? setPaidOpen : setNextMonthOpen;
-          return (
+      )}
+      {sections.map((section) => (
+        <Animated.View key={section.key} layout={foldLayout}>
+          {section.toggle ? (
             <Pressable
               style={[styles.sectionHeaderWrap, styles.monthBreak]}
-              onPress={() => flip((o) => !o)}
+              onPress={() => {
+                const flip = section.toggle === "paid" ? setPaidOpen : setNextMonthOpen;
+                flip((o) => !o);
+              }}
             >
               <SectionDivider
                 label={section.monthLabel ?? ""}
                 trailing={
                   <SymbolView
-                    name={open ? "chevron.up" : "chevron.down"}
+                    name={
+                      (section.toggle === "paid" ? paidOpen : nextMonthOpen)
+                        ? "chevron.up"
+                        : "chevron.down"
+                    }
                     size={11}
                     tintColor={colors.mutedText}
                   />
                 }
               />
             </Pressable>
-          );
-        }
-        // Headerless row groups (the expanded paid list) render bare.
-        if (!section.title) return null;
-        return (
-          <View style={styles.sectionHeaderWrap}>
-            <View style={styles.sectionHeader}>
-              <Text
-                style={[styles.sectionTitle, section.overdue && { color: colors.tones.warning }]}
-              >
-                {section.title}
-              </Text>
-              <Text style={styles.sectionTotal}>
-                {totals(sumByCurrency(section.data.map((c) => c.amount)))}
-              </Text>
+          ) : section.title ? (
+            <View style={styles.sectionHeaderWrap}>
+              <View style={styles.sectionHeader}>
+                <Text
+                  style={[styles.sectionTitle, section.overdue && { color: colors.tones.warning }]}
+                >
+                  {section.title}
+                </Text>
+                <Text style={styles.sectionTotal}>
+                  {totals(sumByCurrency(section.data.map((c) => c.amount)))}
+                </Text>
+              </View>
             </View>
-          </View>
-        );
-      }}
-      renderItem={({ item, section }) => (
-        // Fold-revealed rows fade in; SectionList owns the layout shift, so
-        // the fade is the whole entrance (no directional slide to fight it).
-        <Animated.View entering={section.fold ? foldIn : undefined}>
-          <UpcomingRow
-            charge={item}
-            overdue={item.dueDate < asOf && !item.paid && !item.skipped}
-            showMarkPaid={canMark(item)}
-            paid={item.paid}
-            skipped={item.skipped}
-            dated={section.key === "paid-month-list"}
-            onUndo={
-              item.undoable
-                ? () =>
-                    item.scheduleType === "INSTALLMENT"
-                      ? undoInstallmentPaid(item.paymentItemId)
-                      : undoPaid(item.paymentItemId)
-                : undefined
-            }
-            onPress={() => router.push({ pathname: "/item", params: { id: item.paymentItemId } })}
-            onMarkPaid={() => {
-              hapticMarkPaid();
-              if (item.scheduleType === "INSTALLMENT") markInstallmentPaid(item.paymentItemId);
-              else markPaid(item.paymentItemId);
-            }}
-          />
+          ) : null}
+          {section.data.map((item) => (
+            <Animated.View
+              key={`${item.paymentItemId}-${item.dueDate}-${item.installmentIndex ?? 0}-${item.paid ? "p" : item.skipped ? "s" : "u"}`}
+              // Fold-revealed rows fade in while the accordion grows around
+              // them (no directional slide to fight the grow).
+              entering={section.fold ? foldIn : undefined}
+              exiting={section.fold ? foldOut : undefined}
+              style={styles.rowGap}
+            >
+              <UpcomingRow
+                charge={item}
+                overdue={item.dueDate < asOf && !item.paid && !item.skipped}
+                showMarkPaid={canMark(item)}
+                paid={item.paid}
+                skipped={item.skipped}
+                dated={section.key === "paid-month-list"}
+                onUndo={
+                  item.undoable
+                    ? () =>
+                        item.scheduleType === "INSTALLMENT"
+                          ? undoInstallmentPaid(item.paymentItemId)
+                          : undoPaid(item.paymentItemId)
+                    : undefined
+                }
+                onPress={() =>
+                  router.push({ pathname: "/item", params: { id: item.paymentItemId } })
+                }
+                onMarkPaid={() => {
+                  hapticMarkPaid();
+                  if (item.scheduleType === "INSTALLMENT") markInstallmentPaid(item.paymentItemId);
+                  else markPaid(item.paymentItemId);
+                }}
+              />
+            </Animated.View>
+          ))}
         </Animated.View>
-      )}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
-    />
+      ))}
+    </ScrollView>
   );
 }
 
@@ -453,8 +450,8 @@ function createStyles(colors: ThemeColors) {
       ...typography.caption,
       color: colors.mutedText,
     },
-    separator: {
-      height: spacing.sm,
+    rowGap: {
+      marginBottom: spacing.sm,
     },
     empty: {
       paddingVertical: spacing.xl,
