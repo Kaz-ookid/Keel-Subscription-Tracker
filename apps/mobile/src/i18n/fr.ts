@@ -520,8 +520,10 @@ export const fr: typeof en = {
     savedTitle: "{{count}} ajoutés à votre liste À compléter",
     savedBody:
       "Retrouvez-les sous Tout dans l'onglet Paiements. Chacun ouvre le formulaire prérempli, l'ajout ne prend que quelques touches.",
-    allSetTitle: "Tout est prêt",
-    allSetBody: "Ajoutez votre premier engagement avec l'onglet + quand vous voulez.",
+    allSetTitle: "Vous êtes prêt",
+    allSetBody: "Ajoutez des engagements à tout moment avec le bouton + ci-dessous.",
+    lockOverline: "Une option avant de partir",
+    startUsing: "Commencer avec Keel",
     lockBody: "Vous seul pouvez ouvrir l'app. Rien à retenir, et rien ne quitte votre téléphone.",
     lockCta: "Activer",
     lockOn: "Verrou activé. Vous êtes couvert.",

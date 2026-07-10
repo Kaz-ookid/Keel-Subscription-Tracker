@@ -516,8 +516,10 @@ export const en = {
     savedTitle: "{{count}} saved to your To-complete list",
     savedBody:
       "You'll find them under All on the Payments tab. Each one opens the form pre-filled, so adding takes a couple of taps.",
-    allSetTitle: "All set",
-    allSetBody: "Add your first commitment with the + tab whenever you're ready.",
+    allSetTitle: "You're ready",
+    allSetBody: "Add commitments any time with the + button below.",
+    lockOverline: "One optional thing before you go",
+    startUsing: "Start using Keel",
     lockBody: "Only you can open the app. Nothing to remember, and nothing leaves your phone.",
     lockCta: "Turn on",
     lockOn: "Lock is on. You're covered.",

@@ -111,18 +111,26 @@ export default function OnboardingScreen() {
       {phase === "tour" && (
         <>
           <View style={styles.topBar}>
-            <Pressable onPress={() => setPhase("method")} hitSlop={12}>
-              <Text style={styles.skip}>{t("onboarding.skip")}</Text>
-            </Pressable>
+            {/* On the last pane the main button IS the way forward; a Skip
+                doing the same thing would just be noise. */}
+            {pane < TOUR_PANES.length - 1 && (
+              <Pressable onPress={() => setPhase("method")} hitSlop={12}>
+                <Text style={styles.skip}>{t("onboarding.skip")}</Text>
+              </Pressable>
+            )}
           </View>
           <ScrollView
             ref={pagerRef}
             horizontal
             pagingEnabled
             showsHorizontalScrollIndicator={false}
-            onMomentumScrollEnd={(e) =>
-              setPane(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))
-            }
+            // Track the pane LIVE (not just on momentum end) so the Skip
+            // disappears the moment the last pane takes the screen.
+            scrollEventThrottle={32}
+            onScroll={(e) => {
+              const next = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
+              if (next !== pane) setPane(next);
+            }}
           >
             {TOUR_PANES.map((p) => (
               <View key={p.titleKey} style={styles.pane}>
@@ -225,28 +233,34 @@ export default function OnboardingScreen() {
           <Text style={styles.paneBody}>
             {savedCount > 0 ? t("onboarding.savedBody") : t("onboarding.allSetBody")}
           </Text>
-          {/* One quiet nudge on the way out: lock the app. Never blocks Done. */}
+          {/* One quiet, clearly OPTIONAL nudge on the way out: lock the app.
+              The overline says why this card is here; it never blocks. */}
           {lockKind !== null && lockKind !== "unavailable" && (
-            <View style={styles.lockCard}>
-              <SymbolView
-                name={lockOn ? "checkmark.circle.fill" : "faceid"}
-                size={24}
-                tintColor={lockOn ? colors.tones.success : colors.accent}
-              />
-              <View style={styles.lockTexts}>
-                <Text style={styles.lockTitle}>{lockOn ? t("onboarding.lockOn") : lockLabel}</Text>
-                {!lockOn && <Text style={styles.lockBody}>{t("onboarding.lockBody")}</Text>}
-              </View>
-              {!lockOn && (
-                <Button
-                  size="sm"
-                  label={t("onboarding.lockCta")}
-                  onPress={() => void enableLock()}
+            <View style={styles.lockWrap}>
+              <Text style={styles.lockOverline}>{t("onboarding.lockOverline")}</Text>
+              <View style={styles.lockCard}>
+                <SymbolView
+                  name={lockOn ? "checkmark.circle.fill" : "faceid"}
+                  size={24}
+                  tintColor={lockOn ? colors.tones.success : colors.accent}
                 />
-              )}
+                <View style={styles.lockTexts}>
+                  <Text style={styles.lockTitle}>
+                    {lockOn ? t("onboarding.lockOn") : lockLabel}
+                  </Text>
+                  {!lockOn && <Text style={styles.lockBody}>{t("onboarding.lockBody")}</Text>}
+                </View>
+                {!lockOn && (
+                  <Button
+                    size="sm"
+                    label={t("onboarding.lockCta")}
+                    onPress={() => void enableLock()}
+                  />
+                )}
+              </View>
             </View>
           )}
-          <Button label={t("onboarding.done")} onPress={finish} style={styles.cta} />
+          <Button label={t("onboarding.startUsing")} onPress={finish} style={styles.cta} />
         </View>
       )}
     </View>
@@ -286,11 +300,13 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: colors.background,
     },
+    // Fixed height so the panes don't shift when Skip retires on the last one.
     topBar: {
       flexDirection: "row",
       justifyContent: "flex-end",
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
+      minHeight: 48,
     },
     skip: {
       ...typography.label,
@@ -363,6 +379,16 @@ function createStyles(colors: ThemeColors) {
       ...typography.label,
       color: colors.accent,
     },
+    lockWrap: {
+      alignSelf: "stretch",
+      gap: spacing.xs,
+      marginTop: spacing.md,
+    },
+    lockOverline: {
+      ...typography.caption,
+      color: colors.mutedText,
+      textAlign: "center",
+    },
     lockCard: {
       alignSelf: "stretch",
       flexDirection: "row",
@@ -373,7 +399,6 @@ function createStyles(colors: ThemeColors) {
       borderWidth: 1,
       borderColor: colors.border,
       padding: spacing.md,
-      marginTop: spacing.sm,
     },
     lockTexts: { flex: 1, gap: 2 },
     lockTitle: { ...typography.label, color: colors.text },
