@@ -13,7 +13,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { emphasis, typography, useTheme } from "../theme";
 
 // Below this share of the total, a slice is a sliver: no rim icon.
-const ICON_MIN_SHARE = 0.03;
+const ICON_MIN_SHARE = 0.025;
 
 export interface DonutSegment {
   key: string;

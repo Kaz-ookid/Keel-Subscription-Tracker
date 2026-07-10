@@ -34,7 +34,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
@@ -44,7 +44,7 @@ import { StatValue } from "../../src/components/ui/StatValue";
 import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { monthFull, monthShort } from "../../src/i18n/dates";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
-import { animateFold } from "../../src/lib/motion";
+import { foldIn, foldLayout, foldOut } from "../../src/lib/motion";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
@@ -329,66 +329,68 @@ export default function InsightsScreen() {
       {/* The tapped month's payments — light, in place, no extra screen.
           About five rows visible; the rest scroll inside the card. */}
       {details.length > 0 && (
-        <ScrollView style={styles.detailCard} nestedScrollEnabled>
-          {details.map((d) => (
-            <Pressable
-              key={d.key}
-              style={styles.detailRow}
-              onPress={() => router.push({ pathname: "/item", params: { id: d.paymentItemId } })}
-            >
-              <SymbolView
-                name={
-                  d.kind === "paid"
-                    ? "checkmark.circle.fill"
-                    : d.kind === "overdue"
-                      ? "exclamationmark.circle"
-                      : "clock"
-                }
-                size={14}
-                tintColor={
-                  d.kind === "paid"
-                    ? colors.tones.success
-                    : d.kind === "overdue"
-                      ? colors.tones.warning
-                      : colors.mutedText
-                }
-              />
-              {/* Date belongs with the name; the amount stands alone right. */}
-              <View style={styles.detailLeft}>
-                <Text style={styles.detailName} numberOfLines={1}>
-                  {d.name}
-                  {d.installmentIndex && d.installmentCount ? (
-                    <Text style={styles.detailCount}>
-                      {" "}
-                      · {t("common.xOfY", { x: d.installmentIndex, y: d.installmentCount })}
-                    </Text>
-                  ) : null}
-                </Text>
-                <Text
-                  style={[
-                    styles.detailDate,
-                    d.kind === "overdue" && { color: colors.tones.warning },
-                  ]}
-                >
-                  {d.kind === "overdue"
-                    ? t("row.due", { date: formatCalendarDate(d.dueDate) })
-                    : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
-                </Text>
-              </View>
-              <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
-            </Pressable>
-          ))}
-        </ScrollView>
+        <Animated.View entering={foldIn} exiting={foldOut} layout={foldLayout}>
+          <ScrollView style={styles.detailCard} nestedScrollEnabled>
+            {details.map((d) => (
+              <Pressable
+                key={d.key}
+                style={styles.detailRow}
+                onPress={() => router.push({ pathname: "/item", params: { id: d.paymentItemId } })}
+              >
+                <SymbolView
+                  name={
+                    d.kind === "paid"
+                      ? "checkmark.circle.fill"
+                      : d.kind === "overdue"
+                        ? "exclamationmark.circle"
+                        : "clock"
+                  }
+                  size={14}
+                  tintColor={
+                    d.kind === "paid"
+                      ? colors.tones.success
+                      : d.kind === "overdue"
+                        ? colors.tones.warning
+                        : colors.mutedText
+                  }
+                />
+                {/* Date belongs with the name; the amount stands alone right. */}
+                <View style={styles.detailLeft}>
+                  <Text style={styles.detailName} numberOfLines={1}>
+                    {d.name}
+                    {d.installmentIndex && d.installmentCount ? (
+                      <Text style={styles.detailCount}>
+                        {" "}
+                        · {t("common.xOfY", { x: d.installmentIndex, y: d.installmentCount })}
+                      </Text>
+                    ) : null}
+                  </Text>
+                  <Text
+                    style={[
+                      styles.detailDate,
+                      d.kind === "overdue" && { color: colors.tones.warning },
+                    ]}
+                  >
+                    {d.kind === "overdue"
+                      ? t("row.due", { date: formatCalendarDate(d.dueDate) })
+                      : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
+                  </Text>
+                </View>
+                <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </Animated.View>
       )}
 
       {otherCurrencies.length > 0 && (
-        <Text style={styles.note}>
+        <Animated.Text layout={foldLayout} style={styles.note}>
           {t("insights.notCharted", { amount: totals(otherCurrencies) })}
-        </Text>
+        </Animated.Text>
       )}
 
       {(cadences.length > 0 || planSummaries.length > 0) && (
-        <View style={styles.section}>
+        <Animated.View layout={foldLayout} style={styles.section}>
           <Text style={styles.sectionTitle}>{t("insights.byBillingCycle")}</Text>
           {cadences.map((g) => {
             const key = g.kind;
@@ -414,13 +416,11 @@ export default function InsightsScreen() {
                 return bv - av;
               });
             return (
-              <View key={key} style={styles.cadenceRow}>
+              // The accordion: this row grows and everything below slides.
+              <Animated.View key={key} style={styles.cadenceRow} layout={foldLayout}>
                 <Pressable
                   style={styles.cadenceBody}
-                  onPress={() => {
-                    animateFold();
-                    setExpandedCadence(open ? null : key);
-                  }}
+                  onPress={() => setExpandedCadence(open ? null : key)}
                 >
                   <View style={styles.cadenceHeader}>
                     <Text style={styles.cadenceLabel}>
@@ -442,7 +442,7 @@ export default function InsightsScreen() {
                   </View>
                 </Pressable>
                 {open && (
-                  <Animated.View entering={FadeInDown.duration(200)}>
+                  <Animated.View entering={foldIn} exiting={foldOut}>
                     {members.map((item) => {
                       const category = categories.find((c) => c.id === item.categoryId);
                       const recurring = isRecurringSchedule(item.schedule)
@@ -484,20 +484,17 @@ export default function InsightsScreen() {
                     })}
                   </Animated.View>
                 )}
-              </View>
+              </Animated.View>
             );
           })}
 
           {/* Pay in X earns its own card — its bar is PROGRESS PAID, and the
               headline is what's still owed (not a meaningless per-month). */}
           {planSummaries.length > 0 && (
-            <View style={styles.cadenceRow}>
+            <Animated.View style={styles.cadenceRow} layout={foldLayout}>
               <Pressable
                 style={styles.cadenceBody}
-                onPress={() => {
-                  animateFold();
-                  setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl");
-                }}
+                onPress={() => setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl")}
               >
                 <View style={styles.cadenceHeader}>
                   <Text style={styles.cadenceLabel}>
@@ -524,7 +521,7 @@ export default function InsightsScreen() {
                 </Text>
               </Pressable>
               {expandedCadence === "bnpl" && (
-                <Animated.View entering={FadeInDown.duration(200)}>
+                <Animated.View entering={foldIn} exiting={foldOut}>
                   {planItems.map((item) => {
                     const category = categories.find((c) => c.id === item.categoryId);
                     const plan = isInstallmentSchedule(item.schedule)
@@ -557,13 +554,13 @@ export default function InsightsScreen() {
                   })}
                 </Animated.View>
               )}
-            </View>
+            </Animated.View>
           )}
-        </View>
+        </Animated.View>
       )}
 
       {/* The deeper layer: focused tools, one tap away, out of the way. */}
-      <View style={styles.section}>
+      <Animated.View layout={foldLayout} style={styles.section}>
         <Text style={styles.sectionTitle}>{t("insights.explore")}</Text>
         <Card>
           <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
@@ -590,7 +587,7 @@ export default function InsightsScreen() {
             <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
         </Card>
-      </View>
+      </Animated.View>
     </ScrollView>
   );
 }

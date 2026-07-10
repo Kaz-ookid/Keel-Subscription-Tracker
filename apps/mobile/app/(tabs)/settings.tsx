@@ -32,7 +32,9 @@ import {
 
 import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
 import { loadHarborEnabled, setHarborEnabled } from "../../src/lib/experiments";
-import { animateFold } from "../../src/lib/motion";
+import Animated from "react-native-reanimated";
+
+import { foldIn, foldOut } from "../../src/lib/motion";
 import {
   authenticate,
   getAuthKind,
@@ -130,7 +132,6 @@ export default function SettingsScreen() {
   const toggleLock = async (next: boolean) => {
     const ok = await authenticate(t(next ? "applock.confirmPrompt" : "applock.disablePrompt"));
     if (!ok) return;
-    animateFold();
     setLockEnabled(next);
     await persistLockEnabled(next);
   };
@@ -356,12 +357,14 @@ export default function SettingsScreen() {
           )}
         </View>
         {lockEnabled && (
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setGraceSheet(true)}>
-            <SymbolView name="clock.fill" size={20} tintColor={colors.accent} />
-            <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
-            <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
+          <Animated.View entering={foldIn} exiting={foldOut}>
+            <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setGraceSheet(true)}>
+              <SymbolView name="clock.fill" size={20} tintColor={colors.accent} />
+              <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
+              <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+          </Animated.View>
         )}
         <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
       </Card>

@@ -29,7 +29,9 @@ import {
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
 import { hapticMarkPaid } from "../../lib/haptics";
-import { animateFold } from "../../lib/motion";
+import Animated from "react-native-reanimated";
+
+import { foldIn } from "../../lib/motion";
 import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
@@ -48,6 +50,8 @@ interface Section {
   /** A banderole that expands/collapses the rows after it. */
   monthLabel?: string;
   toggle?: "paid" | "next";
+  /** Rows revealed by a fold: they enter with the fold fade. */
+  fold?: boolean;
   data: Entry[];
 }
 
@@ -206,7 +210,7 @@ export function UpcomingView() {
       data: [],
     });
     if (paidOpen) {
-      sections.push({ key: "paid-month-list", title: "", data: settledThisMonth });
+      sections.push({ key: "paid-month-list", title: "", fold: true, data: settledThisMonth });
     }
   }
 
@@ -242,7 +246,7 @@ export function UpcomingView() {
     const section: Section = { key: date, title: dayLabel(date, asOf), data };
     // (dayLabel localizes Today/Tomorrow/weekday via i18n.)
     if (date.slice(0, 7) === thisMonth) sections.push(section);
-    else nextSections.push(section);
+    else nextSections.push({ ...section, fold: true });
   }
   if (nextSections.length > 0) {
     const label = `${monthNameOf(windowEnd)} ${windowEnd.slice(0, 4)}`;
@@ -336,10 +340,7 @@ export function UpcomingView() {
           return (
             <Pressable
               style={[styles.sectionHeaderWrap, styles.monthBreak]}
-              onPress={() => {
-                animateFold();
-                flip((o) => !o);
-              }}
+              onPress={() => flip((o) => !o)}
             >
               <SectionDivider
                 label={section.monthLabel ?? ""}
@@ -372,28 +373,32 @@ export function UpcomingView() {
         );
       }}
       renderItem={({ item, section }) => (
-        <UpcomingRow
-          charge={item}
-          overdue={item.dueDate < asOf && !item.paid && !item.skipped}
-          showMarkPaid={canMark(item)}
-          paid={item.paid}
-          skipped={item.skipped}
-          dated={section.key === "paid-month-list"}
-          onUndo={
-            item.undoable
-              ? () =>
-                  item.scheduleType === "INSTALLMENT"
-                    ? undoInstallmentPaid(item.paymentItemId)
-                    : undoPaid(item.paymentItemId)
-              : undefined
-          }
-          onPress={() => router.push({ pathname: "/item", params: { id: item.paymentItemId } })}
-          onMarkPaid={() => {
-            hapticMarkPaid();
-            if (item.scheduleType === "INSTALLMENT") markInstallmentPaid(item.paymentItemId);
-            else markPaid(item.paymentItemId);
-          }}
-        />
+        // Fold-revealed rows fade in; SectionList owns the layout shift, so
+        // the fade is the whole entrance (no directional slide to fight it).
+        <Animated.View entering={section.fold ? foldIn : undefined}>
+          <UpcomingRow
+            charge={item}
+            overdue={item.dueDate < asOf && !item.paid && !item.skipped}
+            showMarkPaid={canMark(item)}
+            paid={item.paid}
+            skipped={item.skipped}
+            dated={section.key === "paid-month-list"}
+            onUndo={
+              item.undoable
+                ? () =>
+                    item.scheduleType === "INSTALLMENT"
+                      ? undoInstallmentPaid(item.paymentItemId)
+                      : undoPaid(item.paymentItemId)
+                : undefined
+            }
+            onPress={() => router.push({ pathname: "/item", params: { id: item.paymentItemId } })}
+            onMarkPaid={() => {
+              hapticMarkPaid();
+              if (item.scheduleType === "INSTALLMENT") markInstallmentPaid(item.paymentItemId);
+              else markPaid(item.paymentItemId);
+            }}
+          />
+        </Animated.View>
       )}
       ItemSeparatorComponent={() => <View style={styles.separator} />}
     />

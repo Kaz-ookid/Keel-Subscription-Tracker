@@ -63,12 +63,19 @@ export default function PaymentsScreen() {
   const highlightOpacity = useSharedValue(1);
   const pillWidth = trackWidth > 0 ? (trackWidth - 2 - 6 - 3) / 2 : 0; // border+padding+gap
   useEffect(() => {
-    const index = view === "all" ? 1 : 0;
     // Reanimated shared values are driven by assigning `.value`.
-    highlightX.value = withTiming(index * (pillWidth + 3), { duration: 200 });
-    highlightOpacity.value = withTiming(view === "upcoming" || view === "all" ? 1 : 0, {
-      duration: 150,
-    });
+    if (view === "upcoming" || view === "all") {
+      const target = (view === "all" ? 1 : 0) * (pillWidth + 3);
+      // Coming back from calendar/harbor the wash is invisible: snap it under
+      // the right pill first, then fade in — never slide while hidden.
+      if (highlightOpacity.value < 0.05) highlightX.value = target;
+      else highlightX.value = withTiming(target, { duration: 200 });
+      highlightOpacity.value = withTiming(1, { duration: 150 });
+    } else {
+      // Leaving for calendar/harbor: fade where it stands. Moving it too read
+      // as a glitchy slide.
+      highlightOpacity.value = withTiming(0, { duration: 150 });
+    }
   }, [view, pillWidth, highlightX, highlightOpacity]);
   const highlightStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: highlightX.value }],

@@ -21,7 +21,7 @@ import {
 import { FormSheets } from "../src/components/add-form/FormSheets";
 import { ScheduleSection } from "../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../src/components/add-form/useAddForm";
-import { ModalClose } from "../src/components/ModalClose";
+import { ModalBack, ModalClose } from "../src/components/ModalClose";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { useAppState } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -150,16 +150,7 @@ function FormPhase({ prefill, onBack }: { prefill?: SuggestedCommitment; onBack?
           // only ever closes the whole task sheet, so it stays on direct
           // entries (edit, To-complete, AI drafts) where there is no chooser.
           headerLeft: onBack
-            ? () => (
-                <Pressable
-                  onPress={onBack}
-                  hitSlop={12}
-                  accessibilityLabel={t("titles.newCommitment")}
-                  style={styles.headerBack}
-                >
-                  <SymbolView name="chevron.left" size={17} tintColor={colors.white} />
-                </Pressable>
-              )
+            ? () => <ModalBack onPress={onBack} label={t("titles.newCommitment")} />
             : () => <ModalClose />,
           headerRight: () => (
             <Pressable onPress={form.submit} disabled={!form.canSubmit} hitSlop={12}>
@@ -259,12 +250,5 @@ function createStyles(colors: ThemeColors) {
     modeTextActive: { color: colors.accent },
     headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
-    headerBack: {
-      width: 28,
-      height: 28,
-      alignItems: "center",
-      justifyContent: "center",
-      marginLeft: 6,
-    },
   });
 }
