@@ -576,6 +576,17 @@ export default function InsightsScreen() {
             <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
             <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
+          {/* The full statement: every actual charge, searchable. Promoted
+              here from its own tab (2026-07-10) — real feature, low
+              frequency, one tap away. */}
+          <Pressable
+            style={[styles.exploreRow, styles.exploreRowDivider]}
+            onPress={() => router.push("/history")}
+          >
+            <SymbolView name="clock.fill" size={18} tintColor={colors.accent} />
+            <Text style={styles.exploreText}>{t("titles.history")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
           {/* Price changes is the long-term, least-used lens — keep it last. */}
           <Pressable
             style={[styles.exploreRow, styles.exploreRowDivider]}

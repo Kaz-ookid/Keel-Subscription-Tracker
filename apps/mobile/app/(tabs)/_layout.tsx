@@ -10,11 +10,13 @@ type SymbolName = SymbolViewProps["name"];
 // The bottom bar is data-driven: change the count or content here and the bar
 // updates. `action: true` is the center ＋ — it opens the Add modal instead of
 // switching tab. Each non-action entry needs a matching file in this folder.
+// (History was removed 2026-07-10: a full-ledger screen may join
+// Insights > Explore later; the past is already covered by item pages and
+// the Insights chart, and it never earned tab-level weight.)
 const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] = [
   { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },
   { name: "insights", titleKey: "tabs.insights", sf: "chart.bar.fill" },
   { name: "new", titleKey: "", sf: "plus.circle.fill", action: true },
-  { name: "history", titleKey: "tabs.history", sf: "clock.fill" },
   { name: "settings", titleKey: "tabs.settings", sf: "gearshape.fill" },
 ];
 

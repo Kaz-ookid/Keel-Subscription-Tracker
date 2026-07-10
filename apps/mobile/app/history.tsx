@@ -1,8 +1,11 @@
-// History: the itemized spending ledger — every actual charge, newest first,
+﻿// History: the itemized spending ledger — every actual charge, newest first,
 // searchable and filterable (range / account / category). The statement view,
 // complementary to Insights (the shape) and the Calendar (one month). All the
 // "what actually went out" math is buildSpendLedger in @keel/core; this screen
 // filters, groups by month, and formats.
+//
+// Lives under Insights > Explore (its tab was retired 2026-07-10: a real
+// feature, but too low-frequency for tab-level weight).
 
 import {
   buildSpendLedger,
@@ -28,14 +31,14 @@ import {
   View,
 } from "react-native";
 
-import { BrandBadge } from "../../src/components/BrandBadge";
-import { HeroCard } from "../../src/components/HeroCard";
-import { Segmented } from "../../src/components/Segmented";
-import { Chip } from "../../src/components/ui/Chip";
-import { EmptyState } from "../../src/components/ui/EmptyState";
-import { monthFull } from "../../src/i18n/dates";
-import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { BrandBadge } from "../src/components/BrandBadge";
+import { HeroCard } from "../src/components/HeroCard";
+import { Segmented } from "../src/components/Segmented";
+import { Chip } from "../src/components/ui/Chip";
+import { EmptyState } from "../src/components/ui/EmptyState";
+import { monthFull } from "../src/i18n/dates";
+import { useAppState } from "../src/state/app-state";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 type Range = "3m" | "6m" | "12m" | "all";
 const RANGE_MONTHS: Record<Exclude<Range, "all">, number> = { "3m": 3, "6m": 6, "12m": 12 };

@@ -880,9 +880,10 @@ function createStyles(colors: ThemeColors) {
       left: spacing.lg,
       opacity: 0.9,
     },
+    // Below the floating lens chip (ScheduleView) at the canvas top-right.
     pausedShelf: {
       position: "absolute",
-      top: spacing.sm,
+      top: 48,
       right: spacing.sm,
       flexDirection: "row",
       alignItems: "center",

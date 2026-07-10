@@ -25,13 +25,12 @@ export const fr: typeof en = {
   tabs: {
     payments: "Paiements",
     insights: "Analyses",
-    history: "Historique",
     settings: "Réglages",
     addA11y: "Ajouter un abonnement",
-    historyComing: "Historique, bientôt",
   },
   titles: {
     details: "Détails",
+    history: "Historique",
     accounts: "Comptes",
     priceChanges: "Changements de prix",
     byAccount: "Par compte",

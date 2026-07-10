@@ -153,7 +153,7 @@ function monthWeeks(monthStart: CalendarDate, monthEnd: CalendarDate): (Calendar
   return rows;
 }
 
-export function CalendarMonthView() {
+export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void }) {
   const router = useRouter();
   const { colors } = useTheme();
   // Also subscribes the view to language changes for the date helpers.
@@ -226,6 +226,17 @@ export function CalendarMonthView() {
         >
           <SymbolView name="chevron.right" size={13} tintColor={colors.text} />
         </Pressable>
+        {/* The bonus lens: the same schedule as a harbor (experiment). */}
+        {onOpenHarbor && (
+          <Pressable
+            onPress={onOpenHarbor}
+            hitSlop={10}
+            style={styles.chevronButton}
+            accessibilityLabel={t("payments.harborA11y")}
+          >
+            <SymbolView name="sailboat" size={15} tintColor={colors.text} />
+          </Pressable>
+        )}
       </View>
 
       <PagerView

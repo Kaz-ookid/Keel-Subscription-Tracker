@@ -25,13 +25,12 @@ export const en = {
   tabs: {
     payments: "Payments",
     insights: "Insights",
-    history: "History",
     settings: "Settings",
     addA11y: "Add subscription",
-    historyComing: "History, coming soon",
   },
   titles: {
     details: "Details",
+    history: "History",
     accounts: "Accounts",
     priceChanges: "Price changes",
     byAccount: "By account",

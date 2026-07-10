@@ -12,16 +12,16 @@ import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-na
 
 type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
 
-import { CalendarMonthView } from "../../src/components/payments/CalendarMonthView";
-import { HarborView } from "../../src/components/payments/HarborView";
+import { ScheduleView } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
-import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppState } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
-type PaymentsView = "upcoming" | "all" | "calendar" | "harbor";
+// The harbor is no longer a top-level view: it lives INSIDE the schedule
+// slot as the calendar's bonus lens (see ScheduleView).
+type PaymentsView = "upcoming" | "all" | "calendar";
 
 const VIEWS: { value: PaymentsView; labelKey: string }[] = [
   { value: "upcoming", labelKey: "payments.upcoming" },
@@ -35,17 +35,6 @@ export default function PaymentsScreen() {
   const [view, setView] = useState<PaymentsView>("upcoming");
   const router = useRouter();
   const { items, accounts, loading } = useAppState();
-
-  // The experimental Harbor view (DESIGN.md §3.7 B): its toggle only appears
-  // while the Settings debug switch is on.
-  const [harborEnabled, setHarborEnabled] = useState(false);
-  useEffect(() => {
-    void loadHarborEnabled().then(setHarborEnabled);
-    return onHarborChange((enabled) => {
-      setHarborEnabled(enabled);
-      if (!enabled) setView((v) => (v === "harbor" ? "upcoming" : v));
-    });
-  }, []);
 
   // First launch only: a truly empty app (no items, no accounts) and the tour
   // never shown → open onboarding. Checked once per mount, after hydration.
@@ -131,19 +120,6 @@ export default function PaymentsScreen() {
             tintColor={view === "calendar" ? colors.accent : colors.text}
           />
         </Pressable>
-        {harborEnabled && (
-          <Pressable
-            accessibilityLabel={t("payments.harborA11y")}
-            onPress={() => setView("harbor")}
-            style={[styles.calendarToggle, view === "harbor" && styles.calendarToggleActive]}
-          >
-            <SymbolView
-              name="sailboat"
-              size={17}
-              tintColor={view === "harbor" ? colors.accent : colors.text}
-            />
-          </Pressable>
-        )}
       </View>
 
       {onPills ? (
@@ -161,10 +137,8 @@ export default function PaymentsScreen() {
             <SubscriptionsView />
           </View>
         </PagerView>
-      ) : view === "calendar" ? (
-        <CalendarMonthView />
       ) : (
-        <HarborView />
+        <ScheduleView />
       )}
     </View>
   );
