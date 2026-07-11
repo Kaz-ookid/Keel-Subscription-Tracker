@@ -2,7 +2,10 @@ import { type SettlementMode } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import Animated from "react-native-reanimated";
+
+import { foldIn, foldOut } from "../../lib/motion";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
@@ -210,6 +213,7 @@ export function DetailsSection({ form }: { form: AddForm }) {
 /** Settlement, account, reminder, category and colour — rendered after the
  *  schedule rows so the form reads: what → how much → when → how → extras. */
 export function MetaSection({ form }: { form: AddForm }) {
+  const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useFormStyles();
 
@@ -218,24 +222,43 @@ export function MetaSection({ form }: { form: AddForm }) {
     { value: "manual", label: t("row.manual") },
   ];
 
+  const reminderOn = form.reminderKey !== "never";
+
   return (
-    <Card variant="list" style={styles.group}>
-      <View style={[styles.rowField, styles.fieldFirst]}>
-        <Text style={styles.label}>{t("add.settlement")}</Text>
-        <View style={styles.rowControl}>
-          <Segmented
-            options={settlementOptions}
-            value={form.settlementMode}
-            onChange={form.setSettlementMode}
+    <>
+      <Card variant="list" style={styles.group}>
+        <View style={[styles.rowField, styles.fieldFirst]}>
+          <Text style={styles.label}>{t("add.settlement")}</Text>
+          <View style={styles.rowControl}>
+            <Segmented
+              options={settlementOptions}
+              value={form.settlementMode}
+              onChange={form.setSettlementMode}
+            />
+          </View>
+        </View>
+
+        {/* A switch, not a picker: ON applies the default from Settings and
+            folds in the advanced row for the rare adjustment. */}
+        <View style={styles.rowField}>
+          <Text style={styles.label}>{t("add.reminder")}</Text>
+          <Switch
+            value={reminderOn}
+            onValueChange={form.setReminderEnabled}
+            trackColor={{ true: colors.accent }}
           />
         </View>
-      </View>
-
-      <FieldButton
-        label={t("add.reminder")}
-        value={form.reminderLabel}
-        onPress={() => form.setSheet("reminder")}
-      />
-    </Card>
+        {reminderOn && (
+          <Animated.View entering={foldIn} exiting={foldOut}>
+            <FieldButton
+              label={t("add.reminderWhen")}
+              value={form.reminderLabel}
+              onPress={() => form.setSheet("reminder")}
+            />
+          </Animated.View>
+        )}
+      </Card>
+      {reminderOn ? <Text style={styles.preview}>{t("add.reminderDefaultHint")}</Text> : null}
+    </>
   );
 }

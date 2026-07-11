@@ -8,12 +8,15 @@ interface Props {
   visible: boolean;
   title: string;
   onClose: () => void;
+  /** The header button's text; defaults to "Done" (pickers that keep state).
+   *  Pass "Close" for act-on-tap lists where nothing is being confirmed. */
+  closeLabel?: string;
   children: ReactNode;
 }
 
 /** A secondary "card" window using the native iOS page sheet (stops short of the
  *  top — no full-screen claustrophobia). Used for category + colour pickers. */
-export function Sheet({ visible, title, onClose, children }: Props) {
+export function Sheet({ visible, title, onClose, closeLabel, children }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -28,7 +31,7 @@ export function Sheet({ visible, title, onClose, children }: Props) {
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Pressable onPress={onClose} hitSlop={8}>
-            <Text style={styles.done}>{t("common.done")}</Text>
+            <Text style={styles.done}>{closeLabel ?? t("common.done")}</Text>
           </Pressable>
         </View>
         <View style={styles.body}>{children}</View>

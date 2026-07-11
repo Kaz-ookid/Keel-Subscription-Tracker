@@ -8,7 +8,15 @@
 // due date that has arrived) on load and on creation.
 
 import { randomUUID } from "expo-crypto";
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { useTranslation } from "react-i18next";
 import {
   accrueDueInstallments,
@@ -45,6 +53,7 @@ import {
   type SuggestedCommitment,
 } from "@keel/core";
 
+import { autoBackupIfDue } from "../lib/backups";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { syncReminders } from "../lib/notifications";
 import { buildDemoData } from "../lib/demo-data";
@@ -94,6 +103,9 @@ interface AppStateValue {
   /** Erase a wrongly recorded price change; the standing price reverts when
    *  the erased entry was the latest. */
   revertPriceChange: (id: string, effectiveFrom: CalendarDate) => void;
+  /** Set or clear an item's reminder rule without touching anything else —
+   *  the notifications screen's quick add/remove. */
+  setItemReminder: (id: string, daysBefore: number | null) => void;
   removeSubscription: (id: string) => void;
   /** Manual tick-off: log the running payment and advance the next due date. */
   markPaid: (id: string) => void;
@@ -239,6 +251,22 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       });
   }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading]);
 
+  // The daily local backup: once per launch, right after hydration — the
+  // library itself skips days that already have one.
+  const autoBackedUp = useRef(false);
+  useEffect(() => {
+    if (loading || autoBackedUp.current) return;
+    autoBackedUp.current = true;
+    autoBackupIfDue({
+      items,
+      occurrences,
+      categories: customCategories,
+      accounts,
+      displayCurrency,
+      pending,
+    });
+  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading]);
+
   // One memoised value object: consumers only re-render when state actually
   // changes. Handlers live inside the memo so their closures (over `items`,
   // `occurrences`) are rebuilt whenever those change — never stale.
@@ -285,6 +313,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const revertPriceChange = (id: string, effectiveFrom: CalendarDate) => {
       setItems((prev) =>
         prev.map((i) => (i.id === id ? removePriceChange(i, { effectiveFrom, now: now() }) : i)),
+      );
+    };
+
+    // Reminder is standalone metadata on the item — patched in place, so the
+    // schedule, price history and cursors stay untouched.
+    const setItemReminder = (id: string, daysBefore: number | null) => {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? { ...i, reminder: daysBefore === null ? undefined : { daysBefore } } : i,
+        ),
       );
     };
 
@@ -493,6 +531,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       updateSubscription,
       updateInstallmentPlan,
       revertPriceChange,
+      setItemReminder,
       removeSubscription,
       markPaid,
       skipPayment,

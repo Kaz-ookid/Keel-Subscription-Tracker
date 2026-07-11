@@ -91,6 +91,9 @@ function RootNavigator() {
               <Stack.Screen name="price-changes" options={{ title: "" }} />
               <Stack.Screen name="by-account" options={{ title: "" }} />
               <Stack.Screen name="by-category" options={{ title: "" }} />
+              <Stack.Screen name="notifications" options={{ title: "" }} />
+              <Stack.Screen name="data" options={{ title: "" }} />
+              <Stack.Screen name="backups" options={{ title: "" }} />
             </Stack>
           </ImportSessionProvider>
           {/* No colored bars anymore: the status bar follows the scheme. */}

@@ -31,6 +31,7 @@ import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
 import { localizedAnchor } from "../../i18n/recurrence";
+import { loadNotificationSettings } from "../../lib/notifications";
 import { matchSuggestions } from "../../lib/suggestions";
 import { useAppState } from "../../state/app-state";
 import { useImportSession } from "../../state/import-session";
@@ -215,6 +216,16 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const setIsTrial = (next: boolean) => {
     setIsTrialState(next);
     if (next && reminderKey === "never") setReminderKey("2");
+  };
+
+  // The reminder switch: ON picks up the default lead from the notification
+  // settings (the advanced row below it stays adjustable), OFF is "never".
+  const setReminderEnabled = (next: boolean) => {
+    if (!next) {
+      setReminderKey("never");
+      return;
+    }
+    void loadNotificationSettings().then((s) => setReminderKey(s.defaultLeadKey));
   };
   const [categoryId, setCategoryId] = useState<string | undefined>(
     () => seedItem?.categoryId ?? suggestion?.categoryId,
@@ -548,6 +559,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     setSettlementMode,
     reminderKey,
     setReminderKey,
+    setReminderEnabled,
     categoryId,
     setCategoryId,
     accountId,

@@ -7,14 +7,10 @@ import {
   CURRENCIES,
   currencyLabel,
   formatCalendarDate,
-  today,
   type CurrencyCode,
 } from "@keel/core";
-import * as DocumentPicker from "expo-document-picker";
-import { File, Paths } from "expo-file-system";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
-import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,7 +18,6 @@ import {
   ActionSheetIOS,
   Alert,
   AppState,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -146,8 +141,6 @@ export default function SettingsScreen() {
     clearAllData,
     loadSampleData,
     loadDemoData,
-    exportData,
-    importData,
     snapshotSavedAt,
     saveSnapshot,
     restoreSnapshot,
@@ -293,12 +286,6 @@ export default function SettingsScreen() {
       ],
     );
 
-  const confirmClear = () =>
-    Alert.alert(t("settings.clearAll"), t("settings.clearMsg"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("settings.deleteEverything"), style: "destructive", onPress: clearAllData },
-    ]);
-
   const confirmSample = () =>
     Alert.alert(t("settings.loadSample"), t("settings.sampleMsg"), [
       { text: t("common.cancel"), style: "cancel" },
@@ -326,40 +313,6 @@ export default function SettingsScreen() {
         },
       },
     ]);
-
-  const exportBackup = async () => {
-    try {
-      const file = new File(Paths.cache, `keel-backup-${today()}.json`);
-      if (file.exists) file.delete();
-      file.create();
-      file.write(JSON.stringify(exportData(), null, 2));
-      await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
-    } catch {
-      Alert.alert(t("settings.exportFailTitle"), t("settings.exportFailMsg"));
-    }
-  };
-
-  const importBackup = async () => {
-    try {
-      const picked = await DocumentPicker.getDocumentAsync({ type: "application/json" });
-      if (picked.canceled || !picked.assets[0]) return;
-      const content = new File(picked.assets[0].uri).textSync();
-      Alert.alert(t("settings.restoreTitle"), t("settings.restoreMsg"), [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("settings.replace"),
-          style: "destructive",
-          onPress: () => {
-            if (!importData(content)) {
-              Alert.alert(t("settings.importFailTitle"), t("settings.importFailNotBackup"));
-            }
-          },
-        },
-      ]);
-    } catch {
-      Alert.alert(t("settings.importFailTitle"), t("settings.importFailRead"));
-    }
-  };
 
   return (
     <ScrollView
@@ -400,15 +353,13 @@ export default function SettingsScreen() {
           </Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        {/* Reminders ride the OS permission; when off, the row opens Settings. */}
+        {/* The notification center: master switch, defaults, scheduled list. */}
         <Pressable
           style={[styles.row, styles.rowDivider]}
-          onPress={() => {
-            if (remindersOn === false) void Linking.openSettings();
-          }}
+          onPress={() => router.push("/notifications")}
         >
           <IconChip icon="bell.fill" color={CHIP.reminders} />
-          <Text style={styles.rowText}>{t("settings.reminders")}</Text>
+          <Text style={styles.rowText}>{t("notifCenter.title")}</Text>
           <Text style={styles.rowValue}>
             {remindersOn === null
               ? ""
@@ -416,6 +367,7 @@ export default function SettingsScreen() {
                 ? t("settings.remindersOn")
                 : t("settings.remindersOff")}
           </Text>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         <Pressable
           style={[styles.row, styles.rowDivider]}
@@ -466,18 +418,14 @@ export default function SettingsScreen() {
         <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
       </Card>
 
-      {/* The escape hatch: real finances deserve a way out of one local blob. */}
+      {/* Where the data lives: iCloud preference, local backups, export. */}
       <Text style={styles.groupLabel}>{t("settings.groupBackup")}</Text>
       <Card>
-        <Pressable style={styles.row} onPress={() => void exportBackup()}>
-          <IconChip icon="square.and.arrow.up" color={CHIP.exportBackup} />
-          <Text style={styles.rowText}>{t("settings.exportBackup")}</Text>
+        <Pressable style={styles.row} onPress={() => router.push("/data")}>
+          <IconChip icon="icloud.fill" color={CHIP.exportBackup} />
+          <Text style={styles.rowText}>{t("data.title")}</Text>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void importBackup()}>
-          <IconChip icon="square.and.arrow.down" color={CHIP.restoreBackup} />
-          <Text style={styles.rowText}>{t("settings.restoreBackup")}</Text>
-        </Pressable>
-        <Text style={styles.privacyFooter}>{t("settings.backupFooter")}</Text>
       </Card>
 
       {/* Debug, for dogfooding: seed a realistic household or start clean —
@@ -518,10 +466,6 @@ export default function SettingsScreen() {
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
           <IconChip icon="arrow.counterclockwise" color={CHIP.debug} />
           <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
-        </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmClear}>
-          <IconChip icon="trash.fill" color={CHIP.danger} />
-          <Text style={[styles.rowText, styles.dangerText]}>{t("settings.clearAll")}</Text>
         </Pressable>
       </Card>
 
