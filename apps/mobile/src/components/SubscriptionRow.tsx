@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
+import { brandBleed } from "../lib/brand";
 import { useAppState } from "../state/app-state";
 import {
   emphasis,
@@ -43,8 +44,8 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   const category = categories.find((c) => c.id === item.categoryId);
   const account = accounts.find((a) => a.id === item.accountId);
 
-  // Badge colour is the subscription's own colour, else the brand accent.
-  const accent = item.color ?? colors.accent;
+  // Resolved brand color: the item's own, else the bank's, never mono.
+  const accent = brandBleed(item, colors.accent);
 
   const complete = isPaymentItemComplete(item, today());
 

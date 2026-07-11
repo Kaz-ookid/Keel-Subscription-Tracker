@@ -35,6 +35,9 @@ interface ImportItemCommon {
   firstDate: string;
   account?: string;
   domain?: string;
+  /** The brand's primary identity color ("#RRGGBB"), never black or white —
+   *  brand knowledge the AI carries, not something read from the input. */
+  color?: string;
   notes?: string;
   reminderDaysBefore?: number;
   /** Set by the AI ONLY when the user says past payments were NOT made.

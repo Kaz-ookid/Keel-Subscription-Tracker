@@ -26,6 +26,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { BrandBadge } from "../src/components/BrandBadge";
 import { Button } from "../src/components/ui/Button";
 import { Card } from "../src/components/ui/Card";
+import { brandBleed } from "../src/lib/brand";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
 import { useAppState } from "../src/state/app-state";
@@ -166,7 +167,9 @@ export default function ItemScreen() {
           lights the top of its screen like Subo's Netflix red. */}
       <View style={styles.identity}>
         <LinearGradient
-          colors={[withAlpha(item.color ?? colors.accent, 0.28), "transparent"]}
+          // Fades in AND out: a hard top edge read as a seam when clipped.
+          colors={["transparent", withAlpha(brandBleed(item, colors.accent), 0.26), "transparent"]}
+          locations={[0, 0.35, 1]}
           start={{ x: 0.5, y: 0 }}
           end={{ x: 0.5, y: 1 }}
           style={styles.identityGlow}
@@ -176,7 +179,7 @@ export default function ItemScreen() {
           domain={item.domain}
           icon={category?.icon}
           fallback={item.name.charAt(0).toUpperCase()}
-          color={item.color ?? colors.accent}
+          color={brandBleed(item, colors.accent)}
           size={64}
         />
         <Text style={styles.name}>{item.name}</Text>
@@ -458,10 +461,10 @@ function createStyles(colors: ThemeColors) {
     // Wider and taller than the identity block: a soft halo, not a box.
     identityGlow: {
       position: "absolute",
-      top: -80,
+      top: -30,
       left: -60,
       right: -60,
-      height: 240,
+      height: 230,
     },
     name: { ...typography.h1, color: colors.text },
     subtitle: { ...typography.caption, color: colors.mutedText },

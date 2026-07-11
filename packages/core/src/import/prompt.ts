@@ -40,6 +40,7 @@ Self-reporting (IMPORTANT, the app shows these to the user on the review screen)
 
 Optional fields, to include ONLY when present in the input (never invent them):
 - "domain": the bare website used for the logo ("netflix.com"). Include it for every brand whose main website you know for sure, including banks, insurers and public services; omit it rather than guessing.
+- "color": the brand's primary color as "#RRGGBB", for every brand whose identity color you know for sure (Spotify green, Netflix red, Swisscom blue). NEVER black, white, or a near-black/near-white shade; pick the brand's most recognizable saturated color instead. Omit when unsure. This one is knowledge about the brand, not about the input, so include it even though the input doesn't state it.
 - "notes": anything that doesn't fit a field. ALSO use it to record, very briefly, anything you assumed that the input didn't state (a day of the month, a cadence, a converted amount), so the user can check it.
 - "reminderDaysBefore": N, only if a reminder is requested.
 - subscription "endDate": "YYYY-MM-DD", a known last charge.

@@ -68,6 +68,16 @@ const asTrimmedString = (value: unknown): string | undefined =>
 const asFiniteNumber = (value: unknown): number | undefined =>
   typeof value === "number" && Number.isFinite(value) ? value : undefined;
 
+/** A usable brand color: strict "#RRGGBB", never near-black or near-white
+ *  (those are the AI hedging, and they make invisible washes in the UI). */
+const readBrandColor = (value: unknown): string | undefined => {
+  const hex = asTrimmedString(value);
+  if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return undefined;
+  const n = parseInt(hex.slice(1), 16);
+  const lum = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+  return lum > 0.09 && lum < 0.91 ? hex : undefined;
+};
+
 /** The AI's `assumed`/`uncertain` lists, kept to the field names we know. */
 const asFieldList = (value: unknown): ImportFieldName[] =>
   Array.isArray(value)
@@ -200,6 +210,7 @@ function parseItem(
   const categoryId = reader.category(item.category);
   const { accountId, accountName } = reader.account(item.account, currency);
   const domain = asTrimmedString(item.domain)?.toLowerCase();
+  const color = readBrandColor(item.color);
   const notes = asTrimmedString(item.notes);
   const reminderDays = asFiniteNumber(item.reminderDaysBefore);
   const reminder =
@@ -224,6 +235,7 @@ function parseItem(
     categoryId,
     accountId,
     domain: domain && !domain.includes(" ") ? domain : undefined,
+    color,
     notes,
     reminder,
   } as const;

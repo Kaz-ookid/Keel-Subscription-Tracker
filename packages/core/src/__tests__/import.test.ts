@@ -56,6 +56,7 @@ const WORKED_EXAMPLE = {
       firstDate: "2026-07-03",
       account: "Monzo",
       domain: "netflix.com",
+      color: "#E50914",
     },
     {
       type: "subscription",
@@ -204,7 +205,35 @@ describe("parseImportDocument — worked example", () => {
     expect(netflix.input.categoryId).toBe("streaming");
     expect(netflix.input.accountId).toBe("acc-monzo");
     expect(netflix.input.domain).toBe("netflix.com");
+    expect(netflix.input.color).toBe("#E50914");
     expect(netflix.warnings).toEqual([]);
+  });
+
+  it("rejects near-black, near-white and malformed brand colors", () => {
+    const base = {
+      type: "subscription",
+      name: "X",
+      currency: "EUR",
+      amount: 5,
+      settlement: "automatic",
+      category: "other",
+      cadence: { unit: "month", interval: 1 },
+      firstDate: "2026-07-03",
+    };
+    const doc = JSON.stringify({
+      version: 1,
+      items: [
+        { ...base, name: "Black", color: "#000000" },
+        { ...base, name: "White", color: "#FFFFFF" },
+        { ...base, name: "Bad", color: "red" },
+        { ...base, name: "Good", color: "#1781F2" },
+      ],
+    });
+    const parsed = parseImportDocument(doc, ctx);
+    expect(sub(parsed.drafts, "Black").input.color).toBeUndefined();
+    expect(sub(parsed.drafts, "White").input.color).toBeUndefined();
+    expect(sub(parsed.drafts, "Bad").input.color).toBeUndefined();
+    expect(sub(parsed.drafts, "Good").input.color).toBe("#1781F2");
   });
 
   it("keeps weekday anchors ('1st Monday' account fee)", () => {

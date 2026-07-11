@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { brandBleed } from "../lib/brand";
 import { useAppState } from "../state/app-state";
 import {
   emphasis,
@@ -55,7 +56,7 @@ export function UpcomingRow({
 
   const category = categories.find((c) => c.id === charge.categoryId);
   const account = accounts.find((a) => a.id === charge.accountId);
-  const accent = charge.color ?? colors.accent;
+  const accent = brandBleed(charge, colors.accent);
   const settled = paid || skipped;
 
   // Context line: BNPL progress first, then where the money comes from.

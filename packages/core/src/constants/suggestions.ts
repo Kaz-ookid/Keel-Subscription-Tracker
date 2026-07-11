@@ -367,6 +367,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     categoryId: "communications",
     unit: "month",
     domain: "swisscom.ch",
+    color: "#1781F2",
     regions: ["CH"],
   },
   {
@@ -1295,6 +1296,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     categoryId: "health",
     unit: "month",
     domain: "activfitness.ch",
+    color: "#E30613",
     regions: ["CH"],
   },
   {
