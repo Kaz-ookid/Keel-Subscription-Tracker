@@ -194,6 +194,8 @@ export const radius = {
 // screens used to hardcode as fontSize 17/18/22; `h1` the screen-level name;
 // `micro` the uppercase overline for stat/section labels.
 export const typography = {
+  /** Hero amounts (§9e): the one number a screen is about. */
+  display: { fontSize: 40, fontWeight: "700", letterSpacing: -0.5 },
   title: { fontSize: 32, fontWeight: "700" },
   h1: { fontSize: 24, fontWeight: "700" },
   value: { fontSize: 18, fontWeight: "700" },

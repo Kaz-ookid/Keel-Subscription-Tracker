@@ -35,8 +35,9 @@ function createStyles(colors: ThemeColors) {
       ...typography.micro,
       color: colors.mutedText,
     },
+    // h1-sized (§9e): a stat tile's number should land from across the room.
     value: {
-      ...typography.value,
+      ...typography.h1,
       color: colors.text,
     },
     hint: {

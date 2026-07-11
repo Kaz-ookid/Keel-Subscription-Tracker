@@ -178,8 +178,9 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingHorizontal: 56,
   },
+  // h1-sized (§9e): the hole's number is the chart's headline.
   centerTitle: {
-    ...typography.value,
+    ...typography.h1,
   },
   centerSub: {
     ...typography.caption,

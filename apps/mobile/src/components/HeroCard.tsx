@@ -29,8 +29,15 @@ export function HeroCard({ label, amount, sub }: Props) {
       <LinearGradient colors={[colors.navy, colors.navyDeep]} style={StyleSheet.absoluteFill} />
       {width > 0 && <Waterline height={14} width={width} color={colors.accentStrong} />}
       <Text style={styles.label}>{label}</Text>
-      {/* Re-keyed by value so a new number gets its one quiet fade-in. */}
-      <Animated.Text key={amount} entering={FadeIn.duration(250)} style={styles.amount}>
+      {/* Re-keyed by value so a new number gets its one quiet fade-in.
+          Display size (§9e); long multi-currency strings shrink, never wrap. */}
+      <Animated.Text
+        key={amount}
+        entering={FadeIn.duration(250)}
+        style={styles.amount}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+      >
         {amount}
       </Animated.Text>
       {sub ? <Text style={styles.sub}>{sub}</Text> : null}
@@ -42,7 +49,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
       backgroundColor: colors.navy,
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
       padding: spacing.lg,
       gap: spacing.xs,
       overflow: "hidden",
@@ -54,7 +61,7 @@ function createStyles(colors: ThemeColors) {
       letterSpacing: 0.6,
     },
     amount: {
-      ...typography.title,
+      ...typography.display,
       color: colors.white,
     },
     sub: {
