@@ -465,6 +465,7 @@ export const en = {
     importAI: "Import with AI",
     exportBackup: "Export backup",
     restoreBackup: "Restore backup",
+    backupFooter: "One plain file you keep. Nothing leaves your phone unless you share it.",
     snapshotSave: "Save data snapshot",
     snapshotRestore: "Restore data snapshot",
     snapshotOverwriteMsg:

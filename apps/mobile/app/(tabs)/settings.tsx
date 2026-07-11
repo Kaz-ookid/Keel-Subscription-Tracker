@@ -19,6 +19,7 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  ActionSheetIOS,
   Alert,
   AppState,
   Linking,
@@ -86,9 +87,48 @@ const Picker = RNPicker as unknown as ComponentType<{
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 
+// Apple-Settings icon chips (§9d): a saturated rounded square per row, white
+// glyph on top — the system's own visual language for settings lists.
+const CHIP = {
+  accounts: "#007AFF",
+  currency: "#34C759",
+  appearance: "#5E5CE6",
+  language: "#AF52DE",
+  reminders: "#FF3B30",
+  browse: "#FF9500",
+  importAI: "#30B0C7",
+  faceid: "#32ADE6",
+  grace: "#8E8E93",
+  exportBackup: "#0A84FF",
+  restoreBackup: "#30D158",
+  debug: "#8E8E93",
+  sample: "#FF9F0A",
+  demo: "#BF5AF2",
+  harbor: "#64D2FF",
+  danger: "#FF3B30",
+} as const;
+
+function IconChip({ icon, color }: { icon: string; color: string }) {
+  return (
+    <View style={[chipStyles.chip, { backgroundColor: color }]}>
+      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
+    </View>
+  );
+}
+
+const chipStyles = StyleSheet.create({
+  chip: {
+    width: 29,
+    height: 29,
+    borderRadius: 6.5,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+});
+
 export default function SettingsScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
@@ -108,15 +148,12 @@ export default function SettingsScreen() {
   const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
   const [currencySheet, setCurrencySheet] = useState(false);
-  const [themeSheet, setThemeSheet] = useState(false);
-  const [languageSheet, setLanguageSheet] = useState(false);
   const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
   // App lock: what the device offers (wording + availability) and the config.
   const [authKind, setAuthKind] = useState<AuthKind | null>(null);
   const [lockEnabled, setLockEnabled] = useState(false);
   const [graceSeconds, setGraceSeconds] = useState(0);
-  const [graceSheet, setGraceSheet] = useState(false);
   // Experimental Harbor view (DESIGN.md §3.7 B) — a debug-only flag.
   const [harborOn, setHarborOn] = useState(false);
 
@@ -158,6 +195,51 @@ export default function SettingsScreen() {
     setLanguageModeState(next);
     void setLanguageMode(next);
   };
+
+  // Small pickers ride the native action sheet (§9d, the Apple idiom);
+  // only the long currency list keeps the wheel.
+  const sheetPick = <T,>(
+    title: string,
+    labels: string[],
+    values: T[],
+    onPick: (value: T) => void,
+  ) => {
+    ActionSheetIOS.showActionSheetWithOptions(
+      {
+        title,
+        options: [...labels, t("common.cancel")],
+        cancelButtonIndex: labels.length,
+        userInterfaceStyle: scheme,
+      },
+      (index) => {
+        if (index < labels.length) onPick(values[index]);
+      },
+    );
+  };
+  const pickTheme = () =>
+    sheetPick(
+      t("settings.appearance"),
+      THEME_OPTIONS.map((o) => t(o.labelKey)),
+      THEME_OPTIONS.map((o) => o.value),
+      setMode,
+    );
+  const pickLanguage = () =>
+    sheetPick(
+      t("settings.language"),
+      LANGUAGE_OPTIONS.map((o) => languageLabel(o)),
+      LANGUAGE_OPTIONS.map((o) => o.value),
+      changeLanguage,
+    );
+  const pickGrace = () =>
+    sheetPick(
+      t("applock.requireAfter"),
+      GRACE_OPTIONS.map((seconds) => graceLabel(seconds)),
+      [...GRACE_OPTIONS],
+      (seconds) => {
+        setGraceSeconds(seconds);
+        void persistLockGrace(seconds);
+      },
+    );
 
   const languageLabel = (option: (typeof LANGUAGE_OPTIONS)[number]) =>
     option.label ?? t(option.labelKey ?? "");
@@ -281,27 +363,27 @@ export default function SettingsScreen() {
       <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
-          <SymbolView name="building.columns.fill" size={20} tintColor={colors.accent} />
+          <IconChip icon="building.columns.fill" color={CHIP.accounts} />
           <Text style={styles.rowText}>{t("settings.accounts")}</Text>
           <Text style={styles.rowValue}>{accounts.length || ""}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
-          <SymbolView name="coloncurrencysign.circle" size={20} tintColor={colors.accent} />
+          <IconChip icon="coloncurrencysign.circle" color={CHIP.currency} />
           <Text style={styles.rowText}>{t("settings.displayCurrency")}</Text>
           <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setThemeSheet(true)}>
-          <SymbolView name="circle.lefthalf.filled" size={20} tintColor={colors.accent} />
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={pickTheme}>
+          <IconChip icon="circle.lefthalf.filled" color={CHIP.appearance} />
           <Text style={styles.rowText}>{t("settings.appearance")}</Text>
           <Text style={styles.rowValue}>
             {t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
           </Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setLanguageSheet(true)}>
-          <SymbolView name="globe" size={20} tintColor={colors.accent} />
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={pickLanguage}>
+          <IconChip icon="globe" color={CHIP.language} />
           <Text style={styles.rowText}>{t("settings.language")}</Text>
           <Text style={styles.rowValue}>
             {languageLabel(
@@ -317,7 +399,7 @@ export default function SettingsScreen() {
             if (remindersOn === false) void Linking.openSettings();
           }}
         >
-          <SymbolView name="bell.fill" size={20} tintColor={colors.accent} />
+          <IconChip icon="bell.fill" color={CHIP.reminders} />
           <Text style={styles.rowText}>{t("settings.reminders")}</Text>
           <Text style={styles.rowValue}>
             {remindersOn === null
@@ -331,7 +413,7 @@ export default function SettingsScreen() {
           style={[styles.row, styles.rowDivider]}
           onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
         >
-          <SymbolView name="rectangle.stack.fill" size={20} tintColor={colors.accent} />
+          <IconChip icon="rectangle.stack.fill" color={CHIP.browse} />
           <Text style={styles.rowText}>{t("settings.browseCommon")}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
@@ -340,7 +422,7 @@ export default function SettingsScreen() {
           style={[styles.row, styles.rowDivider]}
           onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
         >
-          <SymbolView name="sparkles" size={20} tintColor={colors.accent} />
+          <IconChip icon="sparkles" color={CHIP.importAI} />
           <Text style={styles.rowText}>{t("settings.importAI")}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
@@ -350,11 +432,7 @@ export default function SettingsScreen() {
       <Text style={styles.groupLabel}>{t("settings.groupPrivacy")}</Text>
       <Card>
         <View style={styles.row}>
-          <SymbolView
-            name="faceid"
-            size={20}
-            tintColor={authKind === "unavailable" ? colors.mutedText : colors.accent}
-          />
+          <IconChip icon="faceid" color={authKind === "unavailable" ? CHIP.debug : CHIP.faceid} />
           <Text style={styles.rowText}>{lockLabel}</Text>
           {authKind === "unavailable" ? (
             <Text style={styles.rowValue}>{t("applock.needPasscode")}</Text>
@@ -369,8 +447,8 @@ export default function SettingsScreen() {
         </View>
         {lockEnabled && (
           <Animated.View entering={foldIn} exiting={foldOut}>
-            <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setGraceSheet(true)}>
-              <SymbolView name="clock.fill" size={20} tintColor={colors.accent} />
+            <Pressable style={[styles.row, styles.rowDivider]} onPress={pickGrace}>
+              <IconChip icon="clock.fill" color={CHIP.grace} />
               <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
               <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
@@ -384,13 +462,14 @@ export default function SettingsScreen() {
       <Text style={styles.groupLabel}>{t("settings.groupBackup")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={() => void exportBackup()}>
-          <SymbolView name="square.and.arrow.up" size={20} tintColor={colors.accent} />
+          <IconChip icon="square.and.arrow.up" color={CHIP.exportBackup} />
           <Text style={styles.rowText}>{t("settings.exportBackup")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void importBackup()}>
-          <SymbolView name="square.and.arrow.down" size={20} tintColor={colors.accent} />
+          <IconChip icon="square.and.arrow.down" color={CHIP.restoreBackup} />
           <Text style={styles.rowText}>{t("settings.restoreBackup")}</Text>
         </Pressable>
+        <Text style={styles.privacyFooter}>{t("settings.backupFooter")}</Text>
       </Card>
 
       {/* Debug, for dogfooding: seed a realistic household or start clean —
@@ -398,30 +477,26 @@ export default function SettingsScreen() {
       <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={confirmSnapshotSave}>
-          <SymbolView name="tray.and.arrow.down.fill" size={20} tintColor={colors.accent} />
+          <IconChip icon="tray.and.arrow.down.fill" color={CHIP.debug} />
           <Text style={styles.rowText}>{t("settings.snapshotSave")}</Text>
           <Text style={styles.rowValue}>{snapshotLabel}</Text>
         </Pressable>
         {snapshotSavedAt !== null && (
           <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSnapshotRestore}>
-            <SymbolView name="tray.and.arrow.up.fill" size={20} tintColor={colors.accent} />
+            <IconChip icon="tray.and.arrow.up.fill" color={CHIP.debug} />
             <Text style={styles.rowText}>{t("settings.snapshotRestore")}</Text>
           </Pressable>
         )}
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSample}>
-          <SymbolView name="wand.and.stars" size={20} tintColor={colors.accent} />
+          <IconChip icon="wand.and.stars" color={CHIP.sample} />
           <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmDemo}>
-          <SymbolView
-            name="person.crop.square.filled.and.at.rectangle"
-            size={20}
-            tintColor={colors.accent}
-          />
+          <IconChip icon="person.crop.square.filled.and.at.rectangle" color={CHIP.demo} />
           <Text style={styles.rowText}>{t("settings.loadDemo")}</Text>
         </Pressable>
         <View style={[styles.row, styles.rowDivider]}>
-          <SymbolView name="sailboat" size={20} tintColor={colors.accent} />
+          <IconChip icon="sailboat" color={CHIP.harbor} />
           <Text style={styles.rowText}>{t("settings.harborExperiment")}</Text>
           <Switch
             value={harborOn}
@@ -433,11 +508,11 @@ export default function SettingsScreen() {
           />
         </View>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
-          <SymbolView name="arrow.counterclockwise" size={20} tintColor={colors.accent} />
+          <IconChip icon="arrow.counterclockwise" color={CHIP.debug} />
           <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
         </Pressable>
         <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmClear}>
-          <SymbolView name="trash.fill" size={20} tintColor={colors.tones.danger} />
+          <IconChip icon="trash.fill" color={CHIP.danger} />
           <Text style={[styles.rowText, styles.dangerText]}>{t("settings.clearAll")}</Text>
         </Pressable>
       </Card>
@@ -448,62 +523,6 @@ export default function SettingsScreen() {
         {"\n"}
         {t("settings.trademark")}
       </Text>
-
-      <WheelSheet
-        visible={themeSheet}
-        title={t("settings.appearance")}
-        onClose={() => setThemeSheet(false)}
-      >
-        <Picker selectedValue={mode} onValueChange={(v) => setMode(v as ThemeMode)}>
-          {THEME_OPTIONS.map((o) => (
-            <Picker.Item key={o.value} label={t(o.labelKey)} value={o.value} color={colors.text} />
-          ))}
-        </Picker>
-      </WheelSheet>
-
-      <WheelSheet
-        visible={languageSheet}
-        title={t("settings.language")}
-        onClose={() => setLanguageSheet(false)}
-      >
-        <Picker
-          selectedValue={languageMode}
-          onValueChange={(v) => changeLanguage(v as LanguageMode)}
-        >
-          {LANGUAGE_OPTIONS.map((o) => (
-            <Picker.Item
-              key={o.value}
-              label={languageLabel(o)}
-              value={o.value}
-              color={colors.text}
-            />
-          ))}
-        </Picker>
-      </WheelSheet>
-
-      <WheelSheet
-        visible={graceSheet}
-        title={t("applock.requireAfter")}
-        onClose={() => setGraceSheet(false)}
-      >
-        <Picker
-          selectedValue={String(graceSeconds)}
-          onValueChange={(v) => {
-            const seconds = Number(v);
-            setGraceSeconds(seconds);
-            void persistLockGrace(seconds);
-          }}
-        >
-          {GRACE_OPTIONS.map((seconds) => (
-            <Picker.Item
-              key={seconds}
-              label={graceLabel(seconds)}
-              value={String(seconds)}
-              color={colors.text}
-            />
-          ))}
-        </Picker>
-      </WheelSheet>
 
       <WheelSheet
         visible={currencySheet}

@@ -468,6 +468,8 @@ export const fr: typeof en = {
     importAI: "Importer avec l'IA",
     exportBackup: "Exporter une sauvegarde",
     restoreBackup: "Restaurer une sauvegarde",
+    backupFooter:
+      "Un simple fichier que vous gardez. Rien ne quitte votre téléphone sans partage de votre part.",
     snapshotSave: "Enregistrer un instantané",
     snapshotRestore: "Restaurer l'instantané",
     snapshotOverwriteMsg:
