@@ -9,13 +9,22 @@ import {
   today,
   type PaymentItem,
 } from "@keel/core";
+import { LinearGradient } from "expo-linear-gradient";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { useAppState } from "../state/app-state";
-import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import {
+  emphasis,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  withAlpha,
+  type ThemeColors,
+} from "../theme";
 import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
 
@@ -129,6 +138,14 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
         pressed && styles.rowPressed,
       ]}
     >
+      {/* The brand's color bleeds softly from the badge side (§9c). */}
+      <LinearGradient
+        colors={[withAlpha(accent, 0.16), "transparent"]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.65, y: 0 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <BrandBadge
         domain={item.domain}
         icon={category?.icon}
@@ -166,10 +183,13 @@ function createStyles(colors: ThemeColors) {
     row: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      borderRadius: radius.lg,
       padding: spacing.md,
       gap: spacing.md,
+      overflow: "hidden",
     },
     rowComplete: {
       opacity: emphasis.dim,

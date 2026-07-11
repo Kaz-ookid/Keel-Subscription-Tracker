@@ -77,6 +77,7 @@ export default function PriceChangesScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
+      <Text style={styles.largeTitle}>{t("titles.priceChanges")}</Text>
       <HeroCard
         label={t("priceChanges.heroLabel")}
         amount={creepLabel}
@@ -153,6 +154,7 @@ export default function PriceChangesScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
+    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     center: {
       flex: 1,

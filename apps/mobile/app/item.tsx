@@ -16,6 +16,7 @@ import {
   sumByCurrency,
   today,
 } from "@keel/core";
+import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
@@ -28,7 +29,7 @@ import { Card } from "../src/components/ui/Card";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
 import { useAppState } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
 function InfoRow({ label, value, styles }: { label: string; value: string; styles: Styles }) {
   return (
@@ -149,7 +150,7 @@ export default function ItemScreen() {
     >
       <Stack.Screen
         options={{
-          title: t("titles.details"),
+          title: "",
           headerRight: () => (
             <Pressable
               onPress={() => router.push({ pathname: "/add/form", params: { id: item.id } })}
@@ -161,8 +162,16 @@ export default function ItemScreen() {
         }}
       />
 
-      {/* Identity */}
+      {/* Identity, under the brand's own glow (§9c): the item's color
+          lights the top of its screen like Subo's Netflix red. */}
       <View style={styles.identity}>
+        <LinearGradient
+          colors={[withAlpha(item.color ?? colors.accent, 0.28), "transparent"]}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+          style={styles.identityGlow}
+          pointerEvents="none"
+        />
         <BrandBadge
           domain={item.domain}
           icon={category?.icon}
@@ -445,6 +454,14 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.xs,
       paddingVertical: spacing.sm,
+    },
+    // Wider and taller than the identity block: a soft halo, not a box.
+    identityGlow: {
+      position: "absolute",
+      top: -80,
+      left: -60,
+      right: -60,
+      height: 240,
     },
     name: { ...typography.h1, color: colors.text },
     subtitle: { ...typography.caption, color: colors.mutedText },

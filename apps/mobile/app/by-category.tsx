@@ -125,6 +125,7 @@ export default function ByCategoryScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
+      <Text style={styles.largeTitle}>{t("titles.byCategory")}</Text>
       <View style={styles.donutWrap}>
         <DonutChart
           segments={segments}
@@ -223,6 +224,7 @@ export default function ByCategoryScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
+    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
     center: {
       flex: 1,

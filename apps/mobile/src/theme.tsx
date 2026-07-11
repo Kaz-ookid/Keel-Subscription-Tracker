@@ -158,6 +158,12 @@ export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
   return { colors: scheme === "dark" ? dark : light, scheme };
 }
 
+/** A hex color at the given alpha — brand washes and bleeds (§9c). */
+export function withAlpha(hex: string, alpha: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${alpha})`;
+}
+
 /** Black or white — whichever reads on the given hex background. Used for
  *  marks drawn on top of user-picked swatch colours. */
 export function contrastText(hex: string): string {

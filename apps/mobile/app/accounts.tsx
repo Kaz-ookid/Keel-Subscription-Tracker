@@ -4,6 +4,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AccountEditSheet } from "../src/components/AccountSheet";
 import { BrandBadge } from "../src/components/BrandBadge";
@@ -13,6 +14,7 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/
 
 export default function AccountsScreen() {
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { accounts, archiveAccount } = useAppState();
@@ -48,11 +50,14 @@ export default function AccountsScreen() {
               hitSlop={12}
               accessibilityLabel={t("accounts.addAccount")}
             >
-              <SymbolView name="plus" size={20} tintColor={colors.white} />
+              <SymbolView name="plus" size={20} tintColor={colors.accent} />
             </Pressable>
           ),
         }}
       />
+      <Text style={[styles.largeTitle, { paddingTop: insets.top + 52 }]}>
+        {t("titles.accounts")}
+      </Text>
       {accounts.length === 0 ? (
         <View style={styles.center}>
           <EmptyState
@@ -112,6 +117,13 @@ function createStyles(colors: ThemeColors) {
     screen: {
       flex: 1,
       backgroundColor: "transparent",
+    },
+    // Below the transparent header (back + add float above this).
+    largeTitle: {
+      fontSize: 34,
+      fontWeight: "700",
+      color: colors.text,
+      paddingHorizontal: spacing.md,
     },
     list: {
       flex: 1,

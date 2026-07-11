@@ -3,7 +3,6 @@ import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "../src/i18n";
@@ -24,7 +23,6 @@ export default function RootLayout() {
 
 function RootNavigator() {
   const { colors, scheme } = useTheme();
-  const { t } = useTranslation();
   const router = useRouter();
 
   // Tapping a reminder lands on the commitment it's about.
@@ -61,15 +59,12 @@ function RootNavigator() {
           <ImportSessionProvider>
             <Stack
               screenOptions={{
-                // §9b chrome: no colored bars. Pushed screens get the native
-                // large title collapsing into a blur; the Ambient stage shows
-                // through the transparent content.
+                // §9b chrome: pushed screens get a fully transparent header,
+                // just the floating back circle and right actions; each
+                // screen draws its own large title in the content (the
+                // native large-title blur rendered as an empty band).
                 headerTransparent: true,
-                headerBlurEffect: scheme === "dark" ? "dark" : "light",
-                headerLargeTitle: true,
                 headerTintColor: colors.accent,
-                headerTitleStyle: { color: colors.text },
-                headerLargeTitleStyle: { color: colors.text },
                 contentStyle: { backgroundColor: "transparent" },
                 // Just the chevron — otherwise iOS prints the previous route's
                 // name ("(tabs)") next to the back arrow.
@@ -89,11 +84,13 @@ function RootNavigator() {
                   stack so every step gets a REAL native back button; it
                   draws its own headers. */}
               <Stack.Screen name="add" options={{ presentation: "modal", headerShown: false }} />
-              <Stack.Screen name="item" options={{ title: t("titles.details") }} />
-              <Stack.Screen name="accounts" options={{ title: t("titles.accounts") }} />
-              <Stack.Screen name="price-changes" options={{ title: t("titles.priceChanges") }} />
-              <Stack.Screen name="by-account" options={{ title: t("titles.byAccount") }} />
-              <Stack.Screen name="by-category" options={{ title: t("titles.byCategory") }} />
+              {/* Titles live IN the content as large headings; the bar only
+                  carries back and actions. */}
+              <Stack.Screen name="item" options={{ title: "" }} />
+              <Stack.Screen name="accounts" options={{ title: "" }} />
+              <Stack.Screen name="price-changes" options={{ title: "" }} />
+              <Stack.Screen name="by-account" options={{ title: "" }} />
+              <Stack.Screen name="by-category" options={{ title: "" }} />
             </Stack>
           </ImportSessionProvider>
           {/* No colored bars anymore: the status bar follows the scheme. */}
