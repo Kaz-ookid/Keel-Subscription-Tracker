@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../theme";
 
 export interface SegmentedOption<T> {
   value: T;
@@ -44,18 +44,18 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.sm,
       justifyContent: "flex-end",
     },
+    // Tinted materials (§9f): a hairline capsule, never a solid block.
     pill: {
       paddingVertical: spacing.xs + 2,
       paddingHorizontal: spacing.md,
-      borderRadius: radius.lg,
+      borderRadius: 999,
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      borderColor: colors.hairline,
     },
-    // Selected = the quiet sea-glass wash (selection, not action).
+    // Selected = the quiet accent wash (selection, not action).
     pillActive: {
-      backgroundColor: colors.accentSoft,
-      borderColor: colors.accent,
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
     label: {
       ...typography.caption,

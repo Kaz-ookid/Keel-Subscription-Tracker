@@ -165,7 +165,7 @@ export function FormSheets({ form }: { form: AddForm }) {
             size={56}
           />
           <TextInput
-            style={[styles.input, { alignSelf: "stretch" }]}
+            style={[styles.sheetInput, { alignSelf: "stretch" }]}
             value={form.domain ?? ""}
             onChangeText={(v) => form.setDomain(v.trim() || undefined)}
             placeholder={t("add.logoPlaceholder")}

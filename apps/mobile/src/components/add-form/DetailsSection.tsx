@@ -8,6 +8,7 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../../t
 import { BrandBadge } from "../BrandBadge";
 import { FieldButton } from "../FieldButton";
 import { Segmented, type SegmentedOption } from "../Segmented";
+import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
@@ -24,55 +25,57 @@ export function IdentityHeader({ form }: { form: AddForm }) {
 
   return (
     <View>
-      <View style={header.wrap}>
-        <Pressable
-          onPress={() => form.setSheet("color")}
-          accessibilityLabel={t("add.changeIdentityA11y")}
-        >
-          <BrandBadge
-            domain={form.domain}
-            icon={form.selectedCategory?.icon}
-            fallback={(form.name.trim().charAt(0) || "?").toUpperCase()}
-            color={form.color ?? colors.accent}
-            size={64}
-          />
-          <View style={header.pencil}>
-            <SymbolView name="pencil" size={12} tintColor={colors.mutedText} />
-          </View>
-        </Pressable>
-
-        <View style={header.right}>
-          <TextInput
-            style={[styles.input, !form.name.trim() && styles.requiredMissing]}
-            value={form.name}
-            onChangeText={form.setName}
-            placeholder={t("add.namePlaceholder")}
-            placeholderTextColor={colors.mutedText}
-          />
-          <Pressable style={header.categoryChip} onPress={() => form.setSheet("category")}>
-            {form.selectedCategory?.icon && (
-              <SymbolView
-                name={form.selectedCategory.icon as SymbolViewProps["name"]}
-                size={14}
-                tintColor={colors.mutedText}
-              />
-            )}
-            <Text
-              style={[
-                header.categoryText,
-                { color: form.selectedCategory ? colors.text : colors.mutedText },
-              ]}
-            >
-              {form.selectedCategory
-                ? t(`categories.${form.selectedCategory.id}`, {
-                    defaultValue: form.selectedCategory.name,
-                  })
-                : t("add.chooseCategory")}
-            </Text>
-            <SymbolView name="chevron.down" size={10} tintColor={colors.mutedText} />
+      <Card variant="free" style={styles.group}>
+        <View style={header.wrap}>
+          <Pressable
+            onPress={() => form.setSheet("color")}
+            accessibilityLabel={t("add.changeIdentityA11y")}
+          >
+            <BrandBadge
+              domain={form.domain}
+              icon={form.selectedCategory?.icon}
+              fallback={(form.name.trim().charAt(0) || "?").toUpperCase()}
+              color={form.color ?? colors.accent}
+              size={64}
+            />
+            <View style={header.pencil}>
+              <SymbolView name="pencil" size={12} tintColor={colors.mutedText} />
+            </View>
           </Pressable>
+
+          <View style={header.right}>
+            <TextInput
+              style={[header.nameInput, !form.name.trim() && header.nameInputMissing]}
+              value={form.name}
+              onChangeText={form.setName}
+              placeholder={t("add.namePlaceholder")}
+              placeholderTextColor={colors.mutedText}
+            />
+            <Pressable style={header.categoryChip} onPress={() => form.setSheet("category")}>
+              {form.selectedCategory?.icon && (
+                <SymbolView
+                  name={form.selectedCategory.icon as SymbolViewProps["name"]}
+                  size={14}
+                  tintColor={colors.mutedText}
+                />
+              )}
+              <Text
+                style={[
+                  header.categoryText,
+                  { color: form.selectedCategory ? colors.text : colors.mutedText },
+                ]}
+              >
+                {form.selectedCategory
+                  ? t(`categories.${form.selectedCategory.id}`, {
+                      defaultValue: form.selectedCategory.name,
+                    })
+                  : t("add.chooseCategory")}
+              </Text>
+              <SymbolView name="chevron.down" size={10} tintColor={colors.mutedText} />
+            </Pressable>
+          </View>
         </View>
-      </View>
+      </Card>
 
       {/* Typed a name we recognise? Offer the brand bank inline — pick one to
           pull in its logo, category and colour (the upfront chooser, in place). */}
@@ -108,11 +111,22 @@ function createHeaderStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.md,
-      marginBottom: spacing.md,
     },
     right: {
       flex: 1,
       gap: spacing.sm,
+    },
+    // Inline name field: an underline instead of a box (it lights up warning
+    // while the required name is missing).
+    nameInput: {
+      ...typography.body,
+      color: colors.text,
+      paddingVertical: spacing.xs,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
+    },
+    nameInputMissing: {
+      borderBottomColor: colors.tones.warning,
     },
     pencil: {
       position: "absolute",
@@ -143,8 +157,8 @@ function createHeaderStyles(colors: ThemeColors) {
     },
     suggestBox: {
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      borderColor: colors.hairline,
+      backgroundColor: colors.material,
       borderRadius: radius.md,
       overflow: "hidden",
       marginTop: -spacing.sm,
@@ -176,18 +190,20 @@ export function DetailsSection({ form }: { form: AddForm }) {
   const styles = useFormStyles();
 
   return (
-    <View style={styles.rowField}>
-      <Text style={styles.label}>{t("add.description")}</Text>
-      <View style={styles.rowControl}>
-        <TextInput
-          style={styles.input}
-          value={form.notes}
-          onChangeText={form.setNotes}
-          placeholder={t("add.optional")}
-          placeholderTextColor={colors.mutedText}
-        />
+    <Card variant="list" style={styles.group}>
+      <View style={[styles.rowField, styles.fieldFirst]}>
+        <Text style={styles.label}>{t("add.description")}</Text>
+        <View style={styles.rowControl}>
+          <TextInput
+            style={styles.input}
+            value={form.notes}
+            onChangeText={form.setNotes}
+            placeholder={t("add.optional")}
+            placeholderTextColor={colors.mutedText}
+          />
+        </View>
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -203,8 +219,8 @@ export function MetaSection({ form }: { form: AddForm }) {
   ];
 
   return (
-    <>
-      <View style={styles.rowField}>
+    <Card variant="list" style={styles.group}>
+      <View style={[styles.rowField, styles.fieldFirst]}>
         <Text style={styles.label}>{t("add.settlement")}</Text>
         <View style={styles.rowControl}>
           <Segmented
@@ -220,6 +236,6 @@ export function MetaSection({ form }: { form: AddForm }) {
         value={form.reminderLabel}
         onPress={() => form.setSheet("reminder")}
       />
-    </>
+    </Card>
   );
 }

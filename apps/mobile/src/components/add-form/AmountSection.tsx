@@ -5,6 +5,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useTheme } from "../../theme";
 import { FieldButton } from "../FieldButton";
 import { Segmented, type SegmentedOption } from "../Segmented";
+import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
 import type { AddForm, AmountMode } from "./useAddForm";
 
@@ -43,25 +44,26 @@ export function AmountSection({ form }: { form: AddForm }) {
       </View>
       {form.showTrial ? <Text style={styles.preview}>{t("add.trialPriceHint")}</Text> : null}
 
-      {/* Where the money comes from, right next to how much it is — for both
-          modes now: automatic debits the account, manual just associates it. */}
-      <FieldButton
-        label={t("add.account")}
-        value={
-          form.selectedAccount?.name ??
-          (form.accountId ? t("add.archivedAccount") : t("add.choose"))
-        }
-        hint={form.isAutomatic && !form.selectedAccount}
-        accessory={
-          form.selectedAccount ? (
-            <View style={[styles.dot, { backgroundColor: form.selectedAccount.color }]} />
-          ) : undefined
-        }
-        onPress={() => form.setSheet("account")}
-      />
+      <Card variant="list" style={styles.group}>
+        {/* Where the money comes from, right next to how much it is — for both
+            modes now: automatic debits the account, manual just associates it. */}
+        <FieldButton
+          first
+          label={t("add.account")}
+          value={
+            form.selectedAccount?.name ??
+            (form.accountId ? t("add.archivedAccount") : t("add.choose"))
+          }
+          hint={form.isAutomatic && !form.selectedAccount}
+          accessory={
+            form.selectedAccount ? (
+              <View style={[styles.dot, { backgroundColor: form.selectedAccount.color }]} />
+            ) : undefined
+          }
+          onPress={() => form.setSheet("account")}
+        />
 
-      {form.isInstallment && (
-        <>
+        {form.isInstallment && (
           <View style={styles.rowField}>
             <Text style={styles.label}>{t("add.amountIs")}</Text>
             <View style={styles.rowControl}>
@@ -72,11 +74,11 @@ export function AmountSection({ form }: { form: AddForm }) {
               />
             </View>
           </View>
-          {form.installmentPreview ? (
-            <Text style={styles.preview}>{form.installmentPreview}</Text>
-          ) : null}
-        </>
-      )}
+        )}
+      </Card>
+      {form.isInstallment && form.installmentPreview ? (
+        <Text style={styles.preview}>{form.installmentPreview}</Text>
+      ) : null}
     </>
   );
 }

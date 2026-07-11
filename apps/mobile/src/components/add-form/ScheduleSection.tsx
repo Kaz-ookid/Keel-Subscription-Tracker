@@ -4,6 +4,7 @@ import { Text, TextInput, View } from "react-native";
 
 import { FieldButton } from "../FieldButton";
 import { Segmented, type SegmentedOption } from "../Segmented";
+import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
@@ -83,8 +84,6 @@ function TrialRow({ form }: { form: AddForm }) {
             value={formatCalendarDate(form.convertsCal)}
             onPress={() => form.setSheet("convertsDate")}
           />
-
-          {form.trialPreview ? <Text style={styles.preview}>{form.trialPreview}</Text> : null}
         </>
       )}
     </>
@@ -101,8 +100,8 @@ export function ScheduleSection({ form }: { form: AddForm }) {
 
   if (form.isInstallment) {
     return (
-      <>
-        <View style={styles.rowField}>
+      <Card variant="list" style={styles.group}>
+        <View style={[styles.rowField, styles.fieldFirst]}>
           <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
           <TextInput
             style={[styles.input, styles.intervalInput]}
@@ -140,46 +139,49 @@ export function ScheduleSection({ form }: { form: AddForm }) {
           })}
           onPress={() => form.setSheet("provider")}
         />
-      </>
+      </Card>
     );
   }
 
   return (
     <>
-      <View style={styles.field}>
-        <Text style={styles.label}>{t("add.cycleEvery")}</Text>
-        <View style={styles.cycleRow}>
-          <TextInput
-            style={[styles.input, styles.intervalInput]}
-            value={form.intervalText}
-            onChangeText={form.setIntervalText}
-            keyboardType="number-pad"
-          />
-          <Segmented options={unitOptions} value={form.unit} onChange={form.setUnit} />
+      <Card variant="list" style={styles.group}>
+        <View style={[styles.field, styles.fieldFirst]}>
+          <Text style={styles.label}>{t("add.cycleEvery")}</Text>
+          <View style={styles.cycleRow}>
+            <TextInput
+              style={[styles.input, styles.intervalInput]}
+              value={form.intervalText}
+              onChangeText={form.setIntervalText}
+              keyboardType="number-pad"
+            />
+            <Segmented options={unitOptions} value={form.unit} onChange={form.setUnit} />
+          </View>
         </View>
-      </View>
 
-      {/* A free trial's first real charge IS the conversion date, so the plain
-          "First/Last billing" rows give way to the trial fields. */}
-      {!form.showTrial && (
-        <FieldButton
-          label={t("add.firstBilling")}
-          value={formatCalendarDate(form.firstDateCal)}
-          onPress={() => form.setSheet("date")}
-        />
-      )}
+        {/* A free trial's first real charge IS the conversion date, so the plain
+            "First/Last billing" rows give way to the trial fields. */}
+        {!form.showTrial && (
+          <FieldButton
+            label={t("add.firstBilling")}
+            value={formatCalendarDate(form.firstDateCal)}
+            onPress={() => form.setSheet("date")}
+          />
+        )}
 
-      <RepeatsOnRow form={form} />
+        <RepeatsOnRow form={form} />
 
-      <TrialRow form={form} />
+        <TrialRow form={form} />
 
-      {!form.showTrial && (
-        <FieldButton
-          label={t("add.lastBilling")}
-          value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
-          onPress={() => form.setSheet("endDate")}
-        />
-      )}
+        {!form.showTrial && (
+          <FieldButton
+            label={t("add.lastBilling")}
+            value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
+            onPress={() => form.setSheet("endDate")}
+          />
+        )}
+      </Card>
+      {form.trialPreview ? <Text style={styles.preview}>{form.trialPreview}</Text> : null}
     </>
   );
 }

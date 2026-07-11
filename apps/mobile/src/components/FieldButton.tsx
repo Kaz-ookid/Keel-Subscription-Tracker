@@ -12,16 +12,18 @@ interface Props {
   accessory?: ReactNode;
   /** Subtle "this still needs attention" tint on the value text. */
   hint?: boolean;
+  /** The group's first row carries no divider (dividers sit on TOP). */
+  first?: boolean;
   onPress: () => void;
 }
 
 /** A tappable form row: label · value/accessory · chevron — the iOS "drill in"
  *  affordance used by currency, category, colour, reminder and date. */
-export function FieldButton({ label, value, accessory, hint, onPress }: Props) {
+export function FieldButton({ label, value, accessory, hint, first, onPress }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
-    <Pressable onPress={onPress} style={styles.row}>
+    <Pressable onPress={onPress} style={[styles.row, first && styles.rowFirst]}>
       <Text style={styles.label}>{label}</Text>
       <View style={styles.right}>
         {value ? (
@@ -36,13 +38,17 @@ export function FieldButton({ label, value, accessory, hint, onPress }: Props) {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
+    // Divider on top (§9 list rule): the last row never trails a line.
     row: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
+    },
+    rowFirst: {
+      borderTopWidth: 0,
     },
     label: {
       ...typography.label,
