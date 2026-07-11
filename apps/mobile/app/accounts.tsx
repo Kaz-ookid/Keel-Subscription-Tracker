@@ -69,6 +69,7 @@ export default function AccountsScreen() {
         </View>
       ) : (
         <FlatList
+          contentInsetAdjustmentBehavior="automatic"
           style={styles.list}
           data={accounts}
           keyExtractor={(a) => a.id}

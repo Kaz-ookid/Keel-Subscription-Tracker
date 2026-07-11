@@ -209,3 +209,7 @@ export const emphasis = {
   dim: 0.45,
   hint: 0.7,
 } as const;
+
+/** Bottom padding scrollable tab screens need so their last rows can clear
+ *  the floating glass dock (DESIGN.md §9b). */
+export const dockClearance = 108;

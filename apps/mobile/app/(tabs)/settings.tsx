@@ -51,7 +51,10 @@ import { APP_NAME } from "../../src/constants";
 import { Card } from "../../src/components/ui/Card";
 import { WheelSheet } from "../../src/components/WheelSheet";
 import { useAppState } from "../../src/state/app-state";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
 import {
+  dockClearance,
   spacing,
   typography,
   useTheme,
@@ -86,6 +89,7 @@ const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const {
     accounts,
@@ -269,7 +273,11 @@ export default function SettingsScreen() {
   };
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+    >
+      <Text style={styles.largeTitle}>{t("tabs.settings")}</Text>
       <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
@@ -528,9 +536,15 @@ function createStyles(colors: ThemeColors) {
     },
     // flexGrow keeps the footer's "auto" top margin working when the content
     // is shorter than the screen; the list scrolls once it grows past it.
+    largeTitle: {
+      fontSize: 34,
+      fontWeight: "700",
+      color: colors.text,
+    },
     content: {
       flexGrow: 1,
       padding: spacing.md,
+      paddingBottom: dockClearance,
       gap: spacing.md,
     },
     // Micro overline naming each card group; pulled tight to its own card

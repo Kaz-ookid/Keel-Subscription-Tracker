@@ -142,7 +142,11 @@ export default function ItemScreen() {
     ]);
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <Stack.Screen
         options={{
           title: t("titles.details"),

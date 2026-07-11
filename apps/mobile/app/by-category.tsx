@@ -120,7 +120,11 @@ export default function ByCategoryScreen() {
     : t("byCategory.centerSub", { year, amount: monthlyMean });
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <View style={styles.donutWrap}>
         <DonutChart
           segments={segments}

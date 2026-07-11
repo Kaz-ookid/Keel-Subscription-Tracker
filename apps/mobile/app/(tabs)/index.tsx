@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
@@ -32,6 +33,7 @@ const VIEWS: { value: PaymentsView; labelKey: string }[] = [
 export default function PaymentsScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [view, setView] = useState<PaymentsView>("upcoming");
   const router = useRouter();
@@ -98,7 +100,9 @@ export default function PaymentsScreen() {
   const onPills = view === "upcoming" || view === "all";
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      {/* The screen owns its title now: large, on the Ambient stage. */}
+      <Text style={styles.largeTitle}>{t("tabs.payments")}</Text>
       <View style={styles.switchWrap}>
         <View style={styles.switch} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
           {pillWidth > 0 && (
@@ -170,6 +174,14 @@ function createStyles(colors: ThemeColors) {
     },
     pager: { flex: 1 },
     page: { flex: 1 },
+    // The large title (DESIGN.md §9b): the screen names itself.
+    largeTitle: {
+      fontSize: 34,
+      fontWeight: "700",
+      color: colors.text,
+      paddingHorizontal: spacing.md,
+      paddingTop: spacing.sm,
+    },
     switchWrap: {
       flexDirection: "row",
       alignItems: "center",

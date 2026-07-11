@@ -61,10 +61,15 @@ function RootNavigator() {
           <ImportSessionProvider>
             <Stack
               screenOptions={{
-                headerStyle: { backgroundColor: colors.navy },
-                headerTintColor: colors.white,
-                // Transparent: pushed screens show the Ambient stage. Modals
-                // opt back into an opaque background (their own layer).
+                // §9b chrome: no colored bars. Pushed screens get the native
+                // large title collapsing into a blur; the Ambient stage shows
+                // through the transparent content.
+                headerTransparent: true,
+                headerBlurEffect: scheme === "dark" ? "dark" : "light",
+                headerLargeTitle: true,
+                headerTintColor: colors.accent,
+                headerTitleStyle: { color: colors.text },
+                headerLargeTitleStyle: { color: colors.text },
                 contentStyle: { backgroundColor: "transparent" },
                 // Just the chevron — otherwise iOS prints the previous route's
                 // name ("(tabs)") next to the back arrow.
@@ -91,8 +96,8 @@ function RootNavigator() {
               <Stack.Screen name="by-category" options={{ title: t("titles.byCategory") }} />
             </Stack>
           </ImportSessionProvider>
-          {/* Header is navy in both schemes, so light status-bar content reads well. */}
-          <StatusBar style="light" />
+          {/* No colored bars anymore: the status bar follows the scheme. */}
+          <StatusBar style={scheme === "dark" ? "light" : "dark"} />
           {/* Above everything, including native modals: the app lock. */}
           <AppLockGate />
         </AppStateProvider>

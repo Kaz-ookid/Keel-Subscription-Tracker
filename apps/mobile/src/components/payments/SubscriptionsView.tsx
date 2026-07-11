@@ -24,7 +24,14 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "
 
 import { hapticMarkPaid } from "../../lib/haptics";
 import { useAppState } from "../../state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import {
+  dockClearance,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  type ThemeColors,
+} from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
@@ -308,6 +315,7 @@ function createStyles(colors: ThemeColors) {
     },
     listContent: {
       padding: spacing.md,
+      paddingBottom: dockClearance,
       gap: spacing.sm,
     },
     center: {

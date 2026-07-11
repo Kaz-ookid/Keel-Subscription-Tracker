@@ -28,7 +28,7 @@ import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
 import { useAppState } from "../../state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { dockClearance, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { UpcomingRow } from "../UpcomingRow";
 
@@ -410,7 +410,7 @@ function createStyles(colors: ThemeColors) {
     },
     listContent: {
       padding: spacing.md,
-      paddingBottom: spacing.xl,
+      paddingBottom: dockClearance,
     },
     center: {
       flex: 1,

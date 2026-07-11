@@ -118,7 +118,7 @@ function createStyles(colors: ThemeColors) {
     modePillActive: { backgroundColor: colors.accentSoft },
     modeText: { ...typography.label, color: colors.mutedText },
     modeTextActive: { color: colors.accent },
-    headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
+    headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
   });
 }

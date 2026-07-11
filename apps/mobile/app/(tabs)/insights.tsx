@@ -35,6 +35,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { HeroCard } from "../../src/components/HeroCard";
@@ -46,7 +47,14 @@ import { monthFull, monthShort } from "../../src/i18n/dates";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { foldIn, foldLayout, foldOut } from "../../src/lib/motion";
 import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import {
+  dockClearance,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  type ThemeColors,
+} from "../../src/theme";
 
 // The chart's slide range: two years back, two years ahead. Plenty of runway
 // in both directions while staying a cheap, plain-View render.
@@ -80,6 +88,7 @@ interface MonthDetail {
 export default function InsightsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates, loading } = useAppState();
@@ -292,7 +301,11 @@ export default function InsightsScreen() {
   ].sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+    >
+      <Text style={styles.largeTitle}>{t("tabs.insights")}</Text>
       <HeroCard
         label={t("insights.yearInTotal", { year })}
         amount={yearReal.length > 0 ? totals(yearReal) : t("insights.nothingPlanned")}
@@ -604,9 +617,14 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: "transparent",
     },
+    largeTitle: {
+      fontSize: 34,
+      fontWeight: "700",
+      color: colors.text,
+    },
     content: {
       padding: spacing.md,
-      paddingBottom: spacing.xl,
+      paddingBottom: dockClearance,
       gap: spacing.md,
     },
     center: {

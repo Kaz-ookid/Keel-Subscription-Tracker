@@ -14,8 +14,12 @@ export default function AddLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: colors.navy },
-        headerTintColor: colors.white,
+        // Sheet chrome (§9b): title on the sheet's own background, no bar
+        // color, no shadow; accent-tinted buttons like every iOS sheet.
+        headerStyle: { backgroundColor: colors.background },
+        headerShadowVisible: false,
+        headerTintColor: colors.accent,
+        headerTitleStyle: { color: colors.text },
         contentStyle: { backgroundColor: colors.background },
         headerBackButtonDisplayMode: "minimal",
       }}

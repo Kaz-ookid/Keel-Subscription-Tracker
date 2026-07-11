@@ -40,7 +40,15 @@ import Animated, {
 import Svg, { G, Line, Path, Rect } from "react-native-svg";
 
 import { useAppState } from "../../state/app-state";
-import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import {
+  dockClearance,
+  emphasis,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  type ThemeColors,
+} from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { EmptyState } from "../ui/EmptyState";
 import { Waterline } from "../Waterline";
@@ -847,7 +855,7 @@ export function HarborView() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
+    content: { padding: spacing.md, paddingBottom: dockClearance, gap: spacing.sm },
     center: {
       flex: 1,
       justifyContent: "center",

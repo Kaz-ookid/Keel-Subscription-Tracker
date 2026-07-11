@@ -10,19 +10,20 @@ import { useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { typography } from "../theme";
+import { typography, useTheme } from "../theme";
 
 export function ModalClose() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { t } = useTranslation();
   return (
     <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel={t("common.close")}>
-      <Text style={styles.label}>{t("common.close")}</Text>
+      <Text style={[styles.label, { color: colors.accent }]}>{t("common.close")}</Text>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  // Mirrors the headerAction text on the right (label 15/600, white on navy).
-  label: { ...typography.label, color: "#FFFFFF", paddingHorizontal: 8 },
+  // Mirrors the headerAction text on the right (label 15/600, accent).
+  label: { ...typography.label, paddingHorizontal: 8 },
 });

@@ -72,7 +72,11 @@ export default function PriceChangesScreen() {
   }
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <HeroCard
         label={t("priceChanges.heroLabel")}
         amount={creepLabel}

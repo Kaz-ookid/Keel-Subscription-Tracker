@@ -1,79 +1,138 @@
+// The tab chrome (DESIGN.md §9b): no header bars — each screen draws its own
+// large title over the Ambient stage — and the tab bar is a floating glass
+// dock. Content scrolls UNDER the dock (screens pad their bottom by
+// DOCK_CLEARANCE). `action: true` is the center ＋ — it opens the Add modal
+// instead of switching tab.
+
+import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { BlurView } from "expo-blur";
 import { Tabs, useRouter } from "expo-router";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useTheme } from "../../src/theme";
+import { radius, typography, useTheme } from "../../src/theme";
 
 type SymbolName = SymbolViewProps["name"];
 
-// The bottom bar is data-driven: change the count or content here and the bar
-// updates. `action: true` is the center ＋ — it opens the Add modal instead of
-// switching tab. Each non-action entry needs a matching file in this folder.
-// (History was removed 2026-07-10: a full-ledger screen may join
-// Insights > Explore later; the past is already covered by item pages and
-// the Insights chart, and it never earned tab-level weight.)
 const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] = [
   { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },
   { name: "insights", titleKey: "tabs.insights", sf: "chart.bar.fill" },
-  { name: "new", titleKey: "", sf: "plus.circle.fill", action: true },
+  { name: "new", titleKey: "", sf: "plus", action: true },
   { name: "settings", titleKey: "tabs.settings", sf: "gearshape.fill" },
 ];
 
-export default function TabsLayout() {
+function GlassDock({ state, navigation }: BottomTabBarProps) {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
 
   return (
+    <View
+      style={[styles.dockWrap, { bottom: Math.max(insets.bottom, 12) }]}
+      pointerEvents="box-none"
+    >
+      <BlurView
+        intensity={50}
+        tint={scheme === "dark" ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
+        style={[styles.dock, { borderColor: colors.hairline, backgroundColor: colors.material }]}
+      >
+        {TABS.map((tab) => {
+          if (tab.action) {
+            return (
+              <Pressable
+                key={tab.name}
+                onPress={() => router.push("/add")}
+                accessibilityLabel={t("tabs.addA11y")}
+                style={[styles.plus, { backgroundColor: colors.action }]}
+              >
+                <SymbolView name={tab.sf as SymbolName} size={22} tintColor={colors.actionText} />
+              </Pressable>
+            );
+          }
+          const index = state.routes.findIndex((r) => r.name === tab.name);
+          const active = state.index === index;
+          return (
+            <Pressable
+              key={tab.name}
+              onPress={() => navigation.navigate(tab.name)}
+              accessibilityLabel={t(tab.titleKey)}
+              style={styles.item}
+            >
+              <SymbolView
+                name={tab.sf as SymbolName}
+                size={22}
+                tintColor={active ? colors.accent : colors.mutedText}
+              />
+              <Text
+                style={[styles.itemLabel, { color: active ? colors.accent : colors.mutedText }]}
+              >
+                {t(tab.titleKey)}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </BlurView>
+    </View>
+  );
+}
+
+export default function TabsLayout() {
+  return (
     <Tabs
+      tabBar={(props) => <GlassDock {...props} />}
       screenOptions={{
-        tabBarActiveTintColor: colors.accent,
-        tabBarInactiveTintColor: colors.mutedText,
-        headerStyle: { backgroundColor: colors.navy },
-        headerTintColor: colors.white,
-        // Tab scenes float over the root Ambient stage.
+        // Screens own their titles now (large titles on the Ambient stage).
+        headerShown: false,
         sceneStyle: { backgroundColor: "transparent" },
       }}
     >
-      {TABS.map((tab) =>
-        tab.action ? (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              tabBarButton: () => (
-                <Pressable
-                  onPress={() => router.push("/add")}
-                  style={styles.addButton}
-                  accessibilityLabel={t("tabs.addA11y")}
-                >
-                  <SymbolView name={tab.sf as SymbolName} size={40} tintColor={colors.accent} />
-                </Pressable>
-              ),
-            }}
-          />
-        ) : (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              title: t(tab.titleKey),
-              tabBarIcon: ({ color, size }) => (
-                <SymbolView name={tab.sf as SymbolName} size={size ?? 24} tintColor={color} />
-              ),
-            }}
-          />
-        ),
-      )}
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="insights" />
+      <Tabs.Screen name="new" />
+      <Tabs.Screen name="settings" />
     </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  addButton: {
-    flex: 1,
+  dockWrap: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  dock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 32,
+    borderWidth: 1,
+    overflow: "hidden",
+  },
+  item: {
     alignItems: "center",
     justifyContent: "center",
+    gap: 2,
+    width: 76,
+    paddingVertical: 4,
+    borderRadius: radius.lg,
+  },
+  itemLabel: {
+    ...typography.micro,
+    textTransform: "none",
+    letterSpacing: 0,
+  },
+  plus: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    marginHorizontal: 2,
   },
 });

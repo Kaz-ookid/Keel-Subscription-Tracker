@@ -32,7 +32,15 @@ import PagerView from "react-native-pager-view";
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
 import { useAppState } from "../../state/app-state";
-import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import {
+  dockClearance,
+  emphasis,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  type ThemeColors,
+} from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { Card } from "../ui/Card";
 
@@ -425,7 +433,7 @@ const MonthGrid = memo(function MonthGrid({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
+    content: { padding: spacing.md, paddingBottom: dockClearance, gap: spacing.md },
     header: {
       flexDirection: "row",
       alignItems: "center",
