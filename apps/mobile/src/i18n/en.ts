@@ -6,6 +6,7 @@
 export const en = {
   common: {
     cancel: "Cancel",
+    close: "Close",
     delete: "Delete",
     done: "Done",
     save: "Save",

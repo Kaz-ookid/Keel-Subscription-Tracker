@@ -6,6 +6,7 @@ import type { en } from "./en";
 export const fr: typeof en = {
   common: {
     cancel: "Annuler",
+    close: "Fermer",
     delete: "Supprimer",
     done: "OK",
     save: "Enregistrer",

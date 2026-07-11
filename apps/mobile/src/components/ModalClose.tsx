@@ -1,32 +1,28 @@
-// The task-sheet leave affordance, top LEFT on every sheet screen that has
-// no real screen behind it (user decision, dogfood round 11: one chevron
-// everywhere, no ✕). It mimics the system back glyph: a BARE chevron with
-// symmetric bounds — iOS wraps custom header buttons in its own circular
-// chrome and centers bare content itself, exactly like the native chevron.
-// Where a real screen IS behind (chooser → form/import), navigation provides
-// the genuine system back button and this component stays out of it.
+// The task-sheet close, top LEFT on sheet screens with no screen behind them.
+//
+// THE RULE (ends dogfood rounds 1-12 of glyph drift): glyphs in the native
+// header are drawn ONLY by the system (real back buttons on pushed screens).
+// Custom header buttons are TEXT, the same treatment as the Save/Add actions
+// on the right, which have always rendered perfectly. Text has no optical
+// box for the native bar to misplace.
 
 import { useRouter } from "expo-router";
-import { Pressable } from "react-native";
-import Svg, { Path } from "react-native-svg";
+import { useTranslation } from "react-i18next";
+import { Pressable, StyleSheet, Text } from "react-native";
+
+import { typography } from "../theme";
 
 export function ModalClose() {
   const router = useRouter();
+  const { t } = useTranslation();
   return (
-    <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Close">
-      {/* Drawn to the SYSTEM back glyph's metrics (≈9pt wide, 17pt tall
-          strokes at 3pt weight in a symmetric box) so it reads identical to
-          the native chevron on the pushed screens. */}
-      <Svg width={12} height={22}>
-        <Path
-          d="M 10.5 2.5 L 1.5 11 L 10.5 19.5"
-          stroke="#FFFFFF"
-          strokeWidth={3}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </Svg>
+    <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel={t("common.close")}>
+      <Text style={styles.label}>{t("common.close")}</Text>
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  // Mirrors the headerAction text on the right (label 15/600, white on navy).
+  label: { ...typography.label, color: "#FFFFFF", paddingHorizontal: 8 },
+});
