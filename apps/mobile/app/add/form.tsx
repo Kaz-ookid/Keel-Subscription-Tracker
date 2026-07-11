@@ -5,10 +5,11 @@
 // AI drafts) — then the ✕ closes the whole sheet, since there is no chooser.
 
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
+import { useNavigation, usePreventRemove } from "@react-navigation/native";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { AmountSection } from "../../src/components/add-form/AmountSection";
 import {
@@ -43,6 +44,30 @@ export default function AddFormScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const form = useAddForm(prefill);
+
+  // Leaving a dirty form (✕ or back) asks first; saving passes through via
+  // the bypass. The sheet's swipe-down can't be intercepted from a nested
+  // screen, so while dirty it's disabled on the hosting modal instead.
+  const navigation = useNavigation();
+  usePreventRemove(form.isDirty, ({ data }) => {
+    if (form.guardBypass.current) {
+      navigation.dispatch(data.action);
+      return;
+    }
+    Alert.alert(t("add.discardTitle"), undefined, [
+      { text: t("add.keepEditing"), style: "cancel" },
+      {
+        text: t("add.discard"),
+        style: "destructive",
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
+  });
+  useEffect(() => {
+    const parent = navigation.getParent();
+    parent?.setOptions({ gestureEnabled: !form.isDirty });
+    return () => parent?.setOptions({ gestureEnabled: true });
+  }, [navigation, form.isDirty]);
 
   return (
     <ScrollView

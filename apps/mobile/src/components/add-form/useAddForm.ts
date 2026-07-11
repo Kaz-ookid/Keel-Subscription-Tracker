@@ -26,7 +26,7 @@ import {
   type TimeUnit,
 } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
@@ -232,6 +232,57 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [notes, setNotes] = useState(() => seedItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
+  // Unsaved-changes guard: the first render's values ARE the baseline (lazy
+  // initializers already folded in edit/draft/suggestion seeds). Leaving with
+  // edits asks first; a successful save flips `guardBypass` so its own
+  // navigation passes through.
+  const [initial] = useState(() => ({
+    planType,
+    name,
+    amountText,
+    currency,
+    notes,
+    intervalText,
+    unit,
+    installmentsText,
+    anchorMode,
+    provider,
+    firstTime: firstDate.getTime(),
+    endDate,
+    isTrial,
+    trialRegularText,
+    convertsTime: convertsDate.getTime(),
+    reminderKey,
+    settlementMode,
+    categoryId,
+    accountId,
+    color,
+    domain,
+  }));
+  const guardBypass = useRef(false);
+  const isDirty =
+    planType !== initial.planType ||
+    name !== initial.name ||
+    amountText !== initial.amountText ||
+    currency !== initial.currency ||
+    notes !== initial.notes ||
+    intervalText !== initial.intervalText ||
+    unit !== initial.unit ||
+    installmentsText !== initial.installmentsText ||
+    anchorMode !== initial.anchorMode ||
+    provider !== initial.provider ||
+    firstDate.getTime() !== initial.firstTime ||
+    endDate !== initial.endDate ||
+    isTrial !== initial.isTrial ||
+    trialRegularText !== initial.trialRegularText ||
+    convertsDate.getTime() !== initial.convertsTime ||
+    reminderKey !== initial.reminderKey ||
+    settlementMode !== initial.settlementMode ||
+    categoryId !== initial.categoryId ||
+    accountId !== initial.accountId ||
+    color !== initial.color ||
+    domain !== initial.domain;
+
   const isInstallment = planType === "installment";
   const amountValue = parseFloat(amountText.replace(",", "."));
   const installmentCount = Math.max(1, parseInt(installmentsText, 10) || 1);
@@ -419,6 +470,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
               onPress: () => {
                 updateSubscription(editItem.id, input, "correction");
                 if (suggestionId) removePendingSuggestion(suggestionId);
+                guardBypass.current = true;
                 router.dismiss();
               },
             },
@@ -427,6 +479,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
               onPress: () => {
                 updateSubscription(editItem.id, input, "change");
                 if (suggestionId) removePendingSuggestion(suggestionId);
+                guardBypass.current = true;
                 router.dismiss();
               },
             },
@@ -442,6 +495,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     if (suggestionId) removePendingSuggestion(suggestionId);
     // A draft save pops back to the review list (same stack); every other
     // save is done with the whole sheet.
+    guardBypass.current = true;
     if (isDraft) router.back();
     else router.dismiss();
   };
@@ -513,6 +567,9 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     effectiveCurrency,
     reminderLabel,
     installmentPreview,
+    // Unsaved-changes guard
+    isDirty,
+    guardBypass,
     // Sheets + actions
     sheet,
     setSheet,
