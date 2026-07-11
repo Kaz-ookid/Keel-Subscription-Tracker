@@ -176,7 +176,7 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
         </Pressable>
 
         {accounts.map((a) => (
-          <Pressable key={a.id} style={styles.row} onPress={() => pick(a.id)}>
+          <Pressable key={a.id} style={[styles.row, styles.rowDivider]} onPress={() => pick(a.id)}>
             <AccountLine account={a} colors={colors} />
             <View style={styles.right}>
               <Text style={styles.rowSub}>{currencyLabel(a.currency)}</Text>
@@ -197,7 +197,7 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
             }}
           />
         ) : (
-          <Pressable style={styles.row} onPress={() => setAdding(true)}>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setAdding(true)}>
             <View style={styles.left}>
               <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
               <Text style={[styles.rowText, { color: colors.accent }]}>
@@ -256,8 +256,11 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+    },
+    // Divider on top, skipped for the first ("None") row: no trailing line.
+    rowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     left: {
       flexDirection: "row",

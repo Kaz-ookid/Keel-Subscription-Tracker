@@ -511,18 +511,18 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       alignItems: "baseline",
       paddingVertical: spacing.sm,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
     },
     detailTitle: { ...typography.label, color: colors.text },
     detailTotal: { ...typography.caption, fontWeight: "600", color: colors.text },
+    // Dividers on TOP (the first row separates itself from the header), so
+    // the list never ends on a stray line.
     detailRow: {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
       paddingVertical: spacing.sm,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     detailName: { ...typography.caption, color: colors.text, flex: 1 },
     detailCount: { ...typography.caption, color: colors.mutedText },

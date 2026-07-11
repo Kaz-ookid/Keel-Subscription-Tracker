@@ -68,7 +68,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
         </Pressable>
 
         {categories.map((c) => (
-          <Pressable key={c.id} style={styles.row} onPress={() => pick(c.id)}>
+          <Pressable key={c.id} style={[styles.row, styles.rowDivider]} onPress={() => pick(c.id)}>
             <View style={styles.left}>
               <SymbolView
                 name={(c.icon ?? "tag.fill") as SymbolName}
@@ -117,7 +117,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
             />
           </View>
         ) : (
-          <Pressable style={styles.row} onPress={() => setAdding(true)}>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setAdding(true)}>
             <View style={styles.left}>
               <SymbolView name="plus.circle.fill" size={20} tintColor={colors.accent} />
               <Text style={[styles.rowText, { color: colors.accent }]}>
@@ -141,8 +141,11 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "space-between",
       paddingVertical: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+    },
+    // Divider on top, skipped for the first ("None") row: no trailing line.
+    rowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     left: {
       flexDirection: "row",

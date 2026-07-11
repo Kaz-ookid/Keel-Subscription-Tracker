@@ -215,12 +215,12 @@ export default function ByAccountScreen() {
       {selectedBucket ? (
         monthDetail.length > 0 ? (
           <Card>
-            {monthDetail.map((d) => {
+            {monthDetail.map((d, i) => {
               const category = categories.find((c) => c.id === d.categoryId);
               return (
                 <Pressable
                   key={d.key}
-                  style={styles.row}
+                  style={[styles.row, i > 0 && styles.rowDivider]}
                   onPress={() =>
                     router.push({ pathname: "/item", params: { id: d.paymentItemId } })
                   }
@@ -250,7 +250,7 @@ export default function ByAccountScreen() {
       ) : (
         scoped.length > 0 && (
           <Card>
-            {scoped.map((item) => {
+            {scoped.map((item, i) => {
               const category = categories.find((c) => c.id === item.categoryId);
               const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
               const plan = isInstallmentSchedule(item.schedule)
@@ -259,7 +259,7 @@ export default function ByAccountScreen() {
               return (
                 <Pressable
                   key={item.id}
-                  style={styles.row}
+                  style={[styles.row, i > 0 && styles.rowDivider]}
                   onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
                 >
                   <BrandBadge
@@ -303,8 +303,11 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
       paddingVertical: spacing.sm,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+    },
+    // Divider on top, skipped for the first row: no trailing line.
+    rowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     rowName: { ...typography.body, color: colors.text, flex: 1 },
     rowValue: { ...typography.caption, color: colors.mutedText },

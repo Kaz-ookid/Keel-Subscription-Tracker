@@ -354,10 +354,10 @@ export default function InsightsScreen() {
       {details.length > 0 && (
         <Animated.View entering={foldIn} exiting={foldOut} layout={foldLayout}>
           <ScrollView style={styles.detailCard} nestedScrollEnabled>
-            {details.map((d) => (
+            {details.map((d, i) => (
               <Pressable
                 key={d.key}
-                style={styles.detailRow}
+                style={[styles.detailRow, i > 0 && styles.detailRowDivider]}
                 onPress={() => router.push({ pathname: "/item", params: { id: d.paymentItemId } })}
               >
                 <SymbolView
@@ -667,8 +667,11 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
       paddingVertical: spacing.sm,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+    },
+    // Divider on top, skipped for the first row: no trailing line.
+    detailRowDivider: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
     detailLeft: {
       flex: 1,

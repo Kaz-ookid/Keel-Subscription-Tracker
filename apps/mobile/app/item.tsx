@@ -32,9 +32,21 @@ import { hapticMarkPaid } from "../src/lib/haptics";
 import { useAppState } from "../src/state/app-state";
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
-function InfoRow({ label, value, styles }: { label: string; value: string; styles: Styles }) {
+function InfoRow({
+  label,
+  value,
+  styles,
+  first,
+}: {
+  label: string;
+  value: string;
+  styles: Styles;
+  /** The card's first row carries no divider (dividers sit on TOP, so lists
+   *  never end on a stray line). */
+  first?: boolean;
+}) {
   return (
-    <View style={styles.infoRow}>
+    <View style={[styles.infoRow, first && styles.infoRowFirst]}>
       <Text style={styles.infoLabel}>{label}</Text>
       <Text style={styles.infoValue} numberOfLines={2}>
         {value}
@@ -203,6 +215,7 @@ export default function ItemScreen() {
               label={t("item.amount")}
               value={formatMoney(recurring.amount)}
               styles={styles}
+              first
             />
             {trial && inTrial && (
               <>
@@ -244,7 +257,12 @@ export default function ItemScreen() {
         )}
         {plan && installment && (
           <>
-            <InfoRow label={t("add.total")} value={formatMoney(plan.totalAmount)} styles={styles} />
+            <InfoRow
+              label={t("add.total")}
+              value={formatMoney(plan.totalAmount)}
+              styles={styles}
+              first
+            />
             <InfoRow
               label={t("item.progress")}
               value={t("item.progressValue", {
@@ -479,15 +497,18 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       paddingTop: spacing.sm,
     },
+    // Dividers sit on TOP so a list never ends on a stray line; the card's
+    // first row opts out via InfoRow's `first`.
     infoRow: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.md,
       paddingVertical: spacing.sm + 2,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.border,
     },
+    infoRowFirst: { borderTopWidth: 0 },
     infoLabel: { ...typography.body, color: colors.mutedText },
     infoValue: { ...typography.body, color: colors.text, flexShrink: 1, textAlign: "right" },
     installmentRight: {
