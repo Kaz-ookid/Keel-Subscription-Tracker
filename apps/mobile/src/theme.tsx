@@ -118,15 +118,17 @@ export type ThemeMode = "system" | "light" | "dark";
 
 const THEME_KEY = "keel.theme-mode.v1";
 
+// Dark is the DEFAULT (decided 2026-07-11): the sea-glass aura is designed
+// dark-first; "match device" and light remain explicit choices.
 const ThemeModeContext = createContext<{ mode: ThemeMode; setMode: (mode: ThemeMode) => void }>({
-  mode: "system",
+  mode: "dark",
   setMode: () => {},
 });
 
 /** Mounted at the very root (above everything that calls useTheme); persists
  *  the preference independently of the data blob. */
 export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("system");
+  const [mode, setModeState] = useState<ThemeMode>("dark");
 
   useEffect(() => {
     void AsyncStorage.getItem(THEME_KEY).then((stored) => {
