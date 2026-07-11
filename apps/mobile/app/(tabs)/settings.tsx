@@ -524,7 +524,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     // flexGrow keeps the footer's "auto" top margin working when the content
     // is shorter than the screen; the list scrolls once it grows past it.

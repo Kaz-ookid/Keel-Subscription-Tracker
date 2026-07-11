@@ -166,7 +166,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     pager: { flex: 1 },
     page: { flex: 1 },

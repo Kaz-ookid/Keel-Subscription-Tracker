@@ -427,13 +427,13 @@ type Styles = ReturnType<typeof createStyles>;
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     center: {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     emptyHint: { ...typography.body, color: colors.mutedText },
     headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },

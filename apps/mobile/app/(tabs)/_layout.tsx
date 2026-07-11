@@ -32,6 +32,8 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.mutedText,
         headerStyle: { backgroundColor: colors.navy },
         headerTintColor: colors.white,
+        // Tab scenes float over the root Ambient stage.
+        sceneStyle: { backgroundColor: "transparent" },
       }}
     >
       {TABS.map((tab) =>

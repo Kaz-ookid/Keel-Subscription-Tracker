@@ -148,12 +148,12 @@ export default function PriceChangesScreen() {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     center: {
       flex: 1,
       justifyContent: "center",
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     card: {
       gap: spacing.sm,

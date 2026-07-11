@@ -602,7 +602,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     content: {
       padding: spacing.md,
@@ -614,7 +614,7 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "center",
       gap: spacing.sm,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
       padding: spacing.lg,
     },
     statRow: {
@@ -760,7 +760,7 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       height: 4,
       borderRadius: 2,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
       overflow: "hidden",
     },
     shareFill: {

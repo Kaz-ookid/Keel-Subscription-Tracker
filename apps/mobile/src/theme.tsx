@@ -17,6 +17,13 @@ export interface ThemeColors {
   surface: string;
   /** Inset fills inside a surface: tracks, wells, selected calendar day. */
   surface2: string;
+  /** Translucent card fill over the Ambient stage (DESIGN.md §9): the aura
+   *  breathes through it. Pair with a `hairline` contour. */
+  material: string;
+  /** More opaque material for sheets and overlays that need presence. */
+  materialStrong: string;
+  /** The faint light contour on material surfaces. */
+  hairline: string;
   border: string;
   text: string;
   mutedText: string;
@@ -51,6 +58,9 @@ const light: ThemeColors = {
   background: "#F4F6F8",
   surface: "#FFFFFF",
   surface2: "#EDF1F4",
+  material: "rgba(255,255,255,0.78)",
+  materialStrong: "rgba(255,255,255,0.92)",
+  hairline: "rgba(11,30,63,0.08)",
   border: "#E2E8EE",
   text: "#0F1720",
   mutedText: "#5C6B7A",
@@ -78,6 +88,9 @@ const dark: ThemeColors = {
   background: "#0A1020",
   surface: "#131B2E",
   surface2: "#1C2740",
+  material: "rgba(19,27,46,0.62)",
+  materialStrong: "rgba(19,27,46,0.92)",
+  hairline: "rgba(237,241,245,0.08)",
   border: "#26314A",
   text: "#EDF1F5",
   mutedText: "#93A0B4",
@@ -167,6 +180,8 @@ export const radius = {
   sm: 8,
   md: 12,
   lg: 16,
+  /** Material cards over the Ambient stage (DESIGN.md §9). */
+  xl: 24,
 } as const;
 
 // The full scale (DESIGN.md §3.2). `value` is the mid-size stat number that

@@ -1,6 +1,8 @@
-// THE surface card (DESIGN.md §3.4): one background, one radius, two paddings.
-// "list" hugs rows that carry their own vertical padding (facts, settings
-// rows); "free" is a freestanding block (stat cards, price-change cards).
+// THE surface card (DESIGN.md §3.4, rebuilt for §9): a MATERIAL — a
+// translucent fill with a hairline contour over the Ambient stage, so the
+// aura breathes through every card. "list" hugs rows that carry their own
+// vertical padding (facts, settings rows); "free" is a freestanding block
+// (stat cards, price-change cards).
 
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
@@ -21,7 +23,7 @@ export function Card({ variant = "list", style, children }: Props) {
     <View
       style={[
         styles.base,
-        { backgroundColor: colors.surface },
+        { backgroundColor: colors.material, borderColor: colors.hairline },
         variant === "list" ? styles.list : styles.free,
         style,
       ]}
@@ -33,7 +35,10 @@ export function Card({ variant = "list", style, children }: Props) {
 
 const styles = StyleSheet.create({
   base: {
-    borderRadius: radius.md,
+    borderRadius: radius.xl,
+    borderWidth: 1,
+    // Content (row washes, expanded folds) must respect the curve.
+    overflow: "hidden",
   },
   list: {
     paddingHorizontal: spacing.md,

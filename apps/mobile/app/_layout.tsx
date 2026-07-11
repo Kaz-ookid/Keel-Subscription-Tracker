@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 import "../src/i18n";
+import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
 import { AppStateProvider } from "../src/state/app-state";
 import { ImportSessionProvider } from "../src/state/import-session";
@@ -52,6 +53,9 @@ function RootNavigator() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* The Ambient stage lives BEHIND the navigator; screens with a
+          transparent contentStyle float their materials over it. */}
+      <Ambient />
       <ThemeProvider value={navTheme}>
         <AppStateProvider>
           <ImportSessionProvider>
@@ -59,7 +63,9 @@ function RootNavigator() {
               screenOptions={{
                 headerStyle: { backgroundColor: colors.navy },
                 headerTintColor: colors.white,
-                contentStyle: { backgroundColor: colors.background },
+                // Transparent: pushed screens show the Ambient stage. Modals
+                // opt back into an opaque background (their own layer).
+                contentStyle: { backgroundColor: "transparent" },
                 // Just the chevron — otherwise iOS prints the previous route's
                 // name ("(tabs)") next to the back arrow.
                 headerBackButtonDisplayMode: "minimal",
@@ -68,7 +74,11 @@ function RootNavigator() {
               <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen
                 name="onboarding"
-                options={{ presentation: "fullScreenModal", headerShown: false }}
+                options={{
+                  presentation: "fullScreenModal",
+                  headerShown: false,
+                  contentStyle: { backgroundColor: colors.background },
+                }}
               />
               {/* The add flow (chooser, form, AI import, review) is a nested
                   stack so every step gets a REAL native back button; it

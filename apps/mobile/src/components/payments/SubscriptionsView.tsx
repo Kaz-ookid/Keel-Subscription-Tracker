@@ -304,7 +304,7 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     list: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     listContent: {
       padding: spacing.md,
@@ -314,7 +314,7 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
     },
     headerStack: {
       gap: spacing.sm,
