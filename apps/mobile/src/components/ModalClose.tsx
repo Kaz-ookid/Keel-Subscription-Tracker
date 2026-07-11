@@ -14,11 +14,14 @@ export function ModalClose() {
   const router = useRouter();
   return (
     <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel="Close">
-      <Svg width={18} height={18}>
+      {/* Drawn to the SYSTEM back glyph's metrics (≈9pt wide, 17pt tall
+          strokes at 3pt weight in a symmetric box) so it reads identical to
+          the native chevron on the pushed screens. */}
+      <Svg width={12} height={22}>
         <Path
-          d="M 12 3.5 L 6 9 L 12 14.5"
+          d="M 10.5 2.5 L 1.5 11 L 10.5 19.5"
           stroke="#FFFFFF"
-          strokeWidth={2.4}
+          strokeWidth={3}
           strokeLinecap="round"
           strokeLinejoin="round"
           fill="none"
