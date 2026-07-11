@@ -11,6 +11,7 @@ import Svg, { Circle } from "react-native-svg";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
 import { emphasis, typography, useTheme } from "../theme";
+import { LivingNumber } from "./ui/LivingNumber";
 
 // Below this share of the total, a slice is a sliver: no rim icon.
 const ICON_MIN_SHARE = 0.025;
@@ -158,9 +159,8 @@ export function DonutChart({
         ) : null,
       )}
       <View style={styles.center} pointerEvents="none">
-        <Text style={[styles.centerTitle, { color: colors.text }]} numberOfLines={1}>
-          {centerTitle}
-        </Text>
+        {/* Living number (§9g): selecting a slice rolls the hole's number. */}
+        <LivingNumber text={centerTitle} style={[styles.centerTitle, { color: colors.text }]} />
         {centerSub ? (
           <Text style={[styles.centerSub, { color: colors.mutedText }]} numberOfLines={1}>
             {centerSub}

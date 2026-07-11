@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 import { typography, useTheme, type ThemeColors } from "../../theme";
+import { LivingNumber } from "./LivingNumber";
 
 interface Props {
   label: string;
@@ -20,7 +21,8 @@ export function StatValue({ label, value, hint, color }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
-      <Text style={[styles.value, color != null && { color }]}>{value}</Text>
+      {/* Living number (§9g): stat changes roll instead of swapping. */}
+      <LivingNumber text={value} style={[styles.value, color != null && { color }]} />
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}
     </View>
   );

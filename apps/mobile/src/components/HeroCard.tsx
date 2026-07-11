@@ -4,6 +4,7 @@ import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { LivingNumber } from "./ui/LivingNumber";
 import { Waterline } from "./Waterline";
 
 interface Props {
@@ -29,17 +30,21 @@ export function HeroCard({ label, amount, sub }: Props) {
       <LinearGradient colors={[colors.navy, colors.navyDeep]} style={StyleSheet.absoluteFill} />
       {width > 0 && <Waterline height={14} width={width} color={colors.accentStrong} />}
       <Text style={styles.label}>{label}</Text>
-      {/* Re-keyed by value so a new number gets its one quiet fade-in.
-          Display size (§9e); long multi-currency strings shrink, never wrap. */}
-      <Animated.Text
-        key={amount}
-        entering={FadeIn.duration(250)}
-        style={styles.amount}
-        numberOfLines={1}
-        adjustsFontSizeToFit
-      >
-        {amount}
-      </Animated.Text>
+      {/* Living number (§9g): digits roll and merge on change. Long
+          multi-currency strings fall back to a shrinking plain text. */}
+      {amount.length <= 14 ? (
+        <LivingNumber text={amount} style={styles.amount} />
+      ) : (
+        <Animated.Text
+          key={amount}
+          entering={FadeIn.duration(250)}
+          style={styles.amount}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+        >
+          {amount}
+        </Animated.Text>
+      )}
       {sub ? <Text style={styles.sub}>{sub}</Text> : null}
     </View>
   );
