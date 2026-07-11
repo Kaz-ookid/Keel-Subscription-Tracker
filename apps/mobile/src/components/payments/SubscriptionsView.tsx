@@ -36,6 +36,7 @@ import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
 import { Button } from "../ui/Button";
+import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/EmptyState";
 import { WheelSheet } from "../WheelSheet";
 
@@ -53,6 +54,20 @@ const SORT_LABEL_KEY: Record<SortKey, string> = {
   price: "allList.sortPrice",
   name: "allList.sortName",
 };
+
+/** The status buckets the list can show or hide (§9h). */
+type StatusKey = "ongoing" | "paused" | "done";
+const STATUS_LABEL_KEY: Record<StatusKey, string> = {
+  ongoing: "allList.statusOngoing",
+  paused: "allList.statusPaused",
+  done: "allList.statusDone",
+};
+
+function statusOf(item: PaymentItem, asOf: ReturnType<typeof today>): StatusKey {
+  if (item.status === "paused") return "paused";
+  if (isPaymentItemComplete(item, asOf)) return "done";
+  return "ongoing";
+}
 
 /** The day of the month an item bills on — its fixed "place" in the list. */
 function billingDay(item: PaymentItem): number {
@@ -113,6 +128,17 @@ export function SubscriptionsView() {
   // list names the current order and opens the picker.
   const [sort, setSort] = useState<SortKey>("day");
   const [sortSheet, setSortSheet] = useState(false);
+  // Which status buckets show; all three by default (§9h).
+  const [shown, setShown] = useState<Set<StatusKey>>(
+    () => new Set<StatusKey>(["ongoing", "paused", "done"]),
+  );
+  const toggleStatus = (key: StatusKey) =>
+    setShown((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   if (loading) {
     return (
@@ -158,19 +184,21 @@ export function SubscriptionsView() {
   // chosen order applies. The default is the day of the month each item
   // bills on (the 5th before the 15th) — predictable and non-reshuffling,
   // where "next charge" would reorder the list all the time.
-  const sorted = [...items].sort((a, b) => {
-    const doneA = isPaymentItemComplete(a, asOf) ? 1 : 0;
-    const doneB = isPaymentItemComplete(b, asOf) ? 1 : 0;
-    if (doneA !== doneB) return doneA - doneB;
-    if (sort === "price") {
-      return (
-        monthlyValue(b, displayCurrency, rates) - monthlyValue(a, displayCurrency, rates) ||
-        a.name.localeCompare(b.name)
-      );
-    }
-    if (sort === "name") return a.name.localeCompare(b.name);
-    return billingDay(a) - billingDay(b) || a.name.localeCompare(b.name);
-  });
+  const sorted = items
+    .filter((i) => shown.has(statusOf(i, asOf)))
+    .sort((a, b) => {
+      const doneA = isPaymentItemComplete(a, asOf) ? 1 : 0;
+      const doneB = isPaymentItemComplete(b, asOf) ? 1 : 0;
+      if (doneA !== doneB) return doneA - doneB;
+      if (sort === "price") {
+        return (
+          monthlyValue(b, displayCurrency, rates) - monthlyValue(a, displayCurrency, rates) ||
+          a.name.localeCompare(b.name)
+        );
+      }
+      if (sort === "name") return a.name.localeCompare(b.name);
+      return billingDay(a) - billingDay(b) || a.name.localeCompare(b.name);
+    });
 
   return (
     <FlatList
@@ -266,16 +294,28 @@ export function SubscriptionsView() {
             )}
           </View>
 
-          {/* Names the current order; tapping opens the picker. */}
-          <Pressable
-            style={styles.sortRow}
-            onPress={() => setSortSheet(true)}
-            accessibilityLabel={t("allList.sortA11y")}
-            hitSlop={8}
-          >
-            <SymbolView name="arrow.up.arrow.down" size={11} tintColor={colors.mutedText} />
-            <Text style={styles.sortText}>{t(SORT_LABEL_KEY[sort])}</Text>
-          </Pressable>
+          {/* Status filter (§9h) on the left; the current order on the right. */}
+          <View style={styles.filterRow}>
+            <View style={styles.statusChips}>
+              {(Object.keys(STATUS_LABEL_KEY) as StatusKey[]).map((key) => (
+                <Chip
+                  key={key}
+                  label={t(STATUS_LABEL_KEY[key])}
+                  selected={shown.has(key)}
+                  onPress={() => toggleStatus(key)}
+                />
+              ))}
+            </View>
+            <Pressable
+              style={styles.sortRow}
+              onPress={() => setSortSheet(true)}
+              accessibilityLabel={t("allList.sortA11y")}
+              hitSlop={8}
+            >
+              <SymbolView name="arrow.up.arrow.down" size={11} tintColor={colors.mutedText} />
+              <Text style={styles.sortText}>{t(SORT_LABEL_KEY[sort])}</Text>
+            </Pressable>
+          </View>
         </View>
       }
       renderItem={({ item }) => (
@@ -383,8 +423,18 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       flex: 1,
     },
+    filterRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: spacing.sm,
+    },
+    statusChips: {
+      flexDirection: "row",
+      gap: spacing.xs,
+      flexShrink: 1,
+    },
     sortRow: {
-      alignSelf: "flex-end",
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs,
