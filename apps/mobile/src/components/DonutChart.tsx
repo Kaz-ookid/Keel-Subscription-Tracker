@@ -89,6 +89,17 @@ export function DonutChart({
 
   const dimmed = (key: string) => selectedKey != null && key !== selectedKey;
 
+  // The headline must FIT THE HOLE: five-digit totals shrink instead of
+  // clipping. 0.62 ≈ tabular-digit width per font-size unit at weight 700.
+  const holeWidth = size - thickness * 2 - 24;
+  const centerFontSize = Math.max(
+    13,
+    Math.min(
+      typography.h1.fontSize,
+      Math.floor(holeWidth / (0.62 * Math.max(centerTitle.length, 1))),
+    ),
+  );
+
   // Ring taps: find the slice under the finger from its angle and distance.
   const handleTap = (e: GestureResponderEvent) => {
     if (!onSelectKey) return;
@@ -160,7 +171,10 @@ export function DonutChart({
       )}
       <View style={styles.center} pointerEvents="none">
         {/* Living number (§9g): selecting a slice rolls the hole's number. */}
-        <LivingNumber text={centerTitle} style={[styles.centerTitle, { color: colors.text }]} />
+        <LivingNumber
+          text={centerTitle}
+          style={[styles.centerTitle, { color: colors.text, fontSize: centerFontSize }]}
+        />
         {centerSub ? (
           <Text style={[styles.centerSub, { color: colors.mutedText }]} numberOfLines={1}>
             {centerSub}
