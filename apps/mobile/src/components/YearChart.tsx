@@ -1,6 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from "react-native-reanimated";
 
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 
@@ -37,6 +44,46 @@ const CHART_HEIGHT = 140;
 const COL_WIDTH = 30;
 const COL_GAP = 4;
 const SLOT = COL_WIDTH + COL_GAP;
+
+/** One month's sounding: grows up from the seabed on mount, each a beat
+ *  after its neighbour (§3.7 C/D) — the chart takes its soundings once. */
+function SoundingBar({
+  height,
+  color,
+  dim,
+  delay,
+}: {
+  height: number;
+  color: string;
+  dim: boolean;
+  delay: number;
+}) {
+  const grow = useSharedValue(0);
+  useEffect(() => {
+    grow.value = withDelay(
+      delay,
+      withTiming(1, { duration: 350, easing: Easing.out(Easing.cubic) }),
+    );
+  }, [grow, delay]);
+  const grown = useAnimatedStyle(() => ({
+    height: Math.max(2, height * grow.value),
+  }));
+  return (
+    <Animated.View
+      style={[
+        barStyles.sounding,
+        { backgroundColor: color, opacity: dim ? emphasis.dim : 1 },
+        grown,
+      ]}
+    />
+  );
+}
+
+const barStyles = StyleSheet.create({
+  sounding: {
+    borderRadius: 5,
+  },
+});
 
 /**
  * A horizontally scrollable run of months — slide freely through past and
@@ -124,18 +171,14 @@ export function YearChart({
                 const spiking = average > 0 && m.amount > average;
                 return (
                   <Pressable key={m.name} style={styles.column} onPress={() => onSelect(i)}>
-                    <View
-                      style={[
-                        styles.bar,
-                        {
-                          height,
-                          backgroundColor: spiking ? colors.tones.warning : colors.accent,
-                          // The shared selection rule (DESIGN.md punch list):
-                          // nothing selected = everything full strength;
-                          // a selection dims the others, never the chosen one.
-                          opacity: selected === null || i === selected ? 1 : emphasis.dim,
-                        },
-                      ]}
+                    {/* The shared selection rule (DESIGN.md punch list):
+                        nothing selected = everything full strength; a
+                        selection dims the others, never the chosen one. */}
+                    <SoundingBar
+                      height={height}
+                      color={spiking ? colors.tones.warning : colors.accent}
+                      dim={!(selected === null || i === selected)}
+                      delay={i * 20}
                     />
                   </Pressable>
                 );
@@ -176,9 +219,12 @@ export function YearChart({
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
+    // A material like every §9 card: the aura breathes through the chart.
     card: {
-      backgroundColor: colors.surface,
-      borderRadius: radius.lg,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      borderRadius: radius.xl,
       padding: spacing.md,
       gap: spacing.sm,
     },
@@ -213,9 +259,6 @@ function createStyles(colors: ThemeColors) {
       width: COL_WIDTH,
       height: CHART_HEIGHT,
       justifyContent: "flex-end",
-    },
-    bar: {
-      borderRadius: 3,
     },
     averageLine: {
       position: "absolute",

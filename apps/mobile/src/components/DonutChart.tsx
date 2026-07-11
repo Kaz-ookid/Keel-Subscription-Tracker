@@ -5,13 +5,46 @@
 // rim never crowds. With `onSelectKey`, tapping the ring selects the slice
 // under the finger — the same selection the legend rows drive.
 
-import { useMemo } from "react";
+import { useEffect, useMemo, type ComponentProps } from "react";
 import { Pressable, StyleSheet, Text, View, type GestureResponderEvent } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from "react-native-reanimated";
 
 import { emphasis, typography, useTheme } from "../theme";
 import { LivingNumber } from "./ui/LivingNumber";
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
+
+/** One slice, swept in by the shared progress: the arc grows clockwise from
+ *  12 o'clock together with its neighbours — the donut draws itself once. */
+function SweepArc({
+  progress,
+  length,
+  offset,
+  circumference,
+  ...circleProps
+}: {
+  progress: SharedValue<number>;
+  length: number;
+  offset: number;
+  circumference: number;
+} & ComponentProps<typeof Circle>) {
+  const animatedProps = useAnimatedProps(() => {
+    const shown = length * progress.value;
+    return {
+      strokeDasharray: [shown, circumference - shown],
+      strokeDashoffset: -offset * progress.value,
+    };
+  });
+  return <AnimatedCircle animatedProps={animatedProps} {...circleProps} />;
+}
 
 // Below this share of the total, a slice is a sliver: no rim icon.
 const ICON_MIN_SHARE = 0.025;
@@ -89,6 +122,13 @@ export function DonutChart({
 
   const dimmed = (key: string) => selectedKey != null && key !== selectedKey;
 
+  // The donut sweeps in once per mount (§3.7 D): every arc grows from
+  // 12 o'clock in step, driven by one shared progress.
+  const sweep = useSharedValue(0);
+  useEffect(() => {
+    sweep.value = withTiming(1, { duration: 700, easing: Easing.out(Easing.cubic) });
+  }, [sweep]);
+
   // The headline must FIT THE HOLE: five-digit totals shrink instead of
   // clipping. 0.62 ≈ tabular-digit width per font-size unit at weight 700.
   const holeWidth = size - thickness * 2 - 24;
@@ -132,8 +172,12 @@ export function DonutChart({
           />
         )}
         {arcs.map((a) => (
-          <Circle
+          <SweepArc
             key={a.key}
+            progress={sweep}
+            length={a.length}
+            offset={a.offset}
+            circumference={circumference}
             cx={center}
             cy={center}
             r={radius}
@@ -141,8 +185,6 @@ export function DonutChart({
             strokeOpacity={dimmed(a.key) ? emphasis.dim : 1}
             strokeWidth={thickness}
             fill="none"
-            strokeDasharray={`${a.length} ${circumference - a.length}`}
-            strokeDashoffset={-a.offset}
             strokeLinecap="butt"
             // Start at 12 o'clock instead of 3.
             transform={`rotate(-90 ${center} ${center})`}
