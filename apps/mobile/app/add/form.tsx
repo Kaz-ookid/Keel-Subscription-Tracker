@@ -20,7 +20,8 @@ import { FormSheets } from "../../src/components/add-form/FormSheets";
 import { ScheduleSection } from "../../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../../src/components/add-form/useAddForm";
 import { ModalClose } from "../../src/components/ModalClose";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
+import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 const PLAN_TYPES: { value: PlanType; labelKey: string }[] = [
   { value: "subscription", labelKey: "add.subscription" },
@@ -69,20 +70,12 @@ export default function AddFormScreen() {
 
       {!form.isEditing && !form.isDraft && (
         <View style={styles.modeSwitch}>
-          {PLAN_TYPES.map((m) => {
-            const active = form.planType === m.value;
-            return (
-              <Pressable
-                key={m.value}
-                onPress={() => form.setPlanType(m.value)}
-                style={[styles.modePill, active && styles.modePillActive]}
-              >
-                <Text style={[styles.modeText, active && styles.modeTextActive]}>
-                  {t(m.labelKey)}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {/* Same sliding wash as the Payments switcher, one shared piece. */}
+          <SegmentedPills
+            options={PLAN_TYPES.map((m) => ({ value: m.value, label: t(m.labelKey) }))}
+            value={form.planType}
+            onChange={form.setPlanType}
+          />
         </View>
       )}
 
@@ -100,24 +93,8 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.md, paddingBottom: spacing.xl },
     modeSwitch: {
-      flexDirection: "row",
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: 3,
-      gap: 3,
       marginBottom: spacing.md,
     },
-    modePill: {
-      flex: 1,
-      alignItems: "center",
-      paddingVertical: spacing.sm,
-      borderRadius: radius.sm,
-    },
-    modePillActive: { backgroundColor: colors.accentSoft },
-    modeText: { ...typography.label, color: colors.mutedText },
-    modeTextActive: { color: colors.accent },
     headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.sm },
     headerActionDisabled: { opacity: 0.4 },
   });

@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { radius, typography, useTheme } from "../../src/theme";
+import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
 type SymbolName = SymbolViewProps["name"];
 
@@ -46,9 +46,10 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
                 key={tab.name}
                 onPress={() => router.push("/add")}
                 accessibilityLabel={t("tabs.addA11y")}
-                style={[styles.plus, { backgroundColor: colors.action }]}
+                // Tinted, not solid (§9f): an accent wash in the glass.
+                style={[styles.plus, { backgroundColor: withAlpha(colors.accentStrong, 0.28) }]}
               >
-                <SymbolView name={tab.sf as SymbolName} size={22} tintColor={colors.actionText} />
+                <SymbolView name={tab.sf as SymbolName} size={22} tintColor={colors.accent} />
               </Pressable>
             );
           }

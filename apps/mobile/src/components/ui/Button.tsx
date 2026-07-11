@@ -1,13 +1,14 @@
-// THE button (DESIGN.md §3.4). Two sizes, four variants, one look everywhere:
-// this replaces the seven hand-rolled Pressable+Text pairs the audit found.
-// primary = the action fill (navy by day, sea glass by night); secondary =
-// outlined; quiet = text-only accent; destructive = text-only danger.
+// THE button (DESIGN.md §3.4, re-cut for §9f). Two sizes, four variants, one
+// look everywhere — and that look is Apple's TINTED capsule (iOS .bordered
+// prominence): an accent wash with accent text, never a solid color block.
+// primary = tinted capsule; secondary = material capsule with a hairline;
+// quiet = text-only accent; destructive = text-only danger.
 
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
 
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "destructive";
 export type ButtonSize = "lg" | "sm";
@@ -47,13 +48,11 @@ export function Button({
     style,
   ];
   const textColor =
-    variant === "primary"
-      ? colors.actionText
+    variant === "primary" || variant === "quiet"
+      ? colors.accent
       : variant === "secondary"
         ? colors.text
-        : variant === "quiet"
-          ? colors.accent
-          : colors.tones.danger;
+        : colors.tones.danger;
 
   return (
     <Pressable
@@ -85,21 +84,21 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.sm,
     },
     lg: {
-      borderRadius: radius.md,
+      borderRadius: 999,
       paddingVertical: spacing.md,
       paddingHorizontal: spacing.lg,
     },
     sm: {
-      borderRadius: radius.sm,
-      paddingVertical: spacing.xs,
-      paddingHorizontal: spacing.sm,
+      borderRadius: 999,
+      paddingVertical: spacing.xs + 1,
+      paddingHorizontal: spacing.sm + 2,
       gap: spacing.xs,
     },
-    primary: { backgroundColor: colors.action },
+    primary: { backgroundColor: withAlpha(colors.accent, 0.18) },
     secondary: {
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      borderColor: colors.hairline,
+      backgroundColor: colors.material,
     },
     quiet: {},
     destructive: {},

@@ -6,7 +6,7 @@
 import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
 
 interface Props {
   label: string;
@@ -34,20 +34,22 @@ export function Chip({ label, selected, onPress, dot }: Props) {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
+    // Material capsule (§9f): translucent over the Ambient, hairline contour;
+    // selection is an accent TINT, never a solid block.
     chip: {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs + 2,
       paddingVertical: spacing.xs + 2,
       paddingHorizontal: spacing.md,
-      borderRadius: radius.lg,
+      borderRadius: 999,
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      borderColor: colors.hairline,
+      backgroundColor: colors.material,
     },
     chipSelected: {
-      backgroundColor: colors.accentSoft,
-      borderColor: colors.accent,
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
     dot: { width: 8, height: 8, borderRadius: 4 },
     text: { ...typography.caption, fontWeight: "600", color: colors.text },

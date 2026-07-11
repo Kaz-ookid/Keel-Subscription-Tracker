@@ -18,7 +18,14 @@ import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
 import { useAppState } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import {
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  withAlpha,
+  type ThemeColors,
+} from "../../src/theme";
 
 type OpenPopup = "instructions" | "where" | "example" | "privacy" | null;
 type PasteError = ImportParseError | "clipboard-empty";
@@ -299,16 +306,20 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: colors.background },
     content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
     methods: { flexDirection: "row", gap: spacing.sm },
+    // Material cards (§9f): the chosen method is a tint, not a heavy border.
     methodCard: {
       flex: 1,
       gap: spacing.xs,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
+      backgroundColor: colors.material,
+      borderRadius: radius.xl,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
       padding: spacing.md,
     },
-    methodActive: { borderColor: colors.accent, borderWidth: 2 },
+    methodActive: {
+      backgroundColor: withAlpha(colors.accent, 0.12),
+      borderColor: withAlpha(colors.accent, 0.45),
+    },
     methodDisabled: { opacity: 0.65 },
     methodTitle: { ...typography.label, color: colors.text },
     methodTitleDisabled: { color: colors.mutedText },
@@ -342,12 +353,12 @@ function createStyles(colors: ThemeColors) {
       width: 22,
       height: 22,
       borderRadius: 11,
-      backgroundColor: colors.action,
+      backgroundColor: withAlpha(colors.accent, 0.2),
       alignItems: "center",
       justifyContent: "center",
       marginTop: 1,
     },
-    stepBadgeText: { ...typography.caption, fontWeight: "700", color: colors.actionText },
+    stepBadgeText: { ...typography.caption, fontWeight: "700", color: colors.accent },
     stepText: { ...typography.body, color: colors.text, flex: 1 },
     stepActions: {
       flexDirection: "row",

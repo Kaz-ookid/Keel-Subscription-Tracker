@@ -19,7 +19,7 @@ import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppState } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
 
 // The harbor is no longer a top-level view: it lives INSIDE the schedule
 // slot as the calendar's bonus lens (see ScheduleView).
@@ -189,35 +189,36 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       paddingTop: spacing.md,
     },
+    // Material capsules (§9f): translucent track, hairline, accent tint wash.
     switch: {
       flex: 1,
       flexDirection: "row",
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
+      backgroundColor: colors.material,
+      borderRadius: 999,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
       padding: 3,
       gap: 3,
     },
     calendarToggle: {
       width: 40,
       height: 40,
-      borderRadius: radius.md,
+      borderRadius: 999,
       borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
+      borderColor: colors.hairline,
+      backgroundColor: colors.material,
       alignItems: "center",
       justifyContent: "center",
     },
     calendarToggleActive: {
-      backgroundColor: colors.accentSoft,
-      borderColor: colors.accent,
+      backgroundColor: withAlpha(colors.accent, 0.2),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
     pill: {
       flex: 1,
       alignItems: "center",
       paddingVertical: spacing.sm,
-      borderRadius: radius.sm,
+      borderRadius: 999,
     },
     // The sliding selection wash behind the pills.
     highlight: {
@@ -225,8 +226,8 @@ function createStyles(colors: ThemeColors) {
       top: 3,
       bottom: 3,
       left: 3,
-      borderRadius: radius.sm,
-      backgroundColor: colors.accentSoft,
+      borderRadius: 999,
+      backgroundColor: withAlpha(colors.accent, 0.2),
     },
     pillText: { ...typography.label, color: colors.mutedText },
     pillTextActive: { color: colors.accent },
