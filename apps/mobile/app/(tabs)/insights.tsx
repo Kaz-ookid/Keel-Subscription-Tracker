@@ -31,7 +31,7 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
@@ -46,6 +46,7 @@ import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { monthFull, monthShort } from "../../src/i18n/dates";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { foldIn, foldLayout, foldOut } from "../../src/lib/motion";
+import { useTabReset } from "../../src/lib/tabReset";
 import { useAppState } from "../../src/state/app-state";
 import {
   dockClearance,
@@ -90,6 +91,12 @@ export default function InsightsScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
+  // Tab re-tap (§9i): back to the top.
+  const scrollRef = useRef<ScrollView>(null);
+  const resetSignal = useTabReset("insights");
+  useEffect(() => {
+    if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [resetSignal]);
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, occurrences, categories, displayCurrency, rates, loading } = useAppState();
   // null = nothing selected (tapping the selected bar again deselects it).
@@ -302,6 +309,7 @@ export default function InsightsScreen() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
     >

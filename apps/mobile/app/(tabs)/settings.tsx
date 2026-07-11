@@ -16,7 +16,7 @@ import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActionSheetIOS,
@@ -36,6 +36,7 @@ import { loadHarborEnabled, setHarborEnabled } from "../../src/lib/experiments";
 import Animated from "react-native-reanimated";
 
 import { foldIn, foldOut } from "../../src/lib/motion";
+import { useTabReset } from "../../src/lib/tabReset";
 import {
   authenticate,
   getAuthKind,
@@ -131,6 +132,12 @@ export default function SettingsScreen() {
   const { colors, scheme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // Tab re-tap (§9i): back to the top.
+  const scrollRef = useRef<ScrollView>(null);
+  const resetSignal = useTabReset("settings");
+  useEffect(() => {
+    if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [resetSignal]);
   const {
     accounts,
     displayCurrency,
@@ -356,6 +363,7 @@ export default function SettingsScreen() {
 
   return (
     <ScrollView
+      ref={scrollRef}
       style={styles.screen}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
     >

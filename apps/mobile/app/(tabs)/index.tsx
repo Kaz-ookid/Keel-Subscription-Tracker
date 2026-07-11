@@ -17,6 +17,7 @@ import { ScheduleView, type ScheduleLens } from "../../src/components/payments/S
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
+import { onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppState } from "../../src/state/app-state";
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
@@ -99,6 +100,22 @@ export default function PaymentsScreen() {
 
   const onPills = view === "upcoming" || view === "all";
 
+  // Re-tapping the Payments tab goes home (§9i): Upcoming, scrolled to top.
+  const resetSignal = useTabReset("index");
+  useEffect(
+    () =>
+      onTabReset("index", () => {
+        setView("upcoming");
+        setScheduleLens("grid");
+        // Animated setPage: the page SWIPES back and its scroll events carry
+        // the pill wash along (setPageWithoutAnimation emits none). From the
+        // calendar the pager remounts at page 0 and the [view] effect fades
+        // the wash back in.
+        pagerRef.current?.setPage(0);
+      }),
+    [],
+  );
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       {/* The screen owns its title now: large, on the Ambient stage. */}
@@ -153,7 +170,7 @@ export default function PaymentsScreen() {
           onPageSelected={(e) => setView(e.nativeEvent.position === 1 ? "all" : "upcoming")}
         >
           <View key="upcoming" style={styles.page} collapsable={false}>
-            <UpcomingView />
+            <UpcomingView resetSignal={resetSignal} />
           </View>
           <View key="all" style={styles.page} collapsable={false}>
             <SubscriptionsView />

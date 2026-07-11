@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { bumpTabReset } from "../../src/lib/tabReset";
 import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
 type SymbolName = SymbolViewProps["name"];
@@ -58,7 +59,8 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
           return (
             <Pressable
               key={tab.name}
-              onPress={() => navigation.navigate(tab.name)}
+              // Re-tapping the active tab sends its screen home (§9i).
+              onPress={() => (active ? bumpTabReset(tab.name) : navigation.navigate(tab.name))}
               accessibilityLabel={t(tab.titleKey)}
               style={styles.item}
             >

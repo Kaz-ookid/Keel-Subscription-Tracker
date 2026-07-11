@@ -15,7 +15,7 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -48,8 +48,13 @@ interface Section {
 }
 
 /** The cash-flow timeline: hero, account chips, charges day by day. */
-export function UpcomingView() {
+export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   const router = useRouter();
+  // The tab re-tap (§9i) scrolls the timeline back to the top.
+  const scrollRef = useRef<ScrollView>(null);
+  useEffect(() => {
+    if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
+  }, [resetSignal]);
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -302,7 +307,7 @@ export function UpcomingView() {
   // reanimated accordion as every other screen (foldLayout on every block, so
   // opening a fold slides the whole timeline instead of popping it).
   return (
-    <ScrollView style={styles.list} contentContainerStyle={styles.listContent}>
+    <ScrollView ref={scrollRef} style={styles.list} contentContainerStyle={styles.listContent}>
       {header}
       {sections.length === 0 && (
         <EmptyState
