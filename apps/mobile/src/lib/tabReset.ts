@@ -30,6 +30,20 @@ export function onTabReset(tab: string, callback: () => void): () => void {
   };
 }
 
+// One-shot handoff into the Payments tab: another screen (e.g. the browse
+// picker closing) can ask it to open on a specific view. Consumed once.
+let pendingPaymentsView: "upcoming" | "all" | null = null;
+
+export function requestPaymentsView(view: "upcoming" | "all"): void {
+  pendingPaymentsView = view;
+}
+
+export function consumePaymentsView(): "upcoming" | "all" | null {
+  const view = pendingPaymentsView;
+  pendingPaymentsView = null;
+  return view;
+}
+
 /** A counter that increments each time this tab is re-tapped; watch it with
  *  an effect and send the screen home. */
 export function useTabReset(tab: string): number {

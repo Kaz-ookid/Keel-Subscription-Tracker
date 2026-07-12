@@ -2,9 +2,9 @@
 // (what hits, when, from which account); "All" is the catalog of every item,
 // including ended/paused ones a timeline can't show.
 
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
@@ -18,7 +18,7 @@ import { SubscriptionsView } from "../../src/components/payments/SubscriptionsVi
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { TabFade } from "../../src/components/TabFade";
 import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
-import { onTabReset, useTabReset } from "../../src/lib/tabReset";
+import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppState } from "../../src/state/app-state";
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
@@ -37,7 +37,9 @@ export default function PaymentsScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [view, setView] = useState<PaymentsView>("upcoming");
+  // Another screen may have requested a landing view (e.g. the browse picker
+  // closes onto All, where its picks now live).
+  const [view, setView] = useState<PaymentsView>(() => consumePaymentsView() ?? "upcoming");
   const router = useRouter();
   const { items, accounts, loading } = useAppState();
 
@@ -100,6 +102,18 @@ export default function PaymentsScreen() {
   }));
 
   const onPills = view === "upcoming" || view === "all";
+
+  // A requested landing view arriving while already mounted (the screen sat
+  // behind a modal): consume it on focus and swing the pager over.
+  useFocusEffect(
+    useCallback(() => {
+      const requested = consumePaymentsView();
+      if (!requested) return;
+      setView(requested);
+      setScheduleLens("grid");
+      pagerRef.current?.setPage(requested === "all" ? 1 : 0);
+    }, []),
+  );
 
   // Re-tapping the Payments tab goes home (§9i): Upcoming, scrolled to top.
   const resetSignal = useTabReset("index");
