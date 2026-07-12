@@ -48,6 +48,16 @@ export default function AddChooserScreen() {
         <Text style={styles.customText}>{t("add.importAI")}</Text>
         <Text style={styles.customHint}>{t("add.importAIHint")}</Text>
       </Pressable>
+      {/* The third door: the browse picker in queue mode — tap many services
+          now, fill in the details whenever (they wait under All). */}
+      <Pressable
+        style={[styles.customRow, styles.aiRow]}
+        onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
+      >
+        <SymbolView name="rectangle.stack.badge.plus" size={16} tintColor={colors.accent} />
+        <Text style={styles.customText}>{t("add.todoDoor")}</Text>
+        <Text style={styles.customHint}>{t("add.todoDoorHint")}</Text>
+      </Pressable>
       <Text style={styles.orPick}>{t("add.orPick")}</Text>
       <SuggestionPicker
         suggestions={SUGGESTED_COMMITMENTS}

@@ -270,6 +270,8 @@ export const fr: typeof en = {
       "Votre réglage par défaut s'applique. L'heure se règle dans Réglages, Notifications.",
     importAI: "Importer avec l'IA",
     importAIHint: "une liste ou des captures",
+    todoDoor: "Mettre dans À compléter",
+    todoDoorHint: "cochez maintenant, complétez plus tard",
     orPick: "Ou choisissez un service connu",
     namePlaceholder: "Nom (ex. Netflix)",
     chooseCategory: "Choisir une catégorie",

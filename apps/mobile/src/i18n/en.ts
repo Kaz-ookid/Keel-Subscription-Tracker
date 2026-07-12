@@ -269,6 +269,8 @@ export const en = {
       "Your default timing applies. The time of day is set in Settings, Notifications.",
     importAI: "Import with AI",
     importAIHint: "a list or screenshots",
+    todoDoor: "Add to To-complete",
+    todoDoorHint: "tap many, finish later",
     orPick: "Or pick a known service",
     namePlaceholder: "Name (e.g. Netflix)",
     chooseCategory: "Choose category",
