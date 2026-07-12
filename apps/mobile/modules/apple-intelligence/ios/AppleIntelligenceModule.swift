@@ -1,0 +1,72 @@
+// The Apple Intelligence bridge: availability probing + one job — turn rough
+// subscription notes into Keel's import JSON with the ON-DEVICE model
+// (Foundation Models framework, iOS 26+). Guided generation constrains the
+// output to the ImportSchema mirror of import format v1; the JS side then
+// runs it through the SAME parse + review pipeline as the bring-your-own-AI
+// path. Compiles on older SDKs too: everything model-related sits behind
+// canImport + availability checks and reports "unsupported-os" instead.
+
+import ExpoModulesCore
+
+#if canImport(FoundationModels)
+  import FoundationModels
+#endif
+
+public class AppleIntelligenceModule: Module {
+  public func definition() -> ModuleDefinition {
+    Name("AppleIntelligence")
+
+    // "available" | "unsupported-os" | "device" | "disabled" | "not-ready"
+    Function("availability") { () -> String in
+      #if canImport(FoundationModels)
+        guard #available(iOS 26.0, *) else { return "unsupported-os" }
+        switch SystemLanguageModel.default.availability {
+        case .available:
+          return "available"
+        case .unavailable(.deviceNotEligible):
+          return "device"
+        case .unavailable(.appleIntelligenceNotEnabled):
+          return "disabled"
+        case .unavailable(.modelNotReady):
+          return "not-ready"
+        case .unavailable:
+          return "device"
+        }
+      #else
+        return "unsupported-os"
+      #endif
+    }
+
+    // Returns the import document as a JSON string ({"items":[...]}). The
+    // instructions are the SAME prompt the app generates for external AIs
+    // (core's buildImportPrompt), so both paths learn from one source.
+    AsyncFunction("parseSubscriptions") { (input: String, instructions: String) async throws -> String in
+      #if canImport(FoundationModels)
+        guard #available(iOS 26.0, *) else {
+          throw AppleIntelligenceError.unavailable
+        }
+        guard case .available = SystemLanguageModel.default.availability else {
+          throw AppleIntelligenceError.unavailable
+        }
+        let session = LanguageModelSession(instructions: instructions)
+        let response = try await session.respond(to: input, generating: ImportedDocument.self)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(response.content)
+        return String(data: data, encoding: .utf8) ?? #"{"items":[]}"#
+      #else
+        throw AppleIntelligenceError.unavailable
+      #endif
+    }
+  }
+}
+
+enum AppleIntelligenceError: Error, LocalizedError {
+  case unavailable
+
+  var errorDescription: String? {
+    switch self {
+    case .unavailable:
+      return "Apple Intelligence is not available on this device."
+    }
+  }
+}
