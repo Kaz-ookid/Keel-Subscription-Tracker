@@ -104,6 +104,7 @@ const CHIP = {
   demo: "#BF5AF2",
   harbor: "#64D2FF",
   danger: "#FF3B30",
+  about: "#FF2D55",
 } as const;
 
 function IconChip({ icon, color }: { icon: string; color: string }) {
@@ -477,11 +478,19 @@ export default function SettingsScreen() {
           </Pressable>
         </Card>
 
+        {/* The maker, the mailbox, the legal texts: one door for all of it. */}
+        <Text style={styles.groupLabel}>{t("settings.groupAbout")}</Text>
+        <Card>
+          <Pressable style={styles.row} onPress={() => router.push("/about")}>
+            <IconChip icon="heart.fill" color={CHIP.about} />
+            <Text style={styles.rowText}>{t("about.title")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+        </Card>
+
         <Text style={styles.footer}>
           {APP_NAME}
           {rates ? ` · ${t("settings.ratesFooter", { date: rates.date })}` : ""}
-          {"\n"}
-          {t("settings.trademark")}
         </Text>
 
         <WheelSheet

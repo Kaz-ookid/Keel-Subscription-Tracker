@@ -95,6 +95,7 @@ function RootNavigator() {
               <Stack.Screen name="data" options={{ title: "" }} />
               <Stack.Screen name="backups" options={{ title: "" }} />
               <Stack.Screen name="guide" options={{ title: "" }} />
+              <Stack.Screen name="about" options={{ title: "" }} />
             </Stack>
           </ImportSessionProvider>
           {/* No colored bars anymore: the status bar follows the scheme. */}

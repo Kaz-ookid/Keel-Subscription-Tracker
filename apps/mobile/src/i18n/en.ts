@@ -503,7 +503,7 @@ export const en = {
     restoreTitle: "Restore backup",
     restoreMsg: "This replaces everything currently in the app.",
     ratesFooter: "rates {{date}} (ECB)",
-    trademark: "All trademarks are the property of their respective owners.",
+    groupAbout: "About",
   },
   onboarding: {
     tour1Title: "All of it, in one place",
@@ -561,6 +561,35 @@ export const en = {
     alreadyInList: "already in your list",
     tapWhat: "Tap what you pay for",
     addN: "Add {{count}} to my list",
+  },
+  about: {
+    title: "About Keel",
+    helloTitle: "Hi, I'm Maxime 👋",
+    helloBody:
+      "I build Keel because I wanted one calm place where every subscription, bill and split payment behaves. It's made by one person, with care: no account, no ads, no tracking. If Keel helps you, or if something feels off, I genuinely want to hear it.",
+    groupWrite: "Write to me",
+    bug: "Report a problem",
+    bugSubject: "Keel: problem report",
+    idea: "Suggest a feature",
+    ideaSubject: "Keel: idea",
+    writeFooter: "Both open an email to {{email}}. I read everything.",
+    mailDetails: "Keel {{version}}, {{os}}",
+    groupSupport: "Support Keel",
+    rate: "Rate Keel on the App Store",
+    share: "Recommend Keel to a friend",
+    shareMessage: "I track my subscriptions and split payments with Keel:",
+    supportFooter: "A rating takes a minute and helps more than you'd think.",
+    groupLegal: "Legal",
+    privacy: "Privacy policy",
+    terms: "Terms of use",
+    trademark:
+      "All product names, logos and brands referenced in Keel belong to their respective owners. Keel is independent and is not affiliated with, endorsed or sponsored by any of them.",
+    thanks: "Thanks for using independent software.",
+    version: "Version",
+    privacyBody:
+      "Last updated: 12 July 2026.\n\nYour data stays on your device. Commitments, accounts, payment history and settings live in the app's local storage and in the local backups you create. Keel has no server, no account system, no analytics and no advertising. I cannot see your data.\n\nNetwork requests. Keel makes two kinds of request, and only these. Exchange rates are fetched from the public Frankfurter API (European Central Bank reference rates); the request carries no personal data. When a commitment has a brand website, its logo is loaded through Google's public favicon service; that request contains the brand's domain (netflix.com, for example) and, like any web request, your IP address. Items without a website trigger no logo request.\n\nAI import. With 'Use your own AI', you share your list with the assistant you choose, under that provider's terms; Keel only reads the answer you paste back, on your phone. Where the on-device option is available, reading happens with Apple Intelligence on your iPhone and nothing leaves the device.\n\nReminders are scheduled locally by iOS. The app lock uses Face ID, Touch ID or your passcode through iOS; Keel only receives whether it succeeded.\n\nBackups and exports are files you control. Sharing one sends it wherever you choose; treat exported files like the financial data they contain.\n\nIf you email me, I see what you send and use it only to reply. Contact: {{email}}.",
+    termsBody:
+      "Last updated: 12 July 2026.\n\nKeel is a personal tracking tool. It records what you enter and projects dates and totals from those entries. It does not connect to your bank, move money, or verify anything with your providers. Always check important amounts and dates against the actual bank or service.\n\nNot advice. Nothing in Keel is financial, legal or tax advice.\n\nYour device, your data. Keep your device and backup files safe. Anyone with access to your unlocked phone, or to an exported backup file, can read the data inside unless the app lock protects it.\n\nAs is. Keel is provided as is, without warranty of any kind. To the fullest extent permitted by law, the developer is not liable for damages arising from use of the app, including losses caused by relying on reminders, forecasts or totals (a missed payment fee, for example). Where the law does not allow such limitations, they apply to the extent permitted.\n\nTrademarks. Product names, logos and brands shown in Keel belong to their respective owners; Keel is independent of them.\n\nApp Store. Your use of Keel is also governed by Apple's standard Licensed Application End User License Agreement.\n\nContact: {{email}}.",
   },
   guide: {
     title: "What Keel can do",

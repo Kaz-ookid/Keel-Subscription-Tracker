@@ -1,5 +1,13 @@
 export const APP_NAME = "Keel";
 
+// Where "write to me" mails go. A plus-alias per subject (…+bug@proton.me)
+// also works for triage; swap for a dedicated address any time.
+export const SUPPORT_EMAIL = "contactkeel@protonmail.com";
+
+// Filled once the app exists in App Store Connect; while empty, the rate and
+// share rows on the About screen stay hidden (no fake links, ever).
+export const APP_STORE_ID = "";
+
 // A curated spectrum for user-picked accents (subscription colour, account
 // colour). A fixed palette is reliable and crash-free (the previous
 // full-spectrum picker crashed on selection).

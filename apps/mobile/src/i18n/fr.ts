@@ -507,7 +507,7 @@ export const fr: typeof en = {
     restoreTitle: "Restaurer une sauvegarde",
     restoreMsg: "Remplace tout le contenu actuel de l'app.",
     ratesFooter: "taux {{date}} (BCE)",
-    trademark: "Toutes les marques appartiennent à leurs propriétaires respectifs.",
+    groupAbout: "À propos",
   },
   onboarding: {
     tour1Title: "Tout, au même endroit",
@@ -566,6 +566,35 @@ export const fr: typeof en = {
     alreadyInList: "déjà dans votre liste",
     tapWhat: "Touchez ce que vous payez",
     addN: "Ajouter {{count}} à ma liste",
+  },
+  about: {
+    title: "À propos de Keel",
+    helloTitle: "Salut, ici Maxime 👋",
+    helloBody:
+      "Je développe Keel parce que je voulais un endroit calme où chaque abonnement, facture et paiement échelonné se tient. C'est fait par une seule personne, avec soin : sans compte, sans pub, sans pistage. Si Keel vous aide, ou si quelque chose cloche, j'ai vraiment envie de le savoir.",
+    groupWrite: "M'écrire",
+    bug: "Signaler un problème",
+    bugSubject: "Keel : problème",
+    idea: "Suggérer une fonctionnalité",
+    ideaSubject: "Keel : idée",
+    writeFooter: "Les deux ouvrent un e-mail vers {{email}}. Je lis tout.",
+    mailDetails: "Keel {{version}}, {{os}}",
+    groupSupport: "Soutenir Keel",
+    rate: "Noter Keel sur l'App Store",
+    share: "Recommander Keel à un ami",
+    shareMessage: "Je suis mes abonnements et paiements échelonnés avec Keel :",
+    supportFooter: "Une note prend une minute et aide plus qu'on ne le croit.",
+    groupLegal: "Mentions légales",
+    privacy: "Politique de confidentialité",
+    terms: "Conditions d'utilisation",
+    trademark:
+      "Tous les noms de produits, logos et marques cités dans Keel appartiennent à leurs propriétaires respectifs. Keel est indépendant et n'est ni affilié, ni approuvé, ni sponsorisé par aucun d'eux.",
+    thanks: "Merci d'utiliser un logiciel indépendant.",
+    version: "Version",
+    privacyBody:
+      "Dernière mise à jour : 12 juillet 2026.\n\nVos données restent sur votre appareil. Engagements, comptes, historique de paiements et réglages vivent dans le stockage local de l'app et dans les sauvegardes locales que vous créez. Keel n'a ni serveur, ni système de compte, ni outil d'analyse, ni publicité. Je ne peux pas voir vos données.\n\nRequêtes réseau. Keel fait deux types de requêtes, et seulement ceux-ci. Les taux de change proviennent de l'API publique Frankfurter (taux de référence de la Banque centrale européenne) ; la requête ne contient aucune donnée personnelle. Quand un engagement a un site web de marque, son logo est chargé via le service public de favicons de Google ; cette requête contient le domaine de la marque (netflix.com, par exemple) et, comme toute requête web, votre adresse IP. Les éléments sans site web ne déclenchent aucune requête de logo.\n\nImport avec l'IA. Avec « Utilisez votre propre IA », vous partagez votre liste avec l'assistant de votre choix, selon les conditions de ce fournisseur ; Keel ne fait que lire la réponse que vous collez, sur votre téléphone. Quand l'option sur l'appareil est disponible, la lecture se fait avec Apple Intelligence sur votre iPhone et rien ne quitte l'appareil.\n\nLes rappels sont programmés localement par iOS. Le verrou utilise Face ID, Touch ID ou votre code via iOS ; Keel ne reçoit que le résultat.\n\nLes sauvegardes et exports sont des fichiers que vous contrôlez. En partager un l'envoie où vous le décidez ; traitez ces fichiers comme les données financières qu'ils contiennent.\n\nSi vous m'écrivez, je vois ce que vous envoyez et ne l'utilise que pour répondre. Contact : {{email}}.",
+    termsBody:
+      "Dernière mise à jour : 12 juillet 2026.\n\nKeel est un outil de suivi personnel. Il enregistre ce que vous saisissez et projette dates et totaux à partir de ces saisies. Il ne se connecte pas à votre banque, ne déplace pas d'argent et ne vérifie rien auprès de vos fournisseurs. Vérifiez toujours les montants et dates importants auprès de la banque ou du service concerné.\n\nPas un conseil. Rien dans Keel ne constitue un conseil financier, juridique ou fiscal.\n\nVotre appareil, vos données. Protégez votre appareil et vos fichiers de sauvegarde. Toute personne ayant accès à votre téléphone déverrouillé, ou à un fichier de sauvegarde exporté, peut lire les données qu'il contient, sauf si le verrou de l'app les protège.\n\nEn l'état. Keel est fourni en l'état, sans garantie d'aucune sorte. Dans toute la mesure permise par la loi, le développeur n'est pas responsable des dommages liés à l'utilisation de l'app, y compris les pertes dues à la confiance accordée aux rappels, prévisions ou totaux (des frais de retard, par exemple). Là où la loi ne permet pas de telles limitations, elles s'appliquent dans la mesure permise.\n\nMarques. Les noms de produits, logos et marques affichés dans Keel appartiennent à leurs propriétaires respectifs ; Keel en est indépendant.\n\nApp Store. Votre utilisation de Keel est aussi régie par le contrat de licence utilisateur final standard d'Apple.\n\nContact : {{email}}.",
   },
   guide: {
     title: "Ce que Keel sait faire",
