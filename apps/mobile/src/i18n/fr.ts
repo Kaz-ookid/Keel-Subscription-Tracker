@@ -88,6 +88,10 @@ export const fr: typeof en = {
       "Ceci ne ressemble pas à une réponse d'IA au format Keel. Collez la réponse de l'IA, pas votre propre liste.",
     errEmpty:
       "L'IA n'a trouvé aucun abonnement dans ce qu'elle a reçu. Ajoutez un peu de détail et réessayez.",
+    readsLeft_one: "{{count}} lecture IA gratuite restante",
+    readsLeft_other: "{{count}} lectures IA gratuites restantes",
+    readsHint: "une lecture peut embarquer toute votre liste, faites-la compter 😉",
+    readsOut: "Lectures gratuites épuisées. Full Keel les rend illimitées.",
     privacyLink: "Fonctionnement & vos données",
     privacyTitle: "Comment ça marche",
     privacyBody:
@@ -465,6 +469,7 @@ export const fr: typeof en = {
     groupBackup: "Sauvegarde",
     groupDebug: "Debug",
     harborExperiment: "Vue port (expérimental)",
+    fullkeelDebug: "Full Keel (debug)",
     accounts: "Comptes",
     displayCurrency: "Devise d'affichage",
     appearance: "Apparence",
@@ -566,6 +571,24 @@ export const fr: typeof en = {
     alreadyInList: "déjà dans votre liste",
     tapWhat: "Touchez ce que vous payez",
     addN: "Ajouter {{count}} à ma liste",
+  },
+  fullkeel: {
+    title: "Full Keel",
+    subtitle: "Tout, pour toujours.",
+    priceTag: "Prix des premiers soutiens",
+    priceNote: "Passera à {{later}} une fois les coûts de développement de Keel couverts.",
+    includeAi: "Imports IA illimités",
+    includeFuture: "Toutes les fonctionnalités premium à venir",
+    includeFamily: "Partagé avec votre famille Apple, jusqu'à 5 personnes",
+    honesty:
+      "Tout le reste de Keel est gratuit pour tout le monde, pour toujours. Full Keel, c'est la voie rapide, et la façon de dire merci.",
+    cta: "Obtenir Full Keel",
+    soonTitle: "Bientôt",
+    soonMsg: "Les achats arrivent avec la sortie sur l'App Store.",
+    ownedTitle: "Full Keel est à vous",
+    ownedBody: "Merci de soutenir Keel.",
+    bannerSub: "IA illimitée, toutes les futures fonctionnalités",
+    bannerOwned: "Merci pour votre soutien",
   },
   about: {
     title: "À propos de Keel",

@@ -44,10 +44,12 @@ import {
 import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
-import { APP_NAME } from "../../src/constants";
+import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
 import { Card } from "../../src/components/ui/Card";
+import { Sheen } from "../../src/components/ui/Sheen";
 import { TabFade } from "../../src/components/TabFade";
 import { WheelSheet } from "../../src/components/WheelSheet";
+import { setFullKeel, useEntitlement } from "../../src/lib/entitlement";
 import { useAppState } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -57,6 +59,7 @@ import {
   typography,
   useTheme,
   useThemeMode,
+  withAlpha,
   type ThemeColors,
   type ThemeMode,
 } from "../../src/theme";
@@ -159,6 +162,9 @@ export default function SettingsScreen() {
   const [graceSeconds, setGraceSeconds] = useState(0);
   // Experimental Harbor view (DESIGN.md §3.7 B) — a debug-only flag.
   const [harborOn, setHarborOn] = useState(false);
+  // Full Keel: the banner reflects ownership; the debug switch flips it.
+  const entitlement = useEntitlement();
+  const [bannerWidth, setBannerWidth] = useState(0);
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
@@ -325,6 +331,32 @@ export default function SettingsScreen() {
         contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
       >
         <Text style={styles.largeTitle}>{t("tabs.settings")}</Text>
+
+        {/* Full Keel: the one purchase, worn like a banner, never a nag. */}
+        <Pressable
+          style={styles.fullkeelCard}
+          onPress={() => router.push("/fullkeel")}
+          onLayout={(e) => setBannerWidth(e.nativeEvent.layout.width)}
+        >
+          {bannerWidth > 0 && (
+            <Sheen width={bannerWidth} color={colors.accentStrong} opacity={0.12} />
+          )}
+          <SymbolView
+            name={entitlement.full ? "checkmark.seal.fill" : "sailboat.fill"}
+            size={22}
+            tintColor={colors.accentStrong}
+          />
+          <View style={styles.fullkeelTexts}>
+            <Text style={styles.fullkeelTitle}>{t("fullkeel.title")}</Text>
+            <Text style={styles.fullkeelSub}>
+              {entitlement.full
+                ? t("fullkeel.bannerOwned")
+                : `${t("fullkeel.bannerSub")} · ${FULL_KEEL_PRICE}`}
+            </Text>
+          </View>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+
         <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
         <Card>
           <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
@@ -476,6 +508,15 @@ export default function SettingsScreen() {
             <IconChip icon="arrow.counterclockwise" color={CHIP.debug} />
             <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
           </Pressable>
+          <View style={[styles.row, styles.rowDivider]}>
+            <IconChip icon="checkmark.seal.fill" color={CHIP.debug} />
+            <Text style={styles.rowText}>{t("settings.fullkeelDebug")}</Text>
+            <Switch
+              value={entitlement.full}
+              onValueChange={(next) => void setFullKeel(next)}
+              trackColor={{ true: colors.accent }}
+            />
+          </View>
         </Card>
 
         {/* The maker, the mailbox, the legal texts: one door for all of it. */}
@@ -566,6 +607,21 @@ function createStyles(colors: ThemeColors) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
     },
+    // The glass banner (§9f language, one accent contour, clipped sheen).
+    fullkeelCard: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: withAlpha(colors.accentStrong, 0.35),
+      borderRadius: 24,
+      padding: spacing.md,
+      overflow: "hidden",
+    },
+    fullkeelTexts: { flex: 1, gap: 1 },
+    fullkeelTitle: { ...typography.label, fontSize: 17, color: colors.text },
+    fullkeelSub: { ...typography.caption, color: colors.mutedText },
     privacyFooter: {
       ...typography.caption,
       color: colors.mutedText,

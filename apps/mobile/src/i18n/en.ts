@@ -88,6 +88,10 @@ export const en = {
       "That doesn't look like an AI answer in Keel's format. Paste the AI's reply, not your own list.",
     errEmpty:
       "The AI couldn't find any subscriptions in what it was given. Add a little more detail and try again.",
+    readsLeft_one: "{{count}} free AI read left",
+    readsLeft_other: "{{count}} free AI reads left",
+    readsHint: "one read can carry your whole list, make it count 😉",
+    readsOut: "Free reads used. Full Keel makes them unlimited.",
     privacyLink: "How this works & your data",
     privacyTitle: "How this works",
     privacyBody:
@@ -462,6 +466,7 @@ export const en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     harborExperiment: "Harbor view (experiment)",
+    fullkeelDebug: "Full Keel (debug)",
     accounts: "Accounts",
     displayCurrency: "Display currency",
     appearance: "Appearance",
@@ -561,6 +566,24 @@ export const en = {
     alreadyInList: "already in your list",
     tapWhat: "Tap what you pay for",
     addN: "Add {{count}} to my list",
+  },
+  fullkeel: {
+    title: "Full Keel",
+    subtitle: "Everything, forever.",
+    priceTag: "Early supporter price",
+    priceNote: "Moves to {{later}} once Keel's development costs are covered.",
+    includeAi: "Unlimited AI imports",
+    includeFuture: "Every premium feature Keel ever adds",
+    includeFamily: "Shared with your Apple Family, up to 5 people",
+    honesty:
+      "Everything else in Keel is free for everyone, forever. Full Keel is the fast lane, and the way to say thanks.",
+    cta: "Get Full Keel",
+    soonTitle: "Almost",
+    soonMsg: "Purchases arrive with the App Store release.",
+    ownedTitle: "Full Keel is yours",
+    ownedBody: "Thank you for supporting Keel.",
+    bannerSub: "Unlimited AI, every future feature",
+    bannerOwned: "Thank you for the support",
   },
   about: {
     title: "About Keel",

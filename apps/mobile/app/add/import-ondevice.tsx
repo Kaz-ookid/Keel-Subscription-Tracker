@@ -28,6 +28,7 @@ import {
   parseOnDevice,
   type OnDeviceAvailability,
 } from "../../src/lib/apple-intelligence";
+import { consumeAiRead, useEntitlement } from "../../src/lib/entitlement";
 import { useAppState } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import {
@@ -53,12 +54,19 @@ export default function OnDeviceImportScreen() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
+  // Same meter as the bring-your-own-AI path: two free reads, success-only.
+  const { loaded, full, readsLeft } = useEntitlement();
 
   useEffect(() => {
     void onDeviceAvailability().then(setAvailability);
   }, []);
 
   const read = async () => {
+    // Out of free reads: the button becomes the door to Full Keel.
+    if (loaded && !full && readsLeft <= 0) {
+      router.push("/fullkeel");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -77,6 +85,8 @@ export default function OnDeviceImportScreen() {
         setError(result.error ?? "empty");
         return;
       }
+      // A successful read spends one; failures never do.
+      void consumeAiRead();
       startSession(result.drafts, result.skipped);
       router.push("/add/import-review");
     } catch {
@@ -111,6 +121,13 @@ export default function OnDeviceImportScreen() {
 
           <View style={styles.card}>
             <Text style={styles.hint}>{t("onDevice.hint")}</Text>
+            {loaded && !full && (
+              <Text style={styles.hint}>
+                {readsLeft > 0
+                  ? `${t("importAI.readsLeft", { count: readsLeft })} · ${t("importAI.readsHint")}`
+                  : t("importAI.readsOut")}
+              </Text>
+            )}
             <TextInput
               style={styles.input}
               value={text}

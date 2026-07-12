@@ -16,6 +16,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { InfoPopup } from "../../src/components/InfoPopup";
 import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
+import { consumeAiRead, useEntitlement } from "../../src/lib/entitlement";
 import { useAppState } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import {
@@ -41,6 +42,8 @@ export default function ImportScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, accounts, categories, displayCurrency } = useAppState();
   const { startSession } = useImportSession();
+  // The free-read meter (2 reads; a read only counts when it succeeds).
+  const { loaded, full, readsLeft } = useEntitlement();
 
   const [pasted, setPasted] = useState("");
   // Pasting is the expected path (a Paste button, no keyboard); typing by
@@ -66,6 +69,11 @@ export default function ImportScreen() {
     ]);
 
   const parseAndGo = (text: string) => {
+    // Out of free reads: the button becomes the door to Full Keel.
+    if (loaded && !full && readsLeft <= 0) {
+      router.push("/fullkeel");
+      return;
+    }
     const result = parseImportDocument(text, {
       defaultCurrency: displayCurrency,
       today: today(),
@@ -80,6 +88,8 @@ export default function ImportScreen() {
       return;
     }
     setError(null);
+    // A SUCCESSFUL read spends one; failures above never do.
+    void consumeAiRead();
     startSession(result.drafts, result.skipped);
     router.push("/add/import-review");
   };
@@ -161,6 +171,14 @@ export default function ImportScreen() {
       {/* The paste-back area: a Paste button first (no keyboard in the way);
           typing by hand stays available behind the quiet toggle. */}
       <View style={[styles.card, styles.pasteCard]}>
+        {/* The meter states the deal plainly: two reads, batch them well. */}
+        {loaded && !full && (
+          <Text style={styles.readsMeter}>
+            {readsLeft > 0
+              ? `${t("importAI.readsLeft", { count: readsLeft })} · ${t("importAI.readsHint")}`
+              : t("importAI.readsOut")}
+          </Text>
+        )}
         {manualEntry && (
           <TextInput
             style={styles.paste}
@@ -410,6 +428,7 @@ function createStyles(colors: ThemeColors) {
       textAlignVertical: "top",
     },
     error: { ...typography.caption, color: colors.tones.danger },
+    readsMeter: { ...typography.caption, color: colors.mutedText },
     privacyLink: {
       flexDirection: "row",
       alignItems: "center",

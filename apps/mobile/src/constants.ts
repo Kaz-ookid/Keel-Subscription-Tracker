@@ -8,6 +8,15 @@ export const SUPPORT_EMAIL = "contactkeel@protonmail.com";
 // share rows on the About screen stay hidden (no fake links, ever).
 export const APP_STORE_ID = "";
 
+// Full Keel (the one-time supporter purchase): everything in the app is free
+// forever; this unlocks unlimited AI reads and every future premium feature.
+// Two free reads let anyone import their whole life first (one read can
+// carry an entire list). Display prices only; the real ones live in App
+// Store Connect when IAP is wired (dev-build era).
+export const FREE_AI_READS = 2;
+export const FULL_KEEL_PRICE = "10 CHF";
+export const FULL_KEEL_PRICE_LATER = "15 CHF";
+
 // A curated spectrum for user-picked accents (subscription colour, account
 // colour). A fixed palette is reliable and crash-free (the previous
 // full-spectrum picker crashed on selection).
