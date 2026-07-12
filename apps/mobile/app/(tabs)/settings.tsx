@@ -46,6 +46,7 @@ import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME } from "../../src/constants";
 import { Card } from "../../src/components/ui/Card";
+import { TabFade } from "../../src/components/TabFade";
 import { WheelSheet } from "../../src/components/WheelSheet";
 import { useAppState } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -315,187 +316,189 @@ export default function SettingsScreen() {
     ]);
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
-    >
-      <Text style={styles.largeTitle}>{t("tabs.settings")}</Text>
-      <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
-      <Card>
-        <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
-          <IconChip icon="building.columns.fill" color={CHIP.accounts} />
-          <Text style={styles.rowText}>{t("settings.accounts")}</Text>
-          <Text style={styles.rowValue}>{accounts.length || ""}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
-          <IconChip icon="coloncurrencysign.circle" color={CHIP.currency} />
-          <Text style={styles.rowText}>{t("settings.displayCurrency")}</Text>
-          <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={pickTheme}>
-          <IconChip icon="circle.lefthalf.filled" color={CHIP.appearance} />
-          <Text style={styles.rowText}>{t("settings.appearance")}</Text>
-          <Text style={styles.rowValue}>
-            {t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
-          </Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={pickLanguage}>
-          <IconChip icon="globe" color={CHIP.language} />
-          <Text style={styles.rowText}>{t("settings.language")}</Text>
-          <Text style={styles.rowValue}>
-            {languageLabel(
-              LANGUAGE_OPTIONS.find((o) => o.value === languageMode) ?? LANGUAGE_OPTIONS[0],
-            )}
-          </Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-        {/* The notification center: master switch, defaults, scheduled list. */}
-        <Pressable
-          style={[styles.row, styles.rowDivider]}
-          onPress={() => router.push("/notifications")}
-        >
-          <IconChip icon="bell.fill" color={CHIP.reminders} />
-          <Text style={styles.rowText}>{t("notifCenter.title")}</Text>
-          <Text style={styles.rowValue}>
-            {remindersOn === null
-              ? ""
-              : remindersOn
-                ? t("settings.remindersOn")
-                : t("settings.remindersOff")}
-          </Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-        <Pressable
-          style={[styles.row, styles.rowDivider]}
-          onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
-        >
-          <IconChip icon="rectangle.stack.fill" color={CHIP.browse} />
-          <Text style={styles.rowText}>{t("settings.browseCommon")}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-        {/* The deliberate home of the AI import (§6.1) — the Add flow only hints. */}
-        <Pressable
-          style={[styles.row, styles.rowDivider]}
-          onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
-        >
-          <IconChip icon="sparkles" color={CHIP.importAI} />
-          <Text style={styles.rowText}>{t("settings.importAI")}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-      </Card>
+    <TabFade style={styles.screen}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+      >
+        <Text style={styles.largeTitle}>{t("tabs.settings")}</Text>
+        <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
+        <Card>
+          <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
+            <IconChip icon="building.columns.fill" color={CHIP.accounts} />
+            <Text style={styles.rowText}>{t("settings.accounts")}</Text>
+            <Text style={styles.rowValue}>{accounts.length || ""}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
+            <IconChip icon="coloncurrencysign.circle" color={CHIP.currency} />
+            <Text style={styles.rowText}>{t("settings.displayCurrency")}</Text>
+            <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={pickTheme}>
+            <IconChip icon="circle.lefthalf.filled" color={CHIP.appearance} />
+            <Text style={styles.rowText}>{t("settings.appearance")}</Text>
+            <Text style={styles.rowValue}>
+              {t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
+            </Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={pickLanguage}>
+            <IconChip icon="globe" color={CHIP.language} />
+            <Text style={styles.rowText}>{t("settings.language")}</Text>
+            <Text style={styles.rowValue}>
+              {languageLabel(
+                LANGUAGE_OPTIONS.find((o) => o.value === languageMode) ?? LANGUAGE_OPTIONS[0],
+              )}
+            </Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          {/* The notification center: master switch, defaults, scheduled list. */}
+          <Pressable
+            style={[styles.row, styles.rowDivider]}
+            onPress={() => router.push("/notifications")}
+          >
+            <IconChip icon="bell.fill" color={CHIP.reminders} />
+            <Text style={styles.rowText}>{t("notifCenter.title")}</Text>
+            <Text style={styles.rowValue}>
+              {remindersOn === null
+                ? ""
+                : remindersOn
+                  ? t("settings.remindersOn")
+                  : t("settings.remindersOff")}
+            </Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable
+            style={[styles.row, styles.rowDivider]}
+            onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
+          >
+            <IconChip icon="rectangle.stack.fill" color={CHIP.browse} />
+            <Text style={styles.rowText}>{t("settings.browseCommon")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          {/* The deliberate home of the AI import (§6.1) — the Add flow only hints. */}
+          <Pressable
+            style={[styles.row, styles.rowDivider]}
+            onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
+          >
+            <IconChip icon="sparkles" color={CHIP.importAI} />
+            <Text style={styles.rowText}>{t("settings.importAI")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+        </Card>
 
-      {/* Privacy: the app lock. The OS does the locking; we store one flag. */}
-      <Text style={styles.groupLabel}>{t("settings.groupPrivacy")}</Text>
-      <Card>
-        <View style={styles.row}>
-          <IconChip icon="faceid" color={authKind === "unavailable" ? CHIP.debug : CHIP.faceid} />
-          <Text style={styles.rowText}>{lockLabel}</Text>
-          {authKind === "unavailable" ? (
-            <Text style={styles.rowValue}>{t("applock.needPasscode")}</Text>
-          ) : (
+        {/* Privacy: the app lock. The OS does the locking; we store one flag. */}
+        <Text style={styles.groupLabel}>{t("settings.groupPrivacy")}</Text>
+        <Card>
+          <View style={styles.row}>
+            <IconChip icon="faceid" color={authKind === "unavailable" ? CHIP.debug : CHIP.faceid} />
+            <Text style={styles.rowText}>{lockLabel}</Text>
+            {authKind === "unavailable" ? (
+              <Text style={styles.rowValue}>{t("applock.needPasscode")}</Text>
+            ) : (
+              <Switch
+                value={lockEnabled}
+                onValueChange={(next) => void toggleLock(next)}
+                disabled={authKind === null}
+                trackColor={{ true: colors.accent }}
+              />
+            )}
+          </View>
+          {lockEnabled && (
+            <Animated.View entering={foldIn} exiting={foldOut}>
+              <Pressable style={[styles.row, styles.rowDivider]} onPress={pickGrace}>
+                <IconChip icon="clock.fill" color={CHIP.grace} />
+                <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
+                <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
+                <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+              </Pressable>
+            </Animated.View>
+          )}
+          <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
+        </Card>
+
+        {/* Where the data lives: iCloud preference, local backups, export. */}
+        <Text style={styles.groupLabel}>{t("settings.groupBackup")}</Text>
+        <Card>
+          <Pressable style={styles.row} onPress={() => router.push("/data")}>
+            <IconChip icon="icloud.fill" color={CHIP.exportBackup} />
+            <Text style={styles.rowText}>{t("data.title")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+        </Card>
+
+        {/* Debug, for dogfooding: seed a realistic household or start clean —
+          bracketed by the snapshot slot so real data survives the play. */}
+        <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
+        <Card>
+          <Pressable style={styles.row} onPress={confirmSnapshotSave}>
+            <IconChip icon="tray.and.arrow.down.fill" color={CHIP.debug} />
+            <Text style={styles.rowText}>{t("settings.snapshotSave")}</Text>
+            <Text style={styles.rowValue}>{snapshotLabel}</Text>
+          </Pressable>
+          {snapshotSavedAt !== null && (
+            <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSnapshotRestore}>
+              <IconChip icon="tray.and.arrow.up.fill" color={CHIP.debug} />
+              <Text style={styles.rowText}>{t("settings.snapshotRestore")}</Text>
+            </Pressable>
+          )}
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSample}>
+            <IconChip icon="wand.and.stars" color={CHIP.sample} />
+            <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
+          </Pressable>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmDemo}>
+            <IconChip icon="person.crop.square.filled.and.at.rectangle" color={CHIP.demo} />
+            <Text style={styles.rowText}>{t("settings.loadDemo")}</Text>
+          </Pressable>
+          <View style={[styles.row, styles.rowDivider]}>
+            <IconChip icon="sailboat" color={CHIP.harbor} />
+            <Text style={styles.rowText}>{t("settings.harborExperiment")}</Text>
             <Switch
-              value={lockEnabled}
-              onValueChange={(next) => void toggleLock(next)}
-              disabled={authKind === null}
+              value={harborOn}
+              onValueChange={(next) => {
+                setHarborOn(next);
+                void setHarborEnabled(next);
+              }}
               trackColor={{ true: colors.accent }}
             />
-          )}
-        </View>
-        {lockEnabled && (
-          <Animated.View entering={foldIn} exiting={foldOut}>
-            <Pressable style={[styles.row, styles.rowDivider]} onPress={pickGrace}>
-              <IconChip icon="clock.fill" color={CHIP.grace} />
-              <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
-              <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
-              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-            </Pressable>
-          </Animated.View>
-        )}
-        <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
-      </Card>
-
-      {/* Where the data lives: iCloud preference, local backups, export. */}
-      <Text style={styles.groupLabel}>{t("settings.groupBackup")}</Text>
-      <Card>
-        <Pressable style={styles.row} onPress={() => router.push("/data")}>
-          <IconChip icon="icloud.fill" color={CHIP.exportBackup} />
-          <Text style={styles.rowText}>{t("data.title")}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-        </Pressable>
-      </Card>
-
-      {/* Debug, for dogfooding: seed a realistic household or start clean —
-          bracketed by the snapshot slot so real data survives the play. */}
-      <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
-      <Card>
-        <Pressable style={styles.row} onPress={confirmSnapshotSave}>
-          <IconChip icon="tray.and.arrow.down.fill" color={CHIP.debug} />
-          <Text style={styles.rowText}>{t("settings.snapshotSave")}</Text>
-          <Text style={styles.rowValue}>{snapshotLabel}</Text>
-        </Pressable>
-        {snapshotSavedAt !== null && (
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSnapshotRestore}>
-            <IconChip icon="tray.and.arrow.up.fill" color={CHIP.debug} />
-            <Text style={styles.rowText}>{t("settings.snapshotRestore")}</Text>
+          </View>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
+            <IconChip icon="arrow.counterclockwise" color={CHIP.debug} />
+            <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
           </Pressable>
-        )}
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSample}>
-          <IconChip icon="wand.and.stars" color={CHIP.sample} />
-          <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
-        </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmDemo}>
-          <IconChip icon="person.crop.square.filled.and.at.rectangle" color={CHIP.demo} />
-          <Text style={styles.rowText}>{t("settings.loadDemo")}</Text>
-        </Pressable>
-        <View style={[styles.row, styles.rowDivider]}>
-          <IconChip icon="sailboat" color={CHIP.harbor} />
-          <Text style={styles.rowText}>{t("settings.harborExperiment")}</Text>
-          <Switch
-            value={harborOn}
-            onValueChange={(next) => {
-              setHarborOn(next);
-              void setHarborEnabled(next);
-            }}
-            trackColor={{ true: colors.accent }}
-          />
-        </View>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
-          <IconChip icon="arrow.counterclockwise" color={CHIP.debug} />
-          <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
-        </Pressable>
-      </Card>
+        </Card>
 
-      <Text style={styles.footer}>
-        {APP_NAME}
-        {rates ? ` · ${t("settings.ratesFooter", { date: rates.date })}` : ""}
-        {"\n"}
-        {t("settings.trademark")}
-      </Text>
+        <Text style={styles.footer}>
+          {APP_NAME}
+          {rates ? ` · ${t("settings.ratesFooter", { date: rates.date })}` : ""}
+          {"\n"}
+          {t("settings.trademark")}
+        </Text>
 
-      <WheelSheet
-        visible={currencySheet}
-        title={t("settings.displayCurrency")}
-        onClose={() => setCurrencySheet(false)}
-      >
-        <Picker
-          selectedValue={displayCurrency}
-          onValueChange={(v) => setDisplayCurrency(v as CurrencyCode)}
+        <WheelSheet
+          visible={currencySheet}
+          title={t("settings.displayCurrency")}
+          onClose={() => setCurrencySheet(false)}
         >
-          {CURRENCY_CODES.map((code) => (
-            <Picker.Item
-              key={code}
-              label={`${currencyLabel(code)} — ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`}
-              value={code}
-              color={colors.text}
-            />
-          ))}
-        </Picker>
-      </WheelSheet>
-    </ScrollView>
+          <Picker
+            selectedValue={displayCurrency}
+            onValueChange={(v) => setDisplayCurrency(v as CurrencyCode)}
+          >
+            {CURRENCY_CODES.map((code) => (
+              <Picker.Item
+                key={code}
+                label={`${currencyLabel(code)} — ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`}
+                value={code}
+                color={colors.text}
+              />
+            ))}
+          </Picker>
+        </WheelSheet>
+      </ScrollView>
+    </TabFade>
   );
 }
 

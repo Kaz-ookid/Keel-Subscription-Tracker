@@ -16,6 +16,7 @@ type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
+import { TabFade } from "../../src/components/TabFade";
 import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
 import { onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
@@ -117,7 +118,7 @@ export default function PaymentsScreen() {
   );
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <TabFade style={[styles.screen, { paddingTop: insets.top }]}>
       {/* The screen owns its title now: large, on the Ambient stage. */}
       <Text style={styles.largeTitle}>{t("tabs.payments")}</Text>
       <View style={styles.switchWrap}>
@@ -179,7 +180,7 @@ export default function PaymentsScreen() {
       ) : (
         <ScheduleView lens={scheduleLens} onLens={setScheduleLens} harborEnabled={harborEnabled} />
       )}
-    </View>
+    </TabFade>
   );
 }
 

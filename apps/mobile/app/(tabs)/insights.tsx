@@ -46,6 +46,7 @@ import { YearChart, type YearChartMonth } from "../../src/components/YearChart";
 import { monthFull, monthShort } from "../../src/i18n/dates";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { foldIn, foldLayout, foldOut } from "../../src/lib/motion";
+import { TabFade } from "../../src/components/TabFade";
 import { useTabReset } from "../../src/lib/tabReset";
 import { useAppState } from "../../src/state/app-state";
 import {
@@ -308,168 +309,258 @@ export default function InsightsScreen() {
   ].sort((a, b) => (a.dueDate < b.dueDate ? -1 : 1));
 
   return (
-    <ScrollView
-      ref={scrollRef}
-      style={styles.screen}
-      contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
-    >
-      <Text style={styles.largeTitle}>{t("tabs.insights")}</Text>
-      <HeroCard
-        label={t("insights.yearInTotal", { year })}
-        amount={yearReal.length > 0 ? totals(yearReal) : t("insights.nothingPlanned")}
-        sub={heroSub}
-      />
+    <TabFade style={styles.screen}>
+      <ScrollView
+        ref={scrollRef}
+        style={styles.screen}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+      >
+        <Text style={styles.largeTitle}>{t("tabs.insights")}</Text>
+        <HeroCard
+          label={t("insights.yearInTotal", { year })}
+          amount={yearReal.length > 0 ? totals(yearReal) : t("insights.nothingPlanned")}
+          sub={heroSub}
+        />
 
-      {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
-      <View style={styles.statRow}>
-        <Card variant="free" style={styles.statCard}>
-          <StatValue
-            label={t("insights.thisMonth")}
-            value={thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
-            hint={t("insights.actuallyLeaves")}
-          />
-        </Card>
-        <Card variant="free" style={styles.statCard}>
-          <StatValue
-            label={t("insights.averagePerMonth")}
-            value={
-              commitments.monthly.length > 0 ? totals(commitments.monthly) : t("insights.nothing")
-            }
-            hint={ongoingHint}
-          />
-        </Card>
-      </View>
+        {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
+        <View style={styles.statRow}>
+          <Card variant="free" style={styles.statCard}>
+            <StatValue
+              label={t("insights.thisMonth")}
+              value={thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
+              hint={t("insights.actuallyLeaves")}
+            />
+          </Card>
+          <Card variant="free" style={styles.statCard}>
+            <StatValue
+              label={t("insights.averagePerMonth")}
+              value={
+                commitments.monthly.length > 0 ? totals(commitments.monthly) : t("insights.nothing")
+              }
+              hint={ongoingHint}
+            />
+          </Card>
+        </View>
 
-      <YearChart
-        months={chartMonths}
-        average={averageTheory}
-        averageFormatted={formatMoney(money(averageTheory, displayCurrency))}
-        todayIndex={todayIndex}
-        selected={selected}
-        onSelect={(i) => setSelected((prev) => (prev === i ? null : i))}
-      />
+        <YearChart
+          months={chartMonths}
+          average={averageTheory}
+          averageFormatted={formatMoney(money(averageTheory, displayCurrency))}
+          todayIndex={todayIndex}
+          selected={selected}
+          onSelect={(i) => setSelected((prev) => (prev === i ? null : i))}
+        />
 
-      {/* The tapped month's payments — light, in place, no extra screen.
+        {/* The tapped month's payments — light, in place, no extra screen.
           About five rows visible; the rest scroll inside the card. */}
-      {details.length > 0 && (
-        <Animated.View entering={foldIn} exiting={foldOut} layout={foldLayout}>
-          <ScrollView style={styles.detailCard} nestedScrollEnabled>
-            {details.map((d, i) => (
-              <Pressable
-                key={d.key}
-                style={[styles.detailRow, i > 0 && styles.detailRowDivider]}
-                onPress={() => router.push({ pathname: "/item", params: { id: d.paymentItemId } })}
-              >
-                <SymbolView
-                  name={
-                    d.kind === "paid"
-                      ? "checkmark.circle.fill"
-                      : d.kind === "overdue"
-                        ? "exclamationmark.circle"
-                        : "clock"
+        {details.length > 0 && (
+          <Animated.View entering={foldIn} exiting={foldOut} layout={foldLayout}>
+            <ScrollView style={styles.detailCard} nestedScrollEnabled>
+              {details.map((d, i) => (
+                <Pressable
+                  key={d.key}
+                  style={[styles.detailRow, i > 0 && styles.detailRowDivider]}
+                  onPress={() =>
+                    router.push({ pathname: "/item", params: { id: d.paymentItemId } })
                   }
-                  size={14}
-                  tintColor={
-                    d.kind === "paid"
-                      ? colors.tones.success
-                      : d.kind === "overdue"
-                        ? colors.tones.warning
-                        : colors.mutedText
-                  }
-                />
-                {/* Date belongs with the name; the amount stands alone right. */}
-                <View style={styles.detailLeft}>
-                  <Text style={styles.detailName} numberOfLines={1}>
-                    {d.name}
-                    {d.installmentIndex && d.installmentCount ? (
-                      <Text style={styles.detailCount}>
-                        {" "}
-                        · {t("common.xOfY", { x: d.installmentIndex, y: d.installmentCount })}
-                      </Text>
-                    ) : null}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.detailDate,
-                      d.kind === "overdue" && { color: colors.tones.warning },
-                    ]}
+                >
+                  <SymbolView
+                    name={
+                      d.kind === "paid"
+                        ? "checkmark.circle.fill"
+                        : d.kind === "overdue"
+                          ? "exclamationmark.circle"
+                          : "clock"
+                    }
+                    size={14}
+                    tintColor={
+                      d.kind === "paid"
+                        ? colors.tones.success
+                        : d.kind === "overdue"
+                          ? colors.tones.warning
+                          : colors.mutedText
+                    }
+                  />
+                  {/* Date belongs with the name; the amount stands alone right. */}
+                  <View style={styles.detailLeft}>
+                    <Text style={styles.detailName} numberOfLines={1}>
+                      {d.name}
+                      {d.installmentIndex && d.installmentCount ? (
+                        <Text style={styles.detailCount}>
+                          {" "}
+                          · {t("common.xOfY", { x: d.installmentIndex, y: d.installmentCount })}
+                        </Text>
+                      ) : null}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.detailDate,
+                        d.kind === "overdue" && { color: colors.tones.warning },
+                      ]}
+                    >
+                      {d.kind === "overdue"
+                        ? t("row.due", { date: formatCalendarDate(d.dueDate) })
+                        : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
+                    </Text>
+                  </View>
+                  <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </Animated.View>
+        )}
+
+        {otherCurrencies.length > 0 && (
+          <Animated.Text layout={foldLayout} style={styles.note}>
+            {t("insights.notCharted", { amount: totals(otherCurrencies) })}
+          </Animated.Text>
+        )}
+
+        {(cadences.length > 0 || planSummaries.length > 0) && (
+          <Animated.View layout={foldLayout} style={styles.section}>
+            <Text style={styles.sectionTitle}>{t("insights.byBillingCycle")}</Text>
+            {cadences.map((g) => {
+              const key = g.kind;
+              const open = expandedCadence === key;
+              const label =
+                g.kind === "monthly"
+                  ? t("insights.cycleMonthly")
+                  : g.kind === "yearly"
+                    ? t("insights.cycleYearly")
+                    : t("insights.cycleOther");
+              // The live subscriptions in this bucket, biggest first.
+              const members = items
+                .filter(
+                  (i) =>
+                    i.status === "active" &&
+                    isRecurringSchedule(i.schedule) &&
+                    !isPaymentItemComplete(i, asOf) &&
+                    cadenceBucket(i.schedule.recurrence) === g.kind,
+                )
+                .sort((a, b) => {
+                  const av = isRecurringSchedule(a.schedule) ? amountIn([a.schedule.amount]) : 0;
+                  const bv = isRecurringSchedule(b.schedule) ? amountIn([b.schedule.amount]) : 0;
+                  return bv - av;
+                });
+              return (
+                // The accordion: this row grows and everything below slides.
+                <Animated.View key={key} style={styles.cadenceRow} layout={foldLayout}>
+                  <Pressable
+                    style={styles.cadenceBody}
+                    onPress={() => setExpandedCadence(open ? null : key)}
                   >
-                    {d.kind === "overdue"
-                      ? t("row.due", { date: formatCalendarDate(d.dueDate) })
-                      : d.dueDate.slice(8, 10) + "." + d.dueDate.slice(5, 7)}
-                  </Text>
-                </View>
-                <Text style={styles.detailAmount}>{formatMoney(d.amount)}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </Animated.View>
-      )}
+                    <View style={styles.cadenceHeader}>
+                      <Text style={styles.cadenceLabel}>
+                        {label} <Text style={styles.cadenceCount}>×{g.count}</Text>
+                      </Text>
+                      <View style={styles.cadenceRight}>
+                        <Text style={styles.cadenceAmount}>
+                          {t("insights.perMoYr", {
+                            mo: totals(g.monthlyTotal),
+                            yr: totals(g.yearlyTotal),
+                          })}
+                        </Text>
+                        <SymbolView
+                          name={open ? "chevron.up" : "chevron.down"}
+                          size={11}
+                          tintColor={colors.mutedText}
+                        />
+                      </View>
+                    </View>
+                  </Pressable>
+                  {open && (
+                    <Animated.View entering={foldIn} exiting={foldOut}>
+                      {members.map((item) => {
+                        const category = categories.find((c) => c.id === item.categoryId);
+                        const recurring = isRecurringSchedule(item.schedule)
+                          ? item.schedule
+                          : undefined;
+                        return (
+                          <Pressable
+                            key={item.id}
+                            style={styles.memberRow}
+                            onPress={() =>
+                              router.push({ pathname: "/item", params: { id: item.id } })
+                            }
+                          >
+                            <BrandBadge
+                              domain={item.domain}
+                              icon={category?.icon}
+                              fallback={item.name.charAt(0).toUpperCase()}
+                              color={item.color ?? colors.accent}
+                              size={28}
+                            />
+                            <View style={styles.memberMiddle}>
+                              <Text style={styles.memberName} numberOfLines={1}>
+                                {item.name}
+                              </Text>
+                              {/* In the catch-all "Other" bucket, each item shows
+                              its own cadence — the headline can't. */}
+                              {g.kind === "other" && recurring && (
+                                <Text style={styles.memberCadence} numberOfLines={1}>
+                                  {capitalize(localizedRecurrence(recurring.recurrence))}
+                                </Text>
+                              )}
+                            </View>
+                            <Text style={styles.memberValue}>
+                              {recurring ? formatMoney(recurring.amount) : ""}
+                            </Text>
+                            <SymbolView
+                              name="chevron.right"
+                              size={13}
+                              tintColor={colors.mutedText}
+                            />
+                          </Pressable>
+                        );
+                      })}
+                    </Animated.View>
+                  )}
+                </Animated.View>
+              );
+            })}
 
-      {otherCurrencies.length > 0 && (
-        <Animated.Text layout={foldLayout} style={styles.note}>
-          {t("insights.notCharted", { amount: totals(otherCurrencies) })}
-        </Animated.Text>
-      )}
-
-      {(cadences.length > 0 || planSummaries.length > 0) && (
-        <Animated.View layout={foldLayout} style={styles.section}>
-          <Text style={styles.sectionTitle}>{t("insights.byBillingCycle")}</Text>
-          {cadences.map((g) => {
-            const key = g.kind;
-            const open = expandedCadence === key;
-            const label =
-              g.kind === "monthly"
-                ? t("insights.cycleMonthly")
-                : g.kind === "yearly"
-                  ? t("insights.cycleYearly")
-                  : t("insights.cycleOther");
-            // The live subscriptions in this bucket, biggest first.
-            const members = items
-              .filter(
-                (i) =>
-                  i.status === "active" &&
-                  isRecurringSchedule(i.schedule) &&
-                  !isPaymentItemComplete(i, asOf) &&
-                  cadenceBucket(i.schedule.recurrence) === g.kind,
-              )
-              .sort((a, b) => {
-                const av = isRecurringSchedule(a.schedule) ? amountIn([a.schedule.amount]) : 0;
-                const bv = isRecurringSchedule(b.schedule) ? amountIn([b.schedule.amount]) : 0;
-                return bv - av;
-              });
-            return (
-              // The accordion: this row grows and everything below slides.
-              <Animated.View key={key} style={styles.cadenceRow} layout={foldLayout}>
+            {/* Pay in X earns its own card — its bar is PROGRESS PAID, and the
+              headline is what's still owed (not a meaningless per-month). */}
+            {planSummaries.length > 0 && (
+              <Animated.View style={styles.cadenceRow} layout={foldLayout}>
                 <Pressable
                   style={styles.cadenceBody}
-                  onPress={() => setExpandedCadence(open ? null : key)}
+                  onPress={() => setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl")}
                 >
                   <View style={styles.cadenceHeader}>
                     <Text style={styles.cadenceLabel}>
-                      {label} <Text style={styles.cadenceCount}>×{g.count}</Text>
+                      {t("insights.splitPayments")}{" "}
+                      <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
                     </Text>
                     <View style={styles.cadenceRight}>
-                      <Text style={styles.cadenceAmount}>
-                        {t("insights.perMoYr", {
-                          mo: totals(g.monthlyTotal),
-                          yr: totals(g.yearlyTotal),
-                        })}
+                      <Text style={styles.bnplOwed}>
+                        {t("insights.stillOwed", { amount: totals(bnplRemaining) })}
                       </Text>
                       <SymbolView
-                        name={open ? "chevron.up" : "chevron.down"}
+                        name={expandedCadence === "bnpl" ? "chevron.up" : "chevron.down"}
                         size={11}
                         tintColor={colors.mutedText}
                       />
                     </View>
                   </View>
+                  {/* The plan total rides beside the bar, not under it — no
+                    extra line for a few words. */}
+                  <View style={styles.bnplTrackRow}>
+                    <View style={[styles.shareTrack, styles.bnplTrack]}>
+                      <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
+                      <View style={{ flex: 1 - bnplPaidShare }} />
+                    </View>
+                    <Text style={styles.statHint}>
+                      {t("insights.ofTotal", { total: totals(bnplTotal) })}
+                    </Text>
+                  </View>
                 </Pressable>
-                {open && (
+                {expandedCadence === "bnpl" && (
                   <Animated.View entering={foldIn} exiting={foldOut}>
-                    {members.map((item) => {
+                    {planItems.map((item) => {
                       const category = categories.find((c) => c.id === item.categoryId);
-                      const recurring = isRecurringSchedule(item.schedule)
-                        ? item.schedule
+                      const plan = isInstallmentSchedule(item.schedule)
+                        ? summarizeInstallmentPlan(item.schedule)
                         : undefined;
                       return (
                         <Pressable
@@ -486,20 +577,13 @@ export default function InsightsScreen() {
                             color={item.color ?? colors.accent}
                             size={28}
                           />
-                          <View style={styles.memberMiddle}>
-                            <Text style={styles.memberName} numberOfLines={1}>
-                              {item.name}
-                            </Text>
-                            {/* In the catch-all "Other" bucket, each item shows
-                              its own cadence — the headline can't. */}
-                            {g.kind === "other" && recurring && (
-                              <Text style={styles.memberCadence} numberOfLines={1}>
-                                {capitalize(localizedRecurrence(recurring.recurrence))}
-                              </Text>
-                            )}
-                          </View>
+                          <Text style={styles.memberName} numberOfLines={1}>
+                            {item.name}
+                          </Text>
                           <Text style={styles.memberValue}>
-                            {recurring ? formatMoney(recurring.amount) : ""}
+                            {plan
+                              ? `${formatMoney(plan.remainingAmount)} left · ${plan.paidCount} of ${plan.totalCount}`
+                              : ""}
                           </Text>
                           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
                         </Pressable>
@@ -508,114 +592,41 @@ export default function InsightsScreen() {
                   </Animated.View>
                 )}
               </Animated.View>
-            );
-          })}
+            )}
+          </Animated.View>
+        )}
 
-          {/* Pay in X earns its own card — its bar is PROGRESS PAID, and the
-              headline is what's still owed (not a meaningless per-month). */}
-          {planSummaries.length > 0 && (
-            <Animated.View style={styles.cadenceRow} layout={foldLayout}>
-              <Pressable
-                style={styles.cadenceBody}
-                onPress={() => setExpandedCadence(expandedCadence === "bnpl" ? null : "bnpl")}
-              >
-                <View style={styles.cadenceHeader}>
-                  <Text style={styles.cadenceLabel}>
-                    {t("insights.splitPayments")}{" "}
-                    <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
-                  </Text>
-                  <View style={styles.cadenceRight}>
-                    <Text style={styles.bnplOwed}>
-                      {t("insights.stillOwed", { amount: totals(bnplRemaining) })}
-                    </Text>
-                    <SymbolView
-                      name={expandedCadence === "bnpl" ? "chevron.up" : "chevron.down"}
-                      size={11}
-                      tintColor={colors.mutedText}
-                    />
-                  </View>
-                </View>
-                {/* The plan total rides beside the bar, not under it — no
-                    extra line for a few words. */}
-                <View style={styles.bnplTrackRow}>
-                  <View style={[styles.shareTrack, styles.bnplTrack]}>
-                    <View style={[styles.shareFill, { flex: bnplPaidShare }]} />
-                    <View style={{ flex: 1 - bnplPaidShare }} />
-                  </View>
-                  <Text style={styles.statHint}>
-                    {t("insights.ofTotal", { total: totals(bnplTotal) })}
-                  </Text>
-                </View>
-              </Pressable>
-              {expandedCadence === "bnpl" && (
-                <Animated.View entering={foldIn} exiting={foldOut}>
-                  {planItems.map((item) => {
-                    const category = categories.find((c) => c.id === item.categoryId);
-                    const plan = isInstallmentSchedule(item.schedule)
-                      ? summarizeInstallmentPlan(item.schedule)
-                      : undefined;
-                    return (
-                      <Pressable
-                        key={item.id}
-                        style={styles.memberRow}
-                        onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-                      >
-                        <BrandBadge
-                          domain={item.domain}
-                          icon={category?.icon}
-                          fallback={item.name.charAt(0).toUpperCase()}
-                          color={item.color ?? colors.accent}
-                          size={28}
-                        />
-                        <Text style={styles.memberName} numberOfLines={1}>
-                          {item.name}
-                        </Text>
-                        <Text style={styles.memberValue}>
-                          {plan
-                            ? `${formatMoney(plan.remainingAmount)} left · ${plan.paidCount} of ${plan.totalCount}`
-                            : ""}
-                        </Text>
-                        <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-                      </Pressable>
-                    );
-                  })}
-                </Animated.View>
-              )}
-            </Animated.View>
-          )}
+        {/* The deeper layer: focused tools, one tap away, out of the way. */}
+        <Animated.View layout={foldLayout} style={styles.section}>
+          <Text style={styles.sectionTitle}>{t("insights.explore")}</Text>
+          <Card>
+            <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
+              <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
+              <Text style={styles.exploreText}>{t("titles.byCategory")}</Text>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+            <Pressable
+              style={[styles.exploreRow, styles.exploreRowDivider]}
+              onPress={() => router.push("/by-account")}
+            >
+              <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
+              <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+            {/* Price changes is the long-term, least-used lens — keep it last. */}
+            <Pressable
+              style={[styles.exploreRow, styles.exploreRowDivider]}
+              onPress={() => router.push("/price-changes")}
+            >
+              <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
+              <Text style={styles.exploreText}>{t("titles.priceChanges")}</Text>
+              <Text style={styles.exploreValue}>{creepLabel}</Text>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+          </Card>
         </Animated.View>
-      )}
-
-      {/* The deeper layer: focused tools, one tap away, out of the way. */}
-      <Animated.View layout={foldLayout} style={styles.section}>
-        <Text style={styles.sectionTitle}>{t("insights.explore")}</Text>
-        <Card>
-          <Pressable style={styles.exploreRow} onPress={() => router.push("/by-category")}>
-            <SymbolView name="tag.fill" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>{t("titles.byCategory")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable
-            style={[styles.exploreRow, styles.exploreRowDivider]}
-            onPress={() => router.push("/by-account")}
-          >
-            <SymbolView name="building.columns.fill" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>{t("titles.byAccount")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          {/* Price changes is the long-term, least-used lens — keep it last. */}
-          <Pressable
-            style={[styles.exploreRow, styles.exploreRowDivider]}
-            onPress={() => router.push("/price-changes")}
-          >
-            <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
-            <Text style={styles.exploreText}>{t("titles.priceChanges")}</Text>
-            <Text style={styles.exploreValue}>{creepLabel}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-        </Card>
-      </Animated.View>
-    </ScrollView>
+      </ScrollView>
+    </TabFade>
   );
 }
 

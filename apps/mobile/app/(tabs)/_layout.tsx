@@ -90,8 +90,10 @@ export default function TabsLayout() {
         // Screens own their titles now (large titles on the Ambient stage).
         headerShown: false,
         sceneStyle: { backgroundColor: "transparent" },
-        // Fade-through between tabs (§3.6): screens cross-fade on the stage.
-        animation: "fade",
+        // Switching is INSTANT; the fade-through (§3.6) is each screen's own
+        // TabFade wrapper. The navigator-owned fade got stuck at opacity 0
+        // when transitions were interrupted by fast switching.
+        animation: "none",
       }}
     >
       <Tabs.Screen name="index" />
