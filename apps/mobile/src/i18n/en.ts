@@ -560,6 +560,61 @@ export const en = {
     tapWhat: "Tap what you pay for",
     addN: "Add {{count}} to my list",
   },
+  guide: {
+    title: "What Keel can do",
+    intro: "The features people miss, one line each.",
+    groupTrack: "Track",
+    splitTitle: "Split payments",
+    splitBody:
+      "Bought in 4? Enter the total or the per-payment price; Keel computes the other and ticks off each installment.",
+    settlementTitle: "Automatic vs manual",
+    settlementBody:
+      "Automatic charges log themselves on their date. Manual ones wait for your tap, so paying by hand is never forgotten.",
+    overdueTitle: "Overdue stays visible",
+    overdueBody:
+      "A missed manual payment sits at the top of Upcoming until you mark it paid or skip it.",
+    pauseTitle: "Pause and resume",
+    pauseBody:
+      "A paused commitment keeps its history but stops counting and reminding. Resuming skips the gap without charging it.",
+    peekTitle: "Peek at next month",
+    peekBody:
+      "Upcoming runs through the end of next month, including what each account still needs to cover.",
+    currencyTitle: "Any currency",
+    currencyBody:
+      "Each commitment bills in its own currency; totals convert automatically at daily reference rates.",
+    groupAhead: "Stay ahead",
+    trialTitle: "End trials on time",
+    trialBody: "Add a trial with its end date: a reminder fires before the first real charge.",
+    priceChangeTitle: "Price changes, announced",
+    priceChangeBody:
+      "A scheduled increase is announced ahead and tracked after: Insights shows how much prices have crept.",
+    remindersTitle: "Reminders, your way",
+    remindersBody:
+      "Set a default lead and hour in Settings, Notifications; any commitment can carry its own timing.",
+    groupUnderstand: "Understand",
+    viewsTitle: "Three views of the same money",
+    viewsBody:
+      "Upcoming for the timeline, All for the full catalog, Calendar for the month grid. Same data, different questions.",
+    insightsTitle: "Charts, past and future",
+    insightsBody:
+      "Monthly history and forecast, spending by category and by account, and every price change on record.",
+    smoothingTitle: "Yearly, monthly-sized",
+    smoothingBody:
+      "Annual costs are smoothed into your monthly number, so the yearly renewals never ambush a month.",
+    groupSetup: "Set up & protect",
+    aiTitle: "Import with AI",
+    aiBody:
+      "Drop a rough list or screenshots; commitments come out pre-filled and land on a review screen first.",
+    todoTitle: "A To-complete queue",
+    todoBody:
+      "Pick the services you know you pay for now, fill in the details later: the queue waits under All.",
+    backupTitle: "Backups",
+    backupBody:
+      "One automatic local backup a day plus the ones you create; export, import and restore from iCloud & data.",
+    lockTitle: "Lock it",
+    lockBody:
+      "Face ID, Touch ID or your passcode, with a grace period you choose: in Settings, under Privacy.",
+  },
   onDevice: {
     hero: "Read by Apple Intelligence, right on this iPhone.",
     hint: "Type or paste your subscriptions, rough is fine: name, price, when it hits, which account.",

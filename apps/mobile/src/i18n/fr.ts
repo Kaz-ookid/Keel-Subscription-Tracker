@@ -565,6 +565,61 @@ export const fr: typeof en = {
     tapWhat: "Touchez ce que vous payez",
     addN: "Ajouter {{count}} à ma liste",
   },
+  guide: {
+    title: "Ce que Keel sait faire",
+    intro: "Les fonctions qu'on rate souvent, une ligne chacune.",
+    groupTrack: "Suivre",
+    splitTitle: "Paiements échelonnés",
+    splitBody:
+      "Acheté en 4x ? Saisissez le total ou le prix par paiement ; Keel calcule l'autre et coche chaque échéance.",
+    settlementTitle: "Automatique ou manuel",
+    settlementBody:
+      "Les prélèvements automatiques s'enregistrent seuls à leur date. Les manuels attendent votre validation : payer à la main ne s'oublie plus.",
+    overdueTitle: "Les retards restent visibles",
+    overdueBody: "Un paiement manuel manqué reste en haut d'À venir jusqu'à être payé ou passé.",
+    pauseTitle: "Pause et reprise",
+    pauseBody:
+      "Un engagement en pause garde son historique mais ne compte plus et ne rappelle plus. La reprise saute la période sans la facturer.",
+    peekTitle: "Un œil sur le mois prochain",
+    peekBody:
+      "À venir couvre jusqu'à la fin du mois prochain, avec ce que chaque compte doit encore couvrir.",
+    currencyTitle: "Toutes les devises",
+    currencyBody:
+      "Chaque engagement se facture dans sa devise ; les totaux se convertissent aux taux de référence du jour.",
+    groupAhead: "Anticiper",
+    trialTitle: "Terminer les essais à temps",
+    trialBody:
+      "Ajoutez un essai avec sa date de fin : un rappel part avant la première vraie facturation.",
+    priceChangeTitle: "Hausses de prix annoncées",
+    priceChangeBody:
+      "Une hausse programmée est annoncée avant et suivie après : Analyses montre de combien les prix ont grimpé.",
+    remindersTitle: "Rappels à votre façon",
+    remindersBody:
+      "Réglez un délai et une heure par défaut dans Réglages, Notifications ; chaque engagement peut avoir son propre réglage.",
+    groupUnderstand: "Comprendre",
+    viewsTitle: "Trois vues du même argent",
+    viewsBody:
+      "À venir pour la chronologie, Tout pour le catalogue complet, Calendrier pour la grille du mois. Mêmes données, questions différentes.",
+    insightsTitle: "Graphiques, passé et futur",
+    insightsBody:
+      "Historique mensuel et prévisions, dépenses par catégorie et par compte, et chaque changement de prix enregistré.",
+    smoothingTitle: "L'annuel au format mensuel",
+    smoothingBody:
+      "Les coûts annuels sont lissés dans votre chiffre mensuel : les renouvellements à l'année ne surprennent plus un mois.",
+    groupSetup: "Démarrer et protéger",
+    aiTitle: "Importer avec l'IA",
+    aiBody:
+      "Déposez une liste en vrac ou des captures ; les engagements ressortent préremplis et passent d'abord par un écran de vérification.",
+    todoTitle: "Une file À compléter",
+    todoBody:
+      "Choisissez maintenant les services que vous payez, complétez les détails plus tard : la file attend sous Tout.",
+    backupTitle: "Sauvegardes",
+    backupBody:
+      "Une sauvegarde locale automatique par jour plus les vôtres ; export, import et restauration depuis iCloud et données.",
+    lockTitle: "Verrouiller",
+    lockBody:
+      "Face ID, Touch ID ou votre code, avec un délai de grâce au choix : dans Réglages, section Confidentialité.",
+  },
   onDevice: {
     hero: "Lu par Apple Intelligence, directement sur cet iPhone.",
     hint: "Tapez ou collez vos abonnements, même en vrac : nom, prix, date, compte.",

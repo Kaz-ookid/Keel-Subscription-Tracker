@@ -94,6 +94,7 @@ const CHIP = {
   reminders: "#FF3B30",
   browse: "#FF9500",
   importAI: "#30B0C7",
+  guide: "#FFCC00",
   faceid: "#32ADE6",
   grace: "#8E8E93",
   exportBackup: "#0A84FF",
@@ -386,6 +387,11 @@ export default function SettingsScreen() {
           >
             <IconChip icon="sparkles" color={CHIP.importAI} />
             <Text style={styles.rowText}>{t("settings.importAI")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => router.push("/guide")}>
+            <IconChip icon="lightbulb.fill" color={CHIP.guide} />
+            <Text style={styles.rowText}>{t("guide.title")}</Text>
             <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
         </Card>
