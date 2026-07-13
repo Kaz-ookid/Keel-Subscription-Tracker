@@ -51,6 +51,44 @@ each of these as a distinct state and the screen explains them.
    path; test all four unavailability states (old iOS, non-Pro device, AI
    toggled off, model downloading).
 
+## The privacy claim, grounded (verified 2026-07-13)
+
+"Nothing leaves the phone" is a strong public claim; here is why it holds
+for THIS module, with sources:
+
+- This module talks only to `SystemLanguageModel.default` via
+  `LanguageModelSession(instructions:)` (AppleIntelligenceModule.swift):
+  the on-device ~3B model. Apple's own words for the framework: features
+  that "protect users' privacy and are available offline, all while using
+  AI inference that is free of cost", with showcased apps generating
+  everything "entirely on device" (Apple Newsroom, Sep 2025:
+  "Apple's Foundation Models framework unlocks new intelligent app
+  experiences").
+- Server-side use is a DIFFERENT, explicit API. Since WWDC26 the framework
+  also offers `PrivateCloudComputeLanguageModel()` as a separate model
+  class you must pass in yourself; the on-device default never falls back
+  to it on its own, and availability handling is the developer's job
+  (WWDC26 session 319, "Build with the new Apple Foundation Model on
+  Private Cloud Compute"). This module never references PCC. **Keep it
+  that way: the absence of that one line of code IS the privacy claim.**
+- Wording rule for site/store/posts: say "the on-device model at the core
+  of Apple Intelligence" or "Apple Intelligence, on device". Never say
+  "Apple Intelligence is fully local": the umbrella brand also includes
+  Private Cloud Compute and the optional ChatGPT integration, which are
+  not local. Our copy claims locality only for what Keel calls, which is
+  the on-device model.
+- The OS downloads the model once as a system asset (Apple's traffic, not
+  app data); after that the feature works offline, including Airplane
+  Mode. Runtime requirements as above (Apple Intelligence-capable iPhone,
+  toggle on, model present).
+- The bring-your-own-AI path is the opposite by design and the copy says
+  so: the user hands their list to their own assistant themselves.
+
+Sources: Apple Newsroom Sep 2025 (Foundation Models framework piece),
+WWDC25 session 286 ("Meet the Foundation Models framework"), WWDC26
+sessions 241 ("What's new in the Foundation Models framework") and 319
+(PCC model), developer.apple.com/documentation/foundationmodels.
+
 ## Constraints to remember
 
 - Swift here has never been compiled (written blind on Windows); the
