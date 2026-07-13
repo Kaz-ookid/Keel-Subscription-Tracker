@@ -48,6 +48,17 @@ describe("plannedReminders", () => {
     expect(plannedReminders([item], calendarDate("2026-07-20"))).toEqual([]);
   });
 
+  it("passes the rule's hour override through, and leaves it absent otherwise", () => {
+    const withHour = makeRecurringPaymentItem(
+      { ...base, reminder: { daysBefore: 2, hour: 8 } },
+      { id: "r1", now: now() },
+    );
+    expect(plannedReminders([withHour], calendarDate("2026-07-01"))[0].hour).toBe(8);
+
+    const noHour = makeRecurringPaymentItem(base, { id: "r2", now: now() });
+    expect(plannedReminders([noHour], calendarDate("2026-07-01"))[0].hour).toBeUndefined();
+  });
+
   it("skips items without a rule, paused items, and reminds for installments' next due", () => {
     const noRule = makeRecurringPaymentItem(
       { ...base, reminder: undefined },

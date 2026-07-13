@@ -307,7 +307,10 @@ export default function ItemScreen() {
           label={t("add.reminder")}
           value={
             item.reminder
-              ? t("add.reminderDayBefore", { count: item.reminder.daysBefore })
+              ? t("add.reminderDayBefore", { count: item.reminder.daysBefore }) +
+                (item.reminder.hour !== undefined
+                  ? ` · ${String(item.reminder.hour).padStart(2, "0")}:00`
+                  : "")
               : t("common.never")
           }
           styles={styles}

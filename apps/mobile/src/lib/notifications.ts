@@ -117,7 +117,8 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
     await Notifications.cancelAllScheduledNotificationsAsync();
     const cutoff = Date.now();
     for (const reminder of planned) {
-      const date = fireInstant(reminder.fireDate, settings.fireHour);
+      // A rule's own hour wins; the app-wide default hour covers the rest.
+      const date = fireInstant(reminder.fireDate, reminder.hour ?? settings.fireHour);
       // A fire instant already behind us (e.g. it's past the fire hour on the
       // fire day) would fire immediately — the in-app overdue views cover it.
       if (date.getTime() <= cutoff) continue;

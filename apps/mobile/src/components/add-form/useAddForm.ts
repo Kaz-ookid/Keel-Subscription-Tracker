@@ -26,7 +26,7 @@ import {
   type TimeUnit,
 } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
@@ -48,6 +48,7 @@ export type OpenSheet =
   | "endDate"
   | "convertsDate"
   | "reminder"
+  | "reminderHour"
   | "category"
   | "account"
   | "color"
@@ -62,8 +63,12 @@ export const REMINDER_OPTIONS: { value: string; labelKey: string; count?: number
   { value: "7", labelKey: "add.reminderWeekBefore" },
 ];
 
-function reminderFromKey(key: string): ReminderRule | undefined {
-  return key === "never" ? undefined : { daysBefore: Number(key) };
+function reminderFromKey(key: string, hourKey: string): ReminderRule | undefined {
+  if (key === "never") return undefined;
+  return {
+    daysBefore: Number(key),
+    ...(hourKey === "default" ? {} : { hour: Number(hourKey) }),
+  };
 }
 
 /** The picker returns a Date at LOCAL midnight — format with local parts.
@@ -210,6 +215,16 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [reminderKey, setReminderKey] = useState(() =>
     seedItem?.reminder ? String(seedItem.reminder.daysBefore) : "never",
   );
+  // "default" follows the app-wide fire hour; a number is this item's own.
+  // The UI shows the RESOLVED hour either way (no "default" entry to decode),
+  // so the app-wide hour is loaded to fill the label and preselect the wheel.
+  const [reminderHourKey, setReminderHourKey] = useState(() =>
+    seedItem?.reminder?.hour !== undefined ? String(seedItem.reminder.hour) : "default",
+  );
+  const [defaultFireHour, setDefaultFireHour] = useState(9);
+  useEffect(() => {
+    void loadNotificationSettings().then((s) => setDefaultFireHour(s.fireHour));
+  }, []);
 
   // Turning a trial on lights up a heads-up reminder by default — the whole
   // point is not to be surprised by the conversion.
@@ -223,6 +238,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const setReminderEnabled = (next: boolean) => {
     if (!next) {
       setReminderKey("never");
+      setReminderHourKey("default");
       return;
     }
     void loadNotificationSettings().then((s) => setReminderKey(s.defaultLeadKey));
@@ -264,6 +280,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     trialRegularText,
     convertsTime: convertsDate.getTime(),
     reminderKey,
+    reminderHourKey,
     settlementMode,
     categoryId,
     accountId,
@@ -288,6 +305,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     trialRegularText !== initial.trialRegularText ||
     convertsDate.getTime() !== initial.convertsTime ||
     reminderKey !== initial.reminderKey ||
+    reminderHourKey !== initial.reminderHourKey ||
     settlementMode !== initial.settlementMode ||
     categoryId !== initial.categoryId ||
     accountId !== initial.accountId ||
@@ -331,6 +349,9 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const reminderLabel = reminderOption
     ? t(reminderOption.labelKey, { count: reminderOption.count })
     : t("common.never");
+  const reminderHourValue =
+    reminderHourKey === "default" ? String(defaultFireHour) : reminderHourKey;
+  const reminderHourLabel = `${reminderHourValue.padStart(2, "0")}:00`;
 
   // Live trial summary: "Free until 20 Jun · then CHF 12.90" (or the intro
   // price when it isn't free). Shown under the toggle once a regular price set.
@@ -430,7 +451,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         categoryId,
         color,
         domain,
-        reminder: reminderFromKey(reminderKey),
+        reminder: reminderFromKey(reminderKey, reminderHourKey),
         notes: notes.trim() || undefined,
       };
       if (editItem) updateInstallmentPlan(editItem.id, input);
@@ -457,7 +478,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         categoryId,
         color,
         domain,
-        reminder: reminderFromKey(reminderKey),
+        reminder: reminderFromKey(reminderKey, reminderHourKey),
         notes: notes.trim() || undefined,
         introOffer,
       };
@@ -560,6 +581,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     reminderKey,
     setReminderKey,
     setReminderEnabled,
+    reminderHourKey,
+    setReminderHourKey,
     categoryId,
     setCategoryId,
     accountId,
@@ -578,6 +601,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     selectedAccount,
     effectiveCurrency,
     reminderLabel,
+    reminderHourLabel,
+    reminderHourValue,
     installmentPreview,
     // Unsaved-changes guard
     isDirty,

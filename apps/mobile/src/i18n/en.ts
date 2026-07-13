@@ -269,8 +269,9 @@ export const en = {
     keepEditing: "Keep editing",
     discard: "Discard",
     reminderWhen: "When",
+    reminderTime: "Time",
     reminderDefaultHint:
-      "Your default timing applies. The time of day is set in Settings, Notifications.",
+      "Starts from your defaults (Settings, Notifications); both rows can be adjusted for this one.",
     importAI: "Import with AI",
     importAIHint: "a list, screenshots, an old app's export",
     todoDoor: "Add to To-complete",

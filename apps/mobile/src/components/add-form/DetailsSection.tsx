@@ -255,6 +255,11 @@ export function MetaSection({ form }: { form: AddForm }) {
               value={form.reminderLabel}
               onPress={() => form.setSheet("reminder")}
             />
+            <FieldButton
+              label={t("add.reminderTime")}
+              value={form.reminderHourLabel}
+              onPress={() => form.setSheet("reminderHour")}
+            />
           </Animated.View>
         )}
       </Card>

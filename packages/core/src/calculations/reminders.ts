@@ -28,6 +28,8 @@ export interface PlannedReminder {
   /** The day the notification fires (due date minus the rule's daysBefore,
    *  clamped to `asOf` when the window already started). */
   fireDate: CalendarDate;
+  /** The rule's per-item hour override; absent = platform default. */
+  hour?: number;
   kind: ReminderKind;
 }
 
@@ -65,6 +67,7 @@ export function plannedReminders(
           amount: regularAmount,
           dueDate: convertsOn,
           fireDate: fireDate < asOf ? asOf : fireDate,
+          hour: item.reminder?.hour,
           kind: item.schedule.amount.amount === 0 ? "trialEnd" : "priceChange",
         });
       }
@@ -92,6 +95,7 @@ export function plannedReminders(
           amount,
           dueDate,
           fireDate: fireDate < asOf ? asOf : fireDate,
+          hour: item.reminder.hour,
           kind: "charge",
         });
       }

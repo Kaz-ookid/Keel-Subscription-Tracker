@@ -270,8 +270,9 @@ export const fr: typeof en = {
     keepEditing: "Continuer la saisie",
     discard: "Abandonner",
     reminderWhen: "Quand",
+    reminderTime: "Heure",
     reminderDefaultHint:
-      "Votre réglage par défaut s'applique. L'heure se règle dans Réglages, Notifications.",
+      "Part de vos réglages par défaut (Réglages, Notifications) ; les deux lignes s'ajustent pour celui-ci.",
     importAI: "Importer avec l'IA",
     importAIHint: "une liste, des captures, un export",
     todoDoor: "Mettre dans À compléter",

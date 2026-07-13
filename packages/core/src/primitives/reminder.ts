@@ -8,6 +8,9 @@
 export interface ReminderRule {
   /** Days before the due date to remind. 0 = on the day itself. */
   readonly daysBefore: number;
+  /** Local hour (0-23) this reminder fires at. Absent = the app-wide
+   *  default hour chosen in the platform's notification settings. */
+  readonly hour?: number;
 }
 
 export const REMINDER_PRESETS = {

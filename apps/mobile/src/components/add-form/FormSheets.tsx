@@ -124,6 +124,26 @@ export function FormSheets({ form }: { form: AddForm }) {
         </Picker>
       </WheelSheet>
 
+      <WheelSheet
+        visible={form.sheet === "reminderHour"}
+        title={t("add.reminderTime")}
+        onClose={close}
+      >
+        <Picker
+          selectedValue={form.reminderHourValue}
+          onValueChange={(v) => form.setReminderHourKey(String(v))}
+        >
+          {Array.from({ length: 24 }, (_, hour) => (
+            <Picker.Item
+              key={hour}
+              label={`${String(hour).padStart(2, "0")}:00`}
+              value={String(hour)}
+              color={colors.text}
+            />
+          ))}
+        </Picker>
+      </WheelSheet>
+
       <WheelSheet visible={form.sheet === "provider"} title={t("add.provider")} onClose={close}>
         <Picker
           selectedValue={form.provider}
