@@ -45,14 +45,27 @@ export interface NotificationSettings {
 
 const ENABLED_KEY = "keel.notifications.enabled.v1";
 const LEAD_KEY = "keel.notifications.defaultLead.v1";
-const HOUR_KEY = "keel.notifications.fireHour.v1";
+// v1 could hold a bug-written "0" (Number(null) passed the old parser's 0-23
+// check and got persisted by any save on the settings screen) — v2 starts
+// clean and the migration below refuses to carry a v1 zero over.
+const HOUR_KEY_V1 = "keel.notifications.fireHour.v1";
+const HOUR_KEY = "keel.notifications.fireHour.v2";
 
 const DEFAULTS: NotificationSettings = { enabled: true, defaultLeadKey: "1", fireHour: 9 };
 
 export async function loadNotificationSettings(): Promise<NotificationSettings> {
   try {
-    const [enabled, lead, hour] = await AsyncStorage.multiGet([ENABLED_KEY, LEAD_KEY, HOUR_KEY]);
-    const parsedHour = Number(hour[1]);
+    const [enabled, lead, hour, hourV1] = await AsyncStorage.multiGet([
+      ENABLED_KEY,
+      LEAD_KEY,
+      HOUR_KEY,
+      HOUR_KEY_V1,
+    ]);
+    // Number(null) is 0, which would pass the 0-23 check and silently turn
+    // "never set" into midnight — only parse a value that actually exists,
+    // and never a v1 zero (that's the old bug, not a chosen midnight).
+    const hourRaw = hour[1] ?? (hourV1[1] === "0" ? null : hourV1[1]);
+    const parsedHour = hourRaw === null ? Number.NaN : Number(hourRaw);
     return {
       enabled: enabled[1] === null ? DEFAULTS.enabled : enabled[1] === "true",
       defaultLeadKey: lead[1] ?? DEFAULTS.defaultLeadKey,
