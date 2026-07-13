@@ -96,6 +96,14 @@ export default function AboutScreen() {
         <Text style={styles.helloBody}>{t("about.helloBody")}</Text>
       </Card>
 
+      {/* The name, as a dictionary entry — same quiet note as the website. */}
+      <Card variant="free">
+        <Text style={styles.nameDef}>
+          <Text style={styles.nameWord}>keel</Text> <Text style={styles.namePron}>/kiːl/</Text>{" "}
+          {t("about.nameDef")}
+        </Text>
+      </Card>
+
       <Text style={styles.groupLabel}>{t("about.groupWrite")}</Text>
       <Card>
         <Pressable style={styles.row} onPress={() => mail(t("about.bugSubject"), true)}>
@@ -181,6 +189,9 @@ function createStyles(colors: ThemeColors) {
     largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     helloTitle: { ...typography.h1, color: colors.text, marginBottom: spacing.sm },
     helloBody: { ...typography.body, color: colors.mutedText, lineHeight: 23 },
+    nameDef: { ...typography.body, color: colors.mutedText, lineHeight: 23 },
+    nameWord: { fontWeight: "800", color: colors.accent },
+    namePron: { fontStyle: "italic" },
     groupLabel: {
       ...typography.micro,
       color: colors.mutedText,

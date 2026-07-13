@@ -592,6 +592,8 @@ export const en = {
     helloTitle: "Hi, I'm Maxime 👋",
     helloBody:
       "I build Keel because I wanted one calm place where every subscription, bill and split payment behaves. It's made by one person, with care: no account, no ads, no tracking. If Keel helps you, or if something feels off, I genuinely want to hear it.",
+    nameDef:
+      "the spine along the bottom of a boat: the part that keeps it steady and upright, whatever the weather. That's the job here.",
     groupWrite: "Write to me",
     bug: "Report a problem",
     bugSubject: "Keel: problem report",

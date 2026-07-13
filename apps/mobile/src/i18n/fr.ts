@@ -596,6 +596,8 @@ export const fr: typeof en = {
     helloTitle: "Salut, ici Maxime 👋",
     helloBody:
       "Je développe Keel parce que je voulais un endroit calme où chaque abonnement, facture et paiement échelonné se tient. C'est fait par une seule personne, avec soin : sans compte, sans pub, sans pistage. Si Keel vous aide, ou si quelque chose cloche, j'ai vraiment envie de le savoir.",
+    nameDef:
+      "la quille : la colonne vertébrale sous la coque d'un bateau, celle qui le garde droit et stable, quel que soit le temps. Exactement ce qu'on lui demande ici.",
     groupWrite: "M'écrire",
     bug: "Signaler un problème",
     bugSubject: "Keel : problème",
