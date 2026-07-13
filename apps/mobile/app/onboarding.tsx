@@ -296,23 +296,29 @@ export default function OnboardingScreen() {
             exiting={FadeOutLeft.duration(200)}
           >
             <View style={styles.pickHeader}>
-              {/* Back to the method step — browse mode has nowhere to go back to. */}
-              {mode !== "browse" && (
-                <Pressable
-                  onPress={() => setPhase("method")}
-                  hitSlop={12}
-                  accessibilityLabel={t("onboarding.back")}
-                >
-                  <SymbolView name="chevron.left" size={18} tintColor={colors.accent} />
-                </Pressable>
-              )}
+              {/* Equal-flex side slots keep the title truly centered whether
+                  the left holds Back (onboarding) or the right holds Done
+                  (browse). */}
+              <View style={styles.pickSide}>
+                {mode !== "browse" && (
+                  <Pressable
+                    onPress={() => setPhase("method")}
+                    hitSlop={12}
+                    accessibilityLabel={t("onboarding.back")}
+                  >
+                    <SymbolView name="chevron.left" size={18} tintColor={colors.accent} />
+                  </Pressable>
+                )}
+              </View>
               <Text style={styles.pickTitle}>{t("onboarding.pickTitle")}</Text>
-              {/* Browse mode's only exit; during onboarding, back covers it. */}
-              {mode === "browse" && (
-                <Pressable onPress={finish} hitSlop={12}>
-                  <Text style={styles.skip}>{t("onboarding.done")}</Text>
-                </Pressable>
-              )}
+              <View style={[styles.pickSide, styles.pickSideRight]}>
+                {/* Browse mode's only exit; during onboarding, back covers it. */}
+                {mode === "browse" && (
+                  <Pressable onPress={finish} hitSlop={12}>
+                    <Text style={styles.skip}>{t("onboarding.done")}</Text>
+                  </Pressable>
+                )}
+              </View>
             </View>
             <SuggestionPicker
               suggestions={SUGGESTED_COMMITMENTS}
@@ -616,7 +622,10 @@ function createStyles(colors: ThemeColors) {
       fontWeight: "700",
       color: colors.text,
       flexShrink: 1,
+      textAlign: "center",
     },
+    pickSide: { flex: 1, alignItems: "flex-start" },
+    pickSideRight: { alignItems: "flex-end" },
     pane: {
       width: SCREEN_WIDTH,
       flex: 1,
