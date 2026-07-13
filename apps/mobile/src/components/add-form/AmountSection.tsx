@@ -64,16 +64,29 @@ export function AmountSection({ form }: { form: AddForm }) {
         />
 
         {form.isInstallment && (
-          <View style={styles.rowField}>
-            <Text style={styles.label}>{t("add.amountIs")}</Text>
-            <View style={styles.rowControl}>
-              <Segmented
-                options={amountModeOptions}
-                value={form.amountMode}
-                onChange={form.setAmountMode}
+          <>
+            <View style={styles.rowField}>
+              <Text style={styles.label}>{t("add.amountIs")}</Text>
+              <View style={styles.rowControl}>
+                <Segmented
+                  options={amountModeOptions}
+                  value={form.amountMode}
+                  onChange={form.setAmountMode}
+                />
+              </View>
+            </View>
+            {/* The count lives with the amount: together they are what the
+                per-payment preview below is computed from. */}
+            <View style={styles.rowField}>
+              <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
+              <TextInput
+                style={[styles.input, styles.intervalInput]}
+                value={form.installmentsText}
+                onChangeText={form.setInstallmentsText}
+                keyboardType="number-pad"
               />
             </View>
-          </View>
+          </>
         )}
       </Card>
       {form.isInstallment && form.installmentPreview ? (

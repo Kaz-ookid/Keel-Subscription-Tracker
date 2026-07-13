@@ -101,17 +101,9 @@ export function ScheduleSection({ form }: { form: AddForm }) {
   if (form.isInstallment) {
     return (
       <Card variant="list" style={styles.group}>
-        <View style={[styles.rowField, styles.fieldFirst]}>
-          <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
-          <TextInput
-            style={[styles.input, styles.intervalInput]}
-            value={form.installmentsText}
-            onChangeText={form.setInstallmentsText}
-            keyboardType="number-pad"
-          />
-        </View>
-
-        <View style={styles.field}>
+        {/* The payment count moved up next to Amount, where the per-payment
+            preview explains it; here the plan starts at its rhythm. */}
+        <View style={[styles.field, styles.fieldFirst]}>
           <Text style={styles.label}>{t("add.cycleEvery")}</Text>
           <View style={styles.cycleRow}>
             <TextInput
