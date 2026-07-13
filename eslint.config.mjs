@@ -13,6 +13,7 @@ export default tseslint.config(
       "**/dist/",
       "**/*.config.js", // metro/babel CommonJS configs
       "**/expo-env.d.ts",
+      "keel-website/", // separate repo (plain browser JS), lives here gitignored
     ],
   },
   js.configs.recommended,
