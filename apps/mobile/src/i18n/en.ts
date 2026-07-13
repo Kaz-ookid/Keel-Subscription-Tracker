@@ -42,12 +42,12 @@ export const en = {
     importReview: "Review import",
   },
   importAI: {
-    methodOwn: "Use your own AI",
-    methodOwnSub: "ChatGPT, Claude, Gemini: whichever you already use.",
+    methodOwn: "Use an AI you trust",
+    methodOwnSub: "ChatGPT, Claude, Gemini: whichever you already trust.",
     methodKeel: "Keel reads it for you",
     methodKeelSoon: "Coming soon",
     methodKeelMsg:
-      "We're building a version that runs entirely on your phone: free and private, nothing leaves the device. Until it's ready, your own AI does the reading.",
+      "We're building a version on Apple's on-device model: free, offline, and documented by Apple as processing that never leaves the phone. Until it's ready, your own AI does the reading.",
     step1: "Copy the instructions.",
     step2:
       "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
@@ -95,7 +95,7 @@ export const en = {
     privacyLink: "How this works & your data",
     privacyTitle: "How this works",
     privacyBody:
-      "You talk to your own AI, not to us. Your list goes straight to your assistant and never touches our servers; Keel only reads the answer you paste back, right here on your phone.\n\nWe don't store your list, sell it, train anything on it, or build a profile on you. No account, no upload.\n\nNothing is saved automatically: every imported item lands on a review screen where you check, fix or remove it before it enters Keel.\n\nPrefer to type things in yourself? Always free, and often quicker for just one or two.\n\nFor the curious: the copied instructions ask your AI for a small JSON document (Keel import format v1). They're generated fresh each time, so they always match your app version.",
+      "On iPhones with Apple Intelligence, the reading can happen right here in the app, on the phone's own model: Apple documents this processing as on-device and offline, with nothing leaving the device.\n\nThe other path goes through an AI you already trust (ChatGPT, Claude, Gemini…). Keel is not connected to it: you copy ready-made instructions, paste them into your AI wherever you normally use it, and bring its answer back here. Your list travels only where you take it, under that AI's terms: pick one you trust, and leave out anything you'd rather keep to yourself.\n\nEither way, Keel has no server and never sees your list. The app only reads the answer, right here on your phone, and every item lands on a review screen where you check, fix or remove it before anything is saved.\n\nWe don't store your list, sell it, train anything on it, or build a profile on you. No account, no upload. Prefer to type things in yourself? Always free, and often quicker for just one or two.\n\nFor the curious: the copied instructions ask your AI for a small JSON document (Keel import format v1). They're generated fresh each time, so they always match your app version.",
     reviewTitle: "Check what it read",
     reviewHero_one: "{{count}} item",
     reviewHero_other: "{{count}} items",
@@ -675,7 +675,8 @@ export const en = {
     hint: "Type or paste your subscriptions, rough is fine: name, price, when it hits, which account.",
     reading: "Reading your list…",
     errModel: "The model couldn't read this. Try rephrasing or add a little detail.",
-    privacy: "Runs offline. Nothing leaves this iPhone.",
+    privacy:
+      "Reads on this iPhone and works offline, as documented by Apple. Nothing leaves the phone.",
     unavailableTitle: "Apple Intelligence isn't available here",
     reasonOs: "This needs iOS 26 or later.",
     reasonDevice: "This iPhone can't run Apple Intelligence.",

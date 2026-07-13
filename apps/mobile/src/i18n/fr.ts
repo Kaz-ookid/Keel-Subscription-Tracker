@@ -42,12 +42,12 @@ export const fr: typeof en = {
     importReview: "Vérifier l'import",
   },
   importAI: {
-    methodOwn: "Utilisez votre propre IA",
-    methodOwnSub: "ChatGPT, Claude, Gemini : celle que vous utilisez déjà.",
+    methodOwn: "Utilisez une IA de confiance",
+    methodOwnSub: "ChatGPT, Claude, Gemini : celle en qui vous avez déjà confiance.",
     methodKeel: "Keel lit pour vous",
     methodKeelSoon: "Bientôt",
     methodKeelMsg:
-      "Nous préparons une version qui tourne entièrement sur votre téléphone : gratuite et privée, rien ne quitte l'appareil. En attendant, votre propre IA s'en charge.",
+      "Nous préparons une version sur le modèle local d'Apple : gratuite, hors ligne, et documentée par Apple comme un traitement qui ne quitte jamais le téléphone. En attendant, votre propre IA s'en charge.",
     step1: "Copiez les instructions.",
     step2:
       "Collez-les à votre IA, puis ajoutez vos abonnements : tapés en vrac, en captures d'écran d'e-mails de confirmation et de votre app bancaire, ou l'export de votre ancienne app de suivi.",
@@ -95,7 +95,7 @@ export const fr: typeof en = {
     privacyLink: "Fonctionnement & vos données",
     privacyTitle: "Comment ça marche",
     privacyBody:
-      "Vous parlez à votre propre IA, pas à nous. Votre liste va directement à votre assistant et ne touche jamais nos serveurs ; Keel ne fait que lire la réponse que vous collez, ici, sur votre téléphone.\n\nNous ne stockons pas votre liste, ne la vendons pas, n'entraînons rien dessus et ne créons aucun profil. Pas de compte, pas d'envoi.\n\nRien n'est enregistré automatiquement : chaque élément importé passe par un écran de vérification où vous corrigez ou supprimez avant d'ajouter.\n\nVous préférez saisir à la main ? Toujours gratuit, et souvent plus rapide pour un ou deux.\n\nPour les curieux : les instructions copiées demandent à votre IA un petit document JSON (format d'import Keel v1). Elles sont générées à la volée, pour toujours correspondre à votre version de l'app.",
+      "Sur les iPhone compatibles Apple Intelligence, la lecture peut se faire directement dans l'app, sur le modèle du téléphone : Apple documente ce traitement comme local et hors ligne, rien ne quittant l'appareil.\n\nL'autre chemin passe par une IA de confiance (ChatGPT, Claude, Gemini…). Keel n'y est pas connecté : vous copiez des instructions toutes prêtes, vous les collez dans votre IA là où vous l'utilisez d'habitude, puis vous rapportez sa réponse ici. Votre liste ne voyage que là où vous l'emmenez, selon les conditions de cette IA : choisissez-en une à qui vous faites confiance, et omettez ce que vous préférez garder pour vous.\n\nDans les deux cas, Keel n'a pas de serveur et ne voit jamais votre liste. L'app ne lit que la réponse, ici sur votre téléphone, et chaque élément passe par un écran de vérification où vous corrigez ou supprimez avant tout enregistrement.\n\nNous ne stockons pas votre liste, ne la vendons pas, n'entraînons rien dessus et ne créons aucun profil. Pas de compte, pas d'envoi. Vous préférez saisir à la main ? Toujours gratuit, et souvent plus rapide pour un ou deux.\n\nPour les curieux : les instructions copiées demandent à votre IA un petit document JSON (format d'import Keel v1). Elles sont générées à la volée, pour toujours correspondre à votre version de l'app.",
     reviewTitle: "Vérifiez la lecture",
     reviewHero_one: "{{count}} élément",
     reviewHero_other: "{{count}} éléments",
@@ -679,7 +679,8 @@ export const fr: typeof en = {
     hint: "Tapez ou collez vos abonnements, même en vrac : nom, prix, date, compte.",
     reading: "Lecture de votre liste…",
     errModel: "Le modèle n'a pas pu lire ceci. Reformulez ou ajoutez un peu de détail.",
-    privacy: "Fonctionne hors ligne. Rien ne quitte cet iPhone.",
+    privacy:
+      "Lit sur cet iPhone et fonctionne hors ligne, comme documenté par Apple. Rien ne quitte le téléphone.",
     unavailableTitle: "Apple Intelligence n'est pas disponible ici",
     reasonOs: "Nécessite iOS 26 ou plus récent.",
     reasonDevice: "Cet iPhone ne peut pas exécuter Apple Intelligence.",
