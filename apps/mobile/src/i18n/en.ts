@@ -50,7 +50,7 @@ export const en = {
       "We're building a version that runs entirely on your phone: free and private, nothing leaves the device. Until it's ready, your own AI does the reading.",
     step1: "Copy the instructions.",
     step2:
-      "Paste them to your AI, then add your subscriptions: typed roughly, or screenshots of confirmation emails and your banking app.",
+      "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
     step3: "Paste its answer below.",
     copy: "Copy instructions",
     copied: "Copied",
@@ -59,7 +59,7 @@ export const en = {
     whereLink: "Where do I find them?",
     whereTitle: "Finding your subscriptions",
     whereBody:
-      "Search your inbox for “receipt”, “invoice”, “renewal”, “your subscription” or “payment confirmation”: most services send one of those. Screenshot what you find, or the recurring payments in your banking app, and hand the images to your AI along with the instructions. It can read pictures.\n\nA rough typed list works just as well: name, price, when it hits, which account.",
+      "Search your inbox for “receipt”, “invoice”, “renewal”, “your subscription” or “payment confirmation”: most services send one of those. Screenshot what you find, or the recurring payments in your banking app, and hand the images to your AI along with the instructions. It can read pictures.\n\nA rough typed list works just as well: name, price, when it hits, which account.\n\nComing from another tracker? Screenshot its list, or give your AI its data export 😉 Moving in takes one read.",
     exampleLink: "See an example",
     exampleTitle: "How rough can it be?",
     exampleYouWrite: "You give your AI something like:",
@@ -272,7 +272,7 @@ export const en = {
     reminderDefaultHint:
       "Your default timing applies. The time of day is set in Settings, Notifications.",
     importAI: "Import with AI",
-    importAIHint: "a list or screenshots",
+    importAIHint: "a list, screenshots, an old app's export",
     todoDoor: "Add to To-complete",
     todoDoorHint: "tap many, finish later",
     orPick: "Or pick a known service",
@@ -522,7 +522,7 @@ export const en = {
       "What you paid, what's coming: by month, by account, by category. Price rises included.",
     tour4Title: "Ready in minutes",
     tour4Body:
-      "Pick from known services, or let AI read a rough list or screenshots. Everything arrives pre-filled.",
+      "Pick from known services, or let AI read a rough list, screenshots, or your old tracker's export. Everything arrives pre-filled.",
     skip: "Skip",
     next: "Next",
     continue: "Continue",
@@ -532,7 +532,8 @@ export const en = {
     methodPickSub:
       "Tap what you know you pay for. They queue in a To-complete list, ready to finish whenever.",
     methodAI: "Import with AI",
-    methodAISub: "Give AI a rough list or screenshots: best for adding many at once.",
+    methodAISub:
+      "Give AI a rough list, screenshots, or another tracker's export: best for adding many at once.",
     methodManual: "I'll add them as I go",
     methodNote: "Mix and match. You can add more from the All list any time.",
     pickTitle: "Which of these do you pay for?",
@@ -658,7 +659,7 @@ export const en = {
     groupSetup: "Set up & protect",
     aiTitle: "Import with AI",
     aiBody:
-      "Drop a rough list or screenshots; commitments come out pre-filled and land on a review screen first.",
+      "Drop a rough list, screenshots, or your old tracker's export; commitments come out pre-filled and land on a review screen first.",
     todoTitle: "A To-complete queue",
     todoBody:
       "Pick the services you know you pay for now, fill in the details later: the queue waits under All.",

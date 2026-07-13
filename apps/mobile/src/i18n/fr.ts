@@ -50,7 +50,7 @@ export const fr: typeof en = {
       "Nous préparons une version qui tourne entièrement sur votre téléphone : gratuite et privée, rien ne quitte l'appareil. En attendant, votre propre IA s'en charge.",
     step1: "Copiez les instructions.",
     step2:
-      "Collez-les à votre IA, puis ajoutez vos abonnements : tapés en vrac, ou en captures d'écran d'e-mails de confirmation et de votre app bancaire.",
+      "Collez-les à votre IA, puis ajoutez vos abonnements : tapés en vrac, en captures d'écran d'e-mails de confirmation et de votre app bancaire, ou l'export de votre ancienne app de suivi.",
     step3: "Collez sa réponse ci-dessous.",
     copy: "Copier les instructions",
     copied: "Copié",
@@ -59,7 +59,7 @@ export const fr: typeof en = {
     whereLink: "Où les retrouver ?",
     whereTitle: "Retrouver vos abonnements",
     whereBody:
-      "Cherchez dans votre boîte mail « reçu », « facture », « renouvellement », « votre abonnement » ou « confirmation de paiement » : la plupart des services envoient l'un de ces mots. Faites des captures de ce que vous trouvez, ou des paiements récurrents dans votre app bancaire, et donnez les images à votre IA avec les instructions. Elle sait lire les images.\n\nUne liste tapée en vrac marche tout aussi bien : nom, prix, date de prélèvement, compte.",
+      "Cherchez dans votre boîte mail « reçu », « facture », « renouvellement », « votre abonnement » ou « confirmation de paiement » : la plupart des services envoient l'un de ces mots. Faites des captures de ce que vous trouvez, ou des paiements récurrents dans votre app bancaire, et donnez les images à votre IA avec les instructions. Elle sait lire les images.\n\nUne liste tapée en vrac marche tout aussi bien : nom, prix, date de prélèvement, compte.\n\nVous venez d'une autre app ? Capturez sa liste, ou donnez son export de données à votre IA 😉 Le déménagement tient en une lecture.",
     exampleLink: "Voir un exemple",
     exampleTitle: "En vrac à quel point ?",
     exampleYouWrite: "Vous donnez à votre IA quelque chose comme :",
@@ -273,7 +273,7 @@ export const fr: typeof en = {
     reminderDefaultHint:
       "Votre réglage par défaut s'applique. L'heure se règle dans Réglages, Notifications.",
     importAI: "Importer avec l'IA",
-    importAIHint: "une liste ou des captures",
+    importAIHint: "une liste, des captures, un export",
     todoDoor: "Mettre dans À compléter",
     todoDoorHint: "cochez maintenant, complétez plus tard",
     orPick: "Ou choisissez un service connu",
@@ -526,7 +526,7 @@ export const fr: typeof en = {
       "Ce que vous avez payé, ce qui arrive : par mois, par compte, par catégorie. Hausses de prix comprises.",
     tour4Title: "Prêt en quelques minutes",
     tour4Body:
-      "Choisissez parmi les services connus, ou laissez une IA lire une liste en vrac ou des captures. Tout arrive prérempli.",
+      "Choisissez parmi les services connus, ou laissez une IA lire une liste en vrac, des captures ou l'export de votre ancienne app. Tout arrive prérempli.",
     skip: "Passer",
     next: "Suivant",
     continue: "Continuer",
@@ -537,7 +537,7 @@ export const fr: typeof en = {
       "Touchez ce que vous savez payer. Tout rejoint une liste À compléter, à finir quand vous voulez.",
     methodAI: "Importer avec l'IA",
     methodAISub:
-      "Donnez à une IA une liste en vrac ou des captures : idéal pour en ajouter beaucoup d'un coup.",
+      "Donnez à une IA une liste en vrac, des captures ou l'export d'une autre app : idéal pour en ajouter beaucoup d'un coup.",
     methodManual: "J'ajouterai au fur et à mesure",
     methodNote: "Combinez comme vous voulez. La liste Tout permet d'en ajouter à tout moment.",
     pickTitle: "Lesquels payez-vous ?",
@@ -663,7 +663,7 @@ export const fr: typeof en = {
     groupSetup: "Démarrer et protéger",
     aiTitle: "Importer avec l'IA",
     aiBody:
-      "Déposez une liste en vrac ou des captures ; les engagements ressortent préremplis et passent d'abord par un écran de vérification.",
+      "Déposez une liste en vrac, des captures ou l'export de votre ancienne app ; les engagements ressortent préremplis et passent d'abord par un écran de vérification.",
     todoTitle: "Une file À compléter",
     todoBody:
       "Choisissez maintenant les services que vous payez, complétez les détails plus tard : la file attend sous Tout.",
