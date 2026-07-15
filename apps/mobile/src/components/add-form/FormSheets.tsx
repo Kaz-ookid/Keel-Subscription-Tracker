@@ -176,7 +176,15 @@ export function FormSheets({ form }: { form: AddForm }) {
 
       <Sheet visible={form.sheet === "color"} title={t("add.identityTitle")} onClose={close}>
         {/* A custom logo by website (with a live preview), or a colour swatch. */}
-        <View style={{ alignItems: "center", gap: spacing.sm, marginBottom: spacing.md }}>
+        <View
+          style={{
+            alignItems: "center",
+            gap: spacing.sm,
+            marginBottom: spacing.md,
+            paddingTop: spacing.md,
+            paddingHorizontal: spacing.md,
+          }}
+        >
           <BrandBadge
             domain={form.domain}
             icon={form.selectedCategory?.icon}
@@ -198,7 +206,14 @@ export function FormSheets({ form }: { form: AddForm }) {
             {t("add.logoHint")}
           </Text>
         </View>
-        <Text style={{ ...typography.caption, color: colors.mutedText, marginBottom: spacing.sm }}>
+        <Text
+          style={{
+            ...typography.caption,
+            color: colors.mutedText,
+            marginBottom: spacing.sm,
+            paddingHorizontal: spacing.md,
+          }}
+        >
           {t("add.orColour")}
         </Text>
         <ScrollView contentContainerStyle={styles.swatchGrid}>
