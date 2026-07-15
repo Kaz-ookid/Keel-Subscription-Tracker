@@ -52,6 +52,8 @@ export const fr: typeof en = {
     step2:
       "Collez-les à votre IA, puis ajoutez vos abonnements : tapés en vrac, en captures d'écran d'e-mails de confirmation et de votre app bancaire, ou l'export de votre ancienne app de suivi.",
     step3: "Collez sa réponse ci-dessous.",
+    handFirstHint:
+      "Première fois ? Ajoutez d'abord un engagement à la main : vous verrez tous les champs que Keel suit, et saurez quels détails valent la peine d'être précisés à l'IA.",
     copy: "Copier les instructions",
     copied: "Copié",
     viewInstructions: "Les voir",
@@ -271,6 +273,15 @@ export const fr: typeof en = {
     discard: "Abandonner",
     reminderWhen: "Quand",
     reminderTime: "Heure",
+    infoSettlementTitle: "Automatique ou manuel ?",
+    infoSettlementBody:
+      "Automatique : l'argent part tout seul, par carte ou prélèvement. Keel marque ces paiements comme réglés à leur date.\n\nManuel : c'est vous qui payez, facture, virement ou bulletin QR. Keel attend votre « Marquer payé », et affiche le paiement en retard si la date vous échappe.",
+    infoAmountIsTitle: "Total ou par paiement ?",
+    infoAmountIsBody:
+      "Saisissez le montant que vous connaissez : le prix total de l'achat, ou le montant d'un seul paiement. Keel calcule l'autre et l'affiche sous cette carte.",
+    infoRepeatsTitle: "Par date ou par jour de semaine ?",
+    infoRepeatsBody:
+      "Une même première date peut se répéter de deux façons : le même jour du mois (le 6), ou le même créneau de semaine (le premier jeudi). Les frais bancaires tombent souvent par jour de semaine ; la plupart des abonnements, par date.",
     reminderDefaultHint:
       "Part de vos réglages par défaut (Réglages, Notifications) ; les deux lignes s'ajustent pour celui-ci.",
     importAI: "Importer avec l'IA",

@@ -52,6 +52,8 @@ export const en = {
     step2:
       "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
     step3: "Paste its answer below.",
+    handFirstHint:
+      "First time? Add one commitment by hand first: you'll see every field Keel tracks, and know which details are worth spelling out for the AI.",
     copy: "Copy instructions",
     copied: "Copied",
     viewInstructions: "View them",
@@ -270,6 +272,15 @@ export const en = {
     discard: "Discard",
     reminderWhen: "When",
     reminderTime: "Time",
+    infoSettlementTitle: "Automatic or manual?",
+    infoSettlementBody:
+      "Automatic means the money leaves on its own: a card charge or a direct debit. Keel marks those payments as settled on their date.\n\nManual means you make the payment yourself: a bill, a transfer, a QR slip. Keel waits for your Mark paid, and shows the payment as overdue if the date slips past you.",
+    infoAmountIsTitle: "Total or per payment?",
+    infoAmountIsBody:
+      "Enter whichever number you know: the full price of the purchase, or the amount of a single payment. Keel computes the other one and previews it under this card.",
+    infoRepeatsTitle: "By date or by weekday?",
+    infoRepeatsBody:
+      "The same first date can repeat two ways: on the same date every month (the 6th), or on the same weekday slot (the first Thursday). Bank fees often bill by weekday; most subscriptions bill by date.",
     reminderDefaultHint:
       "Starts from your defaults (Settings, Notifications); both rows can be adjusted for this one.",
     importAI: "Import with AI",

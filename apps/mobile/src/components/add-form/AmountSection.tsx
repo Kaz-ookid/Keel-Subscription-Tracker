@@ -4,6 +4,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 
 import { useTheme } from "../../theme";
 import { FieldButton } from "../FieldButton";
+import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
 import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
@@ -66,7 +67,10 @@ export function AmountSection({ form }: { form: AddForm }) {
         {form.isInstallment && (
           <>
             <View style={styles.rowField}>
-              <Text style={styles.label}>{t("add.amountIs")}</Text>
+              <View style={styles.labelWithInfo}>
+                <Text style={styles.label}>{t("add.amountIs")}</Text>
+                <InfoDot title={t("add.infoAmountIsTitle")} body={t("add.infoAmountIsBody")} />
+              </View>
               <View style={styles.rowControl}>
                 <Segmented
                   options={amountModeOptions}

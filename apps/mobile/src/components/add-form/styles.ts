@@ -74,6 +74,8 @@ function createFormStyles(colors: ThemeColors) {
     },
     rowControl: { flex: 1 },
     label: { ...typography.label, color: colors.text },
+    // A label with a small (i) explainer sitting right after it.
+    labelWithInfo: { flexDirection: "row", alignItems: "center", gap: spacing.xs + 2 },
     // Inline value editing, iOS style: no box, the row is the field.
     input: {
       flex: 1,

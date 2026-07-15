@@ -10,6 +10,7 @@ import { foldIn, foldOut } from "../../lib/motion";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { FieldButton } from "../FieldButton";
+import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
 import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
@@ -228,7 +229,10 @@ export function MetaSection({ form }: { form: AddForm }) {
     <>
       <Card variant="list" style={styles.group}>
         <View style={[styles.rowField, styles.fieldFirst]}>
-          <Text style={styles.label}>{t("add.settlement")}</Text>
+          <View style={styles.labelWithInfo}>
+            <Text style={styles.label}>{t("add.settlement")}</Text>
+            <InfoDot title={t("add.infoSettlementTitle")} body={t("add.infoSettlementBody")} />
+          </View>
           <View style={styles.rowControl}>
             <Segmented
               options={settlementOptions}

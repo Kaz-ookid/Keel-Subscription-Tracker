@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Text, TextInput, View } from "react-native";
 
 import { FieldButton } from "../FieldButton";
+import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
 import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
@@ -26,7 +27,10 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
   if (form.unit !== "month") return null;
   return (
     <View style={styles.rowField}>
-      <Text style={styles.label}>{t("add.repeatsOn")}</Text>
+      <View style={styles.labelWithInfo}>
+        <Text style={styles.label}>{t("add.repeatsOn")}</Text>
+        <InfoDot title={t("add.infoRepeatsTitle")} body={t("add.infoRepeatsBody")} />
+      </View>
       <View style={styles.rowControl}>
         <Segmented
           options={[
