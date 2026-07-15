@@ -168,6 +168,9 @@ export default function ImportScreen() {
         <StepRow n={3} text={t("importAI.step3")} styles={styles} divider />
       </View>
 
+      {/* Knowing the form makes better AI input: a quiet nudge, not a gate. */}
+      <Text style={styles.handFirst}>{t("importAI.handFirstHint")}</Text>
+
       {/* The paste-back area: a Paste button first (no keyboard in the way);
           typing by hand stays available behind the quiet toggle. */}
       <View style={[styles.card, styles.pasteCard]}>
@@ -429,6 +432,11 @@ function createStyles(colors: ThemeColors) {
     },
     error: { ...typography.caption, color: colors.tones.danger },
     readsMeter: { ...typography.caption, color: colors.mutedText },
+    handFirst: {
+      ...typography.caption,
+      color: colors.mutedText,
+      paddingHorizontal: spacing.xs,
+    },
     privacyLink: {
       flexDirection: "row",
       alignItems: "center",
