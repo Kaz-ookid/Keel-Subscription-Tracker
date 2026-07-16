@@ -20,7 +20,7 @@ import { TabFade } from "../../src/components/TabFade";
 import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
-import { useAppState } from "../../src/state/app-state";
+import { useAppData } from "../../src/state/app-state";
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
 
 // The harbor is no longer a top-level view: it lives INSIDE the schedule
@@ -41,7 +41,7 @@ export default function PaymentsScreen() {
   // closes onto All, where its picks now live).
   const [view, setView] = useState<PaymentsView>(() => consumePaymentsView() ?? "upcoming");
   const router = useRouter();
-  const { items, accounts, loading } = useAppState();
+  const { items, accounts, loading } = useAppData();
 
   // The schedule slot's lens lives HERE so the calendar toggle can always
   // bring the grid back, even while the harbor is showing.

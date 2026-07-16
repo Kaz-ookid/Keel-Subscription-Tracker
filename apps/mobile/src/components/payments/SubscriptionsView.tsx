@@ -4,7 +4,6 @@ import {
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
-  mergeTotals,
   monthlyEquivalent,
   summarizeCommitments,
   summarizeInstallmentPlan,
@@ -23,7 +22,8 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { hapticMarkPaid } from "../../lib/haptics";
-import { useAppState } from "../../state/app-state";
+import { amountInDisplay } from "../../lib/money-display";
+import { useAppActions, useAppData } from "../../state/app-state";
 import {
   dockClearance,
   radius,
@@ -87,14 +87,7 @@ function monthlyValue(
   displayCurrency: CurrencyCode,
   rates: ExchangeRates | null,
 ): number {
-  const numeric = (value: Money): number => {
-    if (value.currency === displayCurrency) return value.amount;
-    if (rates) {
-      const merged = mergeTotals([value], displayCurrency, rates);
-      if (merged) return merged.total.amount;
-    }
-    return value.amount;
-  };
+  const numeric = (value: Money) => amountInDisplay(value, displayCurrency, rates);
   if (isRecurringSchedule(item.schedule)) {
     return numeric(monthlyEquivalent(item.schedule.amount, item.schedule.recurrence));
   }
@@ -111,17 +104,9 @@ export function SubscriptionsView() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const {
-    items,
-    pending,
-    displayCurrency,
-    rates,
-    loading,
-    removeSubscription,
-    removePendingSuggestion,
-    markPaid,
-    markInstallmentPaid,
-  } = useAppState();
+  const { items, pending, displayCurrency, rates, loading } = useAppData();
+  const { removeSubscription, removePendingSuggestion, markPaid, markInstallmentPaid } =
+    useAppActions();
   // Open by default — the whole point of the list is to be acted on.
   const [pendingOpen, setPendingOpen] = useState(true);
   // Catalog ordering: stable billing-day by default; the control above the

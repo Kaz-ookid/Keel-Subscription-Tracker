@@ -29,7 +29,7 @@ import {
   type OnDeviceAvailability,
 } from "../../src/lib/apple-intelligence";
 import { consumeAiRead, useEntitlement } from "../../src/lib/entitlement";
-import { useAppState } from "../../src/state/app-state";
+import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import {
   radius,
@@ -47,7 +47,7 @@ export default function OnDeviceImportScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, accounts, categories, displayCurrency } = useAppState();
+  const { items, accounts, categories, displayCurrency } = useAppData();
   const { startSession } = useImportSession();
 
   const [availability, setAvailability] = useState<OnDeviceAvailability | "checking">("checking");

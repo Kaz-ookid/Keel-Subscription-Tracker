@@ -27,7 +27,7 @@ import { foldIn, foldLayout, foldOut } from "../../lib/motion";
 import { Chip } from "../ui/Chip";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
-import { useAppState } from "../../state/app-state";
+import { useAppActions, useAppData } from "../../state/app-state";
 import { dockClearance, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { UpcomingRow } from "../UpcomingRow";
@@ -58,18 +58,8 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const {
-    items,
-    occurrences,
-    accounts,
-    displayCurrency,
-    rates,
-    loading,
-    markPaid,
-    markInstallmentPaid,
-    undoPaid,
-    undoInstallmentPaid,
-  } = useAppState();
+  const { items, occurrences, accounts, displayCurrency, rates, loading } = useAppData();
+  const { markPaid, markInstallmentPaid, undoPaid, undoInstallmentPaid } = useAppActions();
   // Big numbers merge into the display currency.
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);

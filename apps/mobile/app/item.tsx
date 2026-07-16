@@ -27,9 +27,10 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { Button } from "../src/components/ui/Button";
 import { Card } from "../src/components/ui/Card";
 import { brandBleed } from "../src/lib/brand";
+import { formatHour } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
-import { useAppState } from "../src/state/app-state";
+import { useAppActions, useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
 function InfoRow({
@@ -61,11 +62,8 @@ export default function ItemScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { items, occurrences, accounts, categories } = useAppData();
   const {
-    items,
-    occurrences,
-    accounts,
-    categories,
     markPaid,
     skipPayment,
     undoPaid,
@@ -74,7 +72,7 @@ export default function ItemScreen() {
     pauseSubscription,
     resumeSubscription,
     removeSubscription,
-  } = useAppState();
+  } = useAppActions();
 
   const item = items.find((i) => i.id === id);
   if (!item) {
@@ -308,9 +306,7 @@ export default function ItemScreen() {
           value={
             item.reminder
               ? t("add.reminderDayBefore", { count: item.reminder.daysBefore }) +
-                (item.reminder.hour !== undefined
-                  ? ` · ${String(item.reminder.hour).padStart(2, "0")}:00`
-                  : "")
+                (item.reminder.hour !== undefined ? ` · ${formatHour(item.reminder.hour)}` : "")
               : t("common.never")
           }
           styles={styles}

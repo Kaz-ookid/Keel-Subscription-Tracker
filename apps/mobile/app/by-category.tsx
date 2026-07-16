@@ -28,7 +28,7 @@ import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
 import { Card } from "../src/components/ui/Card";
 import { EmptyState } from "../src/components/ui/EmptyState";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
-import { useAppState } from "../src/state/app-state";
+import { useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 export default function ByCategoryScreen() {
@@ -41,7 +41,7 @@ export default function ByCategoryScreen() {
   const TAIL_COLOR = colors.mutedText;
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, categories, displayCurrency, rates } = useAppState();
+  const { items, occurrences, categories, displayCurrency, rates } = useAppData();
   // The expanded category (its id, or "none" for the uncategorised bucket).
   const [expanded, setExpanded] = useState<string | null>(null);
 

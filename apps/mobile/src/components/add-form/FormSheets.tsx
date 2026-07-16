@@ -16,6 +16,7 @@ import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SymbolView } from "expo-symbols";
 
 import { COLOR_SWATCHES } from "../../constants";
+import { formatHour } from "../../lib/dates";
 import { contrastText, spacing, typography, useTheme } from "../../theme";
 import { AccountPickerSheet } from "../AccountSheet";
 import { BrandBadge } from "../BrandBadge";
@@ -136,7 +137,7 @@ export function FormSheets({ form }: { form: AddForm }) {
           {Array.from({ length: 24 }, (_, hour) => (
             <Picker.Item
               key={hour}
-              label={`${String(hour).padStart(2, "0")}:00`}
+              label={formatHour(hour)}
               value={String(hour)}
               color={colors.text}
             />

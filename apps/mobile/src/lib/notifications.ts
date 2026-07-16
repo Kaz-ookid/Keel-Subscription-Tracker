@@ -10,12 +10,14 @@ import {
   formatMoney,
   plannedReminders,
   today,
+  type CalendarDate,
   type PaymentItem,
 } from "@keel/core";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 
 import i18n from "../i18n";
+import { fromCalendarDate } from "./dates";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -93,9 +95,10 @@ export async function saveNotificationSettings(settings: NotificationSettings): 
 
 // ---------------------------------------------------------------------------
 
-function fireInstant(fireDate: string, fireHour: number): Date {
-  const [y, m, d] = fireDate.split("-").map(Number);
-  return new Date(y, m - 1, d, fireHour, 0, 0);
+function fireInstant(fireDate: CalendarDate, fireHour: number): Date {
+  const instant = fromCalendarDate(fireDate);
+  instant.setHours(fireHour, 0, 0, 0);
+  return instant;
 }
 
 /** True when notifications are allowed (granted; requests if undetermined). */

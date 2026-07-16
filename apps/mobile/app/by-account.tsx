@@ -4,7 +4,6 @@
 
 import {
   buildSpendLedger,
-  calendarDate,
   endOfMonth,
   formatCalendarDate,
   formatMoney,
@@ -18,7 +17,6 @@ import {
   summarizeCommitments,
   summarizeInstallmentPlan,
   today,
-  type CalendarDate,
   type CurrencyCode,
   type PaymentItem,
   type PaymentOccurrence,
@@ -35,26 +33,20 @@ import { Card } from "../src/components/ui/Card";
 import { Chip } from "../src/components/ui/Chip";
 import { YearChart, type YearChartMonth } from "../src/components/YearChart";
 import { monthFull, monthShort } from "../src/i18n/dates";
+import { monthShifted } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
-import { useAppState } from "../src/state/app-state";
+import { useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const MONTHS_BACK = 12;
 const MONTHS_AHEAD = 12;
-
-function monthShifted(asOf: CalendarDate, delta: number): CalendarDate {
-  const total = Number(asOf.slice(0, 4)) * 12 + (Number(asOf.slice(5, 7)) - 1) + delta;
-  const y = Math.floor(total / 12);
-  const m = (total % 12) + 1;
-  return calendarDate(`${y}-${String(m).padStart(2, "0")}-01`);
-}
 
 export default function ByAccountScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppState();
+  const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppData();
   // An account id, or "none" for commitments not tied to any account.
   const [selected, setSelected] = useState<string>(accounts[0]?.id ?? "none");
   // Nothing selected by default: the screen opens on its commitments overview;

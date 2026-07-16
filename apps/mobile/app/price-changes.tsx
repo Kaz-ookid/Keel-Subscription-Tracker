@@ -22,14 +22,15 @@ import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { Card } from "../src/components/ui/Card";
 import { EmptyState } from "../src/components/ui/EmptyState";
-import { useAppState } from "../src/state/app-state";
+import { useAppActions, useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 export default function PriceChangesScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, categories, displayCurrency, rates, revertPriceChange } = useAppState();
+  const { items, categories, displayCurrency, rates } = useAppData();
+  const { revertPriceChange } = useAppActions();
 
   const changes = summarizePriceChanges(items, today());
 

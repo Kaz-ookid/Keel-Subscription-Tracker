@@ -18,7 +18,7 @@ import {
   readBackup,
   type BackupEntry,
 } from "../src/lib/backups";
-import { useAppState } from "../src/state/app-state";
+import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 function entryDateLabel(entry: BackupEntry): string {
@@ -35,7 +35,7 @@ export default function BackupsScreen() {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { exportData, importData } = useAppState();
+  const { exportData, importData } = useAppActions();
   const [entries, setEntries] = useState<BackupEntry[]>(() => listBackups());
 
   const refresh = () => setEntries(listBackups());

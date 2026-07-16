@@ -12,7 +12,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ModalClose } from "../../src/components/ModalClose";
 import { SuggestionPicker } from "../../src/components/SuggestionPicker";
-import { useAppState } from "../../src/state/app-state";
+import { useAppData } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
 export default function AddChooserScreen() {
@@ -20,7 +20,7 @@ export default function AddChooserScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items } = useAppState();
+  const { items } = useAppData();
 
   // Tracked names show greyed rather than hidden — a missing Netflix reads
   // as a gap in the bank, a greyed one as "you already have it".

@@ -20,7 +20,7 @@ import { useCallback } from "react";
 
 import { Card } from "../src/components/ui/Card";
 import { listBackups } from "../src/lib/backups";
-import { useAppState } from "../src/state/app-state";
+import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const ICLOUD_KEY = "keel.icloud.enabled.v1";
@@ -56,7 +56,7 @@ export default function DataScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { exportData, importData, clearAllData } = useAppState();
+  const { exportData, importData, clearAllData } = useAppActions();
 
   const [icloud, setIcloud] = useState(false);
   const [backupCount, setBackupCount] = useState(0);

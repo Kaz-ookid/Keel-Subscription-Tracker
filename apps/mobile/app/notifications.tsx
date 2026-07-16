@@ -31,6 +31,7 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { Sheet } from "../src/components/Sheet";
 import { Card } from "../src/components/ui/Card";
 import { WheelSheet } from "../src/components/WheelSheet";
+import { formatHour } from "../src/lib/dates";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import {
   DEFAULT_LEAD_OPTIONS,
@@ -42,7 +43,7 @@ import {
   syncReminders,
   type NotificationSettings,
 } from "../src/lib/notifications";
-import { useAppState } from "../src/state/app-state";
+import { useAppActions, useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const Picker = RNPicker as unknown as ComponentType<{
@@ -83,7 +84,8 @@ export default function NotificationsScreen() {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, categories, setItemReminder } = useAppState();
+  const { items, categories } = useAppData();
+  const { setItemReminder } = useAppActions();
 
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [granted, setGranted] = useState<boolean | null>(null);
@@ -125,8 +127,6 @@ export default function NotificationsScreen() {
     const option = REMINDER_OPTIONS.find((o) => o.value === key);
     return option ? t(option.labelKey, { count: option.count }) : "";
   };
-
-  const hourLabel = (hour: number) => `${String(hour).padStart(2, "0")}:00`;
 
   const pickLead = () => {
     const labels = DEFAULT_LEAD_OPTIONS.map((key) => leadLabel(key));
@@ -239,7 +239,7 @@ export default function NotificationsScreen() {
             <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setHourSheet(true)}>
               <IconChip icon="clock.fill" color={CHIP.hour} />
               <Text style={styles.rowText}>{t("notifCenter.hour")}</Text>
-              <Text style={styles.rowValue}>{hourLabel(settings.fireHour)}</Text>
+              <Text style={styles.rowValue}>{formatHour(settings.fireHour)}</Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
             </Pressable>
             <Text style={styles.footnote}>{t("notifCenter.defaultFooter")}</Text>
@@ -344,7 +344,7 @@ export default function NotificationsScreen() {
           {Array.from({ length: 24 }, (_, hour) => (
             <Picker.Item
               key={hour}
-              label={hourLabel(hour)}
+              label={formatHour(hour)}
               value={String(hour)}
               color={colors.text}
             />

@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
-import { useAppState } from "../state/app-state";
+import { useAppActions, useAppData } from "../state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { Sheet } from "./Sheet";
 import { Button } from "./ui/Button";
@@ -41,7 +41,8 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { categories, addCategory } = useAppState();
+  const { categories } = useAppData();
+  const { addCategory } = useAppActions();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
   const [icon, setIcon] = useState(ICON_CHOICES[0]);

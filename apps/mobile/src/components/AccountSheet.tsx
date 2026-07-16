@@ -11,7 +11,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { COLOR_SWATCHES } from "../constants";
-import { useAppState } from "../state/app-state";
+import { useAppActions, useAppData } from "../state/app-state";
 import { contrastText, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 import { Sheet } from "./Sheet";
@@ -159,7 +159,8 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, addAccount } = useAppState();
+  const { accounts } = useAppData();
+  const { addAccount } = useAppActions();
   const [adding, setAdding] = useState(false);
 
   const pick = (id: string | undefined) => {
@@ -223,7 +224,7 @@ export function AccountEditSheet({ visible, onClose, account }: EditProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { addAccount, updateAccount } = useAppState();
+  const { addAccount, updateAccount } = useAppActions();
 
   return (
     <Sheet

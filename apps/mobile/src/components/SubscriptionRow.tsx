@@ -16,7 +16,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { brandBleed } from "../lib/brand";
-import { useAppState } from "../state/app-state";
+import { useAppData } from "../state/app-state";
 import {
   emphasis,
   radius,
@@ -40,7 +40,7 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { categories, accounts } = useAppState();
+  const { categories, accounts } = useAppData();
   const category = categories.find((c) => c.id === item.categoryId);
   const account = accounts.find((a) => a.id === item.accountId);
 

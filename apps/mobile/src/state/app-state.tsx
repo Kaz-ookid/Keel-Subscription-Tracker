@@ -3,15 +3,24 @@
 // domain logic (building an item, recording/accruing payments) is delegated to
 // @keel/core — this layer only wires storage + React + id/clock to that logic.
 //
-// The ledger is the basis for future analytics: manual payments are logged when
-// the user ticks them off; automatic payments are caught up (logged for every
-// due date that has arrived) on load and on creation.
+// Split into two contexts on purpose (React's "state + dispatch" pattern):
+//   - AppData      — the values screens read; changes on every data change.
+//   - AppActions   — the mutators; a STABLE object created once, so a component
+//                    that only dispatches never re-renders on data changes, and
+//                    handlers passed to children keep a stable identity.
+// The handlers read the latest state through a ref (not a closure over state),
+// which is what lets the actions object stay stable without going stale.
+//
+// The ledger is the basis for analytics: manual payments are logged when the
+// user ticks them off; automatic payments are caught up (logged for every due
+// date that has arrived) on load and on creation.
 
 import { randomUUID } from "expo-crypto";
 import {
   createContext,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -74,7 +83,8 @@ const BUILTIN_CATEGORIES: Category[] = DEFAULT_CATEGORIES.map((c) => ({
   icon: c.icon,
 }));
 
-interface AppStateValue {
+/** The values screens read. Re-renders a consumer whenever any of these change. */
+export interface AppData {
   items: PaymentItem[];
   /** Append-only ledger of actual payment events (for the future analytics tab). */
   occurrences: PaymentOccurrence[];
@@ -84,10 +94,19 @@ interface AppStateValue {
   accounts: Account[];
   /** Big numbers merge into this currency everywhere. */
   displayCurrency: CurrencyCode;
-  setDisplayCurrency: (currency: CurrencyCode) => void;
   /** ECB daily reference rates (cached; null until first successful fetch). */
   rates: ExchangeRates | null;
+  /** The "To complete" list: suggestions the user has but hasn't filled in. */
+  pending: SuggestedCommitment[];
   loading: boolean;
+  /** Debug: when the on-device snapshot was stashed (null when there is none). */
+  snapshotSavedAt: string | null;
+}
+
+/** The mutators. One stable object — its identity never changes, so consumers
+ *  that only dispatch never re-render. */
+export interface AppActions {
+  setDisplayCurrency: (currency: CurrencyCode) => void;
   addSubscription: (input: NewRecurringInput, options?: AddItemOptions) => void;
   /** Create a BNPL "Pay in X" installment plan. */
   addInstallmentPlan: (input: NewInstallmentInput, options?: AddItemOptions) => void;
@@ -137,16 +156,12 @@ interface AppStateValue {
   loadSampleData: () => void;
   /** Debug/testing: replace everything with the demo seed. */
   loadDemoData: () => void;
-  /** The "To complete" list: suggestions the user has but hasn't filled in. */
-  pending: SuggestedCommitment[];
   addPendingSuggestions: (suggestions: SuggestedCommitment[]) => void;
   removePendingSuggestion: (id: string) => void;
   /** Backup: the exact persisted shape, ready to serialise and share. */
   exportData: () => PersistedState;
   /** Restore a backup (replaces everything); false when the JSON is invalid. */
   importData: (json: string) => boolean;
-  /** Debug: when the on-device snapshot was stashed (null when there is none). */
-  snapshotSavedAt: string | null;
   /** Debug: stash the current data in the snapshot slot (overwrites it), so
    *  demo data / clear all can be played with and undone. */
   saveSnapshot: () => void;
@@ -161,7 +176,19 @@ export interface AddItemOptions {
   settlePastPayments?: boolean;
 }
 
-const AppStateContext = createContext<AppStateValue | null>(null);
+/** The raw state the handlers read through a ref (the persisted shape, before
+ *  the display-time derivations the data context applies). */
+interface RawState {
+  items: PaymentItem[];
+  occurrences: PaymentOccurrence[];
+  customCategories: Category[];
+  accounts: Account[];
+  displayCurrency: CurrencyCode;
+  pending: SuggestedCommitment[];
+}
+
+const AppDataContext = createContext<AppData | null>(null);
+const AppActionsContext = createContext<AppActions | null>(null);
 
 /** Catch an automatic item up to today: recurring items log any charges that
  *  have come due; Pay-in-X plans mark any installments that have come due as
@@ -196,6 +223,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [pending, setPending] = useState<SuggestedCommitment[]>([]);
   const [snapshotSavedAt, setSnapshotSavedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // The latest COMMITTED state, readable synchronously from the stable handlers
+  // below (they must never close over a stale render's state). Written in a
+  // layout effect, not during render: a concurrent render that React discards
+  // must never leak into an event handler. The initial value mirrors the
+  // useState initials above, so the ref is correct even before the first
+  // effect runs; every commit then re-syncs it before anything can be tapped.
+  const rawRef = useRef<RawState>({
+    items: [],
+    occurrences: [],
+    customCategories: [],
+    accounts: [],
+    displayCurrency: DEFAULT_CURRENCY,
+    pending: [],
+  });
+  useLayoutEffect(() => {
+    rawRef.current = { items, occurrences, customCategories, accounts, displayCurrency, pending };
+  });
 
   useEffect(() => {
     loadState().then((state) => {
@@ -267,10 +312,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     });
   }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading]);
 
-  // One memoised value object: consumers only re-render when state actually
-  // changes. Handlers live inside the memo so their closures (over `items`,
-  // `occurrences`) are rebuilt whenever those change — never stale.
-  const value = useMemo<AppStateValue>(() => {
+  // The mutators, built ONCE (empty deps): they read the latest state through
+  // rawRef and write through the stable setState functions, so their identity
+  // never changes and consumers that only dispatch never re-render.
+  const actions = useMemo<AppActions>(() => {
     const addSubscription = (input: NewRecurringInput, options?: AddItemOptions) => {
       const created = makeRecurringPaymentItem(input, { id: randomUUID(), now: now() });
       const { item, occurrences: accrued } = options?.settlePastPayments
@@ -297,7 +342,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     ) => {
       // The latest recorded charge anchors the recomputed next-charge cursor so it
       // never regresses behind a charge that already happened.
-      const lastChargedDate = occurrences.reduce<CalendarDate | undefined>(
+      const lastChargedDate = rawRef.current.occurrences.reduce<CalendarDate | undefined>(
         (max, o) => (o.paymentItemId === id && (!max || o.dueDate > max) ? o.dueDate : max),
         undefined,
       );
@@ -345,7 +390,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     const markPaid = (id: string) => {
-      const item = items.find((i) => i.id === id);
+      const item = rawRef.current.items.find((i) => i.id === id);
       // One shared rule for both payment types: current month only.
       if (!item || item.schedule.kind !== "RECURRING" || !canMarkPaid(item, today())) return;
       const { item: advanced, occurrence } = recordRecurringPayment(item, {
@@ -358,7 +403,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     const skipPayment = (id: string) => {
-      const item = items.find((i) => i.id === id);
+      const item = rawRef.current.items.find((i) => i.id === id);
       if (!item || item.schedule.kind !== "RECURRING" || item.status !== "active") return;
       if (isPaymentItemComplete(item, today())) return;
       const { item: advanced, occurrence } = skipRecurringPayment(item, {
@@ -381,10 +426,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     const undoPaid = (id: string) => {
-      const item = items.find((i) => i.id === id);
+      const item = rawRef.current.items.find((i) => i.id === id);
       if (!item || item.schedule.kind !== "RECURRING" || item.settlementMode !== "manual") return;
       // The most recent hand-recorded event (paid or skipped) for this item.
-      const last = occurrences.reduce<PaymentOccurrence | undefined>(
+      const last = rawRef.current.occurrences.reduce<PaymentOccurrence | undefined>(
         (latest, o) =>
           o.paymentItemId === id &&
           (o.status === "charged" || o.status === "skipped") &&
@@ -480,14 +525,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts(demo.accounts);
     };
 
-    const exportData = (): PersistedState => ({
-      items,
-      occurrences,
-      categories: customCategories,
-      accounts,
-      displayCurrency,
-      pending,
-    });
+    const exportData = (): PersistedState => {
+      const s = rawRef.current;
+      return {
+        items: s.items,
+        occurrences: s.occurrences,
+        categories: s.customCategories,
+        accounts: s.accounts,
+        displayCurrency: s.displayCurrency,
+        pending: s.pending,
+      };
+    };
 
     const importData = (json: string): boolean => {
       const state = parsePersistedState(json);
@@ -518,14 +566,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     return {
-      items,
-      occurrences,
-      categories: [...BUILTIN_CATEGORIES, ...customCategories],
-      accounts: accounts.filter((a) => !a.isArchived),
-      displayCurrency,
       setDisplayCurrency,
-      rates,
-      loading,
       addSubscription,
       addInstallmentPlan,
       updateSubscription,
@@ -547,32 +588,57 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       clearAllData,
       loadSampleData,
       loadDemoData,
-      pending,
       addPendingSuggestions,
       removePendingSuggestion,
       exportData,
       importData,
-      snapshotSavedAt,
       saveSnapshot,
       restoreSnapshot,
     };
-  }, [
-    items,
-    occurrences,
-    customCategories,
-    accounts,
-    displayCurrency,
-    pending,
-    snapshotSavedAt,
-    rates,
-    loading,
-  ]);
+  }, []);
 
-  return <AppStateContext.Provider value={value}>{children}</AppStateContext.Provider>;
+  const data = useMemo<AppData>(
+    () => ({
+      items,
+      occurrences,
+      categories: [...BUILTIN_CATEGORIES, ...customCategories],
+      accounts: accounts.filter((a) => !a.isArchived),
+      displayCurrency,
+      rates,
+      pending,
+      loading,
+      snapshotSavedAt,
+    }),
+    [
+      items,
+      occurrences,
+      customCategories,
+      accounts,
+      displayCurrency,
+      rates,
+      pending,
+      loading,
+      snapshotSavedAt,
+    ],
+  );
+
+  return (
+    <AppActionsContext.Provider value={actions}>
+      <AppDataContext.Provider value={data}>{children}</AppDataContext.Provider>
+    </AppActionsContext.Provider>
+  );
 }
 
-export function useAppState(): AppStateValue {
-  const ctx = useContext(AppStateContext);
-  if (!ctx) throw new Error("useAppState must be used within AppStateProvider");
+/** The app's data. Re-renders the caller whenever any field changes. */
+export function useAppData(): AppData {
+  const ctx = useContext(AppDataContext);
+  if (!ctx) throw new Error("useAppData must be used within AppStateProvider");
+  return ctx;
+}
+
+/** The app's mutators. A stable object — reading it never causes a re-render. */
+export function useAppActions(): AppActions {
+  const ctx = useContext(AppActionsContext);
+  if (!ctx) throw new Error("useAppActions must be used within AppStateProvider");
   return ctx;
 }

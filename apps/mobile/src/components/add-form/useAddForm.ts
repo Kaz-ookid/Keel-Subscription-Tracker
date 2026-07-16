@@ -6,7 +6,6 @@ import {
   addRecurrence,
   alignToOccurrence,
   anchorFromDate,
-  calendarDate,
   formatCalendarDate,
   formatMoney,
   fromMajor,
@@ -26,14 +25,15 @@ import {
   type TimeUnit,
 } from "@keel/core";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
 import { localizedAnchor } from "../../i18n/recurrence";
+import { formatHour, fromCalendarDate, toCalendarDate } from "../../lib/dates";
 import { loadNotificationSettings } from "../../lib/notifications";
 import { matchSuggestions } from "../../lib/suggestions";
-import { useAppState } from "../../state/app-state";
+import { useAppActions, useAppData } from "../../state/app-state";
 import { useImportSession } from "../../state/import-session";
 
 export type PlanType = "subscription" | "installment";
@@ -71,21 +71,6 @@ function reminderFromKey(key: string, hourKey: string): ReminderRule | undefined
   };
 }
 
-/** The picker returns a Date at LOCAL midnight — format with local parts.
- *  (`toISOString` converts to UTC first, which shifted "16 June" to the 15th
- *  for anyone east of Greenwich.) */
-function toCalendarDate(d: Date): CalendarDate {
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return calendarDate(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
-}
-
-/** Parse a stored calendar date to LOCAL midnight for the native picker
- *  (`new Date("YYYY-MM-DD")` parses as UTC, the same shift the other way). */
-function fromCalendarDate(date: CalendarDate): Date {
-  const [y, m, d] = date.split("-").map(Number);
-  return new Date(y, m - 1, d);
-}
-
 export type AddForm = ReturnType<typeof useAddForm>;
 
 /** A brand-bank entry's pre-fillable fields — route params (the To-complete
@@ -121,17 +106,14 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     color?: string;
     domain?: string;
   }>();
+  const { items, categories, accounts, displayCurrency } = useAppData();
   const {
-    items,
     addSubscription,
     addInstallmentPlan,
     updateSubscription,
     updateInstallmentPlan,
     removePendingSuggestion,
-    categories,
-    accounts,
-    displayCurrency,
-  } = useAppState();
+  } = useAppActions();
 
   // When an `id` is passed we're editing an existing item; pre-fill from it.
   const editItem = id ? items.find((i) => i.id === id) : undefined;
@@ -351,7 +333,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     : t("common.never");
   const reminderHourValue =
     reminderHourKey === "default" ? String(defaultFireHour) : reminderHourKey;
-  const reminderHourLabel = `${reminderHourValue.padStart(2, "0")}:00`;
+  const reminderHourLabel = formatHour(Number(reminderHourValue));
 
   // Live trial summary: "Free until 20 Jun · then CHF 12.90" (or the intro
   // price when it isn't free). Shown under the toggle once a regular price set.
@@ -419,12 +401,13 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   // Inline brand-bank suggestions for the name field: as the user types a fresh
   // name, offer matching known providers (the upfront chooser, but in place).
   // Hidden once an identity is set (a brand picked, or a custom domain typed)
-  // and when editing; skips brands already tracked by name.
-  const takenNames = new Set(items.map((i) => i.name.trim().toLowerCase()));
-  const nameSuggestions =
-    isEditing || isDraft || domain
-      ? []
-      : matchSuggestions(name).filter((s) => !takenNames.has(s.name.toLowerCase()));
+  // and when editing; skips brands already tracked by name. Memoised: this scans
+  // the whole brand bank, and the form re-renders on every keystroke of any field.
+  const nameSuggestions = useMemo(() => {
+    if (isEditing || isDraft || domain) return [];
+    const takenNames = new Set(items.map((i) => i.name.trim().toLowerCase()));
+    return matchSuggestions(name).filter((s) => !takenNames.has(s.name.toLowerCase()));
+  }, [isEditing, isDraft, domain, name, items]);
 
   /** Apply a brand-bank entry to the live form — name, look, category, cadence.
    *  The same effect as picking it from the upfront chooser. */

@@ -17,7 +17,7 @@ import { InfoPopup } from "../../src/components/InfoPopup";
 import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
 import { consumeAiRead, useEntitlement } from "../../src/lib/entitlement";
-import { useAppState } from "../../src/state/app-state";
+import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import {
   radius,
@@ -40,7 +40,7 @@ export default function ImportScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, accounts, categories, displayCurrency } = useAppState();
+  const { items, accounts, categories, displayCurrency } = useAppData();
   const { startSession } = useImportSession();
   // The free-read meter (2 reads; a read only counts when it succeeds).
   const { loaded, full, readsLeft } = useEntitlement();

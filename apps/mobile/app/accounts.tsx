@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AccountEditSheet } from "../src/components/AccountSheet";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { EmptyState } from "../src/components/ui/EmptyState";
-import { useAppState } from "../src/state/app-state";
+import { useAppActions, useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 export default function AccountsScreen() {
@@ -17,7 +17,8 @@ export default function AccountsScreen() {
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { accounts, archiveAccount } = useAppState();
+  const { accounts } = useAppData();
+  const { archiveAccount } = useAppActions();
   const [editing, setEditing] = useState<Account | undefined>();
   const [sheetOpen, setSheetOpen] = useState(false);
   // Bumped on every open so the form remounts with fresh state.
