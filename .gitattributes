@@ -4,3 +4,8 @@
 *.jpg binary
 *.jpeg binary
 *.ico binary
+
+# The lockfile is machine-generated: mark it so GitHub collapses it in diffs
+# and leaves it out of the repo's language stats (it otherwise dominates the
+# "additions" count and the languages bar).
+package-lock.json linguist-generated=true
