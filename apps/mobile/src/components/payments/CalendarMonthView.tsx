@@ -9,20 +9,7 @@
 // swipe): the neighbor month is really under your finger, the gesture can be
 // held and pulled back. Three pages recenter invisibly after each landing.
 
-import {
-  calendarDate,
-  COVERED_INSTALLMENT_STATUSES,
-  endOfMonth,
-  formatMoney,
-  formatTotalsIn,
-  isInstallmentSchedule,
-  projectCharges,
-  today,
-  type CalendarDate,
-  type Money,
-  type PaymentItem,
-  type PaymentOccurrence,
-} from "@keel/core";
+import { endOfMonth, formatMoney, formatTotalsIn, today, type CalendarDate } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
@@ -31,7 +18,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
-import { useAppState } from "../../state/app-state";
+import { monthShifted } from "../../lib/dates";
+import { useAppData } from "../../state/app-state";
+import { monthCharges, monthWeeks, type DayCharge } from "./calendar-month-data";
 import {
   dockClearance,
   emphasis,
@@ -51,127 +40,13 @@ const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0];
 // four-year span as the Insights chart).
 const MONTHS_REACH = 24;
 
-interface DayCharge {
-  key: string;
-  paymentItemId: string;
-  name: string;
-  dueDate: CalendarDate;
-  amount: Money;
-  domain?: string;
-  color?: string;
-  categoryId?: string;
-  paid: boolean;
-  overdue: boolean;
-  installmentIndex?: number;
-  installmentCount?: number;
-}
-
-function firstOfShiftedMonth(asOf: CalendarDate, delta: number): CalendarDate {
-  const total = Number(asOf.slice(0, 4)) * 12 + (Number(asOf.slice(5, 7)) - 1) + delta;
-  const y = Math.floor(total / 12);
-  const m = String((total % 12) + 1).padStart(2, "0");
-  return calendarDate(`${y}-${m}-01`);
-}
-
-/** Every charge of one month on its due day — the list view's three sources
- *  (ledger, covered installments, projection), never double-counted. */
-function monthCharges(
-  items: readonly PaymentItem[],
-  occurrences: readonly PaymentOccurrence[],
-  monthKey: string,
-  monthEnd: CalendarDate,
-  asOf: CalendarDate,
-): DayCharge[] {
-  const byId = new Map(items.map((i) => [i.id, i]));
-  return [
-    ...occurrences.flatMap((o) => {
-      if (o.status !== "charged" || o.dueDate.slice(0, 7) !== monthKey) return [];
-      const item = byId.get(o.paymentItemId);
-      if (!item) return [];
-      return [
-        {
-          key: o.id,
-          paymentItemId: item.id,
-          name: item.name,
-          dueDate: o.dueDate,
-          amount: o.amount,
-          domain: item.domain,
-          color: item.color,
-          categoryId: item.categoryId,
-          paid: true,
-          overdue: false,
-        },
-      ];
-    }),
-    ...items.flatMap((item) => {
-      if (!isInstallmentSchedule(item.schedule)) return [];
-      const count = item.schedule.installments.length;
-      return item.schedule.installments
-        .filter(
-          (inst) =>
-            COVERED_INSTALLMENT_STATUSES.includes(inst.status) &&
-            inst.dueDate.slice(0, 7) === monthKey,
-        )
-        .map((inst) => ({
-          key: inst.id,
-          paymentItemId: item.id,
-          name: item.name,
-          dueDate: inst.dueDate,
-          amount: inst.amount,
-          domain: item.domain,
-          color: item.color,
-          categoryId: item.categoryId,
-          paid: true,
-          overdue: false,
-          installmentIndex: inst.index,
-          installmentCount: count,
-        }));
-    }),
-    ...projectCharges(items, monthEnd)
-      .filter((c) => c.dueDate.slice(0, 7) === monthKey)
-      .map((c) => ({
-        key: `${c.paymentItemId}-${c.dueDate}-${c.installmentIndex ?? 0}`,
-        paymentItemId: c.paymentItemId,
-        name: c.name,
-        dueDate: c.dueDate,
-        amount: c.amount,
-        domain: c.domain,
-        color: c.color,
-        categoryId: c.categoryId,
-        paid: false,
-        overdue: c.dueDate < asOf,
-        installmentIndex: c.installmentIndex,
-        installmentCount: c.installmentCount,
-      })),
-  ];
-}
-
-/** Monday-first grid rows for a month: leading blanks, then every day. */
-function monthWeeks(monthStart: CalendarDate, monthEnd: CalendarDate): (CalendarDate | null)[][] {
-  const y = Number(monthStart.slice(0, 4));
-  const m = Number(monthStart.slice(5, 7));
-  const monthKey = monthStart.slice(0, 7);
-  const daysInMonth = Number(monthEnd.slice(8, 10));
-  const leading = (new Date(y, m - 1, 1).getDay() + 6) % 7;
-  const cells: (CalendarDate | null)[] = [
-    ...Array.from({ length: leading }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) =>
-      calendarDate(`${monthKey}-${String(i + 1).padStart(2, "0")}`),
-    ),
-  ];
-  while (cells.length % 7 !== 0) cells.push(null);
-  const rows: (CalendarDate | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) rows.push(cells.slice(i, i + 7));
-  return rows;
-}
-
 export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void }) {
   const router = useRouter();
   const { colors } = useTheme();
   // Also subscribes the view to language changes for the date helpers.
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, categories, displayCurrency, rates } = useAppState();
+  const { items, occurrences, categories, displayCurrency, rates } = useAppData();
   const asOf = today();
   const [offset, setOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<CalendarDate | null>(asOf);
@@ -182,7 +57,7 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
     [],
   );
 
-  const monthStart = firstOfShiftedMonth(asOf, offset);
+  const monthStart = monthShifted(asOf, offset);
   const monthEnd = endOfMonth(monthStart);
   const monthKey = monthStart.slice(0, 7);
 
@@ -353,9 +228,9 @@ const MonthGrid = memo(function MonthGrid({
 }) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, occurrences, categories } = useAppState();
+  const { items, occurrences, categories } = useAppData();
 
-  const monthStart = firstOfShiftedMonth(asOf, offset);
+  const monthStart = monthShifted(asOf, offset);
   const monthEnd = endOfMonth(monthStart);
   const monthKey = monthStart.slice(0, 7);
 

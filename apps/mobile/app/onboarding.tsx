@@ -3,52 +3,41 @@
 // harbor's), then the method step: doors into a filled-in app (pick from the
 // brand bank, import with AI, or just the + button), looping via "Add more"
 // until the user says done. Also reachable from Settings with ?mode=browse,
-// which skips straight to the picker.
+// which skips straight to the picker. The scroll-driven pieces live in
+// src/components/onboarding/.
 
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
-  Easing,
-  Extrapolation,
   FadeIn,
   FadeInRight,
   FadeOut,
   FadeOutLeft,
-  interpolate,
   runOnJS,
   useAnimatedReaction,
   useAnimatedRef,
   useAnimatedScrollHandler,
-  useAnimatedStyle,
   useSharedValue,
-  withRepeat,
-  withTiming,
-  type SharedValue,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 
 import { Ambient } from "../src/components/Ambient";
+import { LightField } from "../src/components/onboarding/LightField";
+import { LockNudge } from "../src/components/onboarding/LockNudge";
+import { MethodDoor } from "../src/components/onboarding/MethodDoor";
+import { Dot, TourPane } from "../src/components/onboarding/TourElements";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { Button } from "../src/components/ui/Button";
-import {
-  authenticate,
-  getAuthKind,
-  loadAppLockConfig,
-  setAppLockEnabled,
-  type AuthKind,
-} from "../src/lib/app-lock";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { requestPaymentsView } from "../src/lib/tabReset";
-import { useAppState } from "../src/state/app-state";
-import { spacing, radius, typography, useTheme, type ThemeColors } from "../src/theme";
+import { useAppActions, useAppData } from "../src/state/app-state";
+import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
 const TOUR_PANES = [
   { titleKey: "onboarding.tour1Title", bodyKey: "onboarding.tour1Body" },
@@ -66,7 +55,8 @@ export default function OnboardingScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, pending, addPendingSuggestions } = useAppState();
+  const { items, pending } = useAppData();
+  const { addPendingSuggestions } = useAppActions();
 
   // "browse" (Settings, the pending list) jumps straight to the picker;
   // "start" (the empty-state Get started button) skips the tour but keeps the
@@ -95,27 +85,6 @@ export default function OnboardingScreen() {
   // loops back to the method step, re-worded now that something is in.
   const [lastAdd, setLastAdd] = useState<"pick" | "import" | null>(null);
   const pagerRef = useAnimatedRef<Animated.ScrollView>();
-
-  // The app-lock nudge on the way out: shown on the done pane when the device
-  // can lock and the lock isn't already on.
-  const [lockKind, setLockKind] = useState<AuthKind | null>(null);
-  const [lockOn, setLockOn] = useState(false);
-  useEffect(() => {
-    void getAuthKind().then(setLockKind);
-    void loadAppLockConfig().then((config) => setLockOn(config.enabled));
-  }, []);
-  const enableLock = async () => {
-    const ok = await authenticate(t("applock.confirmPrompt"));
-    if (!ok) return;
-    await setAppLockEnabled(true);
-    setLockOn(true);
-  };
-  const lockLabel =
-    lockKind === "faceId"
-      ? t("applock.lockFaceId")
-      : lockKind === "touchId"
-        ? t("applock.lockTouchId")
-        : t("applock.lockGeneric");
 
   // Tracked/pending entries stay visible but greyed ("already in your list")
   // — hiding them made the bank look like it was missing obvious brands.
@@ -212,13 +181,15 @@ export default function OnboardingScreen() {
                 scrollX={scrollX}
                 title={t(p.titleKey)}
                 body={t(p.bodyKey)}
-                styles={styles}
+                paneStyle={styles.pane}
+                titleStyle={styles.paneTitle}
+                bodyStyle={styles.paneBody}
               />
             ))}
           </Animated.ScrollView>
           <View style={styles.dots}>
             {TOUR_PANES.map((p, i) => (
-              <Dot key={p.titleKey} index={i} scrollX={scrollX} styles={styles} />
+              <Dot key={p.titleKey} index={i} scrollX={scrollX} style={styles.dot} />
             ))}
           </View>
           {/* The label change (Next → Continue) crossfades: the outgoing
@@ -265,16 +236,12 @@ export default function OnboardingScreen() {
             title={t("onboarding.methodPick")}
             sub={t("onboarding.methodPickSub")}
             onPress={() => setPhase("pick")}
-            styles={styles}
-            colors={colors}
           />
           <MethodDoor
             icon="sparkles"
             title={t("onboarding.methodAI")}
             sub={t("onboarding.methodAISub")}
             onPress={goImport}
-            styles={styles}
-            colors={colors}
           />
           <Text style={styles.methodNote}>{t("onboarding.methodNote")}</Text>
           {/* Structurally a skip, not a third door: "no thanks, I'll use +".
@@ -358,33 +325,8 @@ export default function OnboardingScreen() {
                 ? t("onboarding.savedBody")
                 : t("onboarding.allSetBody")}
           </Text>
-          {/* One quiet, clearly OPTIONAL nudge on the way out: lock the app.
-              The overline says why this card is here; it never blocks. */}
-          {lockKind !== null && lockKind !== "unavailable" && (
-            <View style={styles.lockWrap}>
-              <Text style={styles.lockOverline}>{t("onboarding.lockOverline")}</Text>
-              <View style={styles.lockCard}>
-                <SymbolView
-                  name={lockOn ? "checkmark.circle.fill" : "faceid"}
-                  size={24}
-                  tintColor={lockOn ? colors.tones.success : colors.accent}
-                />
-                <View style={styles.lockTexts}>
-                  <Text style={styles.lockTitle}>
-                    {lockOn ? t("onboarding.lockOn") : lockLabel}
-                  </Text>
-                  {!lockOn && <Text style={styles.lockBody}>{t("onboarding.lockBody")}</Text>}
-                </View>
-                {!lockOn && (
-                  <Button
-                    size="sm"
-                    label={t("onboarding.lockCta")}
-                    onPress={() => void enableLock()}
-                  />
-                )}
-              </View>
-            </View>
-          )}
+          {/* One quiet, clearly OPTIONAL nudge on the way out: lock the app. */}
+          <LockNudge />
           {/* The loop back to the method step: "Add more" after a batch, a
               plain Back for the changed mind that added nothing yet. */}
           <Button
@@ -397,197 +339,6 @@ export default function OnboardingScreen() {
         </Animated.View>
       )}
     </View>
-  );
-}
-
-/** One tour pane whose text rides the scroll: the title and body slide and
- *  fade at slightly different speeds, so paging feels layered, not stamped. */
-function TourPane({
-  index,
-  scrollX,
-  title,
-  body,
-  styles,
-}: {
-  index: number;
-  scrollX: SharedValue<number>;
-  title: string;
-  body: string;
-  styles: ReturnType<typeof createStyles>;
-}) {
-  const range = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
-  const titleStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollX.value, range, [0, 1, 0], Extrapolation.CLAMP),
-    transform: [
-      { translateX: interpolate(scrollX.value, range, [36, 0, -36], Extrapolation.CLAMP) },
-    ],
-  }));
-  const bodyStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollX.value, range, [0, 1, 0], Extrapolation.CLAMP),
-    transform: [
-      { translateX: interpolate(scrollX.value, range, [64, 0, -64], Extrapolation.CLAMP) },
-    ],
-  }));
-  return (
-    <View style={styles.pane}>
-      <Animated.Text style={[styles.paneTitle, titleStyle]}>{title}</Animated.Text>
-      <Animated.Text style={[styles.paneBody, bodyStyle]}>{body}</Animated.Text>
-    </View>
-  );
-}
-
-/** A dot that morphs into a pill as its pane arrives — driven by the scroll
- *  itself, so it can never disagree with the page. */
-function Dot({
-  index,
-  scrollX,
-  styles,
-}: {
-  index: number;
-  scrollX: SharedValue<number>;
-  styles: ReturnType<typeof createStyles>;
-}) {
-  const range = [(index - 1) * SCREEN_WIDTH, index * SCREEN_WIDTH, (index + 1) * SCREEN_WIDTH];
-  const style = useAnimatedStyle(() => ({
-    width: interpolate(scrollX.value, range, [8, 22, 8], Extrapolation.CLAMP),
-    opacity: interpolate(scrollX.value, range, [0.35, 1, 0.35], Extrapolation.CLAMP),
-  }));
-  return <Animated.View style={[styles.dot, style]} />;
-}
-
-/** One soft light source: drifts along its own slow loop (each with its own
- *  period, so they never sync), swells slightly, and parallax-shifts against
- *  the pager. Several of these overlapping read like light through water:
- *  pure aura language, no scenery. */
-function Glow({
-  scrollX,
-  size,
-  color,
-  peak,
-  top,
-  left,
-  driftX,
-  driftY,
-  duration,
-  parallax,
-}: {
-  scrollX: SharedValue<number>;
-  size: number;
-  color: string;
-  /** Center-stop opacity: how strong the light reads. */
-  peak: number;
-  top: number;
-  left: number;
-  driftX: number;
-  driftY: number;
-  duration: number;
-  parallax: number;
-}) {
-  const phase = useSharedValue(0);
-  useEffect(() => {
-    // Reanimated shared values are driven by assigning `.value`.
-    phase.value = withRepeat(
-      withTiming(1, { duration, easing: Easing.inOut(Easing.sin) }),
-      -1,
-      true,
-    );
-  }, [phase, duration]);
-  const style = useAnimatedStyle(() => ({
-    transform: [
-      {
-        translateX: interpolate(phase.value, [0, 1], [0, driftX]) - scrollX.value * parallax,
-      },
-      { translateY: interpolate(phase.value, [0, 1], [0, driftY]) },
-      { scale: 1 + phase.value * 0.12 },
-    ],
-  }));
-  const gradientId = `glow-${top}-${left}`;
-  return (
-    <Animated.View pointerEvents="none" style={[{ position: "absolute", top, left }, style]}>
-      <Svg width={size} height={size}>
-        <Defs>
-          <RadialGradient id={gradientId} cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor={color} stopOpacity={peak} />
-            <Stop offset="60%" stopColor={color} stopOpacity={peak * 0.3} />
-            <Stop offset="100%" stopColor={color} stopOpacity={0} />
-          </RadialGradient>
-        </Defs>
-        <Circle cx={size / 2} cy={size / 2} r={size / 2} fill={`url(#${gradientId})`} />
-      </Svg>
-    </Animated.View>
-  );
-}
-
-/** The water-surface layer: three unsynchronized glows over the Ambient
- *  stage. Different sizes, periods and drift directions keep the light
- *  wandering without ever repeating visibly. */
-function LightField({ scrollX, accent }: { scrollX: SharedValue<number>; accent: string }) {
-  return (
-    <>
-      <Glow
-        scrollX={scrollX}
-        size={560}
-        color={accent}
-        peak={0.3}
-        top={-190}
-        left={SCREEN_WIDTH * 0.4}
-        driftX={-80}
-        driftY={60}
-        duration={11000}
-        parallax={0.12}
-      />
-      <Glow
-        scrollX={scrollX}
-        size={400}
-        color={accent}
-        peak={0.18}
-        top={SCREEN_HEIGHT * 0.42}
-        left={-170}
-        driftX={70}
-        driftY={-90}
-        duration={16000}
-        parallax={0.06}
-      />
-      <Glow
-        scrollX={scrollX}
-        size={300}
-        color={accent}
-        peak={0.14}
-        top={SCREEN_HEIGHT * 0.66}
-        left={SCREEN_WIDTH * 0.55}
-        driftX={-60}
-        driftY={-70}
-        duration={9000}
-        parallax={0.18}
-      />
-    </>
-  );
-}
-
-function MethodDoor({
-  icon,
-  title,
-  sub,
-  onPress,
-  styles,
-  colors,
-}: {
-  icon: string;
-  title: string;
-  sub: string;
-  onPress: () => void;
-  styles: ReturnType<typeof createStyles>;
-  colors: ThemeColors;
-}) {
-  return (
-    <Pressable style={styles.methodCard} onPress={onPress}>
-      <SymbolView name={icon as never} size={24} tintColor={colors.accent} />
-      <View style={styles.methodTexts}>
-        <Text style={styles.methodTitle}>{title}</Text>
-        <Text style={styles.methodSub}>{sub}</Text>
-      </View>
-      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-    </Pressable>
   );
 }
 
@@ -652,19 +403,6 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       gap: spacing.md,
     },
-    methodCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: spacing.md,
-    },
-    methodTexts: { flex: 1, gap: 2 },
-    methodTitle: { ...typography.label, color: colors.text, fontSize: 17 },
-    methodSub: { ...typography.caption, color: colors.mutedText, lineHeight: 18 },
     methodNote: {
       ...typography.caption,
       color: colors.mutedText,
@@ -679,30 +417,6 @@ function createStyles(colors: ThemeColors) {
       ...typography.label,
       color: colors.accent,
     },
-    lockWrap: {
-      alignSelf: "stretch",
-      gap: spacing.xs,
-      marginTop: spacing.md,
-    },
-    lockOverline: {
-      ...typography.caption,
-      color: colors.mutedText,
-      textAlign: "center",
-    },
-    lockCard: {
-      alignSelf: "stretch",
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-      padding: spacing.md,
-    },
-    lockTexts: { flex: 1, gap: 2 },
-    lockTitle: { ...typography.label, color: colors.text },
-    lockBody: { ...typography.caption, color: colors.mutedText, lineHeight: 17 },
     dots: {
       flexDirection: "row",
       justifyContent: "center",
