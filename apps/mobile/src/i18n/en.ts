@@ -472,6 +472,23 @@ export const en = {
     failedSub: "Didn't match. Try again whenever you're ready.",
     unlock: "Unlock",
   },
+  logos: {
+    title: "Show brand logos?",
+    body: "Keel can show each service's real logo, or a colored initial instead. A real logo is fetched from the web, one small request for that brand's icon the first time it appears. Initials are drawn on your device and need no connection.",
+    previewWebLabel: "Real logo",
+    previewWebCaption: "Fetched from the web",
+    previewOfflineLabel: "Colored initial",
+    previewOfflineCaption: "Stays on your phone",
+    enable: "Show brand logos",
+    keepOffline: "Use initials",
+    changeLater: "You can change this anytime in Settings.",
+    settingsRow: "Brand logos",
+    offTitle: "Turn off brand logos?",
+    offBody:
+      "Logos you've already loaded stay on your device and keep showing. Keel just won't fetch any new ones. You can also clear the saved logos.",
+    offKeep: "Turn off",
+    offClear: "Turn off and clear",
+  },
   settings: {
     groupGeneral: "General",
     groupPrivacy: "Privacy",

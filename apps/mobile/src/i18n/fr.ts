@@ -475,6 +475,23 @@ export const fr: typeof en = {
     failedSub: "Pas de correspondance. Réessayez quand vous voulez.",
     unlock: "Déverrouiller",
   },
+  logos: {
+    title: "Afficher les logos des marques ?",
+    body: "Keel peut afficher le vrai logo de chaque service, ou une initiale colorée à la place. Un vrai logo est récupéré sur le web, une petite requête pour l'icône de la marque la première fois qu'elle apparaît. Les initiales sont dessinées sur votre appareil et ne demandent aucune connexion.",
+    previewWebLabel: "Vrai logo",
+    previewWebCaption: "Récupéré sur le web",
+    previewOfflineLabel: "Initiale colorée",
+    previewOfflineCaption: "Reste sur votre téléphone",
+    enable: "Afficher les logos",
+    keepOffline: "Garder les initiales",
+    changeLater: "Vous pouvez changer ce choix à tout moment dans les Réglages.",
+    settingsRow: "Logos des marques",
+    offTitle: "Désactiver les logos des marques ?",
+    offBody:
+      "Les logos déjà chargés restent sur votre appareil et continuent de s'afficher. Keel n'en récupérera simplement plus de nouveaux. Vous pouvez aussi effacer les logos enregistrés.",
+    offKeep: "Désactiver",
+    offClear: "Désactiver et effacer",
+  },
   settings: {
     groupGeneral: "Général",
     groupPrivacy: "Confidentialité",

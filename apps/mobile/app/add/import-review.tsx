@@ -23,11 +23,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { COLOR_SWATCHES } from "../../src/constants";
 import { BrandBadge } from "../../src/components/BrandBadge";
+import { LogoConsentGate } from "../../src/components/LogoConsentGate";
 import { hapticImportConfirm } from "../../src/lib/haptics";
 import { HeroCard } from "../../src/components/HeroCard";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { Button } from "../../src/components/ui/Button";
-import { useAppState } from "../../src/state/app-state";
+import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
@@ -62,7 +63,8 @@ export default function ImportReviewScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const { drafts, skipped, removeDraft, clear } = useImportSession();
-  const { accounts, categories, addAccount, addSubscription, addInstallmentPlan } = useAppState();
+  const { accounts, categories } = useAppData();
+  const { addAccount, addSubscription, addInstallmentPlan } = useAppActions();
 
   // The light attention report: how many cards carry a flag, an AI note, or
   // an unpaid backlog — the ones worth a second look before confirming.
@@ -243,6 +245,8 @@ export default function ImportReviewScreen() {
 
   return (
     <View style={styles.screen}>
+      {/* First AI review also shows brand logos: ask before any load. */}
+      <LogoConsentGate />
       <FlatList
         data={drafts}
         keyExtractor={(d) => d.id}

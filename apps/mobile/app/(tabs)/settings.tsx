@@ -1,6 +1,7 @@
 // Settings: the home of rare, one-time configuration — starting with account
 // management, which is set up once and then mostly left alone (that's why it
-// lives here rather than occupying a whole tab).
+// lives here rather than occupying a whole tab). Rows speak the shared
+// SettingsRow grammar (src/components/settings/); this file is the list.
 
 import {
   calendarDate,
@@ -11,6 +12,7 @@ import {
 } from "@keel/core";
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
+import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,15 +44,19 @@ import {
   type AuthKind,
 } from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
+import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
+import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
+import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
 import { Sheen } from "../../src/components/ui/Sheen";
 import { TabFade } from "../../src/components/TabFade";
 import { WheelSheet } from "../../src/components/WheelSheet";
+import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
 import { setFullKeel, useEntitlement } from "../../src/lib/entitlement";
-import { useAppState } from "../../src/state/app-state";
+import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
@@ -99,6 +105,7 @@ const CHIP = {
   importAI: "#30B0C7",
   guide: "#FFCC00",
   faceid: "#32ADE6",
+  logos: "#5AC8FA",
   grace: "#8E8E93",
   exportBackup: "#0A84FF",
   restoreBackup: "#30D158",
@@ -109,24 +116,6 @@ const CHIP = {
   danger: "#FF3B30",
   about: "#FF2D55",
 } as const;
-
-function IconChip({ icon, color }: { icon: string; color: string }) {
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: color }]}>
-      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
-    </View>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    width: 29,
-    height: 29,
-    borderRadius: 6.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -139,18 +128,15 @@ export default function SettingsScreen() {
   useEffect(() => {
     if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [resetSignal]);
+  const { accounts, displayCurrency, rates, snapshotSavedAt } = useAppData();
   const {
-    accounts,
-    displayCurrency,
     setDisplayCurrency,
-    rates,
     clearAllData,
     loadSampleData,
     loadDemoData,
-    snapshotSavedAt,
     saveSnapshot,
     restoreSnapshot,
-  } = useAppState();
+  } = useAppActions();
   const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
   const [currencySheet, setCurrencySheet] = useState(false);
@@ -165,6 +151,10 @@ export default function SettingsScreen() {
   // Full Keel: the banner reflects ownership; the debug switch flips it.
   const entitlement = useEntitlement();
   const [bannerWidth, setBannerWidth] = useState(0);
+  // Brand-logo opt-in: off until the user chooses (see logo-consent). Turning on
+  // re-shows the onboarding explanation as a reminder before it commits.
+  const logoConsent = useLogoConsent();
+  const [logoSheet, setLogoSheet] = useState(false);
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
@@ -184,6 +174,32 @@ export default function SettingsScreen() {
     if (!ok) return;
     setLockEnabled(next);
     await persistLockEnabled(next);
+  };
+
+  // Turning logos ON re-shows the explanation (the onboarding sheet) as a
+  // reminder; it commits only if the user confirms there. Turning OFF stops new
+  // web fetches but keeps the logos already on the device (local, so still
+  // shown); offer to clear the saved ones too for a clean slate.
+  const toggleLogos = (next: boolean) => {
+    if (next) {
+      setLogoSheet(true);
+      return;
+    }
+    Alert.alert(t("logos.offTitle"), t("logos.offBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("logos.offKeep"), onPress: () => setLogoConsent(false) },
+      {
+        text: t("logos.offClear"),
+        style: "destructive",
+        onPress: () => {
+          setLogoConsent(false);
+          void Image.clearDiskCache();
+          void Image.clearMemoryCache();
+          // The session memo of cached-logo paths now points at deleted files.
+          forgetCachedLogoLookups();
+        },
+      },
+    ]);
   };
 
   const graceLabel = (seconds: number) =>
@@ -359,101 +375,130 @@ export default function SettingsScreen() {
 
         <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
         <Card>
-          <Pressable style={styles.row} onPress={() => router.push("/accounts")}>
-            <IconChip icon="building.columns.fill" color={CHIP.accounts} />
-            <Text style={styles.rowText}>{t("settings.accounts")}</Text>
-            <Text style={styles.rowValue}>{accounts.length || ""}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setCurrencySheet(true)}>
-            <IconChip icon="coloncurrencysign.circle" color={CHIP.currency} />
-            <Text style={styles.rowText}>{t("settings.displayCurrency")}</Text>
-            <Text style={styles.rowValue}>{currencyLabel(displayCurrency)}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={pickTheme}>
-            <IconChip icon="circle.lefthalf.filled" color={CHIP.appearance} />
-            <Text style={styles.rowText}>{t("settings.appearance")}</Text>
-            <Text style={styles.rowValue}>
-              {t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
-            </Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={pickLanguage}>
-            <IconChip icon="globe" color={CHIP.language} />
-            <Text style={styles.rowText}>{t("settings.language")}</Text>
-            <Text style={styles.rowValue}>
-              {languageLabel(
-                LANGUAGE_OPTIONS.find((o) => o.value === languageMode) ?? LANGUAGE_OPTIONS[0],
-              )}
-            </Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
+          <SettingsRow
+            icon="building.columns.fill"
+            chipColor={CHIP.accounts}
+            label={t("settings.accounts")}
+            value={accounts.length ? String(accounts.length) : ""}
+            chevron
+            onPress={() => router.push("/accounts")}
+          />
+          <SettingsRow
+            icon="coloncurrencysign.circle"
+            chipColor={CHIP.currency}
+            label={t("settings.displayCurrency")}
+            value={currencyLabel(displayCurrency)}
+            chevron
+            divider
+            onPress={() => setCurrencySheet(true)}
+          />
+          <SettingsRow
+            icon="circle.lefthalf.filled"
+            chipColor={CHIP.appearance}
+            label={t("settings.appearance")}
+            value={t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
+            chevron
+            divider
+            onPress={pickTheme}
+          />
+          <SettingsRow
+            icon="globe"
+            chipColor={CHIP.language}
+            label={t("settings.language")}
+            value={languageLabel(
+              LANGUAGE_OPTIONS.find((o) => o.value === languageMode) ?? LANGUAGE_OPTIONS[0],
+            )}
+            chevron
+            divider
+            onPress={pickLanguage}
+          />
           {/* The notification center: master switch, defaults, scheduled list. */}
-          <Pressable
-            style={[styles.row, styles.rowDivider]}
-            onPress={() => router.push("/notifications")}
-          >
-            <IconChip icon="bell.fill" color={CHIP.reminders} />
-            <Text style={styles.rowText}>{t("notifCenter.title")}</Text>
-            <Text style={styles.rowValue}>
-              {remindersOn === null
+          <SettingsRow
+            icon="bell.fill"
+            chipColor={CHIP.reminders}
+            label={t("notifCenter.title")}
+            value={
+              remindersOn === null
                 ? ""
                 : remindersOn
                   ? t("settings.remindersOn")
-                  : t("settings.remindersOff")}
-            </Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable
-            style={[styles.row, styles.rowDivider]}
+                  : t("settings.remindersOff")
+            }
+            chevron
+            divider
+            onPress={() => router.push("/notifications")}
+          />
+          <SettingsRow
+            icon="rectangle.stack.fill"
+            chipColor={CHIP.browse}
+            label={t("settings.browseCommon")}
+            chevron
+            divider
             onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
-          >
-            <IconChip icon="rectangle.stack.fill" color={CHIP.browse} />
-            <Text style={styles.rowText}>{t("settings.browseCommon")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
+          />
           {/* The deliberate home of the AI import (§6.1) — the Add flow only hints. */}
-          <Pressable
-            style={[styles.row, styles.rowDivider]}
+          <SettingsRow
+            icon="sparkles"
+            chipColor={CHIP.importAI}
+            label={t("settings.importAI")}
+            chevron
+            divider
             onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
-          >
-            <IconChip icon="sparkles" color={CHIP.importAI} />
-            <Text style={styles.rowText}>{t("settings.importAI")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={() => router.push("/guide")}>
-            <IconChip icon="lightbulb.fill" color={CHIP.guide} />
-            <Text style={styles.rowText}>{t("guide.title")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
+          />
+          <SettingsRow
+            icon="lightbulb.fill"
+            chipColor={CHIP.guide}
+            label={t("guide.title")}
+            chevron
+            divider
+            onPress={() => router.push("/guide")}
+          />
         </Card>
 
-        {/* Privacy: the app lock. The OS does the locking; we store one flag. */}
+        {/* Privacy: brand-logo loading + the app lock. Both are local flags;
+            logos gate the one network call derived from what you track. */}
         <Text style={styles.groupLabel}>{t("settings.groupPrivacy")}</Text>
         <Card>
-          <View style={styles.row}>
-            <IconChip icon="faceid" color={authKind === "unavailable" ? CHIP.debug : CHIP.faceid} />
-            <Text style={styles.rowText}>{lockLabel}</Text>
-            {authKind === "unavailable" ? (
-              <Text style={styles.rowValue}>{t("applock.needPasscode")}</Text>
-            ) : (
+          <SettingsRow
+            icon="photo.circle.fill"
+            chipColor={CHIP.logos}
+            label={t("logos.settingsRow")}
+            right={
               <Switch
-                value={lockEnabled}
-                onValueChange={(next) => void toggleLock(next)}
-                disabled={authKind === null}
+                value={logoConsent.status === "on"}
+                onValueChange={toggleLogos}
                 trackColor={{ true: colors.accent }}
               />
-            )}
-          </View>
+            }
+          />
+          <SettingsRow
+            icon="faceid"
+            chipColor={authKind === "unavailable" ? CHIP.debug : CHIP.faceid}
+            label={lockLabel}
+            value={authKind === "unavailable" ? t("applock.needPasscode") : undefined}
+            divider
+            right={
+              authKind !== "unavailable" ? (
+                <Switch
+                  value={lockEnabled}
+                  onValueChange={(next) => void toggleLock(next)}
+                  disabled={authKind === null}
+                  trackColor={{ true: colors.accent }}
+                />
+              ) : undefined
+            }
+          />
           {lockEnabled && (
             <Animated.View entering={foldIn} exiting={foldOut}>
-              <Pressable style={[styles.row, styles.rowDivider]} onPress={pickGrace}>
-                <IconChip icon="clock.fill" color={CHIP.grace} />
-                <Text style={styles.rowText}>{t("applock.requireAfter")}</Text>
-                <Text style={styles.rowValue}>{graceLabel(graceSeconds)}</Text>
-                <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-              </Pressable>
+              <SettingsRow
+                icon="clock.fill"
+                chipColor={CHIP.grace}
+                label={t("applock.requireAfter")}
+                value={graceLabel(graceSeconds)}
+                chevron
+                divider
+                onPress={pickGrace}
+              />
             </Animated.View>
           )}
           <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
@@ -462,71 +507,97 @@ export default function SettingsScreen() {
         {/* Where the data lives: iCloud preference, local backups, export. */}
         <Text style={styles.groupLabel}>{t("settings.groupBackup")}</Text>
         <Card>
-          <Pressable style={styles.row} onPress={() => router.push("/data")}>
-            <IconChip icon="icloud.fill" color={CHIP.exportBackup} />
-            <Text style={styles.rowText}>{t("data.title")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
+          <SettingsRow
+            icon="icloud.fill"
+            chipColor={CHIP.exportBackup}
+            label={t("data.title")}
+            chevron
+            onPress={() => router.push("/data")}
+          />
         </Card>
 
         {/* Debug, for dogfooding: seed a realistic household or start clean —
           bracketed by the snapshot slot so real data survives the play. */}
         <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
         <Card>
-          <Pressable style={styles.row} onPress={confirmSnapshotSave}>
-            <IconChip icon="tray.and.arrow.down.fill" color={CHIP.debug} />
-            <Text style={styles.rowText}>{t("settings.snapshotSave")}</Text>
-            <Text style={styles.rowValue}>{snapshotLabel}</Text>
-          </Pressable>
+          <SettingsRow
+            icon="tray.and.arrow.down.fill"
+            chipColor={CHIP.debug}
+            label={t("settings.snapshotSave")}
+            value={snapshotLabel}
+            onPress={confirmSnapshotSave}
+          />
           {snapshotSavedAt !== null && (
-            <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSnapshotRestore}>
-              <IconChip icon="tray.and.arrow.up.fill" color={CHIP.debug} />
-              <Text style={styles.rowText}>{t("settings.snapshotRestore")}</Text>
-            </Pressable>
+            <SettingsRow
+              icon="tray.and.arrow.up.fill"
+              chipColor={CHIP.debug}
+              label={t("settings.snapshotRestore")}
+              divider
+              onPress={confirmSnapshotRestore}
+            />
           )}
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmSample}>
-            <IconChip icon="wand.and.stars" color={CHIP.sample} />
-            <Text style={styles.rowText}>{t("settings.loadSample")}</Text>
-          </Pressable>
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmDemo}>
-            <IconChip icon="person.crop.square.filled.and.at.rectangle" color={CHIP.demo} />
-            <Text style={styles.rowText}>{t("settings.loadDemo")}</Text>
-          </Pressable>
-          <View style={[styles.row, styles.rowDivider]}>
-            <IconChip icon="sailboat" color={CHIP.harbor} />
-            <Text style={styles.rowText}>{t("settings.harborExperiment")}</Text>
-            <Switch
-              value={harborOn}
-              onValueChange={(next) => {
-                setHarborOn(next);
-                void setHarborEnabled(next);
-              }}
-              trackColor={{ true: colors.accent }}
-            />
-          </View>
-          <Pressable style={[styles.row, styles.rowDivider]} onPress={confirmOnboarding}>
-            <IconChip icon="arrow.counterclockwise" color={CHIP.debug} />
-            <Text style={styles.rowText}>{t("settings.testOnboarding")}</Text>
-          </Pressable>
-          <View style={[styles.row, styles.rowDivider]}>
-            <IconChip icon="checkmark.seal.fill" color={CHIP.debug} />
-            <Text style={styles.rowText}>{t("settings.fullkeelDebug")}</Text>
-            <Switch
-              value={entitlement.full}
-              onValueChange={(next) => void setFullKeel(next)}
-              trackColor={{ true: colors.accent }}
-            />
-          </View>
+          <SettingsRow
+            icon="wand.and.stars"
+            chipColor={CHIP.sample}
+            label={t("settings.loadSample")}
+            divider
+            onPress={confirmSample}
+          />
+          <SettingsRow
+            icon="person.crop.square.filled.and.at.rectangle"
+            chipColor={CHIP.demo}
+            label={t("settings.loadDemo")}
+            divider
+            onPress={confirmDemo}
+          />
+          <SettingsRow
+            icon="sailboat"
+            chipColor={CHIP.harbor}
+            label={t("settings.harborExperiment")}
+            divider
+            right={
+              <Switch
+                value={harborOn}
+                onValueChange={(next) => {
+                  setHarborOn(next);
+                  void setHarborEnabled(next);
+                }}
+                trackColor={{ true: colors.accent }}
+              />
+            }
+          />
+          <SettingsRow
+            icon="arrow.counterclockwise"
+            chipColor={CHIP.debug}
+            label={t("settings.testOnboarding")}
+            divider
+            onPress={confirmOnboarding}
+          />
+          <SettingsRow
+            icon="checkmark.seal.fill"
+            chipColor={CHIP.debug}
+            label={t("settings.fullkeelDebug")}
+            divider
+            right={
+              <Switch
+                value={entitlement.full}
+                onValueChange={(next) => void setFullKeel(next)}
+                trackColor={{ true: colors.accent }}
+              />
+            }
+          />
         </Card>
 
         {/* The maker, the mailbox, the legal texts: one door for all of it. */}
         <Text style={styles.groupLabel}>{t("settings.groupAbout")}</Text>
         <Card>
-          <Pressable style={styles.row} onPress={() => router.push("/about")}>
-            <IconChip icon="heart.fill" color={CHIP.about} />
-            <Text style={styles.rowText}>{t("about.title")}</Text>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
+          <SettingsRow
+            icon="heart.fill"
+            chipColor={CHIP.about}
+            label={t("about.title")}
+            chevron
+            onPress={() => router.push("/about")}
+          />
         </Card>
 
         <Text style={styles.footer}>
@@ -553,6 +624,17 @@ export default function SettingsScreen() {
             ))}
           </Picker>
         </WheelSheet>
+
+        {/* Turning brand logos on re-shows the onboarding explanation; it only
+            commits when the user confirms in the sheet. */}
+        <LogoConsentSheet
+          visible={logoSheet}
+          onChoose={(enabled) => {
+            setLogoSheet(false);
+            setLogoConsent(enabled);
+          }}
+          onDismiss={() => setLogoSheet(false)}
+        />
       </ScrollView>
     </TabFade>
   );
@@ -584,28 +666,6 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       marginBottom: -spacing.sm,
       paddingHorizontal: spacing.xs,
-    },
-    row: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-      paddingVertical: spacing.md,
-    },
-    rowText: {
-      ...typography.body,
-      color: colors.text,
-      flex: 1,
-    },
-    rowValue: {
-      ...typography.body,
-      color: colors.mutedText,
-    },
-    dangerText: {
-      color: colors.tones.danger,
-    },
-    rowDivider: {
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
     },
     // The glass banner (§9f language, one accent contour, clipped sheen).
     fullkeelCard: {

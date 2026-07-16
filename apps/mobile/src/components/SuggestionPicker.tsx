@@ -19,6 +19,7 @@ import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import { suggestionMatches } from "../lib/suggestions";
 import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 import { BrandBadge } from "./BrandBadge";
+import { LogoConsentGate } from "./LogoConsentGate";
 import { Button } from "./ui/Button";
 
 interface Props {
@@ -90,6 +91,8 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
 
   return (
     <View style={styles.container}>
+      {/* First time a logo-bearing surface opens: ask before any logo loads. */}
+      <LogoConsentGate />
       <View style={styles.searchWrap}>
         <SymbolView name="magnifyingglass" size={16} tintColor={colors.mutedText} />
         <TextInput

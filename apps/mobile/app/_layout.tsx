@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
+import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { AppStateProvider } from "../src/state/app-state";
 import { ImportSessionProvider } from "../src/state/import-session";
 import { ThemePreferenceProvider, useTheme } from "../src/theme";
@@ -24,6 +25,11 @@ export default function RootLayout() {
 function RootNavigator() {
   const { colors, scheme } = useTheme();
   const router = useRouter();
+
+  // Read the stored brand-logo choice once, before any badge renders.
+  useEffect(() => {
+    void hydrateLogoConsent();
+  }, []);
 
   // Tapping a reminder lands on the commitment it's about.
   useEffect(() => {
