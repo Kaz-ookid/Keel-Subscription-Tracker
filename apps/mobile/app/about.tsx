@@ -20,7 +20,7 @@ import {
   View,
 } from "react-native";
 
-import { APP_STORE_ID, SUPPORT_EMAIL } from "../src/constants";
+import { APP_STORE_ID, SUPPORT_EMAIL, WEBSITE_URL } from "../src/constants";
 import { InfoPopup } from "../src/components/InfoPopup";
 import { Card } from "../src/components/ui/Card";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -46,6 +46,7 @@ const chipStyles = StyleSheet.create({
 const CHIP = {
   bug: "#FF3B30",
   idea: "#FFCC00",
+  web: "#0A84FF",
   rate: "#FF9500",
   share: "#007AFF",
   privacy: "#8E8E93",
@@ -61,6 +62,8 @@ export default function AboutScreen() {
   const [popup, setPopup] = useState<"privacy" | "terms" | null>(null);
 
   const version = Constants.expoConfig?.version ?? "";
+  // The bare host reads as the link itself, kept in sync with the constant.
+  const websiteHost = WEBSITE_URL.replace(/^https?:\/\//, "");
 
   // Subject + a device line, so bug mails arrive ready to answer.
   const mail = (subject: string, withDetails: boolean) => {
@@ -82,6 +85,8 @@ export default function AboutScreen() {
     void Linking.openURL(`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`);
   };
 
+  const openWebsite = () => void Linking.openURL(WEBSITE_URL);
+
   return (
     <ScrollView
       style={styles.screen}
@@ -102,6 +107,16 @@ export default function AboutScreen() {
           <Text style={styles.nameWord}>keel</Text> <Text style={styles.namePron}>/kiːl/</Text>{" "}
           {t("about.nameDef")}
         </Text>
+      </Card>
+
+      {/* The public face: the marketing site, always available. */}
+      <Text style={styles.groupLabel}>{t("about.groupWeb")}</Text>
+      <Card>
+        <Pressable style={styles.row} onPress={openWebsite}>
+          <IconChip icon="globe" color={CHIP.web} />
+          <Text style={styles.rowText}>{websiteHost}</Text>
+          <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
       </Card>
 
       <Text style={styles.groupLabel}>{t("about.groupWrite")}</Text>

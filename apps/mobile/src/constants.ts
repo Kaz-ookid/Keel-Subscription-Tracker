@@ -4,6 +4,9 @@ export const APP_NAME = "Keel";
 // (…+bug@protonmail.com) also works for triage.
 export const SUPPORT_EMAIL = "contactkeel@protonmail.com";
 
+// The marketing site (keel-app.ch); linked from the About screen.
+export const WEBSITE_URL = "https://keel-app.ch";
+
 // Filled once the app exists in App Store Connect; while empty, the rate and
 // share rows on the About screen stay hidden (no fake links, ever).
 export const APP_STORE_ID = "";
