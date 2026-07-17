@@ -1,7 +1,7 @@
 export const APP_NAME = "Keel";
 
-// Where "write to me" mails go. A plus-alias per subject (…+bug@proton.me)
-// also works for triage; swap for a dedicated address any time.
+// The dedicated contact address. A plus-alias per subject
+// (…+bug@protonmail.com) also works for triage.
 export const SUPPORT_EMAIL = "contactkeel@protonmail.com";
 
 // Filled once the app exists in App Store Connect; while empty, the rate and
