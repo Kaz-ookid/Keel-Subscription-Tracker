@@ -49,7 +49,26 @@ function parseName(name: string): { createdAt: Date; auto: boolean } | null {
   };
 }
 
-/** All backups, newest first. Unreadable files are skipped, not fatal. */
+/** The cheap listing: everything the filename alone can say, newest first.
+ *  No file is opened or parsed — safe on the launch path. */
+export function listBackupStamps(): { name: string; createdAt: Date; auto: boolean }[] {
+  try {
+    const stamps: { name: string; createdAt: Date; auto: boolean }[] = [];
+    for (const child of backupsDir().list()) {
+      if (!(child instanceof File)) continue;
+      const meta = parseName(child.name);
+      if (!meta) continue;
+      stamps.push({ name: child.name, createdAt: meta.createdAt, auto: meta.auto });
+    }
+    return stamps.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  } catch {
+    return [];
+  }
+}
+
+/** All backups WITH their contents summarized, newest first. Reads and
+ *  parses every file, so keep it to user-opened screens; the launch path
+ *  uses listBackupStamps. Unreadable files are skipped, not fatal. */
 export function listBackups(): BackupEntry[] {
   try {
     const entries: BackupEntry[] = [];
@@ -75,7 +94,7 @@ export function listBackups(): BackupEntry[] {
 }
 
 function prune(): void {
-  const extra = listBackups().slice(KEEP);
+  const extra = listBackupStamps().slice(KEEP);
   for (const entry of extra) deleteBackup(entry.name);
 }
 
@@ -96,10 +115,11 @@ export function createBackup(state: PersistedState, auto = false): boolean {
 }
 
 /** The daily safety net: at most one automatic backup per calendar day, and
- *  only when there is something worth keeping. */
+ *  only when there is something worth keeping. Filename stamps only: this
+ *  runs at launch and must not parse backup files. */
 export function autoBackupIfDue(state: PersistedState): void {
   if (state.items.length === 0 && state.accounts.length === 0) return;
-  const newestAuto = listBackups().find((entry) => entry.auto);
+  const newestAuto = listBackupStamps().find((entry) => entry.auto);
   if (newestAuto && newestAuto.createdAt.toDateString() === new Date().toDateString()) return;
   createBackup(state, true);
 }

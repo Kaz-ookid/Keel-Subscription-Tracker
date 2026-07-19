@@ -55,8 +55,14 @@ export default function BackupsScreen() {
         style: "destructive",
         onPress: () => {
           const content = readBackup(entry.name);
-          if (!content || !importData(content)) {
+          const result = content ? importData(content) : { ok: false, dropped: 0 };
+          if (!result.ok) {
             Alert.alert(t("settings.importFailTitle"), t("settings.importFailNotBackup"));
+          } else if (result.dropped > 0) {
+            Alert.alert(
+              t("settings.restoreTitle"),
+              t("settings.restoredPartial", { count: result.dropped }),
+            );
           }
         },
       },

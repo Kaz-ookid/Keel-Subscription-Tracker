@@ -544,6 +544,8 @@ export const it: typeof en = {
     importFailRead: "Impossibile leggere quel file.",
     restoreTitle: "Ripristina backup",
     restoreMsg: "Questo sostituisce tutto ciò che è ora nell'app.",
+    restoredPartial_one: "Ripristinato. {{count}} voce illeggibile è stata saltata.",
+    restoredPartial_other: "Ripristinato. {{count}} voci illeggibili sono state saltate.",
     ratesFooter: "cambi {{date}} (BCE)",
     groupAbout: "Info",
   },

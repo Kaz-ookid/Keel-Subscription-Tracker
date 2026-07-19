@@ -19,6 +19,7 @@ export * from "./models/payment-item-mutations";
 export * from "./models/payment-item-status";
 export * from "./models/payment-occurrence";
 export * from "./models/receipt-capture";
+export * from "./models/validate";
 
 // AI-assisted import (PROJECT_BRIEF §6.1): tolerant parsing of the AI-produced
 // import document into review-ready drafts, plus the canonical BYO-AI header.

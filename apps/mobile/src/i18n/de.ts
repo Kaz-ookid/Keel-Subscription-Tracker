@@ -545,6 +545,8 @@ export const de: typeof en = {
     importFailRead: "Diese Datei konnte nicht gelesen werden.",
     restoreTitle: "Backup wiederherstellen",
     restoreMsg: "Das ersetzt alles, was gerade in der App ist.",
+    restoredPartial_one: "Wiederhergestellt. {{count}} unlesbarer Eintrag wurde übersprungen.",
+    restoredPartial_other: "Wiederhergestellt. {{count}} unlesbare Einträge wurden übersprungen.",
     ratesFooter: "Kurse {{date}} (EZB)",
     groupAbout: "Über",
   },

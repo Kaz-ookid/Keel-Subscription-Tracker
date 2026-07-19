@@ -71,7 +71,7 @@ import { buildSampleData } from "../lib/sample-data";
 import {
   loadSnapshot,
   loadState,
-  parsePersistedState,
+  parsePersistedStateDetailed,
   saveSnapshot as persistSnapshot,
   saveState,
   type PersistedState,
@@ -161,8 +161,10 @@ export interface AppActions {
   removePendingSuggestion: (id: string) => void;
   /** Backup: the exact persisted shape, ready to serialise and share. */
   exportData: () => PersistedState;
-  /** Restore a backup (replaces everything); false when the JSON is invalid. */
-  importData: (json: string) => boolean;
+  /** Restore a backup (replaces everything). `ok` false when the JSON is
+   *  not a backup at all; `dropped` counts entries the structural guards
+   *  had to skip (corrupt or from an incompatible future shape). */
+  importData: (json: string) => { ok: boolean; dropped: number };
   /** Debug: stash the current data in the snapshot slot (overwrites it), so
    *  demo data / clear all can be played with and undone. */
   saveSnapshot: () => void;
@@ -560,16 +562,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       };
     };
 
-    const importData = (json: string): boolean => {
-      const state = parsePersistedState(json);
-      if (!state) return false;
+    const importData = (json: string): { ok: boolean; dropped: number } => {
+      const parsed = parsePersistedStateDetailed(json);
+      if (!parsed) return { ok: false, dropped: 0 };
+      const { state, dropped } = parsed;
       setItems(state.items);
       setOccurrences(state.occurrences);
       setCustomCategories(state.categories);
       setAccounts(state.accounts);
       setDisplayCurrency(state.displayCurrency);
       setPending(state.pending);
-      return true;
+      return { ok: true, dropped };
     };
 
     const saveSnapshot = () => {

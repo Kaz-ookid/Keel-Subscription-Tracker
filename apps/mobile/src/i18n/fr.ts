@@ -545,6 +545,8 @@ export const fr: typeof en = {
     importFailRead: "Impossible de lire ce fichier.",
     restoreTitle: "Restaurer une sauvegarde",
     restoreMsg: "Remplace tout le contenu actuel de l'app.",
+    restoredPartial_one: "Restauré. {{count}} entrée illisible a été ignorée.",
+    restoredPartial_other: "Restauré. {{count}} entrées illisibles ont été ignorées.",
     ratesFooter: "taux {{date}} (BCE)",
     groupAbout: "À propos",
   },

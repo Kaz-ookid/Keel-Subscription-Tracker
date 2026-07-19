@@ -541,6 +541,8 @@ export const en = {
     importFailRead: "Could not read that file.",
     restoreTitle: "Restore backup",
     restoreMsg: "This replaces everything currently in the app.",
+    restoredPartial_one: "Restored. {{count}} entry couldn't be read and was skipped.",
+    restoredPartial_other: "Restored. {{count}} entries couldn't be read and were skipped.",
     ratesFooter: "rates {{date}} (ECB)",
     groupAbout: "About",
   },

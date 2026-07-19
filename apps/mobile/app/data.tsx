@@ -19,7 +19,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
 import { Card } from "../src/components/ui/Card";
-import { listBackups } from "../src/lib/backups";
+import { listBackupStamps } from "../src/lib/backups";
 import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -65,10 +65,11 @@ export default function DataScreen() {
     void AsyncStorage.getItem(ICLOUD_KEY).then((stored) => setIcloud(stored === "true"));
   }, []);
 
-  // The count updates when returning from the history screen.
+  // The count updates when returning from the history screen. Stamps only:
+  // the number of backups never needs their contents parsed.
   useFocusEffect(
     useCallback(() => {
-      setBackupCount(listBackups().length);
+      setBackupCount(listBackupStamps().length);
     }, []),
   );
 
@@ -100,8 +101,14 @@ export default function DataScreen() {
           text: t("settings.replace"),
           style: "destructive",
           onPress: () => {
-            if (!importData(content)) {
+            const result = importData(content);
+            if (!result.ok) {
               Alert.alert(t("settings.importFailTitle"), t("settings.importFailNotBackup"));
+            } else if (result.dropped > 0) {
+              Alert.alert(
+                t("settings.restoreTitle"),
+                t("settings.restoredPartial", { count: result.dropped }),
+              );
             }
           },
         },

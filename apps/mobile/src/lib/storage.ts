@@ -8,6 +8,12 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DEFAULT_CURRENCY,
   CURRENCIES,
+  filterValid,
+  isValidAccount,
+  isValidCategory,
+  isValidPaymentItem,
+  isValidPaymentOccurrence,
+  isValidSuggestedCommitment,
   type Account,
   type Category,
   type CurrencyCode,
@@ -43,37 +49,66 @@ const EMPTY: PersistedState = {
   pending: [],
 };
 
-/** Lenient coercion of an already-parsed value into our shape.
- *  Null when it doesn't even resemble a PersistedState. */
-function coercePersistedState(parsed: unknown): PersistedState | null {
+/** Lenient about the ENVELOPE, strict about the ENTRIES: the blob may be an
+ *  older shape with fields missing, but each record inside must pass core's
+ *  structural guards or it is dropped and counted — one corrupt entry costs
+ *  one entry, never a crash in the calculations later. Null when the value
+ *  doesn't even resemble a PersistedState. */
+function coercePersistedState(parsed: unknown): { state: PersistedState; dropped: number } | null {
   // Back-compat: an earlier build stored a bare PaymentItem[] array.
-  if (Array.isArray(parsed)) {
-    return { ...EMPTY, items: parsed as PaymentItem[] };
-  }
-  if (typeof parsed !== "object" || parsed === null) return null;
-  const blob = parsed as Record<string, unknown>;
+  const blob: Record<string, unknown> = Array.isArray(parsed)
+    ? { items: parsed }
+    : typeof parsed === "object" && parsed !== null
+      ? (parsed as Record<string, unknown>)
+      : {};
   if (!Array.isArray(blob.items)) return null;
+  const items = filterValid(blob.items, isValidPaymentItem);
+  const occurrences = filterValid(
+    Array.isArray(blob.occurrences) ? blob.occurrences : [],
+    isValidPaymentOccurrence,
+  );
+  const categories = filterValid(
+    Array.isArray(blob.categories) ? blob.categories : [],
+    isValidCategory,
+  );
+  const accounts = filterValid(Array.isArray(blob.accounts) ? blob.accounts : [], isValidAccount);
+  const pending = filterValid(
+    Array.isArray(blob.pending) ? blob.pending : [],
+    isValidSuggestedCommitment,
+  );
   return {
-    items: blob.items,
-    occurrences: Array.isArray(blob.occurrences) ? blob.occurrences : [],
-    categories: Array.isArray(blob.categories) ? blob.categories : [],
-    accounts: Array.isArray(blob.accounts) ? blob.accounts : [],
-    displayCurrency:
-      typeof blob.displayCurrency === "string" && blob.displayCurrency in CURRENCIES
-        ? (blob.displayCurrency as CurrencyCode)
-        : DEFAULT_CURRENCY,
-    pending: Array.isArray(blob.pending) ? blob.pending : [],
+    state: {
+      items: items.kept,
+      occurrences: occurrences.kept,
+      categories: categories.kept,
+      accounts: accounts.kept,
+      displayCurrency:
+        typeof blob.displayCurrency === "string" && blob.displayCurrency in CURRENCIES
+          ? (blob.displayCurrency as CurrencyCode)
+          : DEFAULT_CURRENCY,
+      pending: pending.kept,
+    },
+    dropped:
+      items.dropped + occurrences.dropped + categories.dropped + accounts.dropped + pending.dropped,
   };
 }
 
-/** Lenient parse of a persisted blob (storage or an imported backup file).
- *  Null when the JSON doesn't even resemble our shape. */
-export function parsePersistedState(raw: string): PersistedState | null {
+/** Parse of a persisted blob (storage or an imported backup file), with the
+ *  count of entries the guards had to drop. Null when the JSON doesn't even
+ *  resemble our shape. */
+export function parsePersistedStateDetailed(
+  raw: string,
+): { state: PersistedState; dropped: number } | null {
   try {
     return coercePersistedState(JSON.parse(raw));
   } catch {
     return null;
   }
+}
+
+/** The state-only convenience used by launch and backup listings. */
+export function parsePersistedState(raw: string): PersistedState | null {
+  return parsePersistedStateDetailed(raw)?.state ?? null;
 }
 
 export async function loadState(): Promise<PersistedState> {
@@ -107,9 +142,9 @@ export async function loadSnapshot(): Promise<Snapshot | null> {
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     if (typeof parsed !== "object" || parsed === null) return null;
-    const state = coercePersistedState(parsed.state);
-    if (!state || typeof parsed.savedAt !== "string") return null;
-    return { savedAt: parsed.savedAt, state };
+    const coerced = coercePersistedState(parsed.state);
+    if (!coerced || typeof parsed.savedAt !== "string") return null;
+    return { savedAt: parsed.savedAt, state: coerced.state };
   } catch {
     return null;
   }
