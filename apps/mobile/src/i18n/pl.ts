@@ -53,7 +53,8 @@ const translation = {
     methodOwn: "Użyj AI, której ufasz",
     methodOwnSub: "ChatGPT, Claude, Gemini: ta, której i tak już ufasz.",
     methodKeel: "Keel przeczyta za ciebie",
-    methodKeelSub: "Apple Intelligence czyta na tym iPhonie; za darmo, offline, prywatnie.",
+    methodKeelSub:
+      "Czyta model Apple na urządzeniu; za darmo i offline, zgodnie z dokumentacją Apple.",
     step1: "Skopiuj instrukcje.",
     step2:
       "Wklej je swojej AI i dorzuć subskrypcje: wpisane z grubsza, zrzuty ekranu z maili potwierdzających i aplikacji banku, albo eksport ze starej aplikacji.",
@@ -105,7 +106,7 @@ const translation = {
     privacyLink: "Jak to działa i twoje dane",
     privacyTitle: "Jak to działa",
     privacyBody:
-      "Na iPhone'ach z Apple Intelligence czytanie może odbyć się prosto w aplikacji, na modelu telefonu: Apple dokumentuje to przetwarzanie jako lokalne i offline, nic nie opuszcza urządzenia.\n\nDruga droga wiedzie przez AI, której już ufasz (ChatGPT, Claude, Gemini…). Keel nie jest z nią połączony: kopiujesz gotowe instrukcje, wklejasz je swojej AI tam, gdzie zwykle jej używasz, i przynosisz tutaj jej odpowiedź. Twoja lista podróżuje tylko tam, dokąd sam ją zaniesiesz, na warunkach tej AI: wybierz taką, której ufasz, i pomiń to, co wolisz zostawić dla siebie.\n\nTak czy inaczej, Keel nie ma serwera i nigdy nie widzi twojej listy. Aplikacja czyta tylko odpowiedź, tutaj na twoim telefonie, a każda pozycja trafia na ekran weryfikacji, gdzie ją sprawdzasz, poprawiasz albo usuwasz, zanim cokolwiek się zapisze.\n\nNie zapisujemy twojej listy, nie sprzedajemy jej, niczego na niej nie trenujemy i nie budujemy o tobie profilu. Bez konta, bez wysyłki. Wolisz wpisać ręcznie? Zawsze za darmo, a przy jednej czy dwóch pozycjach często szybciej.\n\nDla ciekawych: skopiowane instrukcje proszą twoją AI o mały dokument JSON (format importu Keel v1). Są generowane na świeżo, więc zawsze pasują do twojej wersji aplikacji.",
+      "Na iPhone'ach z Apple Intelligence czytanie może odbyć się prosto w aplikacji, na modelu telefonu: Apple dokumentuje to przetwarzanie jako lokalne i offline, w którym nic nie opuszcza urządzenia.\n\nDruga droga wiedzie przez AI, której już ufasz (ChatGPT, Claude, Gemini…). Keel nie jest z nią połączony: kopiujesz gotowe instrukcje, wklejasz je swojej AI tam, gdzie zwykle jej używasz, i przynosisz tutaj jej odpowiedź. Twoja lista podróżuje tylko tam, dokąd sam ją zaniesiesz, na warunkach tej AI: wybierz taką, której ufasz, i pomiń to, co wolisz zostawić dla siebie.\n\nTak czy inaczej, Keel nie ma serwera i nigdy nie widzi twojej listy. Aplikacja czyta tylko odpowiedź, tutaj na twoim telefonie, a każda pozycja trafia na ekran weryfikacji, gdzie ją sprawdzasz, poprawiasz albo usuwasz, zanim cokolwiek się zapisze.\n\nNie zapisujemy twojej listy, nie sprzedajemy jej, niczego na niej nie trenujemy i nie budujemy o tobie profilu. Bez konta, bez wysyłki. Wolisz wpisać ręcznie? Zawsze za darmo, a przy jednej czy dwóch pozycjach często szybciej.\n\nDla ciekawych: skopiowane instrukcje proszą twoją AI o mały dokument JSON (format importu Keel v1). Są generowane na świeżo, więc zawsze pasują do twojej wersji aplikacji.",
     reviewTitle: "Sprawdź, co przeczytała",
     reviewHero_one: "{{count}} pozycja",
     reviewHero_few: "{{count}} pozycje",
@@ -680,7 +681,7 @@ const translation = {
     thanks: "Dziękuję, że używasz niezależnego oprogramowania.",
     version: "Wersja",
     privacyBody:
-      "Ostatnia aktualizacja: 19 lipca 2026.\n\nKto odpowiada. Keel tworzy i prowadzi jedna osoba: Maxime Teuber, mieszkający w Szwajcarii („ja” poniżej, a w języku prawnym administrator danych). Kontakt: {{email}}.\n\nTwoje dane zostają na twoim urządzeniu. Pozycje, konta, historia płatności i ustawienia żyją w lokalnej pamięci aplikacji i w lokalnych kopiach zapasowych, które tworzysz. Keel nie ma serwera, kont, analityki ani reklam. Nie mogę zobaczyć twoich danych.\n\nZapytania sieciowe. Keel wykonuje dwa rodzaje zapytań, i tylko te. Kursy walut pochodzą z publicznego API Frankfurter (kursy referencyjne Europejskiego Banku Centralnego); zapytanie jest identyczne dla każdego i nie zawiera danych osobowych. Loga marek są wyłączone, dopóki sam ich nie włączysz: po włączeniu pozycja z przypisaną stroną pobiera logo przez publiczny serwis favicon Google, a to zapytanie zawiera domenę marki (na przykład netflix.com) i, jak każde zapytanie w sieci, twój adres IP. Google może przetwarzać takie zapytania na serwerach poza Szwajcarią i UE, w tym w USA. Przełącznik w Ustawieniach wyłącza pobieranie w każdej chwili; loga już obecne na urządzeniu pokazują się dalej bez żadnych zapytań. Pozycje bez strony nigdy nie generują zapytań. Nic z tego do mnie nie dociera: zapytania idą z twojego urządzenia do tych serwisów, a ja niczego o nich nie przechowuję.\n\nImport z AI. Przy „własnej AI” dzielisz się listą z wybranym przez siebie asystentem, na jego warunkach; Keel czyta tylko odpowiedź, którą wklejasz, na twoim telefonie. Tam, gdzie dostępna jest opcja na urządzeniu, czyta Apple Intelligence bezpośrednio na twoim iPhonie i nic nie opuszcza urządzenia.\n\nPrzypomnienia planuje lokalnie iOS. Blokada używa Face ID, Touch ID lub kodu przez iOS; Keel dostaje tylko wynik.\n\nKopie zapasowe i eksporty to pliki pod twoją kontrolą. Udostępnienie wysyła je tam, gdzie zdecydujesz; traktuj je jak dane finansowe, które zawierają.\n\nPrzechowywanie i usuwanie. Ponieważ wszystko żyje na twoim urządzeniu, usuwanie jest w twoich rękach: usuwaj pozycje w aplikacji albo usuń aplikację, aby wymazać wszystkie jej dane (pliki kopii wyeksportowane gdzie indziej usuwasz tam, gdzie są). Nie ma konta do zamknięcia ani kopii na serwerze do zażądania. Jeśli do mnie napiszesz, zachowuję korespondencję, aby móc odpowiedzieć w przyszłości. Poproś zwykłymi słowami o jej usunięcie, a to zrobię: bez formalnych wniosków i cytowania przepisów, usunięcie jest gwarantowane.\n\nTwoje prawa. Szwajcarska ustawa o ochronie danych (FADP) i, tam gdzie ma zastosowanie, unijne RODO dają ci prawa do twoich danych osobowych: dostępu, sprostowania, usunięcia i sprzeciwu, a także prawo skargi do organu nadzorczego (w Szwajcarii FDPIC, w UE twój organ krajowy). W praktyce jedyne dane osobowe, jakie posiadam, to nasze e-maile: skorzystanie z tych praw to najczęściej prośba o usunięcie wątku, którą spełnię.\n\nZmiany. Jeśli ta polityka zmieni się w istotny sposób, zmieni się data powyżej, a zmiana będzie widoczna na keel-app.ch.",
+      "Ostatnia aktualizacja: 19 lipca 2026.\n\nKto odpowiada. Keel tworzy i prowadzi jedna osoba: Maxime Teuber, mieszkający w Szwajcarii („ja” poniżej, a w języku prawnym administrator danych). Kontakt: {{email}}.\n\nTwoje dane zostają na twoim urządzeniu. Pozycje, konta, historia płatności i ustawienia żyją w lokalnej pamięci aplikacji i w lokalnych kopiach zapasowych, które tworzysz. Keel nie ma serwera, kont, analityki ani reklam. Nie mogę zobaczyć twoich danych.\n\nZapytania sieciowe. Keel wykonuje dwa rodzaje zapytań, i tylko te. Kursy walut pochodzą z publicznego API Frankfurter (kursy referencyjne Europejskiego Banku Centralnego); zapytanie jest identyczne dla każdego i nie zawiera danych osobowych. Loga marek są wyłączone, dopóki sam ich nie włączysz: po włączeniu pozycja z przypisaną stroną pobiera logo przez publiczny serwis favicon Google, a to zapytanie zawiera domenę marki (na przykład netflix.com) i, jak każde zapytanie w sieci, twój adres IP. Google może przetwarzać takie zapytania na serwerach poza Szwajcarią i UE, w tym w USA. Przełącznik w Ustawieniach wyłącza pobieranie w każdej chwili; loga już obecne na urządzeniu pokazują się dalej bez żadnych zapytań. Pozycje bez strony nigdy nie generują zapytań. Nic z tego do mnie nie dociera: zapytania idą z twojego urządzenia do tych serwisów, a ja niczego o nich nie przechowuję.\n\nImport z AI. Przy „własnej AI” dzielisz się listą z wybranym przez siebie asystentem, na jego warunkach; Keel czyta tylko odpowiedź, którą wklejasz, na twoim telefonie. Tam, gdzie dostępna jest opcja na urządzeniu, odczyt wykonuje model Apple Intelligence na twoim iPhonie; Apple dokumentuje to przetwarzanie jako lokalne i offline. Funkcje AI są całkowicie opcjonalne: jeśli z nich nie korzystasz, żaden model nigdy nie czyta twoich danych.\n\nPrzypomnienia planuje lokalnie iOS. Blokada używa Face ID, Touch ID lub kodu przez iOS; Keel dostaje tylko wynik.\n\nKopie zapasowe i eksporty to pliki pod twoją kontrolą. Udostępnienie wysyła je tam, gdzie zdecydujesz; traktuj je jak dane finansowe, które zawierają.\n\nPrzechowywanie i usuwanie. Ponieważ wszystko żyje na twoim urządzeniu, usuwanie jest w twoich rękach: usuwaj pozycje w aplikacji albo usuń aplikację, aby wymazać wszystkie jej dane (pliki kopii wyeksportowane gdzie indziej usuwasz tam, gdzie są). Nie ma konta do zamknięcia ani kopii na serwerze do zażądania. Jeśli do mnie napiszesz, zachowuję korespondencję, aby móc odpowiedzieć w przyszłości. Poproś zwykłymi słowami o jej usunięcie, a to zrobię: bez formalnych wniosków i cytowania przepisów, usunięcie jest gwarantowane.\n\nTwoje prawa. Szwajcarska ustawa o ochronie danych (FADP) i, tam gdzie ma zastosowanie, unijne RODO dają ci prawa do twoich danych osobowych: dostępu, sprostowania, usunięcia i sprzeciwu, a także prawo skargi do organu nadzorczego (w Szwajcarii FDPIC, w UE twój organ krajowy). W praktyce jedyne dane osobowe, jakie posiadam, to nasze e-maile: skorzystanie z tych praw to najczęściej prośba o usunięcie wątku, którą spełnię.\n\nZmiany. Jeśli ta polityka zmieni się w istotny sposób, zmieni się data powyżej, a zmiana będzie widoczna na keel-app.ch.",
     termsBody:
       "Ostatnia aktualizacja: 19 lipca 2026.\n\nKeel to osobiste narzędzie do śledzenia. Zapisuje to, co wprowadzasz, i wylicza daty oraz sumy z tych wpisów. Nie łączy się z twoim bankiem, nie przenosi pieniędzy i niczego nie weryfikuje u dostawców. Ważne kwoty i daty zawsze sprawdzaj w banku lub u samej usługi.\n\nTo nie porada. Nic w Keel nie jest poradą finansową, prawną ani podatkową.\n\nTwoje urządzenie, twoje dane. Chroń urządzenie i pliki kopii zapasowych. Każdy z dostępem do odblokowanego telefonu lub wyeksportowanego pliku kopii może odczytać dane, chyba że chroni je blokada aplikacji.\n\nTak jak jest. Keel jest dostarczany w stanie, w jakim jest, bez jakichkolwiek gwarancji. W najszerszym zakresie dozwolonym prawem twórca nie odpowiada za szkody wynikłe z użycia aplikacji, w tym straty spowodowane poleganiem na przypomnieniach, prognozach lub sumach (na przykład opłata za spóźnienie). Tam, gdzie prawo nie pozwala na takie ograniczenia, obowiązują one w dozwolonym zakresie.\n\nZnaki towarowe. Nazwy produktów, loga i marki pokazywane w Keel należą do ich właścicieli; Keel jest od nich niezależny.\n\nZakupy. Keel jest darmowy. Opcjonalny, jednorazowy zakup Full Keel (gdy będzie dostępny) obsługuje Apple przez twoje konto App Store: cena jest widoczna przed zakupem, nic się nie odnawia, a zwroty podlegają zasadom App Store Apple.\n\nApp Store. Korzystanie z Keel podlega też standardowej umowie licencyjnej Apple dla aplikacji (EULA).\n\nPrawo właściwe. Te warunki podlegają prawu szwajcarskiemu.\n\nKontakt: {{email}}.",
   },
@@ -742,22 +743,21 @@ const translation = {
   },
   aiHub: {
     title: "AI",
-    hero: "AI Keela działa na tym iPhonie z Apple Intelligence. Powiedz, co się zmieniło, podaj rachunek albo użyj własnej AI; każda zmiana wraca do ciebie do przejrzenia.",
+    hero: "AI Keela opiera się na modelu Apple Intelligence działającym na urządzeniu. Powiedz, co się zmieniło, podaj rachunek albo użyj własnej AI; każda zmiana wraca do ciebie do przejrzenia.",
     assistantTitle: "Asystent",
     assistantBody:
       "Powiedz Keelowi, co się stało: anuluj siłownię, przesuń Netflixa na 12., czynsz poszedł w górę, dodaj Spotify. Keel przygotuje zmiany i pokaże każdą z nich, zanim cokolwiek zostanie zapisane.",
-    groupAdd: "Dodawanie z AI",
-    toolKeelReads: "Keel to przeczyta",
-    toolKeelReadsSub:
-      "Wklej rachunki, notatki lub wyciągi; Apple Intelligence zamieni je w zobowiązania.",
-    toolOwnAI: "Twoja własna AI",
-    toolOwnAISub: "ChatGPT, Claude, Gemini: skopiuj instrukcje Keela, wklej odpowiedź.",
+    toolImport: "Dodawanie z AI",
+    toolImportSub:
+      "Czytanie przez Keel na urządzeniu albo twoja własna AI: ChatGPT, Claude, Gemini.",
     historyEmpty:
       "Wszystko, co AI doda lub zmieni, pojawia się tutaj, więc nigdy nie tracisz pełnego obrazu.",
     seeAll: "Zobacz wszystko",
     privacyTitle: "Prywatność w standardzie",
+    privacy0:
+      "AI jest całkowicie opcjonalna. Jeśli z niej nie korzystasz, nic się nie uruchamia i żaden model nigdy nie czyta twoich danych.",
     privacy1:
-      "Asystent i czytanie działają na tym iPhonie, także offline. Twoje dane nigdy go nie opuszczają.",
+      "Asystent i czytanie używają modelu Apple Intelligence na urządzeniu; Apple dokumentuje to przetwarzanie jako lokalne i offline.",
     privacy2:
       "AI może się pomylić. Każda zmiana najpierw trafia do twojego przeglądu, a przed zastosowaniem planu asystenta Keel zapisuje kopię zapasową.",
     privacy3:
@@ -772,7 +772,7 @@ const translation = {
     thinking: "Przygotowuję zmiany…",
     errModel: "Model nie poradził sobie z tym. Spróbuj inaczej.",
     errEmpty: "Nic użytecznego. Podaj nazwę zobowiązania i co ma się stać.",
-    safety: "Działa na tym iPhonie. Nic nie zostanie zastosowane bez twojego przeglądu.",
+    safety: "Używa modelu Apple na urządzeniu. Nic nie zostanie zastosowane bez twojego przeglądu.",
     reviewTitle: "Przegląd",
     reviewHero_one: "{{count}} zmiana",
     reviewHero_few: "{{count}} zmiany",
@@ -851,7 +851,7 @@ const translation = {
     reading: "Czytam twoją listę…",
     errModel: "Model nie zdołał tego przeczytać. Przeformułuj albo dodaj trochę szczegółów.",
     privacy:
-      "Czyta na tym iPhonie i działa offline, zgodnie z dokumentacją Apple. Nic nie opuszcza telefonu.",
+      "Czyta na tym iPhonie i działa offline, zgodnie z dokumentacją Apple. Sam Keel niczego nie wysyła.",
     unavailableTitle: "Apple Intelligence nie jest tu dostępne",
     reasonOs: "Potrzebny jest iOS 26 lub nowszy.",
     reasonDevice: "Ten iPhone nie obsługuje Apple Intelligence.",

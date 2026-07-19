@@ -46,7 +46,8 @@ export const fr: typeof en = {
     methodOwn: "Utilisez une IA de confiance",
     methodOwnSub: "ChatGPT, Claude, Gemini : celle en qui vous avez déjà confiance.",
     methodKeel: "Keel lit pour vous",
-    methodKeelSub: "Apple Intelligence lit sur cet iPhone ; gratuit, hors ligne, privé.",
+    methodKeelSub:
+      "Lu par le modèle sur appareil d'Apple ; gratuit et hors ligne, comme documenté par Apple.",
     step1: "Copiez les instructions.",
     step2:
       "Collez-les à votre IA, puis ajoutez vos abonnements : tapés en vrac, en captures d'écran d'e-mails de confirmation et de votre app bancaire, ou l'export de votre ancienne app de suivi.",
@@ -653,7 +654,7 @@ export const fr: typeof en = {
     thanks: "Merci d'utiliser un logiciel indépendant.",
     version: "Version",
     privacyBody:
-      "Dernière mise à jour : 19 juillet 2026.\n\nResponsable. Keel est créé et géré par une seule personne : Maxime Teuber, basé en Suisse (le « je » ci-dessous et, en termes juridiques, le responsable du traitement). Contact : {{email}}.\n\nVos données restent sur votre appareil. Engagements, comptes, historique de paiements et réglages vivent dans le stockage local de l'app et dans les sauvegardes locales que vous créez. Keel n'a ni serveur, ni compte, ni analytique, ni publicité. Je ne peux pas voir vos données.\n\nRequêtes réseau. Keel fait deux types de requêtes, et seulement celles-ci. Les taux de change viennent de l'API publique Frankfurter (taux de référence de la Banque centrale européenne) ; la requête est identique pour tout le monde et ne contient aucune donnée personnelle. Les logos de marques restent désactivés tant que vous ne les activez pas : une fois le choix fait, un engagement qui a un site web charge son logo via le service public de favicons de Google, et cette requête contient le domaine de la marque (netflix.com, par exemple) et, comme toute requête web, votre adresse IP. Google peut traiter ces requêtes sur des serveurs hors de Suisse et de l'UE, y compris aux États-Unis. L'interrupteur dans les Réglages coupe ce chargement à tout moment ; les logos déjà sur votre appareil restent affichés sans aucune nouvelle requête. Les entrées sans site web ne déclenchent jamais de requête. Rien de tout cela ne me parvient : les requêtes vont de votre appareil vers ces services, et je n'en conserve rien.\n\nImport par IA. Avec « votre propre IA », vous partagez votre liste avec l'assistant de votre choix, selon les conditions de ce fournisseur ; Keel ne fait que lire la réponse que vous collez, sur votre téléphone. Là où l'option sur appareil est disponible, la lecture se fait avec Apple Intelligence sur votre iPhone et rien ne quitte l'appareil.\n\nLes rappels sont programmés localement par iOS. Le verrouillage utilise Face ID, Touch ID ou votre code via iOS ; Keel ne reçoit que le résultat.\n\nLes sauvegardes et exports sont des fichiers que vous contrôlez. En partager un l'envoie où vous le décidez ; traitez ces fichiers comme les données financières qu'ils contiennent.\n\nConservation et suppression. Comme tout vit sur votre appareil, la suppression est entre vos mains : effacez des entrées dans l'app, ou supprimez l'app pour effacer toutes ses données (les fichiers de sauvegarde exportés ailleurs sont à supprimer là où ils se trouvent). Il n'y a aucun compte à fermer ni copie serveur à réclamer. Si vous m'écrivez, je conserve l'échange pour pouvoir y donner suite si vous récrivez. Demandez-moi de le supprimer, en termes simples, et je le ferai : aucune demande formelle ni référence juridique n'est nécessaire, la suppression est garantie.\n\nVos droits. La loi suisse sur la protection des données (LPD) et, lorsqu'il s'applique, le RGPD européen vous donnent des droits sur vos données personnelles : accès, rectification, suppression et opposition, ainsi que le droit de saisir une autorité de contrôle (en Suisse le PFPDT, dans l'UE votre autorité nationale). En pratique, les seules données personnelles que je détiens sont nos échanges par e-mail : exercer ces droits revient le plus souvent à me demander d'effacer un fil, ce que je ferai.\n\nÉvolutions. Si cette politique change de façon importante, la date ci-dessus change et la modification est visible sur keel-app.ch.",
+      "Dernière mise à jour : 19 juillet 2026.\n\nResponsable. Keel est créé et géré par une seule personne : Maxime Teuber, basé en Suisse (le « je » ci-dessous et, en termes juridiques, le responsable du traitement). Contact : {{email}}.\n\nVos données restent sur votre appareil. Engagements, comptes, historique de paiements et réglages vivent dans le stockage local de l'app et dans les sauvegardes locales que vous créez. Keel n'a ni serveur, ni compte, ni analytique, ni publicité. Je ne peux pas voir vos données.\n\nRequêtes réseau. Keel fait deux types de requêtes, et seulement celles-ci. Les taux de change viennent de l'API publique Frankfurter (taux de référence de la Banque centrale européenne) ; la requête est identique pour tout le monde et ne contient aucune donnée personnelle. Les logos de marques restent désactivés tant que vous ne les activez pas : une fois le choix fait, un engagement qui a un site web charge son logo via le service public de favicons de Google, et cette requête contient le domaine de la marque (netflix.com, par exemple) et, comme toute requête web, votre adresse IP. Google peut traiter ces requêtes sur des serveurs hors de Suisse et de l'UE, y compris aux États-Unis. L'interrupteur dans les Réglages coupe ce chargement à tout moment ; les logos déjà sur votre appareil restent affichés sans aucune nouvelle requête. Les entrées sans site web ne déclenchent jamais de requête. Rien de tout cela ne me parvient : les requêtes vont de votre appareil vers ces services, et je n'en conserve rien.\n\nImport par IA. Avec « votre propre IA », vous partagez votre liste avec l'assistant de votre choix, selon les conditions de ce fournisseur ; Keel ne fait que lire la réponse que vous collez, sur votre téléphone. Là où l'option sur appareil est disponible, la lecture se fait sur votre iPhone avec le modèle sur appareil d'Apple Intelligence, un traitement qu'Apple documente comme local et hors ligne. Les fonctions d'IA sont entièrement optionnelles : si vous ne les utilisez pas, aucun modèle ne lit jamais vos données.\n\nLes rappels sont programmés localement par iOS. Le verrouillage utilise Face ID, Touch ID ou votre code via iOS ; Keel ne reçoit que le résultat.\n\nLes sauvegardes et exports sont des fichiers que vous contrôlez. En partager un l'envoie où vous le décidez ; traitez ces fichiers comme les données financières qu'ils contiennent.\n\nConservation et suppression. Comme tout vit sur votre appareil, la suppression est entre vos mains : effacez des entrées dans l'app, ou supprimez l'app pour effacer toutes ses données (les fichiers de sauvegarde exportés ailleurs sont à supprimer là où ils se trouvent). Il n'y a aucun compte à fermer ni copie serveur à réclamer. Si vous m'écrivez, je conserve l'échange pour pouvoir y donner suite si vous récrivez. Demandez-moi de le supprimer, en termes simples, et je le ferai : aucune demande formelle ni référence juridique n'est nécessaire, la suppression est garantie.\n\nVos droits. La loi suisse sur la protection des données (LPD) et, lorsqu'il s'applique, le RGPD européen vous donnent des droits sur vos données personnelles : accès, rectification, suppression et opposition, ainsi que le droit de saisir une autorité de contrôle (en Suisse le PFPDT, dans l'UE votre autorité nationale). En pratique, les seules données personnelles que je détiens sont nos échanges par e-mail : exercer ces droits revient le plus souvent à me demander d'effacer un fil, ce que je ferai.\n\nÉvolutions. Si cette politique change de façon importante, la date ci-dessus change et la modification est visible sur keel-app.ch.",
     termsBody:
       "Dernière mise à jour : 19 juillet 2026.\n\nKeel est un outil de suivi personnel. Il enregistre ce que vous saisissez et projette dates et totaux à partir de ces saisies. Il ne se connecte pas à votre banque, ne déplace pas d'argent et ne vérifie rien auprès de vos fournisseurs. Vérifiez toujours les montants et dates importants auprès de la banque ou du service concerné.\n\nPas un conseil. Rien dans Keel ne constitue un conseil financier, juridique ou fiscal.\n\nVotre appareil, vos données. Protégez votre appareil et vos fichiers de sauvegarde. Toute personne ayant accès à votre téléphone déverrouillé, ou à un fichier de sauvegarde exporté, peut lire les données qu'il contient, sauf si le verrouillage de l'app les protège.\n\nEn l'état. Keel est fourni en l'état, sans garantie d'aucune sorte. Dans toute la mesure permise par la loi, le développeur n'est pas responsable des dommages liés à l'utilisation de l'app, y compris les pertes causées par la confiance accordée aux rappels, prévisions ou totaux (des frais de retard, par exemple). Là où la loi ne permet pas de telles limitations, elles s'appliquent dans la mesure autorisée.\n\nMarques. Les noms, logos et marques affichés dans Keel appartiennent à leurs propriétaires respectifs ; Keel en est indépendant.\n\nAchats. Keel est gratuit. L'achat unique et optionnel Full Keel (quand il sera disponible) est traité par Apple via votre compte App Store : le prix est affiché avant l'achat, rien ne se renouvelle, et les remboursements suivent les règles de l'App Store d'Apple.\n\nApp Store. Votre utilisation de Keel est aussi régie par le contrat de licence standard d'Apple pour les applications (EULA).\n\nDroit applicable. Ces conditions sont régies par le droit suisse.\n\nContact : {{email}}.",
   },
@@ -714,22 +715,21 @@ export const fr: typeof en = {
   },
   aiHub: {
     title: "IA",
-    hero: "L'IA de Keel tourne sur cet iPhone avec Apple Intelligence. Dites ce qui a changé, donnez une facture, ou passez par votre propre IA ; chaque changement vous revient pour relecture.",
+    hero: "L'IA de Keel s'appuie sur le modèle sur appareil d'Apple Intelligence. Dites ce qui a changé, donnez une facture, ou passez par votre propre IA ; chaque changement vous revient pour relecture.",
     assistantTitle: "Assistant",
     assistantBody:
       "Dites à Keel ce qui s'est passé : résilier la salle de sport, décaler Netflix au 12, le loyer a augmenté, ajouter Spotify. Keel prépare les changements et montre chacun d'eux avant d'enregistrer quoi que ce soit.",
-    groupAdd: "Ajouter avec l'IA",
-    toolKeelReads: "Keel lit pour vous",
-    toolKeelReadsSub:
-      "Collez factures, notes ou relevés ; Apple Intelligence en fait des engagements.",
-    toolOwnAI: "Votre propre IA",
-    toolOwnAISub: "ChatGPT, Claude, Gemini : copiez les instructions de Keel, collez la réponse.",
+    toolImport: "Ajouter avec l'IA",
+    toolImportSub:
+      "La lecture par Keel sur l'appareil, ou votre propre IA : ChatGPT, Claude, Gemini.",
     historyEmpty:
       "Tout ce que l'IA ajoute ou modifie apparaît ici, pour ne jamais perdre la vue d'ensemble.",
     seeAll: "Tout voir",
     privacyTitle: "Privé par conception",
+    privacy0:
+      "L'IA est entièrement optionnelle. Si vous ne l'utilisez pas, rien ne s'exécute et aucun modèle ne lit jamais vos données.",
     privacy1:
-      "L'assistant et la lecture tournent sur cet iPhone, même hors ligne. Vos données ne le quittent jamais.",
+      "L'assistant et la lecture utilisent le modèle sur appareil d'Apple Intelligence ; Apple documente ce traitement comme local et hors ligne.",
     privacy2:
       "L'IA peut mal lire. Chaque changement passe d'abord par votre relecture, et Keel sauvegarde tout avant d'appliquer un plan de l'assistant.",
     privacy3:
@@ -745,7 +745,7 @@ export const fr: typeof en = {
     thinking: "Préparation des changements…",
     errModel: "Le modèle n'a pas pu traiter la demande. Reformulez.",
     errEmpty: "Rien d'exploitable. Nommez l'engagement et dites ce qui doit se passer.",
-    safety: "Tourne sur cet iPhone. Rien n'est appliqué sans votre relecture.",
+    safety: "Utilise le modèle sur appareil d'Apple. Rien n'est appliqué sans votre relecture.",
     reviewTitle: "Relecture",
     reviewHero_one: "{{count}} changement",
     reviewHero_other: "{{count}} changements",
@@ -812,7 +812,7 @@ export const fr: typeof en = {
     reading: "Lecture de votre liste…",
     errModel: "Le modèle n'a pas pu lire ceci. Reformulez ou ajoutez un peu de détail.",
     privacy:
-      "Lit sur cet iPhone et fonctionne hors ligne, comme documenté par Apple. Rien ne quitte le téléphone.",
+      "Lit sur cet iPhone et fonctionne hors ligne, comme documenté par Apple. Keel n'envoie rien de lui-même.",
     unavailableTitle: "Apple Intelligence n'est pas disponible ici",
     reasonOs: "Nécessite iOS 26 ou plus récent.",
     reasonDevice: "Cet iPhone ne peut pas exécuter Apple Intelligence.",

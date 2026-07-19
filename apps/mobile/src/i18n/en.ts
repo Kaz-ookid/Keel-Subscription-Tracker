@@ -46,7 +46,7 @@ export const en = {
     methodOwn: "Use an AI you trust",
     methodOwnSub: "ChatGPT, Claude, Gemini: whichever you already trust.",
     methodKeel: "Keel reads it for you",
-    methodKeelSub: "Apple Intelligence reads it on this iPhone; free, offline, private.",
+    methodKeelSub: "Read by Apple's on-device model; free and offline, as documented by Apple.",
     step1: "Copy the instructions.",
     step2:
       "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
@@ -649,7 +649,7 @@ export const en = {
     thanks: "Thanks for using independent software.",
     version: "Version",
     privacyBody:
-      "Last updated: 19 July 2026.\n\nWho is responsible. Keel is made and run by one person: Maxime Teuber, based in Switzerland (the 'I' below and, in legal terms, the data controller). Contact: {{email}}.\n\nYour data stays on your device. Commitments, accounts, payment history and settings live in the app's local storage and in the local backups you create. Keel has no server, no account system, no analytics and no advertising. I cannot see your data.\n\nNetwork requests. Keel makes two kinds of request, and only these. Exchange rates are fetched from the public Frankfurter API (European Central Bank reference rates); the request is identical for every user and carries no personal data. Brand logos are off until you choose to turn them on: with the choice enabled, a commitment that has a brand website loads its logo through Google's public favicon service, and that request contains the brand's domain (netflix.com, for example) and, like any web request, your IP address. Google may process such requests on servers outside Switzerland and the EU, including in the United States. The switch in Settings turns logo loading off again at any time; logos already on your device keep showing without any further request. Items without a website never trigger a logo request. None of this reaches me: the requests go from your device to those services, and I store nothing about them.\n\nAI import. With 'Use your own AI', you share your list with the assistant you choose, under that provider's terms; Keel only reads the answer you paste back, on your phone. Where the on-device option is available, reading happens with Apple Intelligence on your iPhone and nothing leaves the device.\n\nReminders are scheduled locally by iOS. The app lock uses Face ID, Touch ID or your passcode through iOS; Keel only receives whether it succeeded.\n\nBackups and exports are files you control. Sharing one sends it wherever you choose; treat exported files like the financial data they contain.\n\nRetention and deletion. Because everything lives on your device, deletion is in your hands: remove entries in the app, or delete the app to erase all of its data (backup files you exported somewhere else are yours to delete there). There is no account to close and no server copy to request. If you email me, I keep the correspondence so I can follow up if you write again. Ask me to delete it, in plain words, and I will: no formal request or legal citation needed, deletion is guaranteed.\n\nYour rights. Swiss data protection law (FADP) and, where it applies, the EU GDPR give you rights over your personal data: access, correction, deletion and objection, and the right to complain to a supervisory authority (in Switzerland the FDPIC, in the EU your national authority). In practice, the only personal data I ever hold is our email correspondence, so exercising these rights usually means asking me to delete a thread, which I will.\n\nChanges. If this policy changes in a way that matters, the date above moves and the change is visible at keel-app.ch.",
+      "Last updated: 19 July 2026.\n\nWho is responsible. Keel is made and run by one person: Maxime Teuber, based in Switzerland (the 'I' below and, in legal terms, the data controller). Contact: {{email}}.\n\nYour data stays on your device. Commitments, accounts, payment history and settings live in the app's local storage and in the local backups you create. Keel has no server, no account system, no analytics and no advertising. I cannot see your data.\n\nNetwork requests. Keel makes two kinds of request, and only these. Exchange rates are fetched from the public Frankfurter API (European Central Bank reference rates); the request is identical for every user and carries no personal data. Brand logos are off until you choose to turn them on: with the choice enabled, a commitment that has a brand website loads its logo through Google's public favicon service, and that request contains the brand's domain (netflix.com, for example) and, like any web request, your IP address. Google may process such requests on servers outside Switzerland and the EU, including in the United States. The switch in Settings turns logo loading off again at any time; logos already on your device keep showing without any further request. Items without a website never trigger a logo request. None of this reaches me: the requests go from your device to those services, and I store nothing about them.\n\nAI import. With 'Use your own AI', you share your list with the assistant you choose, under that provider's terms; Keel only reads the answer you paste back, on your phone. Where the on-device option is available, reading happens on your iPhone with Apple Intelligence's on-device model, processing Apple documents as on-device and offline. AI features are entirely optional: if you never use them, no model ever reads your data.\n\nReminders are scheduled locally by iOS. The app lock uses Face ID, Touch ID or your passcode through iOS; Keel only receives whether it succeeded.\n\nBackups and exports are files you control. Sharing one sends it wherever you choose; treat exported files like the financial data they contain.\n\nRetention and deletion. Because everything lives on your device, deletion is in your hands: remove entries in the app, or delete the app to erase all of its data (backup files you exported somewhere else are yours to delete there). There is no account to close and no server copy to request. If you email me, I keep the correspondence so I can follow up if you write again. Ask me to delete it, in plain words, and I will: no formal request or legal citation needed, deletion is guaranteed.\n\nYour rights. Swiss data protection law (FADP) and, where it applies, the EU GDPR give you rights over your personal data: access, correction, deletion and objection, and the right to complain to a supervisory authority (in Switzerland the FDPIC, in the EU your national authority). In practice, the only personal data I ever hold is our email correspondence, so exercising these rights usually means asking me to delete a thread, which I will.\n\nChanges. If this policy changes in a way that matters, the date above moves and the change is visible at keel-app.ch.",
     termsBody:
       "Last updated: 19 July 2026.\n\nKeel is a personal tracking tool. It records what you enter and projects dates and totals from those entries. It does not connect to your bank, move money, or verify anything with your providers. Always check important amounts and dates against the actual bank or service.\n\nNot advice. Nothing in Keel is financial, legal or tax advice.\n\nYour device, your data. Keep your device and backup files safe. Anyone with access to your unlocked phone, or to an exported backup file, can read the data inside unless the app lock protects it.\n\nAs is. Keel is provided as is, without warranty of any kind. To the fullest extent permitted by law, the developer is not liable for damages arising from use of the app, including losses caused by relying on reminders, forecasts or totals (a missed payment fee, for example). Where the law does not allow such limitations, they apply to the extent permitted.\n\nTrademarks. Product names, logos and brands shown in Keel belong to their respective owners; Keel is independent of them.\n\nPurchases. Keel is free. The optional one-time Full Keel purchase (when available) is processed by Apple through your App Store account: the price is shown before you buy, nothing renews, and refunds follow Apple's App Store rules.\n\nApp Store. Your use of Keel is also governed by Apple's standard Licensed Application End User License Agreement.\n\nGoverning law. These terms are governed by Swiss law.\n\nContact: {{email}}.",
   },
@@ -710,22 +710,20 @@ export const en = {
   },
   aiHub: {
     title: "AI",
-    hero: "Keel's AI runs on this iPhone with Apple Intelligence. Say what changed, hand over a bill, or bring your own AI; every change comes back to you for review.",
+    hero: "Keel's AI is built on Apple Intelligence's on-device model. Say what changed, hand over a bill, or bring your own AI; every change comes back to you for review.",
     assistantTitle: "Assistant",
     assistantBody:
       "Tell Keel what happened: cancel the gym, move Netflix to the 12th, the rent went up, add Spotify. Keel prepares the changes and shows every one before anything is saved.",
-    groupAdd: "Add with AI",
-    toolKeelReads: "Keel reads it",
-    toolKeelReadsSub:
-      "Paste bills, notes or statements; Apple Intelligence turns them into commitments.",
-    toolOwnAI: "Use your own AI",
-    toolOwnAISub: "ChatGPT, Claude, Gemini: copy Keel's instructions, paste the answer back.",
+    toolImport: "Add with AI",
+    toolImportSub: "Keel's on-device reader, or your own AI: ChatGPT, Claude, Gemini.",
     historyEmpty:
       "Everything AI adds or changes shows up here, so you always keep the full picture.",
     seeAll: "See all",
     privacyTitle: "Private by design",
+    privacy0:
+      "AI is entirely optional. If you never use it, nothing runs and no model ever reads your data.",
     privacy1:
-      "The assistant and the reader run on this iPhone and work offline. Your data never leaves it.",
+      "The assistant and the reader use Apple Intelligence's on-device model; Apple documents this processing as staying on the iPhone and working offline.",
     privacy2:
       "AI can misread things. Every change is shown for review first, and Keel saves a backup before an assistant plan is applied.",
     privacy3:
@@ -740,7 +738,7 @@ export const en = {
     thinking: "Preparing the changes…",
     errModel: "The model couldn't process this. Try rephrasing.",
     errEmpty: "Nothing usable in there. Name the commitment and say what should happen.",
-    safety: "Runs on this iPhone. Nothing is applied without your review.",
+    safety: "Uses Apple's on-device model. Nothing is applied without your review.",
     reviewTitle: "Review",
     reviewHero_one: "{{count}} change",
     reviewHero_other: "{{count}} changes",
@@ -807,7 +805,7 @@ export const en = {
     reading: "Reading your list…",
     errModel: "The model couldn't read this. Try rephrasing or add a little detail.",
     privacy:
-      "Reads on this iPhone and works offline, as documented by Apple. Nothing leaves the phone.",
+      "Reads on this iPhone and works offline, as documented by Apple. Keel itself sends nothing anywhere.",
     unavailableTitle: "Apple Intelligence isn't available here",
     reasonOs: "This needs iOS 26 or later.",
     reasonDevice: "This iPhone can't run Apple Intelligence.",

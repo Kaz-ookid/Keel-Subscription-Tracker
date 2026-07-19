@@ -68,33 +68,17 @@ export default function AiHubScreen() {
           <Text style={styles.assistantBody}>{t("aiHub.assistantBody")}</Text>
         </Pressable>
 
-        <Text style={styles.groupLabel}>{t("aiHub.groupAdd")}</Text>
+        {/* One door to the import hub — the method choice (Keel's reader vs
+            your own AI) lives THERE, never duplicated here. */}
         <Card>
           <Pressable
             style={styles.row}
-            onPress={() =>
-              router.push({ pathname: "/add/import-ondevice", params: { direct: "1" } })
-            }
+            onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
           >
             <SymbolView name="doc.text.viewfinder" size={20} tintColor={colors.accent} />
             <View style={styles.rowMiddle}>
-              <Text style={styles.rowText}>{t("aiHub.toolKeelReads")}</Text>
-              <Text style={styles.rowSub}>{t("aiHub.toolKeelReadsSub")}</Text>
-            </View>
-            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-          </Pressable>
-          <Pressable
-            style={[styles.row, styles.rowDivider]}
-            onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
-          >
-            <SymbolView
-              name="bubble.left.and.text.bubble.right"
-              size={20}
-              tintColor={colors.accent}
-            />
-            <View style={styles.rowMiddle}>
-              <Text style={styles.rowText}>{t("aiHub.toolOwnAI")}</Text>
-              <Text style={styles.rowSub}>{t("aiHub.toolOwnAISub")}</Text>
+              <Text style={styles.rowText}>{t("aiHub.toolImport")}</Text>
+              <Text style={styles.rowSub}>{t("aiHub.toolImportSub")}</Text>
             </View>
             <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
           </Pressable>
@@ -127,13 +111,16 @@ export default function AiHubScreen() {
 
         <Text style={styles.groupLabel}>{t("aiHub.privacyTitle")}</Text>
         <Card>
-          {(["aiHub.privacy1", "aiHub.privacy2", "aiHub.privacy3"] as const).map((key, i) => (
+          {(
+            [
+              ["aiHub.privacy0", "hand.raised"],
+              ["aiHub.privacy1", "iphone"],
+              ["aiHub.privacy2", "checkmark.shield"],
+              ["aiHub.privacy3", "lock.shield"],
+            ] as const
+          ).map(([key, icon], i) => (
             <View key={key} style={[styles.privacyRow, i > 0 && styles.privacyRowGap]}>
-              <SymbolView
-                name={i === 0 ? "iphone" : i === 1 ? "checkmark.shield" : "lock.shield"}
-                size={16}
-                tintColor={colors.mutedText}
-              />
+              <SymbolView name={icon} size={16} tintColor={colors.mutedText} />
               <Text style={styles.privacyText}>{t(key)}</Text>
             </View>
           ))}

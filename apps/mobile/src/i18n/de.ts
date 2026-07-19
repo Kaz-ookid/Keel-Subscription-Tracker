@@ -47,7 +47,8 @@ export const de: typeof en = {
     methodOwn: "Nutze eine KI, der du vertraust",
     methodOwnSub: "ChatGPT, Claude, Gemini: die, der du ohnehin vertraust.",
     methodKeel: "Keel liest es für dich",
-    methodKeelSub: "Apple Intelligence liest auf diesem iPhone; gratis, offline, privat.",
+    methodKeelSub:
+      "Gelesen von Apples On-Device-Modell; gratis und offline, wie von Apple dokumentiert.",
     step1: "Kopiere die Anweisungen.",
     step2:
       "Füge sie deiner KI ein und gib deine Abos dazu: grob getippt, als Screenshots von Bestätigungs-Mails und deiner Banking-App, oder als Export deines alten Trackers.",
@@ -97,7 +98,7 @@ export const de: typeof en = {
     privacyLink: "So funktioniert es & deine Daten",
     privacyTitle: "So funktioniert es",
     privacyBody:
-      "Auf iPhones mit Apple Intelligence kann das Lesen direkt hier in der App passieren, auf dem Modell des Geräts: Apple dokumentiert diese Verarbeitung als lokal und offline, nichts verlässt das iPhone.\n\nDer andere Weg führt über eine KI, der du ohnehin vertraust (ChatGPT, Claude, Gemini …). Keel ist nicht mit ihr verbunden: Du kopierst fertige Anweisungen, fügst sie deiner KI dort ein, wo du sie sonst auch nutzt, und bringst ihre Antwort hierher zurück. Deine Liste reist nur dorthin, wo du sie hinträgst, zu den Bedingungen dieser KI: Wähle eine, der du vertraust, und lass weg, was du für dich behalten willst.\n\nSo oder so: Keel hat keinen Server und sieht deine Liste nie. Die App liest nur die Antwort, hier auf deinem iPhone, und jeder Eintrag landet auf einem Prüfbildschirm, wo du korrigierst oder löschst, bevor etwas gespeichert wird.\n\nWir speichern deine Liste nicht, verkaufen sie nicht, trainieren nichts damit und legen kein Profil über dich an. Kein Konto, kein Upload. Du tippst lieber selbst? Immer gratis, und für ein, zwei Einträge oft schneller.\n\nFür Neugierige: Die kopierten Anweisungen bitten deine KI um ein kleines JSON-Dokument (Keel-Importformat v1). Sie werden jedes Mal frisch erzeugt und passen so immer zu deiner App-Version.",
+      "Auf iPhones mit Apple Intelligence kann das Lesen direkt hier in der App passieren, auf dem Modell des Geräts: Apple dokumentiert diese Verarbeitung als lokal und offline, bei der nichts das iPhone verlässt.\n\nDer andere Weg führt über eine KI, der du ohnehin vertraust (ChatGPT, Claude, Gemini …). Keel ist nicht mit ihr verbunden: Du kopierst fertige Anweisungen, fügst sie deiner KI dort ein, wo du sie sonst auch nutzt, und bringst ihre Antwort hierher zurück. Deine Liste reist nur dorthin, wo du sie hinträgst, zu den Bedingungen dieser KI: Wähle eine, der du vertraust, und lass weg, was du für dich behalten willst.\n\nSo oder so: Keel hat keinen Server und sieht deine Liste nie. Die App liest nur die Antwort, hier auf deinem iPhone, und jeder Eintrag landet auf einem Prüfbildschirm, wo du korrigierst oder löschst, bevor etwas gespeichert wird.\n\nWir speichern deine Liste nicht, verkaufen sie nicht, trainieren nichts damit und legen kein Profil über dich an. Kein Konto, kein Upload. Du tippst lieber selbst? Immer gratis, und für ein, zwei Einträge oft schneller.\n\nFür Neugierige: Die kopierten Anweisungen bitten deine KI um ein kleines JSON-Dokument (Keel-Importformat v1). Sie werden jedes Mal frisch erzeugt und passen so immer zu deiner App-Version.",
     reviewTitle: "Prüfe, was gelesen wurde",
     reviewHero_one: "{{count}} Eintrag",
     reviewHero_other: "{{count}} Einträge",
@@ -653,7 +654,7 @@ export const de: typeof en = {
     thanks: "Danke, dass du unabhängige Software nutzt.",
     version: "Version",
     privacyBody:
-      "Stand: 19. Juli 2026.\n\nWer verantwortlich ist. Keel wird von einer Person gemacht und betrieben: Maxime Teuber, ansässig in der Schweiz (das „ich“ unten und, rechtlich gesprochen, der Verantwortliche). Kontakt: {{email}}.\n\nDeine Daten bleiben auf deinem Gerät. Posten, Konten, Zahlungsverlauf und Einstellungen liegen im lokalen Speicher der App und in den lokalen Backups, die du erstellst. Keel hat keinen Server, kein Kontosystem, keine Analytik und keine Werbung. Ich kann deine Daten nicht sehen.\n\nNetzwerkanfragen. Keel stellt zwei Arten von Anfragen, und nur diese. Wechselkurse kommen von der öffentlichen Frankfurter-API (Referenzkurse der Europäischen Zentralbank); die Anfrage ist für alle identisch und enthält keine persönlichen Daten. Marken-Logos sind aus, bis du sie einschaltest: Ist die Wahl getroffen, lädt ein Posten mit hinterlegter Website sein Logo über Googles öffentlichen Favicon-Dienst, und diese Anfrage enthält die Domain der Marke (zum Beispiel netflix.com) und, wie jede Web-Anfrage, deine IP-Adresse. Google kann solche Anfragen auf Servern außerhalb der Schweiz und der EU verarbeiten, auch in den USA. Der Schalter in den Einstellungen beendet das Laden jederzeit; bereits geladene Logos werden ohne weitere Anfrage weiter angezeigt. Einträge ohne Website lösen nie eine Logo-Anfrage aus. Nichts davon erreicht mich: Die Anfragen gehen von deinem Gerät an diese Dienste, und ich speichere nichts darüber.\n\nKI-Import. Mit „deiner eigenen KI“ teilst du deine Liste mit dem Assistenten deiner Wahl, zu dessen Bedingungen; Keel liest nur die Antwort, die du zurück einfügst, auf deinem iPhone. Wo die Variante auf dem Gerät verfügbar ist, liest Apple Intelligence direkt auf deinem iPhone und nichts verlässt das Gerät.\n\nErinnerungen werden lokal von iOS geplant. Die Sperre nutzt Face ID, Touch ID oder deinen Code über iOS; Keel erfährt nur das Ergebnis.\n\nBackups und Exporte sind Dateien unter deiner Kontrolle. Teilst du eine, geht sie dorthin, wohin du sie schickst; behandle sie wie die Finanzdaten, die sie enthält.\n\nAufbewahrung und Löschung. Weil alles auf deinem Gerät lebt, liegt das Löschen in deiner Hand: Entferne Einträge in der App, oder lösche die App, um alle ihre Daten zu entfernen (anderswo exportierte Backup-Dateien löschst du dort). Es gibt kein Konto zu schließen und keine Serverkopie anzufordern. Schreibst du mir, behalte ich den Verlauf, um später daran anknüpfen zu können. Bitte mich einfach, ihn zu löschen, und ich tue es: kein formelles Gesuch, keine Paragrafen nötig, die Löschung ist garantiert.\n\nDeine Rechte. Das Schweizer Datenschutzgesetz (DSG) und, wo anwendbar, die europäische DSGVO geben dir Rechte an deinen persönlichen Daten: Auskunft, Berichtigung, Löschung und Widerspruch, dazu das Recht auf Beschwerde bei einer Aufsichtsbehörde (in der Schweiz der EDÖB, in der EU deine nationale Behörde). Praktisch sind die einzigen persönlichen Daten, die ich je halte, unsere E-Mails: Diese Rechte auszuüben heißt meist, mich zu bitten, einen Verlauf zu löschen, was ich tue.\n\nÄnderungen. Ändert sich diese Erklärung wesentlich, ändert sich das Datum oben, und die Änderung ist auf keel-app.ch sichtbar.",
+      "Stand: 19. Juli 2026.\n\nWer verantwortlich ist. Keel wird von einer Person gemacht und betrieben: Maxime Teuber, ansässig in der Schweiz (das „ich“ unten und, rechtlich gesprochen, der Verantwortliche). Kontakt: {{email}}.\n\nDeine Daten bleiben auf deinem Gerät. Posten, Konten, Zahlungsverlauf und Einstellungen liegen im lokalen Speicher der App und in den lokalen Backups, die du erstellst. Keel hat keinen Server, kein Kontosystem, keine Analytik und keine Werbung. Ich kann deine Daten nicht sehen.\n\nNetzwerkanfragen. Keel stellt zwei Arten von Anfragen, und nur diese. Wechselkurse kommen von der öffentlichen Frankfurter-API (Referenzkurse der Europäischen Zentralbank); die Anfrage ist für alle identisch und enthält keine persönlichen Daten. Marken-Logos sind aus, bis du sie einschaltest: Ist die Wahl getroffen, lädt ein Posten mit hinterlegter Website sein Logo über Googles öffentlichen Favicon-Dienst, und diese Anfrage enthält die Domain der Marke (zum Beispiel netflix.com) und, wie jede Web-Anfrage, deine IP-Adresse. Google kann solche Anfragen auf Servern außerhalb der Schweiz und der EU verarbeiten, auch in den USA. Der Schalter in den Einstellungen beendet das Laden jederzeit; bereits geladene Logos werden ohne weitere Anfrage weiter angezeigt. Einträge ohne Website lösen nie eine Logo-Anfrage aus. Nichts davon erreicht mich: Die Anfragen gehen von deinem Gerät an diese Dienste, und ich speichere nichts darüber.\n\nKI-Import. Mit „deiner eigenen KI“ teilst du deine Liste mit dem Assistenten deiner Wahl, zu dessen Bedingungen; Keel liest nur die Antwort, die du zurück einfügst, auf deinem iPhone. Wo die Variante auf dem Gerät verfügbar ist, liest das On-Device-Modell von Apple Intelligence direkt auf deinem iPhone, eine Verarbeitung, die Apple als lokal und offline dokumentiert. Die KI-Funktionen sind komplett optional: Nutzt du sie nicht, liest kein Modell je deine Daten.\n\nErinnerungen werden lokal von iOS geplant. Die Sperre nutzt Face ID, Touch ID oder deinen Code über iOS; Keel erfährt nur das Ergebnis.\n\nBackups und Exporte sind Dateien unter deiner Kontrolle. Teilst du eine, geht sie dorthin, wohin du sie schickst; behandle sie wie die Finanzdaten, die sie enthält.\n\nAufbewahrung und Löschung. Weil alles auf deinem Gerät lebt, liegt das Löschen in deiner Hand: Entferne Einträge in der App, oder lösche die App, um alle ihre Daten zu entfernen (anderswo exportierte Backup-Dateien löschst du dort). Es gibt kein Konto zu schließen und keine Serverkopie anzufordern. Schreibst du mir, behalte ich den Verlauf, um später daran anknüpfen zu können. Bitte mich einfach, ihn zu löschen, und ich tue es: kein formelles Gesuch, keine Paragrafen nötig, die Löschung ist garantiert.\n\nDeine Rechte. Das Schweizer Datenschutzgesetz (DSG) und, wo anwendbar, die europäische DSGVO geben dir Rechte an deinen persönlichen Daten: Auskunft, Berichtigung, Löschung und Widerspruch, dazu das Recht auf Beschwerde bei einer Aufsichtsbehörde (in der Schweiz der EDÖB, in der EU deine nationale Behörde). Praktisch sind die einzigen persönlichen Daten, die ich je halte, unsere E-Mails: Diese Rechte auszuüben heißt meist, mich zu bitten, einen Verlauf zu löschen, was ich tue.\n\nÄnderungen. Ändert sich diese Erklärung wesentlich, ändert sich das Datum oben, und die Änderung ist auf keel-app.ch sichtbar.",
     termsBody:
       "Stand: 19. Juli 2026.\n\nKeel ist ein persönliches Verwaltungswerkzeug. Es erfasst, was du eingibst, und berechnet Termine und Summen aus diesen Eingaben. Es verbindet sich nicht mit deiner Bank, bewegt kein Geld und prüft nichts bei deinen Anbietern nach. Kontrolliere wichtige Beträge und Termine immer bei der Bank oder dem Dienst selbst.\n\nKeine Beratung. Nichts in Keel ist Finanz-, Rechts- oder Steuerberatung.\n\nDein Gerät, deine Daten. Schütze dein Gerät und deine Backup-Dateien. Wer Zugriff auf dein entsperrtes iPhone oder eine exportierte Backup-Datei hat, kann die Daten darin lesen, sofern die App-Sperre sie nicht schützt.\n\nWie besehen. Keel wird ohne Gewähr bereitgestellt, ohne Garantie jeder Art. Soweit gesetzlich zulässig, haftet der Entwickler nicht für Schäden aus der Nutzung der App, einschließlich Verlusten durch Vertrauen auf Erinnerungen, Prognosen oder Summen (etwa eine Mahngebühr). Wo das Gesetz solche Beschränkungen nicht erlaubt, gelten sie im zulässigen Umfang.\n\nMarken. In Keel gezeigte Produktnamen, Logos und Marken gehören ihren jeweiligen Inhabern; Keel ist von ihnen unabhängig.\n\nKäufe. Keel ist gratis. Der optionale Einmalkauf Full Keel (sobald verfügbar) wird von Apple über dein App-Store-Konto abgewickelt: Der Preis steht vor dem Kauf fest, nichts verlängert sich, und Rückerstattungen folgen den App-Store-Regeln von Apple.\n\nApp Store. Für deine Nutzung von Keel gilt außerdem Apples Standard-Lizenzvereinbarung für Apps (EULA).\n\nAnwendbares Recht. Diese Bedingungen unterliegen Schweizer Recht.\n\nKontakt: {{email}}.",
   },
@@ -715,23 +716,20 @@ export const de: typeof en = {
   },
   aiHub: {
     title: "KI",
-    hero: "Keels KI läuft auf diesem iPhone mit Apple Intelligence. Sag, was sich geändert hat, gib eine Rechnung her oder nimm deine eigene KI; jede Änderung kommt zur Durchsicht zu dir zurück.",
+    hero: "Keels KI baut auf dem On-Device-Modell von Apple Intelligence auf. Sag, was sich geändert hat, gib eine Rechnung her oder nimm deine eigene KI; jede Änderung kommt zur Durchsicht zu dir zurück.",
     assistantTitle: "Assistent",
     assistantBody:
       "Sag Keel, was passiert ist: Fitnessstudio kündigen, Netflix auf den 12. verschieben, die Miete ist gestiegen, Spotify dazu. Keel bereitet die Änderungen vor und zeigt jede einzelne, bevor irgendetwas gespeichert wird.",
-    groupAdd: "Mit KI hinzufügen",
-    toolKeelReads: "Keel liest es",
-    toolKeelReadsSub:
-      "Rechnungen, Notizen oder Auszüge einfügen; Apple Intelligence macht daraus Verpflichtungen.",
-    toolOwnAI: "Deine eigene KI",
-    toolOwnAISub:
-      "ChatGPT, Claude, Gemini: Keels Anweisungen kopieren, die Antwort zurück einfügen.",
+    toolImport: "Mit KI hinzufügen",
+    toolImportSub: "Keels Lesen auf dem Gerät, oder deine eigene KI: ChatGPT, Claude, Gemini.",
     historyEmpty:
       "Alles, was KI hinzufügt oder ändert, erscheint hier: so behältst du immer den Überblick.",
     seeAll: "Alle anzeigen",
     privacyTitle: "Privat gebaut",
+    privacy0:
+      "KI ist komplett optional. Wenn du sie nicht nutzt, läuft nichts und kein Modell liest je deine Daten.",
     privacy1:
-      "Assistent und Lesen laufen auf diesem iPhone, auch offline. Deine Daten verlassen es nie.",
+      "Assistent und Lesen nutzen das On-Device-Modell von Apple Intelligence; Apple dokumentiert diese Verarbeitung als lokal und offline.",
     privacy2:
       "KI kann sich verlesen. Jede Änderung geht zuerst durch deine Durchsicht, und Keel sichert alles, bevor ein Assistent-Plan angewendet wird.",
     privacy3:
@@ -747,7 +745,7 @@ export const de: typeof en = {
     thinking: "Änderungen werden vorbereitet…",
     errModel: "Das Modell konnte das nicht verarbeiten. Formuliere es um.",
     errEmpty: "Nichts Verwertbares. Nenne die Verpflichtung und was passieren soll.",
-    safety: "Läuft auf diesem iPhone. Nichts wird ohne deine Durchsicht angewendet.",
+    safety: "Nutzt Apples On-Device-Modell. Nichts wird ohne deine Durchsicht angewendet.",
     reviewTitle: "Durchsicht",
     reviewHero_one: "{{count}} Änderung",
     reviewHero_other: "{{count}} Änderungen",
@@ -814,7 +812,7 @@ export const de: typeof en = {
     reading: "Deine Liste wird gelesen …",
     errModel: "Das Modell konnte das nicht lesen. Formuliere um oder gib etwas mehr Details an.",
     privacy:
-      "Liest auf diesem iPhone und funktioniert offline, wie von Apple dokumentiert. Nichts verlässt das Gerät.",
+      "Liest auf diesem iPhone und funktioniert offline, wie von Apple dokumentiert. Keel selbst sendet nichts.",
     unavailableTitle: "Apple Intelligence ist hier nicht verfügbar",
     reasonOs: "Dafür braucht es iOS 26 oder neuer.",
     reasonDevice: "Dieses iPhone kann Apple Intelligence nicht ausführen.",
