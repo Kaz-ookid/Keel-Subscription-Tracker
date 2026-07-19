@@ -27,6 +27,7 @@ import {
   type ReactNode,
 } from "react";
 import { useTranslation } from "react-i18next";
+import { Alert } from "react-native";
 import {
   accrueDueInstallments,
   accrueDueOccurrences,
@@ -283,18 +284,40 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     if (!loading) void syncReminders(items);
   }, [items, loading, i18n.language]);
 
-  // Persist after the initial hydration completes.
+  // Persist after the initial hydration completes. A failed write retries
+  // once, then warns (once per session): silently losing financial data is
+  // the one failure this store must never swallow. Every later change
+  // re-runs the effect, so persistence keeps trying to heal on its own.
+  const saveWarned = useRef(false);
   useEffect(() => {
-    if (!loading)
-      void saveState({
-        items,
-        occurrences,
-        categories: customCategories,
-        accounts,
-        displayCurrency,
-        pending,
+    if (loading) return;
+    const state = {
+      items,
+      occurrences,
+      categories: customCategories,
+      accounts,
+      displayCurrency,
+      pending,
+    };
+    let stale = false;
+    const attempt = (retriesLeft: number) => {
+      saveState(state).catch(() => {
+        // A newer state is already being saved; let its attempt report.
+        if (stale) return;
+        if (retriesLeft > 0) {
+          setTimeout(() => attempt(retriesLeft - 1), 1500);
+        } else if (!saveWarned.current) {
+          saveWarned.current = true;
+          Alert.alert(i18n.t("storage.saveFailedTitle"), i18n.t("storage.saveFailedBody"));
+        }
       });
-  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading]);
+    };
+    attempt(1);
+    return () => {
+      stale = true;
+    };
+    // i18n is the stable singleton; it only matters for the alert's language.
+  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading, i18n]);
 
   // The daily local backup: once per launch, right after hydration — the
   // library itself skips days that already have one.

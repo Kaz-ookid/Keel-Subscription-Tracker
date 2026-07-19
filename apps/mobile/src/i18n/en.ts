@@ -489,6 +489,11 @@ export const en = {
     offKeep: "Turn off",
     offClear: "Turn off and clear",
   },
+  storage: {
+    saveFailedTitle: "Saving failed",
+    saveFailedBody:
+      "Keel couldn't save your latest changes on this phone, even after retrying. This usually means storage is full. Free up some space, then make any small change so Keel can save again.",
+  },
   settings: {
     groupGeneral: "General",
     groupPrivacy: "Privacy",

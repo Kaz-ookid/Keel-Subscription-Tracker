@@ -492,6 +492,11 @@ export const fr: typeof en = {
     offKeep: "Désactiver",
     offClear: "Désactiver et effacer",
   },
+  storage: {
+    saveFailedTitle: "Échec de l'enregistrement",
+    saveFailedBody:
+      "Keel n'a pas pu enregistrer vos derniers changements sur ce téléphone, même après un nouvel essai. En général, le stockage est plein. Libérez de l'espace, puis faites une petite modification pour que Keel enregistre à nouveau.",
+  },
   settings: {
     groupGeneral: "Général",
     groupPrivacy: "Confidentialité",
