@@ -12,9 +12,11 @@ import { initReactI18next } from "react-i18next";
 import { de } from "./de";
 import { en } from "./en";
 import { fr } from "./fr";
+import { it } from "./it";
+import { pl } from "./pl";
 
 /** Every language the app ships; the single list the rest derives from. */
-export const APP_LANGUAGES = ["en", "fr", "de"] as const;
+export const APP_LANGUAGES = ["en", "fr", "de", "it", "pl"] as const;
 export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
 /** "system" follows the device; the rest force a language. */
@@ -36,6 +38,8 @@ void i18n.use(initReactI18next).init({
     en: { translation: en },
     fr: { translation: fr },
     de: { translation: de },
+    it: { translation: it },
+    pl: { translation: pl },
   },
   lng: deviceLanguage(),
   fallbackLng: "en",

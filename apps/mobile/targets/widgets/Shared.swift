@@ -24,7 +24,7 @@ struct WidgetPayment: Codable, Identifiable {
 
 struct WidgetSnapshot: Codable {
   let version: Int
-  /// "en" | "fr" | "de": the APP's language, which may differ from the device's.
+  /// "en" | "fr" | "de" | "it" | "pl": the APP's language, not the device's.
   let locale: String
   let generatedAt: String
   /// "July" / "Juillet".
@@ -83,6 +83,8 @@ extension WidgetSnapshot {
 
   var isFrench: Bool { locale.hasPrefix("fr") }
   var isGerman: Bool { locale.hasPrefix("de") }
+  var isItalian: Bool { locale.hasPrefix("it") }
+  var isPolish: Bool { locale.hasPrefix("pl") }
 
   func dueLabel(_ payment: WidgetPayment, from reference: Date) -> String {
     let days = payment.daysFrom(reference)
@@ -100,6 +102,22 @@ extension WidgetSnapshot {
       case 0: return "Heute"
       case 1: return "Morgen"
       default: return "In \(days) Tagen"
+      }
+    }
+    if isItalian {
+      switch days {
+      case ..<0: return "In ritardo"
+      case 0: return "Oggi"
+      case 1: return "Domani"
+      default: return "Tra \(days) giorni"
+      }
+    }
+    if isPolish {
+      switch days {
+      case ..<0: return "Po terminie"
+      case 0: return "Dziś"
+      case 1: return "Jutro"
+      default: return "Za \(days) dni"
       }
     }
     switch days {
@@ -128,6 +146,22 @@ extension WidgetSnapshot {
       default: return "\(days) T"
       }
     }
+    if isItalian {
+      switch days {
+      case ..<0: return "ritardo"
+      case 0: return "oggi"
+      case 1: return "domani"
+      default: return "\(days) g"
+      }
+    }
+    if isPolish {
+      switch days {
+      case ..<0: return "po term."
+      case 0: return "dziś"
+      case 1: return "jutro"
+      default: return "\(days) dn."
+      }
+    }
     switch days {
     case ..<0: return "late"
     case 0: return "today"
@@ -139,11 +173,15 @@ extension WidgetSnapshot {
   var emptyLine: String {
     if isFrench { return "Rien à venir" }
     if isGerman { return "Nichts anstehend" }
+    if isItalian { return "Tutto a posto" }
+    if isPolish { return "Nic do zapłaty" }
     return "All clear"
   }
   var upcomingTitle: String {
     if isFrench { return "À venir" }
     if isGerman { return "Anstehend" }
+    if isItalian { return "In arrivo" }
+    if isPolish { return "Nadchodzące" }
     return "Upcoming"
   }
 }

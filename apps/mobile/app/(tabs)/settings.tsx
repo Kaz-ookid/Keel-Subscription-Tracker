@@ -83,6 +83,8 @@ const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string
   { value: "en", label: "English" },
   { value: "fr", label: "Français" },
   { value: "de", label: "Deutsch" },
+  { value: "it", label: "Italiano" },
+  { value: "pl", label: "Polski" },
 ];
 
 // Same React-19 children alias as the Add form's pickers.
