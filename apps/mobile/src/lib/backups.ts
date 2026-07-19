@@ -8,11 +8,16 @@ import { Directory, File, Paths } from "expo-file-system";
 
 import { parsePersistedState, type PersistedState } from "./storage";
 
+/** Why a backup was written: the daily automatic one, a user-made one, or
+ *  the safety snapshot Keel takes right before applying an AI plan. */
+export type BackupKind = "auto" | "manual" | "ai";
+
 export interface BackupEntry {
   /** File name — the stable id for restore/share/delete. */
   name: string;
   /** When it was written (local time). */
   createdAt: Date;
+  kind: BackupKind;
   /** True for the daily automatic snapshot. */
   auto: boolean;
   itemCount: number;
@@ -28,7 +33,7 @@ function backupsDir(): Directory {
   return dir;
 }
 
-// keel-auto-2026-07-11T16-21-05.json / keel-manual-....json
+// keel-auto-2026-07-11T16-21-05.json / keel-manual-... / keel-ai-...
 function stamp(date: Date): string {
   const pad = (n: number) => String(n).padStart(2, "0");
   return (
@@ -37,28 +42,39 @@ function stamp(date: Date): string {
   );
 }
 
-function parseName(name: string): { createdAt: Date; auto: boolean } | null {
-  const match = /^keel-(auto|manual)-(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})\.json$/.exec(
-    name,
-  );
+function parseName(name: string): { createdAt: Date; kind: BackupKind } | null {
+  const match =
+    /^keel-(auto|manual|ai)-(\d{4})-(\d{2})-(\d{2})T(\d{2})-(\d{2})-(\d{2})\.json$/.exec(name);
   if (!match) return null;
   const [, kind, y, m, d, hh, mm, ss] = match;
   return {
-    auto: kind === "auto",
+    kind: kind as BackupKind,
     createdAt: new Date(+y, +m - 1, +d, +hh, +mm, +ss),
   };
 }
 
+export interface BackupStamp {
+  name: string;
+  createdAt: Date;
+  kind: BackupKind;
+  auto: boolean;
+}
+
 /** The cheap listing: everything the filename alone can say, newest first.
  *  No file is opened or parsed — safe on the launch path. */
-export function listBackupStamps(): { name: string; createdAt: Date; auto: boolean }[] {
+export function listBackupStamps(): BackupStamp[] {
   try {
-    const stamps: { name: string; createdAt: Date; auto: boolean }[] = [];
+    const stamps: BackupStamp[] = [];
     for (const child of backupsDir().list()) {
       if (!(child instanceof File)) continue;
       const meta = parseName(child.name);
       if (!meta) continue;
-      stamps.push({ name: child.name, createdAt: meta.createdAt, auto: meta.auto });
+      stamps.push({
+        name: child.name,
+        createdAt: meta.createdAt,
+        kind: meta.kind,
+        auto: meta.kind === "auto",
+      });
     }
     return stamps.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   } catch {
@@ -81,7 +97,8 @@ export function listBackups(): BackupEntry[] {
       entries.push({
         name: child.name,
         createdAt: meta.createdAt,
-        auto: meta.auto,
+        kind: meta.kind,
+        auto: meta.kind === "auto",
         itemCount: state.items.length,
         accountCount: state.accounts.length,
         uri: child.uri,
@@ -98,19 +115,17 @@ function prune(): void {
   for (const entry of extra) deleteBackup(entry.name);
 }
 
-/** Write a snapshot now; returns false when writing failed. */
-export function createBackup(state: PersistedState, auto = false): boolean {
+/** Write a snapshot now; returns its file name, or null when writing failed. */
+export function createBackup(state: PersistedState, kind: BackupKind = "manual"): string | null {
   try {
-    const file = new File(
-      backupsDir(),
-      `keel-${auto ? "auto" : "manual"}-${stamp(new Date())}.json`,
-    );
+    const name = `keel-${kind}-${stamp(new Date())}.json`;
+    const file = new File(backupsDir(), name);
     file.create();
     file.write(JSON.stringify(state));
     prune();
-    return true;
+    return name;
   } catch {
-    return false;
+    return null;
   }
 }
 
@@ -121,7 +136,7 @@ export function autoBackupIfDue(state: PersistedState): void {
   if (state.items.length === 0 && state.accounts.length === 0) return;
   const newestAuto = listBackupStamps().find((entry) => entry.auto);
   if (newestAuto && newestAuto.createdAt.toDateString() === new Date().toDateString()) return;
-  createBackup(state, true);
+  createBackup(state, "auto");
 }
 
 /** The backup's raw JSON, ready for importData; null when unreadable. */

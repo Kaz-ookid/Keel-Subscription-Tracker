@@ -1,13 +1,13 @@
 // "Keel reads it for you" (PROJECT_BRIEF §6.1 Path C/D): the AI import run by
 // the ON-DEVICE Apple Intelligence model. Free, private, offline; the answer
 // goes through the exact same parse + review pipeline as the
-// bring-your-own-AI path. DORMANT: nothing links here yet (the import hub's
-// method card still says coming soon); in Expo Go the availability probe
-// reports unavailable and this screen explains itself instead of working.
+// bring-your-own-AI path. Linked from the import hub and the AI tab; in Expo
+// Go the availability probe reports unavailable and this screen explains
+// itself instead of working (the native module needs the dev build).
 // Wiring steps: modules/apple-intelligence/README.md.
 
 import { parseImportDocument, today, type ImportParseError } from "@keel/core";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,6 +22,7 @@ import {
   View,
 } from "react-native";
 
+import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
 import {
   onDeviceAvailability,
@@ -44,6 +45,9 @@ type ReadError = ImportParseError | "model-failed";
 
 export default function OnDeviceImportScreen() {
   const router = useRouter();
+  // The AI tab opens this directly (?direct=1): it is then the sheet's first
+  // screen and needs its own leave affordance, like the import hub.
+  const { direct } = useLocalSearchParams<{ direct?: string }>();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -87,7 +91,7 @@ export default function OnDeviceImportScreen() {
       }
       // A successful read spends one; failures never do.
       void consumeAiRead();
-      startSession(result.drafts, result.skipped);
+      startSession(result.drafts, result.skipped, "ondevice_import");
       router.push("/add/import-review");
     } catch {
       setError("model-failed");
@@ -103,7 +107,12 @@ export default function OnDeviceImportScreen() {
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
     >
-      <Stack.Screen options={{ title: t("importAI.methodKeel") }} />
+      <Stack.Screen
+        options={{
+          title: t("importAI.methodKeel"),
+          ...(direct ? { headerLeft: () => <ModalClose /> } : null),
+        }}
+      />
 
       {availability === "checking" && (
         <View style={styles.centerCard}>

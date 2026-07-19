@@ -12,13 +12,11 @@ function tryParse(text: string): unknown | undefined {
   }
 }
 
-function looksLikeDocument(value: unknown): boolean {
-  return typeof value === "object" && value !== null && "items" in value;
-}
-
 /** Scan for balanced `{…}` blocks (string-aware) and return the first one that
- *  parses AND carries an `items` key — prose around it is ignored. */
-function scanForDocument(text: string): unknown | null {
+ *  parses AND carries the marker key — prose around it is ignored. */
+function scanForDocument(text: string, markerKey: string): unknown | null {
+  const looksLikeDocument = (value: unknown): boolean =>
+    typeof value === "object" && value !== null && markerKey in value;
   for (let start = text.indexOf("{"); start !== -1; start = text.indexOf("{", start + 1)) {
     let depth = 0;
     let inString = false;
@@ -47,12 +45,12 @@ function scanForDocument(text: string): unknown | null {
 }
 
 /**
- * Pull the JSON value out of a raw paste. Tries, in order: the whole text as
- * JSON; the contents of each markdown code fence; a balanced-brace scan for an
- * object containing `"items"`. Returns the parsed value (validated later by
- * `parseImportDocument`) or null when nothing parseable is found.
+ * Pull a JSON value out of raw model output. Tries, in order: the whole text
+ * as JSON; the contents of each markdown code fence; a balanced-brace scan for
+ * an object containing `markerKey`. Returns the parsed value (validated by the
+ * caller) or null when nothing parseable is found.
  */
-export function extractImportDocument(raw: string): unknown | null {
+export function extractJsonDocument(raw: string, markerKey: string): unknown | null {
   const trimmed = raw.trim();
   if (!trimmed) return null;
 
@@ -66,5 +64,10 @@ export function extractImportDocument(raw: string): unknown | null {
     if (fenced !== undefined) return fenced;
   }
 
-  return scanForDocument(trimmed);
+  return scanForDocument(trimmed, markerKey);
+}
+
+/** The import flavor: an object carrying `"items"`. */
+export function extractImportDocument(raw: string): unknown | null {
+  return extractJsonDocument(raw, "items");
 }

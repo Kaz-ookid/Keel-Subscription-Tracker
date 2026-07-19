@@ -57,6 +57,28 @@ public class AppleIntelligenceModule: Module {
         throw AppleIntelligenceError.unavailable
       #endif
     }
+
+    // The assistant: a natural-language request against the grounding
+    // snapshot (core's buildAssistantPrompt) comes back as the plan JSON
+    // ({"actions":[...],"additions":[...]}). Constrained decode again; core's
+    // parseAssistantPlan resolves and validates before anything is shown.
+    AsyncFunction("assist") { (input: String, instructions: String) async throws -> String in
+      #if canImport(FoundationModels)
+        guard #available(iOS 26.0, *) else {
+          throw AppleIntelligenceError.unavailable
+        }
+        guard case .available = SystemLanguageModel.default.availability else {
+          throw AppleIntelligenceError.unavailable
+        }
+        let session = LanguageModelSession(instructions: instructions)
+        let response = try await session.respond(to: input, generating: AssistantPlanDocument.self)
+        let encoder = JSONEncoder()
+        let data = try encoder.encode(response.content)
+        return String(data: data, encoding: .utf8) ?? #"{"actions":[],"additions":[]}"#
+      #else
+        throw AppleIntelligenceError.unavailable
+      #endif
+    }
   }
 }
 

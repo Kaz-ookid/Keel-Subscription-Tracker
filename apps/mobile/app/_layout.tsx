@@ -10,6 +10,7 @@ import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { AppStateProvider } from "../src/state/app-state";
+import { AssistantSessionProvider } from "../src/state/assistant-session";
 import { ImportSessionProvider } from "../src/state/import-session";
 import { ThemePreferenceProvider, useTheme } from "../src/theme";
 
@@ -63,47 +64,52 @@ function RootNavigator() {
       <ThemeProvider value={navTheme}>
         <AppStateProvider>
           <ImportSessionProvider>
-            <Stack
-              screenOptions={{
-                // §9b chrome: pushed screens get a fully transparent header,
-                // just the floating back circle and right actions; each
-                // screen draws its own large title in the content (the
-                // native large-title blur rendered as an empty band).
-                headerTransparent: true,
-                headerTintColor: colors.accent,
-                contentStyle: { backgroundColor: "transparent" },
-                // Just the chevron — otherwise iOS prints the previous route's
-                // name ("(tabs)") next to the back arrow.
-                headerBackButtonDisplayMode: "minimal",
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="onboarding"
-                options={{
-                  presentation: "fullScreenModal",
-                  headerShown: false,
-                  contentStyle: { backgroundColor: colors.background },
+            <AssistantSessionProvider>
+              <Stack
+                screenOptions={{
+                  // §9b chrome: pushed screens get a fully transparent header,
+                  // just the floating back circle and right actions; each
+                  // screen draws its own large title in the content (the
+                  // native large-title blur rendered as an empty band).
+                  headerTransparent: true,
+                  headerTintColor: colors.accent,
+                  contentStyle: { backgroundColor: "transparent" },
+                  // Just the chevron — otherwise iOS prints the previous route's
+                  // name ("(tabs)") next to the back arrow.
+                  headerBackButtonDisplayMode: "minimal",
                 }}
-              />
-              {/* The add flow (chooser, form, AI import, review) is a nested
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen
+                  name="onboarding"
+                  options={{
+                    presentation: "fullScreenModal",
+                    headerShown: false,
+                    contentStyle: { backgroundColor: colors.background },
+                  }}
+                />
+                {/* The add flow (chooser, form, AI import, review) is a nested
                   stack so every step gets a REAL native back button; it
                   draws its own headers. */}
-              <Stack.Screen name="add" options={{ presentation: "modal", headerShown: false }} />
-              {/* Titles live IN the content as large headings; the bar only
+                <Stack.Screen name="add" options={{ presentation: "modal", headerShown: false }} />
+                {/* Titles live IN the content as large headings; the bar only
                   carries back and actions. */}
-              <Stack.Screen name="item" options={{ title: "" }} />
-              <Stack.Screen name="accounts" options={{ title: "" }} />
-              <Stack.Screen name="price-changes" options={{ title: "" }} />
-              <Stack.Screen name="by-account" options={{ title: "" }} />
-              <Stack.Screen name="by-category" options={{ title: "" }} />
-              <Stack.Screen name="notifications" options={{ title: "" }} />
-              <Stack.Screen name="data" options={{ title: "" }} />
-              <Stack.Screen name="backups" options={{ title: "" }} />
-              <Stack.Screen name="guide" options={{ title: "" }} />
-              <Stack.Screen name="about" options={{ title: "" }} />
-              <Stack.Screen name="fullkeel" options={{ title: "" }} />
-            </Stack>
+                <Stack.Screen name="item" options={{ title: "" }} />
+                <Stack.Screen name="accounts" options={{ title: "" }} />
+                <Stack.Screen name="price-changes" options={{ title: "" }} />
+                <Stack.Screen name="by-account" options={{ title: "" }} />
+                <Stack.Screen name="by-category" options={{ title: "" }} />
+                <Stack.Screen name="notifications" options={{ title: "" }} />
+                <Stack.Screen name="data" options={{ title: "" }} />
+                <Stack.Screen name="backups" options={{ title: "" }} />
+                <Stack.Screen name="guide" options={{ title: "" }} />
+                <Stack.Screen name="about" options={{ title: "" }} />
+                <Stack.Screen name="fullkeel" options={{ title: "" }} />
+                <Stack.Screen name="assistant" options={{ title: "" }} />
+                <Stack.Screen name="assistant-review" options={{ title: "" }} />
+                <Stack.Screen name="ai-history" options={{ title: "" }} />
+              </Stack>
+            </AssistantSessionProvider>
           </ImportSessionProvider>
           {/* No colored bars anymore: the status bar follows the scheme. */}
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />

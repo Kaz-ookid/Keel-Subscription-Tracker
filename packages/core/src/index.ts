@@ -10,6 +10,7 @@ export * from "./constants";
 // walkthrough validates these types — see PROJECT_BRIEF.md §7.
 export * from "./models/account";
 export * from "./models/account-factory";
+export * from "./models/ai-activity";
 export * from "./models/category";
 export * from "./models/installment";
 export * from "./models/installment-plan";
@@ -27,6 +28,11 @@ export * from "./import/extract";
 export * from "./import/parse";
 export * from "./import/prompt";
 export * from "./import/types";
+
+// The assistant (PROJECT_BRIEF §6.1): the model proposes a typed plan, this
+// resolves + validates it; nothing applies without the user's review.
+export * from "./assistant/plan";
+export * from "./assistant/prompt";
 
 // Forecast / budget calculations (PROJECT_BRIEF §7) — pure projections of
 // future money movement from the schedules above.

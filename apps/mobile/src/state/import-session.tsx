@@ -4,7 +4,7 @@
 // short-lived review session; nothing lands in real data until the user
 // confirms on the review screen.
 
-import type { ImportDraft, NewInstallmentInput, NewRecurringInput } from "@keel/core";
+import type { AiTool, ImportDraft, NewInstallmentInput, NewRecurringInput } from "@keel/core";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
 type DraftPatch =
@@ -15,8 +15,11 @@ interface ImportSessionValue {
   drafts: ImportDraft[];
   /** Items in the paste too broken to become drafts — shown on review. */
   skipped: number;
+  /** Which AI door produced the drafts — recorded in the AI trace when the
+   *  review confirms. */
+  source: AiTool;
   /** Start a fresh review session (replaces any previous drafts). */
-  startSession: (drafts: ImportDraft[], skipped?: number) => void;
+  startSession: (drafts: ImportDraft[], skipped?: number, source?: AiTool) => void;
   getDraft: (id: string) => ImportDraft | undefined;
   /** Apply an edit made in the Add form. The user has looked the item over,
    *  so parse warnings retire; the unmatched account name survives only while
@@ -31,14 +34,17 @@ const ImportSessionContext = createContext<ImportSessionValue | null>(null);
 export function ImportSessionProvider({ children }: { children: ReactNode }) {
   const [drafts, setDrafts] = useState<ImportDraft[]>([]);
   const [skipped, setSkipped] = useState(0);
+  const [source, setSource] = useState<AiTool>("byo_import");
 
   const value = useMemo<ImportSessionValue>(
     () => ({
       drafts,
       skipped,
-      startSession: (next, skippedCount = 0) => {
+      source,
+      startSession: (next, skippedCount = 0, from = "byo_import") => {
         setDrafts(next);
         setSkipped(skippedCount);
+        setSource(from);
       },
       getDraft: (id) => drafts.find((d) => d.id === id),
       updateDraft: (id, patch) => {
@@ -66,7 +72,7 @@ export function ImportSessionProvider({ children }: { children: ReactNode }) {
         setSkipped(0);
       },
     }),
-    [drafts, skipped],
+    [drafts, skipped, source],
   );
 
   return <ImportSessionContext.Provider value={value}>{children}</ImportSessionContext.Provider>;

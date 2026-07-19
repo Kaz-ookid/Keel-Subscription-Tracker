@@ -137,6 +137,7 @@ export default function BackupsScreen() {
                   {" · "}
                   {t("backups.accounts", { count: entry.accountCount })}
                   {entry.auto ? ` · ${t("backups.autoTag")}` : ""}
+                  {entry.kind === "ai" ? ` · ${t("backups.aiTag")}` : ""}
                 </Text>
               </View>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />

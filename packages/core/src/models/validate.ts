@@ -12,6 +12,7 @@
 // that knows more currencies than this one still restores.
 
 import type { SuggestedCommitment } from "../constants/suggestions";
+import type { AiActivityEntry } from "./ai-activity";
 import type { Money } from "../primitives/money";
 import type { MonthlyAnchor, RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
@@ -255,6 +256,29 @@ export function isValidSuggestedCommitment(value: unknown): value is SuggestedCo
     isNonEmptyString(value.id) &&
     typeof value.name === "string" &&
     (value.unit === "month" || value.unit === "year")
+  );
+}
+
+const AI_TOOLS = new Set(["assistant", "byo_import", "ondevice_import", "documents"]);
+
+export function isValidAiActivityEntry(value: unknown): value is AiActivityEntry {
+  if (!isObject(value)) return false;
+  const summary = value.summary;
+  return (
+    isNonEmptyString(value.id) &&
+    typeof value.at === "string" &&
+    typeof value.tool === "string" &&
+    AI_TOOLS.has(value.tool) &&
+    isObject(summary) &&
+    (["added", "updated", "removed"] as const).every(
+      (key) =>
+        typeof summary[key] === "number" &&
+        Number.isInteger(summary[key]) &&
+        (summary[key] as number) >= 0,
+    ) &&
+    Array.isArray(value.itemNames) &&
+    value.itemNames.every((n) => typeof n === "string") &&
+    optional(value.backupName, isNonEmptyString)
   );
 }
 

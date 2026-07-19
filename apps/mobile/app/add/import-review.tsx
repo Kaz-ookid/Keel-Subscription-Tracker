@@ -62,9 +62,9 @@ export default function ImportReviewScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
-  const { drafts, skipped, removeDraft, clear } = useImportSession();
+  const { drafts, skipped, source, removeDraft, clear } = useImportSession();
   const { accounts, categories } = useAppData();
-  const { addAccount, addSubscription, addInstallmentPlan } = useAppActions();
+  const { addAccount, addSubscription, addInstallmentPlan, logAiActivity } = useAppActions();
 
   // The light attention report: how many cards carry a flag, an AI note, or
   // an unpaid backlog — the ones worth a second look before confirming.
@@ -124,6 +124,13 @@ export default function ImportReviewScreen() {
         addInstallmentPlan({ ...draft.input, accountId }, options);
       }
     }
+    // The AI trace: what landed, from which door — the record the AI tab
+    // shows so a big import never blurs the full picture.
+    logAiActivity({
+      tool: source,
+      summary: { added: drafts.length, updated: 0, removed: 0 },
+      itemNames: drafts.map((d) => d.input.name),
+    });
     clear();
     router.dismissAll();
   };

@@ -21,6 +21,7 @@ const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] =
   { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },
   { name: "insights", titleKey: "tabs.insights", sf: "chart.bar.fill" },
   { name: "new", titleKey: "", sf: "plus", action: true },
+  { name: "ai", titleKey: "tabs.ai", sf: "sparkles" },
   { name: "settings", titleKey: "tabs.settings", sf: "gearshape.fill" },
 ];
 
@@ -99,6 +100,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="insights" />
       <Tabs.Screen name="new" />
+      <Tabs.Screen name="ai" />
       <Tabs.Screen name="settings" />
     </Tabs>
   );

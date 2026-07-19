@@ -1,8 +1,8 @@
-// The on-device AI import (PROJECT_BRIEF §6.1 Path C/D), riding Apple
-// Intelligence's Foundation Models — DORMANT until the dev-build era: in
-// Expo Go the native module doesn't exist, every probe lands on
-// "unavailable", and nothing in the app links to the screen yet
-// (app/add/import-ondevice.tsx). Wiring steps live in
+// The on-device AI surface (PROJECT_BRIEF §6.1 Path C/D), riding Apple
+// Intelligence's Foundation Models: the import reader and the assistant.
+// The UI links to both (import hub, AI tab); in Expo Go the native module
+// doesn't exist, every probe lands on "unavailable", and the screens explain
+// themselves until the dev build exists. Wiring steps live in
 // modules/apple-intelligence/README.md.
 //
 // Division of labor, same philosophy as the widgets: Swift runs the model
@@ -12,7 +12,13 @@
 // the external-AI path and the on-device path stay one format, one parser,
 // one review screen.
 
-import { buildImportPrompt, type CalendarDate, type CurrencyCode } from "@keel/core";
+import {
+  buildAssistantPrompt,
+  buildImportPrompt,
+  type AssistantPromptContext,
+  type CalendarDate,
+  type CurrencyCode,
+} from "@keel/core";
 
 export type OnDeviceAvailability =
   /** Ready to parse. */
@@ -52,4 +58,15 @@ export async function parseOnDevice(
 ): Promise<string> {
   const instructions = buildImportPrompt(context);
   return (await native()).parseSubscriptions(input, instructions);
+}
+
+/** A natural-language request in, assistant plan JSON out. Throws when the
+ *  model can't run; feed the result to core's parseAssistantPlan — nothing
+ *  applies without the review screen. */
+export async function assistOnDevice(
+  input: string,
+  context: AssistantPromptContext,
+): Promise<string> {
+  const instructions = buildAssistantPrompt(context);
+  return (await native()).assist(input, instructions);
 }

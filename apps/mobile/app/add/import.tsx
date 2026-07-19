@@ -2,8 +2,8 @@
 // calm steps: copy our generated instructions, hand them to the AI you already
 // use together with rough notes or screenshots, paste its answer back. The
 // answer is parsed tolerantly and everything lands on the review screen —
-// nothing is saved here. The "Keel reads it for you" card previews the
-// on-device path (coming later) without pretending it works today.
+// nothing is saved here. The "Keel reads it for you" card is the door to the
+// on-device Apple Intelligence path (import-ondevice.tsx).
 
 import { buildImportPrompt, parseImportDocument, today, type ImportParseError } from "@keel/core";
 import * as Clipboard from "expo-clipboard";
@@ -11,7 +11,7 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { InfoPopup } from "../../src/components/InfoPopup";
 import { ModalClose } from "../../src/components/ModalClose";
@@ -62,11 +62,6 @@ export default function ImportScreen() {
     setCopied(true);
     setTimeout(() => setCopied(false), 2500);
   };
-
-  const keelComingSoon = () =>
-    Alert.alert(t("importAI.methodKeel"), t("importAI.methodKeelMsg"), [
-      { text: t("common.done") },
-    ]);
 
   const parseAndGo = (text: string) => {
     // Out of free reads: the button becomes the door to Full Keel.
@@ -131,14 +126,10 @@ export default function ImportScreen() {
           <Text style={styles.methodTitle}>{t("importAI.methodOwn")}</Text>
           <Text style={styles.methodSub}>{t("importAI.methodOwnSub")}</Text>
         </View>
-        <Pressable style={[styles.methodCard, styles.methodDisabled]} onPress={keelComingSoon}>
-          <SymbolView name="sparkles" size={22} tintColor={colors.mutedText} />
-          <Text style={[styles.methodTitle, styles.methodTitleDisabled]}>
-            {t("importAI.methodKeel")}
-          </Text>
-          <View style={styles.soonPill}>
-            <Text style={styles.soonText}>{t("importAI.methodKeelSoon")}</Text>
-          </View>
+        <Pressable style={styles.methodCard} onPress={() => router.push("/add/import-ondevice")}>
+          <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
+          <Text style={styles.methodTitle}>{t("importAI.methodKeel")}</Text>
+          <Text style={styles.methodSub}>{t("importAI.methodKeelSub")}</Text>
         </Pressable>
       </View>
 
@@ -341,18 +332,8 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: withAlpha(colors.accent, 0.12),
       borderColor: withAlpha(colors.accent, 0.45),
     },
-    methodDisabled: { opacity: 0.65 },
     methodTitle: { ...typography.label, color: colors.text },
-    methodTitleDisabled: { color: colors.mutedText },
     methodSub: { ...typography.caption, color: colors.mutedText },
-    soonPill: {
-      alignSelf: "flex-start",
-      backgroundColor: colors.background,
-      borderRadius: radius.lg,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: 2,
-    },
-    soonText: { ...typography.caption, fontWeight: "600", color: colors.mutedText },
     card: {
       backgroundColor: colors.surface,
       borderRadius: radius.md,

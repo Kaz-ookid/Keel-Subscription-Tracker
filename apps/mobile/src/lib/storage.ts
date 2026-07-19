@@ -10,11 +10,13 @@ import {
   CURRENCIES,
   filterValid,
   isValidAccount,
+  isValidAiActivityEntry,
   isValidCategory,
   isValidPaymentItem,
   isValidPaymentOccurrence,
   isValidSuggestedCommitment,
   type Account,
+  type AiActivityEntry,
   type Category,
   type CurrencyCode,
   type PaymentItem,
@@ -38,6 +40,8 @@ export interface PersistedState {
   /** The "To complete" list: suggestions the user said they have but
    *  hasn't filled in yet. */
   pending: SuggestedCommitment[];
+  /** The AI trace: what the assistant and the imports did, newest first. */
+  aiActivity: AiActivityEntry[];
 }
 
 const EMPTY: PersistedState = {
@@ -47,6 +51,7 @@ const EMPTY: PersistedState = {
   accounts: [],
   displayCurrency: DEFAULT_CURRENCY,
   pending: [],
+  aiActivity: [],
 };
 
 /** Lenient about the ENVELOPE, strict about the ENTRIES: the blob may be an
@@ -76,6 +81,10 @@ function coercePersistedState(parsed: unknown): { state: PersistedState; dropped
     Array.isArray(blob.pending) ? blob.pending : [],
     isValidSuggestedCommitment,
   );
+  const aiActivity = filterValid(
+    Array.isArray(blob.aiActivity) ? blob.aiActivity : [],
+    isValidAiActivityEntry,
+  );
   return {
     state: {
       items: items.kept,
@@ -87,6 +96,7 @@ function coercePersistedState(parsed: unknown): { state: PersistedState; dropped
           ? (blob.displayCurrency as CurrencyCode)
           : DEFAULT_CURRENCY,
       pending: pending.kept,
+      aiActivity: aiActivity.kept,
     },
     dropped:
       items.dropped + occurrences.dropped + categories.dropped + accounts.dropped + pending.dropped,

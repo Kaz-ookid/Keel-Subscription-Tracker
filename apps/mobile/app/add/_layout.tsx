@@ -27,8 +27,8 @@ export default function AddLayout() {
       <Stack.Screen name="index" options={{ title: t("titles.newCommitment") }} />
       <Stack.Screen name="form" options={{ title: t("titles.newSubscription") }} />
       <Stack.Screen name="import" options={{ title: t("titles.importAI") }} />
-      {/* Dormant (nothing links here yet): the on-device Apple Intelligence
-          path — see modules/apple-intelligence/README.md. */}
+      {/* The on-device Apple Intelligence path (linked from the import hub
+          and the AI tab) — see modules/apple-intelligence/README.md. */}
       <Stack.Screen name="import-ondevice" options={{ title: t("importAI.methodKeel") }} />
       <Stack.Screen name="import-review" options={{ title: t("titles.importReview") }} />
     </Stack>

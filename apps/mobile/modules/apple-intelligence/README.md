@@ -1,9 +1,18 @@
 # Apple Intelligence in Keel
 
-Fully written, **not wired**: the native half needs a dev build (Expo Go
-can't load it), and nothing in the app links to the screen yet. In Expo Go
-every availability probe answers "unavailable" and the app behaves exactly
-as before.
+Fully written and linked from the UI (import hub + AI tab); the native half
+needs a dev build (Expo Go can't load it). In Expo Go every availability
+probe answers "unavailable" and the screens explain themselves instead of
+working.
+
+Two jobs share this module:
+- **The reader** (`parseSubscriptions`): rough notes in, import-format v1
+  JSON out (`ios/ImportSchema.swift`).
+- **The assistant** (`assist`): a natural-language request against core's
+  grounding snapshot (`buildAssistantPrompt`) in, plan JSON out
+  (`ios/AssistantSchema.swift`); core's `parseAssistantPlan` resolves and
+  validates, the review screen confirms, the store applies with a safety
+  backup.
 
 ## What Apple Intelligence offers apps, and what Keel uses
 
@@ -37,19 +46,16 @@ each of these as a distinct state and the screen explains them.
 ## Wiring steps (dev-build era)
 
 1. Nothing to install: local Expo modules under `modules/` are autolinked at
-   prebuild. The first `eas build` compiles this module.
-2. Light up the entry point in `app/add/import.tsx`: replace the
-   `keelComingSoon` alert on the "Keel reads it for you" card with
-   `router.push("/add/import-onDevice" → "/add/import-ondevice")` when
-   `onDeviceAvailability()` resolves to anything but "unavailable", keeping
-   the coming-soon alert otherwise. (One state + one conditional; the card
-   already exists.)
-3. Update the card copy: `importAI.methodKeelSoon` should only show when the
-   path stays unavailable.
-4. On-device QA: rough FR + EN lists, screenshots-derived text, trials,
-   split payments; verify the review screen flags exactly like the external
-   path; test all four unavailability states (old iOS, non-Pro device, AI
-   toggled off, model downloading).
+   prebuild. The first `eas build` compiles this module. All UI entry points
+   are already live (import hub card, AI tab, assistant).
+2. On-device QA, reader: rough FR + EN lists, screenshots-derived text,
+   trials, split payments; verify the review screen flags exactly like the
+   external path; test all four unavailability states (old iOS, non-Pro
+   device, AI toggled off, model downloading).
+3. On-device QA, assistant: pause/resume/end/delete/rename/move/reprice on
+   real names and fuzzy names, in FR + EN; verify unresolved reasons show
+   instead of wrong guesses; verify the safety backup lands and the revert
+   from AI history restores it.
 
 ## The privacy claim, grounded (verified 2026-07-13)
 

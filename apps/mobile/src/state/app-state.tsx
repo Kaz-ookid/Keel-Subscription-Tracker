@@ -31,6 +31,8 @@ import { Alert } from "react-native";
 import {
   accrueDueInstallments,
   accrueDueOccurrences,
+  appendAiActivity,
+  applyAssistantOperation,
   canMarkPaid,
   DEFAULT_CATEGORIES,
   isPaymentItemComplete,
@@ -51,10 +53,13 @@ import {
   updateRecurringPaymentItem,
   DEFAULT_CURRENCY,
   type Account,
+  type AiActivityEntry,
+  type AssistantOperation,
   type CalendarDate,
   type Category,
   type CurrencyCode,
   type ExchangeRates,
+  type ImportDraft,
   type NewAccountInput,
   type NewInstallmentInput,
   type NewRecurringInput,
@@ -63,7 +68,8 @@ import {
   type SuggestedCommitment,
 } from "@keel/core";
 
-import { autoBackupIfDue } from "../lib/backups";
+import { COLOR_SWATCHES } from "../constants";
+import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { syncReminders } from "../lib/notifications";
 import { buildDemoData } from "../lib/demo-data";
@@ -99,6 +105,8 @@ export interface AppData {
   rates: ExchangeRates | null;
   /** The "To complete" list: suggestions the user has but hasn't filled in. */
   pending: SuggestedCommitment[];
+  /** The AI trace, newest first — what the assistant and the imports did. */
+  aiActivity: AiActivityEntry[];
   loading: boolean;
   /** Debug: when the on-device snapshot was stashed (null when there is none). */
   snapshotSavedAt: string | null;
@@ -170,6 +178,19 @@ export interface AppActions {
   saveSnapshot: () => void;
   /** Debug: replace everything with the stashed snapshot. */
   restoreSnapshot: () => void;
+  /** Apply a REVIEWED assistant plan in one batch: a safety backup is written
+   *  first, every operation lands through the same core mutations the screens
+   *  use, and the whole action is recorded in the AI trace. */
+  applyAssistantPlan: (
+    operations: AssistantOperation[],
+    additions: ImportDraft[],
+  ) => { backupName: string | null; added: number; updated: number; removed: number };
+  /** Record an AI action performed elsewhere (the import flows) in the trace. */
+  logAiActivity: (entry: Omit<AiActivityEntry, "id" | "at">) => void;
+  /** Roll the DATA back to the safety backup of an AI action. The AI trace
+   *  itself survives — history is the record of what happened, not part of
+   *  what gets rolled back. False when the backup is gone or unreadable. */
+  revertAiBackup: (backupName: string) => boolean;
 }
 
 export interface AddItemOptions {
@@ -188,6 +209,7 @@ interface RawState {
   accounts: Account[];
   displayCurrency: CurrencyCode;
   pending: SuggestedCommitment[];
+  aiActivity: AiActivityEntry[];
 }
 
 const AppDataContext = createContext<AppData | null>(null);
@@ -224,6 +246,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [displayCurrency, setDisplayCurrency] = useState<CurrencyCode>(DEFAULT_CURRENCY);
   const [rates, setRates] = useState<ExchangeRates | null>(null);
   const [pending, setPending] = useState<SuggestedCommitment[]>([]);
+  const [aiActivity, setAiActivity] = useState<AiActivityEntry[]>([]);
   const [snapshotSavedAt, setSnapshotSavedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -240,9 +263,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     accounts: [],
     displayCurrency: DEFAULT_CURRENCY,
     pending: [],
+    aiActivity: [],
   });
   useLayoutEffect(() => {
-    rawRef.current = { items, occurrences, customCategories, accounts, displayCurrency, pending };
+    rawRef.current = {
+      items,
+      occurrences,
+      customCategories,
+      accounts,
+      displayCurrency,
+      pending,
+      aiActivity,
+    };
   });
 
   useEffect(() => {
@@ -263,6 +295,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts(state.accounts);
       setDisplayCurrency(state.displayCurrency);
       setPending(state.pending);
+      setAiActivity(state.aiActivity);
       setLoading(false);
     });
     // Surface the stashed snapshot's date (if any) on the restore button.
@@ -300,6 +333,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       accounts,
       displayCurrency,
       pending,
+      aiActivity,
     };
     let stale = false;
     const attempt = (retriesLeft: number) => {
@@ -319,7 +353,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       stale = true;
     };
     // i18n is the stable singleton; it only matters for the alert's language.
-  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading, i18n]);
+  }, [
+    items,
+    occurrences,
+    customCategories,
+    accounts,
+    displayCurrency,
+    pending,
+    aiActivity,
+    loading,
+    i18n,
+  ]);
 
   // The daily local backup: once per launch, right after hydration — the
   // library itself skips days that already have one.
@@ -334,8 +378,18 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       accounts,
       displayCurrency,
       pending,
+      aiActivity,
     });
-  }, [items, occurrences, customCategories, accounts, displayCurrency, pending, loading]);
+  }, [
+    items,
+    occurrences,
+    customCategories,
+    accounts,
+    displayCurrency,
+    pending,
+    aiActivity,
+    loading,
+  ]);
 
   // The mutators, built ONCE (empty deps): they read the latest state through
   // rawRef and write through the stable setState functions, so their identity
@@ -520,6 +574,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setCustomCategories([]);
       setAccounts([]);
       setPending([]);
+      setAiActivity([]);
     };
 
     const addPendingSuggestions = (suggestions: SuggestedCommitment[]) => {
@@ -559,6 +614,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         accounts: s.accounts,
         displayCurrency: s.displayCurrency,
         pending: s.pending,
+        aiActivity: s.aiActivity,
       };
     };
 
@@ -572,7 +628,154 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts(state.accounts);
       setDisplayCurrency(state.displayCurrency);
       setPending(state.pending);
+      setAiActivity(state.aiActivity);
       return { ok: true, dropped };
+    };
+
+    const logAiActivity = (entry: Omit<AiActivityEntry, "id" | "at">) => {
+      setAiActivity((prev) =>
+        appendAiActivity(prev, { ...entry, id: randomUUID(), at: new Date().toISOString() }),
+      );
+    };
+
+    // The whole plan lands as ONE synchronous batch computed from the live
+    // state: transforms, deletes and ledger-writing ops (mark paid / skip)
+    // can't read each other's stale state, and React commits one change.
+    const applyAssistantPlan = (
+      operations: AssistantOperation[],
+      additions: ImportDraft[],
+    ): { backupName: string | null; added: number; updated: number; removed: number } => {
+      // The safety net first: the exact pre-plan state, revertible from the
+      // AI history for as long as the backup is kept.
+      const backupName = createBackup(exportData(), "ai");
+      const nowTs = now();
+      const asOf = today();
+      let nextItems = [...rawRef.current.items];
+      let nextOccurrences = [...rawRef.current.occurrences];
+      const itemNames: string[] = [];
+      let updated = 0;
+      let removed = 0;
+
+      for (const op of operations) {
+        const index = nextItems.findIndex((i) => i.id === op.item.id);
+        if (index === -1) continue;
+        const current = nextItems[index];
+        itemNames.push(current.name);
+        if (op.kind === "delete") {
+          nextItems.splice(index, 1);
+          nextOccurrences = nextOccurrences.filter((o) => o.paymentItemId !== current.id);
+          removed++;
+        } else if (op.kind === "mark_paid") {
+          if (!canMarkPaid(current, asOf)) continue;
+          if (current.schedule.kind === "INSTALLMENT") {
+            nextItems[index] = markNextInstallmentPaid(current, { paidDate: asOf, now: nowTs });
+          } else if (current.schedule.kind === "RECURRING") {
+            const result = recordRecurringPayment(current, {
+              id: randomUUID(),
+              paidDate: asOf,
+              now: nowTs,
+            });
+            nextItems[index] = result.item;
+            nextOccurrences.push(result.occurrence);
+          }
+          updated++;
+        } else if (op.kind === "skip") {
+          if (
+            current.schedule.kind !== "RECURRING" ||
+            current.status !== "active" ||
+            isPaymentItemComplete(current, asOf)
+          ) {
+            continue;
+          }
+          const result = skipRecurringPayment(current, { id: randomUUID(), now: nowTs });
+          nextItems[index] = result.item;
+          nextOccurrences.push(result.occurrence);
+          updated++;
+        } else {
+          nextItems[index] = applyAssistantOperation(current, op, { now: nowTs, today: asOf });
+          updated++;
+        }
+      }
+
+      // Additions land exactly like the import review's confirm: unmatched
+      // account names become real accounts, the past lands settled unless
+      // the input said the user is behind.
+      const createdAccounts: Account[] = [];
+      const createdByName = new Map<string, Account>();
+      for (const draft of additions) {
+        let accountId = draft.input.accountId;
+        if (!accountId && draft.accountName) {
+          const key = draft.accountName.toLowerCase();
+          let account = createdByName.get(key);
+          if (!account) {
+            const currency =
+              draft.kind === "subscription"
+                ? draft.input.amount.currency
+                : draft.input.totalAmount.currency;
+            account = makeAccount(
+              {
+                name: draft.accountName,
+                type: "other",
+                currency,
+                color: COLOR_SWATCHES[createdByName.size % COLOR_SWATCHES.length],
+                icon: "building.columns.fill",
+              },
+              { id: randomUUID() },
+            );
+            createdByName.set(key, account);
+            createdAccounts.push(account);
+          }
+          accountId = account.id;
+        }
+        if (draft.kind === "subscription") {
+          const created = makeRecurringPaymentItem(
+            { ...draft.input, accountId },
+            { id: randomUUID(), now: nowTs },
+          );
+          const landed = draft.settlePast ? settleBacklog(created) : catchUp(created);
+          nextItems = [landed.item, ...nextItems];
+          nextOccurrences.push(...landed.occurrences);
+        } else {
+          const created = makeInstallmentPaymentItem(
+            { ...draft.input, accountId },
+            { id: randomUUID(), now: nowTs, makeId: randomUUID },
+          );
+          nextItems = [draft.settlePast ? settleBacklog(created).item : created, ...nextItems];
+        }
+        itemNames.push(draft.input.name);
+      }
+
+      setItems(nextItems);
+      setOccurrences(nextOccurrences);
+      if (createdAccounts.length > 0) setAccounts((prev) => [...prev, ...createdAccounts]);
+      const summary = { added: additions.length, updated, removed };
+      logAiActivity({
+        tool: "assistant",
+        summary,
+        itemNames,
+        backupName: backupName ?? undefined,
+      });
+      return { backupName, ...summary };
+    };
+
+    const revertAiBackup = (backupName: string): boolean => {
+      const raw = readBackup(backupName);
+      if (!raw) return false;
+      const parsed = parsePersistedStateDetailed(raw);
+      if (!parsed) return false;
+      // The safety net for the safety net: snapshot NOW before going back,
+      // so a revert is itself revertible.
+      createBackup(exportData(), "ai");
+      const { state } = parsed;
+      setItems(state.items);
+      setOccurrences(state.occurrences);
+      setCustomCategories(state.categories);
+      setAccounts(state.accounts);
+      setDisplayCurrency(state.displayCurrency);
+      setPending(state.pending);
+      // aiActivity deliberately NOT restored: the trace records history and
+      // must survive the history being rolled back.
+      return true;
     };
 
     const saveSnapshot = () => {
@@ -620,6 +823,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       importData,
       saveSnapshot,
       restoreSnapshot,
+      applyAssistantPlan,
+      logAiActivity,
+      revertAiBackup,
     };
   }, []);
 
@@ -632,6 +838,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       displayCurrency,
       rates,
       pending,
+      aiActivity,
       loading,
       snapshotSavedAt,
     }),
@@ -643,6 +850,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       displayCurrency,
       rates,
       pending,
+      aiActivity,
       loading,
       snapshotSavedAt,
     ],

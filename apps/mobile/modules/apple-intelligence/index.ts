@@ -10,6 +10,9 @@ export interface AppleIntelligenceNative {
   availability(): string;
   /** Rough notes in, import-format-v1 JSON out (guided generation). */
   parseSubscriptions(input: string, instructions: string): Promise<string>;
+  /** A natural-language request in, assistant plan JSON out
+   *  ({"actions":[...],"additions":[...]}, guided generation). */
+  assist(input: string, instructions: string): Promise<string>;
 }
 
 export default requireNativeModule<AppleIntelligenceNative>("AppleIntelligence");
