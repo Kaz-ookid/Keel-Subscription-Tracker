@@ -82,6 +82,7 @@ const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string
   { value: "system", labelKey: "settings.matchDevice" },
   { value: "en", label: "English" },
   { value: "fr", label: "Français" },
+  { value: "de", label: "Deutsch" },
 ];
 
 // Same React-19 children alias as the Add form's pickers.

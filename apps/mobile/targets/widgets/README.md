@@ -52,7 +52,8 @@ Behavior details:
      buildWidgetSnapshot(items, displayCurrency, rates, language, accent),
    );
    ```
-   `language`: current i18n language narrowed to "en" | "fr"; `accent`: the
+   `language`: current i18n language narrowed to the widget locales (see
+   WidgetSnapshot in widgets.ts); `accent`: the
    dark theme's accent (widgets are always night-at-sea).
 5. `eas build --profile development --platform ios` (prebuild picks up this
    folder), install, add widgets from the gallery, verify: data appears,

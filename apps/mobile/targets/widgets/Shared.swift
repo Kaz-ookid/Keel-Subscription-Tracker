@@ -24,7 +24,7 @@ struct WidgetPayment: Codable, Identifiable {
 
 struct WidgetSnapshot: Codable {
   let version: Int
-  /// "en" | "fr": the APP's language, which may differ from the device's.
+  /// "en" | "fr" | "de": the APP's language, which may differ from the device's.
   let locale: String
   let generatedAt: String
   /// "July" / "Juillet".
@@ -82,6 +82,7 @@ extension WidgetSnapshot {
   }
 
   var isFrench: Bool { locale.hasPrefix("fr") }
+  var isGerman: Bool { locale.hasPrefix("de") }
 
   func dueLabel(_ payment: WidgetPayment, from reference: Date) -> String {
     let days = payment.daysFrom(reference)
@@ -91,6 +92,14 @@ extension WidgetSnapshot {
       case 0: return "Aujourd'hui"
       case 1: return "Demain"
       default: return "Dans \(days) jours"
+      }
+    }
+    if isGerman {
+      switch days {
+      case ..<0: return "Überfällig"
+      case 0: return "Heute"
+      case 1: return "Morgen"
+      default: return "In \(days) Tagen"
       }
     }
     switch days {
@@ -111,6 +120,14 @@ extension WidgetSnapshot {
       default: return "\(days) j"
       }
     }
+    if isGerman {
+      switch days {
+      case ..<0: return "fällig"
+      case 0: return "heute"
+      case 1: return "morgen"
+      default: return "\(days) T"
+      }
+    }
     switch days {
     case ..<0: return "late"
     case 0: return "today"
@@ -119,8 +136,16 @@ extension WidgetSnapshot {
     }
   }
 
-  var emptyLine: String { isFrench ? "Rien à venir" : "All clear" }
-  var upcomingTitle: String { isFrench ? "À venir" : "Upcoming" }
+  var emptyLine: String {
+    if isFrench { return "Rien à venir" }
+    if isGerman { return "Nichts anstehend" }
+    return "All clear"
+  }
+  var upcomingTitle: String {
+    if isFrench { return "À venir" }
+    if isGerman { return "Anstehend" }
+    return "Upcoming"
+  }
 }
 
 // MARK: - Keel palette (mirrors src/theme.tsx, night-at-sea)

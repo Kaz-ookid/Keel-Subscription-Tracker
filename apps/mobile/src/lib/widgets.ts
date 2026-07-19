@@ -50,7 +50,7 @@ export interface WidgetPayment {
 /** Mirror of WidgetSnapshot in Shared.swift. */
 export interface WidgetSnapshot {
   version: 1;
-  locale: "en" | "fr";
+  locale: "en" | "fr" | "de";
   generatedAt: string;
   monthLabel: string;
   monthTotal: string;
@@ -63,7 +63,7 @@ export function buildWidgetSnapshot(
   items: readonly PaymentItem[],
   displayCurrency: CurrencyCode,
   rates: ExchangeRates | null,
-  locale: "en" | "fr",
+  locale: "en" | "fr" | "de",
   accentFallback: string,
 ): WidgetSnapshot {
   const asOf = today();
