@@ -95,6 +95,40 @@ WWDC25 session 286 ("Meet the Foundation Models framework"), WWDC26
 sessions 241 ("What's new in the Foundation Models framework") and 319
 (PCC model), developer.apple.com/documentation/foundationmodels.
 
+### "On-device" vs "not collected" — two different claims (checked 2026-07-20)
+
+"Processed on device, works offline" says where inference runs; it does
+not, by itself, rule out storing prompts and uploading them later. Apple
+addresses that gap with SEPARATE, explicit commitments, and our copy may
+relay both:
+
+- Non-collection: "The cornerstone of Apple Intelligence is on-device
+  processing, so it is aware of your personal information without
+  collecting your personal information" (support.apple.com, "Apple
+  Intelligence and privacy on iPhone").
+- Task-scoped data flow: "When possible, Apple Intelligence models run
+  entirely on device so that a task can be completed without data leaving
+  your device" (apple.com/legal/privacy/data/en/intelligence-engine, the
+  Settings-level disclosure).
+- The one documented channel that CAN send anything Apple-ward is opt-in
+  Device Analytics: "If you have chosen to opt in to share Device
+  Analytics with Apple, Apple may use privacy-preserving techniques to
+  collect data about aggregated trends" — user-controlled in Settings >
+  Privacy & Security > Analytics & Improvements, described by Apple as
+  aggregated, not content.
+- Structural corroboration: a Foundation Models call is a local OS library
+  call with no server in the request path (the feature works in Airplane
+  Mode), and the session context is in-memory per LanguageModelSession.
+
+Honest limit, and why the copy attributes instead of owns: these are
+Apple's promises about closed-source software. Nobody outside Apple can
+prove the negative; PCC is externally inspectable by design (researchers
+get a Virtual Research Environment), the on-device path is not (it needs
+no network, so there is nothing to inspect on the wire beyond its
+absence). So Keel's copy states what KEEL does in the first person
+(sends nothing, no server, review-first) and cites Apple for what the
+model does — never merging the two.
+
 ## Constraints to remember
 
 - Swift here has never been compiled (written blind on Windows); the
