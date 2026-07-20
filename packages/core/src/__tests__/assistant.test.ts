@@ -325,3 +325,39 @@ describe("buildAssistantPrompt", () => {
     expect(prompt).toContain('"actions"');
   });
 });
+
+describe("targeting same-named items", () => {
+  it("resolves a specific item by its [number] handle", () => {
+    const items = [subscription("Netflix"), subscription("Netflix")];
+    const plan = parseAssistantPlan(
+      JSON.stringify({ actions: [{ op: "delete", item: "2" }] }),
+      context(items),
+    );
+    expect(plan.operations).toHaveLength(1);
+    expect(plan.operations[0].item.id).toBe(items[1].id);
+    // Bracketed form works too.
+    const bracketed = parseAssistantPlan(
+      JSON.stringify({ actions: [{ op: "delete", item: "[1]" }] }),
+      context(items),
+    );
+    expect(bracketed.operations[0].item.id).toBe(items[0].id);
+  });
+
+  it("still refuses the shared NAME (the model must use a number to disambiguate)", () => {
+    const items = [subscription("Netflix"), subscription("Netflix")];
+    const plan = parseAssistantPlan(
+      JSON.stringify({ actions: [{ op: "delete", item: "Netflix" }] }),
+      context(items),
+    );
+    expect(plan.operations).toHaveLength(0);
+    expect(plan.unresolved[0].reason).toBe("item-ambiguous");
+  });
+
+  it("an out-of-range handle is not found, never a wrong item", () => {
+    const plan = parseAssistantPlan(
+      JSON.stringify({ actions: [{ op: "pause", item: "9" }] }),
+      context([subscription("Netflix")]),
+    );
+    expect(plan.unresolved[0].reason).toBe("item-not-found");
+  });
+});

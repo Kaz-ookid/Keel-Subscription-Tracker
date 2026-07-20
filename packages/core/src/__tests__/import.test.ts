@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   buildImportPrompt,
+  buildOnDevicePrompt,
   calendarDate,
   DEFAULT_CATEGORIES,
   extractImportDocument,
+  findSuggestedBrand,
   fromMajor,
   parseImportDocument,
   type Account,
@@ -473,5 +475,147 @@ describe("buildImportPrompt", () => {
     expect(prompt).toContain("backlogUnpaid"); // paid-so-far default assumption
     expect(prompt).not.toContain("{{"); // no unfilled template slots
     expect(prompt).not.toContain("—"); // banned in user-visible text
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Brand-bank backfill + the on-device prompt (added 2026-07-20): the small
+// on-device model omits logos/colours and over-flags names; the parser and a
+// tuned prompt make up the difference.
+// ---------------------------------------------------------------------------
+
+const oneDraft = (item: Record<string, unknown>) =>
+  parseImportDocument(JSON.stringify({ items: [item] }), ctx).drafts[0] as RecurringImportDraft;
+
+describe("brand-bank backfill", () => {
+  it("fills the logo domain, colour and category the model omitted", () => {
+    const draft = oneDraft({
+      name: "Amazon Prime",
+      amount: 19,
+      currency: "EUR",
+      cadence: { unit: "month", interval: 1 },
+      firstDate: "2026-03-22",
+      category: "other",
+    });
+    expect(draft.input.domain).toBe("amazon.com");
+    expect(draft.input.color).toBe("#FF9900");
+    expect(draft.input.categoryId).toBe("streaming");
+  });
+
+  it("never overrides a value the model DID provide", () => {
+    const draft = oneDraft({
+      name: "Netflix",
+      amount: 12.99,
+      currency: "EUR",
+      cadence: { unit: "month", interval: 1 },
+      firstDate: "2026-07-03",
+      domain: "custom.example",
+      color: "#123456",
+      category: "music",
+    });
+    expect(draft.input.domain).toBe("custom.example");
+    expect(draft.input.color).toBe("#123456");
+    expect(draft.input.categoryId).toBe("music");
+  });
+
+  it("drops a spurious name flag on a known brand, keeps it on a placeholder", () => {
+    const known = oneDraft({
+      name: "Amazon Prime",
+      amount: 19,
+      currency: "EUR",
+      cadence: { unit: "month", interval: 1 },
+      firstDate: "2026-03-22",
+      uncertain: ["name"],
+    });
+    expect(known.uncertainFields).not.toContain("name");
+
+    const placeholder = oneDraft({
+      name: "a 1200 HKD payment",
+      amount: 140,
+      currency: "EUR",
+      cadence: { unit: "month", interval: 1 },
+      firstDate: "2026-03-22",
+    });
+    expect(placeholder.uncertainFields).toContain("name");
+  });
+
+  it("matches by exact name or alias, and knows the new Swiss brands", () => {
+    expect(findSuggestedBrand("amazon prime")?.id).toBe("amazon-prime");
+    expect(findSuggestedBrand("Prime")?.id).toBe("amazon-prime");
+    expect(findSuggestedBrand("SERAFE")?.domain).toBe("serafe.ch");
+    expect(findSuggestedBrand("Helsana")?.domain).toBe("helsana.ch");
+    expect(findSuggestedBrand("nothing here")).toBeUndefined();
+  });
+});
+
+describe("buildOnDevicePrompt", () => {
+  const prompt = buildOnDevicePrompt({ today: calendarDate("2026-07-20"), defaultCurrency: "EUR" });
+
+  it("teaches the patterns the small model fails, with worked examples", () => {
+    expect(prompt).toContain("2026-07-20"); // today
+    expect(prompt).toContain("priceChange"); // the one-item-with-a-change rule
+    expect(prompt).toContain("Amazon Prime"); // a worked example
+    expect(prompt).toContain("account"); // account in its own field
+  });
+
+  it("drops the self-reporting the small model over-uses", () => {
+    expect(prompt).not.toContain("assumed");
+    expect(prompt).not.toContain("uncertain");
+  });
+});
+
+describe("folding a price change the model split into two rows", () => {
+  const netflixRow = (amount: number, firstDate: string) => ({
+    type: "subscription",
+    name: "Netflix",
+    amount,
+    currency: "EUR",
+    cadence: { unit: "month", interval: 1 },
+    firstDate,
+    settlement: "automatic",
+    account: "Boursorama",
+  });
+
+  it("merges two same-name rows with different prices into one priceChange", () => {
+    const result = parseImportDocument(
+      JSON.stringify({ items: [netflixRow(20, "2025-05-25"), netflixRow(24, "2026-01-25")] }),
+      ctx,
+    );
+    expect(result.drafts).toHaveLength(1);
+    const netflix = result.drafts[0] as RecurringImportDraft;
+    expect(netflix.input.amount).toEqual(fromMajor(20, "EUR"));
+    expect(netflix.input.firstChargeDate).toBe("2025-05-25");
+    expect(netflix.input.introOffer).toEqual({
+      regularAmount: fromMajor(24, "EUR"),
+      convertsOn: "2026-01-25",
+    });
+  });
+
+  it("orders by date regardless of the order the model emitted them", () => {
+    const result = parseImportDocument(
+      JSON.stringify({ items: [netflixRow(24, "2026-01-25"), netflixRow(20, "2025-05-25")] }),
+      ctx,
+    );
+    expect(result.drafts).toHaveLength(1);
+    const netflix = result.drafts[0] as RecurringImportDraft;
+    expect(netflix.input.amount).toEqual(fromMajor(20, "EUR"));
+    expect(netflix.input.introOffer?.regularAmount).toEqual(fromMajor(24, "EUR"));
+  });
+
+  it("leaves genuinely different or identical rows alone", () => {
+    // Different names: two items.
+    const diff = parseImportDocument(
+      JSON.stringify({
+        items: [netflixRow(20, "2025-05-25"), { ...netflixRow(24, "2026-01-25"), name: "Spotify" }],
+      }),
+      ctx,
+    );
+    expect(diff.drafts).toHaveLength(2);
+    // Same amount = a plain duplicate, not a change: not merged.
+    const dup = parseImportDocument(
+      JSON.stringify({ items: [netflixRow(20, "2025-05-25"), netflixRow(20, "2026-01-25")] }),
+      ctx,
+    );
+    expect(dup.drafts).toHaveLength(2);
   });
 });

@@ -1110,7 +1110,9 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     categoryId: "utilities",
     unit: "year",
     domain: "serafe.ch",
-    aliases: ["Billag"],
+    // "Serafe" is what people (and the AI) actually write; the picker name is
+    // descriptive, but the backfill matches on the brand's real name.
+    aliases: ["Serafe", "Billag"],
     regions: ["CH"],
   },
   {
@@ -1833,3 +1835,14 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   { id: "music-lessons", name: "Music / sports lessons", categoryId: "education", unit: "month" },
 ] as const;
+
+/** Find a brand in the bank by exact (normalized) name or alias. Backfills the
+ *  logo domain / color the AI omits, and vouches that a real brand name is not
+ *  a placeholder. Exact match only, so it never guesses between brands. */
+export function findSuggestedBrand(name: string): SuggestedCommitment | undefined {
+  const wanted = name.trim().toLowerCase();
+  if (!wanted) return undefined;
+  return SUGGESTED_COMMITMENTS.find(
+    (s) => s.name.toLowerCase() === wanted || s.aliases?.some((a) => a.toLowerCase() === wanted),
+  );
+}

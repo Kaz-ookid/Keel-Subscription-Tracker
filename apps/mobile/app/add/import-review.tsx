@@ -64,7 +64,8 @@ export default function ImportReviewScreen() {
   const insets = useSafeAreaInsets();
   const { drafts, skipped, source, removeDraft, clear } = useImportSession();
   const { accounts, categories } = useAppData();
-  const { addAccount, addSubscription, addInstallmentPlan, logAiActivity } = useAppActions();
+  const { addAccount, addSubscription, addInstallmentPlan, logAiActivity, createAiBackup } =
+    useAppActions();
 
   // The light attention report: how many cards carry a flag, an AI note, or
   // an unpaid backlog — the ones worth a second look before confirming.
@@ -87,6 +88,9 @@ export default function ImportReviewScreen() {
 
   const confirmAll = () => {
     hapticImportConfirm();
+    // A safety backup BEFORE anything lands, so a bad import can be rolled
+    // back whole from the AI history (same net the assistant has).
+    const backupName = createAiBackup();
     // Unmatched account names become real accounts — one per distinct name,
     // in the currency of the first draft that mentions it.
     const createdByName = new Map<string, Account>();
@@ -130,6 +134,7 @@ export default function ImportReviewScreen() {
       tool: source,
       summary: { added: drafts.length, updated: 0, removed: 0 },
       itemNames: drafts.map((d) => d.input.name),
+      backupName,
     });
     clear();
     router.dismissAll();
@@ -225,13 +230,13 @@ export default function ImportReviewScreen() {
           {!account && draft.accountName && (
             <Text style={styles.warn}>{t("importAI.newAccount", { name: draft.accountName })}</Text>
           )}
-          {uncertainLines.map((line) => (
-            <Text key={line} style={styles.warn}>
+          {uncertainLines.map((line, i) => (
+            <Text key={`u${i}`} style={styles.warn}>
               ⚠ {line}
             </Text>
           ))}
-          {warningLines.map((line) => (
-            <Text key={line} style={styles.warn}>
+          {warningLines.map((line, i) => (
+            <Text key={`w${i}`} style={styles.warn}>
               ⚠ {line}
             </Text>
           ))}

@@ -14,7 +14,7 @@
 
 import {
   buildAssistantPrompt,
-  buildImportPrompt,
+  buildOnDevicePrompt,
   type AssistantPromptContext,
   type CalendarDate,
   type CurrencyCode,
@@ -56,7 +56,8 @@ export async function parseOnDevice(
   input: string,
   context: { today: CalendarDate; defaultCurrency: CurrencyCode },
 ): Promise<string> {
-  const instructions = buildImportPrompt(context);
+  // The compact, example-led prompt tuned for the small on-device model.
+  const instructions = buildOnDevicePrompt(context);
   return (await native()).parseSubscriptions(input, instructions);
 }
 

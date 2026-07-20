@@ -104,13 +104,21 @@ function normalize(name: string): string {
   return name.trim().toLowerCase();
 }
 
-/** Exact name match first; else a unique substring match; else give up with
- *  the precise reason. Never guesses between candidates. */
+/** A [number] handle ("2" or "[2]") targets the item at that 1-based position
+ *  in the grounding list — the only unambiguous way to point at one of two
+ *  same-named items. Then exact name, then a unique substring; else give up
+ *  with the precise reason. Never guesses between candidates. */
 function resolveItem(
   name: unknown,
   items: readonly PaymentItem[],
 ): { item?: PaymentItem; reason?: AssistantUnresolvedReason } {
   if (typeof name !== "string" || name.trim() === "") return { reason: "item-not-found" };
+  const trimmed = name.trim();
+  const handle = /^\[?(\d+)\]?$/.exec(trimmed);
+  if (handle) {
+    const at = Number(handle[1]);
+    return at >= 1 && at <= items.length ? { item: items[at - 1] } : { reason: "item-not-found" };
+  }
   const wanted = normalize(name);
   const exact = items.filter((i) => normalize(i.name) === wanted);
   if (exact.length === 1) return { item: exact[0] };

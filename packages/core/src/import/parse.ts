@@ -6,6 +6,7 @@
 
 import { BNPL_PROVIDERS, type BnplProviderId } from "../constants/bnpl-providers";
 import { CURRENCIES, type CurrencyCode } from "../constants/currencies";
+import { findSuggestedBrand } from "../constants/suggestions";
 import type { Account } from "../models/account";
 import type { Category } from "../models/category";
 import type { IntroOffer } from "../models/payment-item";
@@ -22,6 +23,7 @@ import type {
   ImportParseResult,
   ImportWarning,
   ImportWarningCode,
+  RecurringImportDraft,
 } from "./types";
 
 export interface ImportContext {
@@ -195,6 +197,11 @@ function parseItem(
   const name = asTrimmedString(item.name);
   if (!name) return null;
 
+  // A known brand backfills the logo domain and colour the smaller models
+  // omit, corrects a punted category, and vouches that the name is real (so a
+  // spurious "no real name" flag can be dropped). Exact match, never a guess.
+  const brand = findSuggestedBrand(name);
+
   // Explicit type wins; otherwise infer from which amount field is present.
   const declared = asTrimmedString(item.type);
   const isSplit =
@@ -207,10 +214,20 @@ function parseItem(
   if (takenNames.has(name.toLowerCase())) reader.warn("duplicate", name);
   const currency = reader.currency(item.currency);
   const settlementMode = item.settlement === "manual" ? "manual" : "automatic";
-  const categoryId = reader.category(item.category);
+  let categoryId = reader.category(item.category);
+  // A brand knows its own category better than a small model that punted to
+  // "other" (Amazon Prime is streaming, not other).
+  if (
+    categoryId === "other" &&
+    brand?.categoryId &&
+    ctx.categories.some((c) => c.id === brand.categoryId)
+  ) {
+    categoryId = brand.categoryId;
+  }
   const { accountId, accountName } = reader.account(item.account, currency);
-  const domain = asTrimmedString(item.domain)?.toLowerCase();
-  const color = readBrandColor(item.color);
+  const domain = asTrimmedString(item.domain)?.toLowerCase() ?? brand?.domain;
+  const color =
+    readBrandColor(item.color) ?? (brand?.color ? readBrandColor(brand.color) : undefined);
   const notes = asTrimmedString(item.notes);
   const reminderDays = asFiniteNumber(item.reminderDaysBefore);
   const reminder =
@@ -221,11 +238,14 @@ function parseItem(
   // Assume the user paid what was due so far, unless the input said otherwise.
   const settlePast = item.backlogUnpaid !== true;
   // What the AI declared it assumed or couldn't determine — the review
-  // screen's per-item report. A placeholder name always counts as uncertain,
-  // whether the AI said so or the heuristic caught it.
+  // screen's per-item report. A known brand name is real, so its spurious
+  // name flag (the small models over-report it) is dropped; otherwise a
+  // placeholder-looking name is flagged whether the AI said so or not.
   const assumedFields = asFieldList(item.assumed);
   let uncertainFields = asFieldList(item.uncertain);
-  if (isSuspectName(name) && !uncertainFields.includes("name")) {
+  if (brand) {
+    uncertainFields = uncertainFields.filter((f) => f !== "name");
+  } else if (isSuspectName(name) && !uncertainFields.includes("name")) {
     uncertainFields = ["name", ...uncertainFields];
   }
 
@@ -305,6 +325,66 @@ function parseItem(
   };
 }
 
+/** Group signature for the fold below: what makes two rows "the same
+ *  commitment" (name, currency, cadence, account). */
+function recurringGroupKey(draft: RecurringImportDraft): string {
+  const name = draft.input.name.trim().toLowerCase();
+  const cadence = `${draft.input.recurrence.unit}:${draft.input.recurrence.interval}`;
+  const account = draft.input.accountId ?? draft.accountName?.toLowerCase() ?? "-";
+  return `${name}|${draft.input.amount.currency}|${cadence}|${account}`;
+}
+
+/** Fold a same-commitment pair the model split across a price change into one
+ *  item (the earlier price as the standing amount, the later as a
+ *  priceChange). Returns null when it isn't safely a change: matching amounts
+ *  (a plain duplicate, left alone) or an offer already present. */
+function foldPair(a: RecurringImportDraft, b: RecurringImportDraft): RecurringImportDraft | null {
+  if (a.input.introOffer || b.input.introOffer) return null;
+  if (a.input.amount.amount === b.input.amount.amount) return null;
+  const earlier = a.input.firstChargeDate <= b.input.firstChargeDate ? a : b;
+  const later = earlier === a ? b : a;
+  return {
+    ...a,
+    input: {
+      ...earlier.input,
+      introOffer: {
+        regularAmount: later.input.amount,
+        convertsOn: later.input.firstChargeDate,
+      },
+    },
+  };
+}
+
+/** The small model's most common mistake: emitting a price change over time as
+ *  TWO rows with the same name ("Netflix 20 then 24 from January"). Fold those
+ *  back into one subscription with a priceChange, deterministically, so the
+ *  result never depends on the model wording it "correctly". Conservative:
+ *  only merges rows that share name/currency/cadence/account and genuinely
+ *  differ in price; the review screen shows the resulting change line, so a
+ *  rare wrong merge is visible and one tap to split back. */
+function foldPriceChangeSplits(drafts: ImportDraft[]): ImportDraft[] {
+  const out: ImportDraft[] = [];
+  const indexByKey = new Map<string, number>();
+  for (const draft of drafts) {
+    if (draft.kind !== "subscription") {
+      out.push(draft);
+      continue;
+    }
+    const key = recurringGroupKey(draft);
+    const at = indexByKey.get(key);
+    if (at !== undefined) {
+      const merged = foldPair(out[at] as RecurringImportDraft, draft);
+      if (merged) {
+        out[at] = merged;
+        continue;
+      }
+    }
+    indexByKey.set(key, out.length);
+    out.push(draft);
+  }
+  return out;
+}
+
 /**
  * Parse a raw paste into review-ready drafts. Never throws: an unusable paste
  * comes back as `{ drafts: [], skipped: 0, error: "no-json" }`, a valid but
@@ -324,5 +404,5 @@ export function parseImportDocument(raw: string, ctx: ImportContext): ImportPars
     if (draft) drafts.push(draft);
     else skipped++;
   }
-  return { drafts, skipped };
+  return { drafts: foldPriceChangeSplits(drafts), skipped };
 }

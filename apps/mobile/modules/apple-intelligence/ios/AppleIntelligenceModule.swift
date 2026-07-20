@@ -49,7 +49,18 @@ public class AppleIntelligenceModule: Module {
           throw AppleIntelligenceError.unavailable
         }
         let session = LanguageModelSession(instructions: instructions)
-        let response = try await session.respond(to: input, generating: ImportedDocument.self)
+        // Structured extraction wants determinism, not creativity, so
+        // temperature 0 (NOT a high value) is the quality setting here: the
+        // same notes must read the same way every time. maximumResponseTokens
+        // is set past anything the context can actually produce, so a
+        // multi-item answer is never truncated mid-list. Note the model's
+        // TOTAL context stays fixed: this widens the OUTPUT budget, never the
+        // amount of input it can hold (that ceiling is architectural).
+        let response = try await session.respond(
+          to: input,
+          generating: ImportedDocument.self,
+          options: GenerationOptions(temperature: 0, maximumResponseTokens: 4000)
+        )
         let encoder = JSONEncoder()
         let data = try encoder.encode(response.content)
         return String(data: data, encoding: .utf8) ?? #"{"items":[]}"#
@@ -71,7 +82,14 @@ public class AppleIntelligenceModule: Module {
           throw AppleIntelligenceError.unavailable
         }
         let session = LanguageModelSession(instructions: instructions)
-        let response = try await session.respond(to: input, generating: AssistantPlanDocument.self)
+        // Same reasoning as the import: low temperature for consistent,
+        // deterministic plans; a headroom of response tokens for multi-action
+        // replies.
+        let response = try await session.respond(
+          to: input,
+          generating: AssistantPlanDocument.self,
+          options: GenerationOptions(temperature: 0, maximumResponseTokens: 4000)
+        )
         let encoder = JSONEncoder()
         let data = try encoder.encode(response.content)
         return String(data: data, encoding: .utf8) ?? #"{"actions":[],"additions":[]}"#

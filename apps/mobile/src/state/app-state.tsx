@@ -187,6 +187,9 @@ export interface AppActions {
   ) => { backupName: string | null; added: number; updated: number; removed: number };
   /** Record an AI action performed elsewhere (the import flows) in the trace. */
   logAiActivity: (entry: Omit<AiActivityEntry, "id" | "at">) => void;
+  /** Snapshot the current data as an AI safety backup before an import lands,
+   *  returning its name for the AI-history revert. */
+  createAiBackup: () => string | undefined;
   /** Roll the DATA back to the safety backup of an AI action. The AI trace
    *  itself survives — history is the record of what happened, not part of
    *  what gets rolled back. False when the backup is gone or unreadable. */
@@ -638,6 +641,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       );
     };
 
+    // Snapshot the current data as an "ai" safety backup BEFORE an AI action
+    // lands (the import path takes it before adding). Returns the name so the
+    // AI-history entry can offer a revert, like the assistant already does.
+    const createAiBackup = (): string | undefined => createBackup(exportData(), "ai") ?? undefined;
+
     // The whole plan lands as ONE synchronous batch computed from the live
     // state: transforms, deletes and ledger-writing ops (mark paid / skip)
     // can't read each other's stale state, and React commits one change.
@@ -825,6 +833,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       restoreSnapshot,
       applyAssistantPlan,
       logAiActivity,
+      createAiBackup,
       revertAiBackup,
     };
   }, []);

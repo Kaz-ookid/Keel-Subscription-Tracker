@@ -118,7 +118,7 @@ export default function AssistantReviewScreen() {
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ title: "" }} />
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} contentInsetAdjustmentBehavior="automatic">
         <HeroCard
           label={t("assistant.reviewTitle")}
           amount={t("assistant.reviewHero", { count: includedCount })}

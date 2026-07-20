@@ -63,3 +63,48 @@ Rules:
 
 The user's notes and/or screenshots follow.`;
 }
+
+/**
+ * The on-device variant, for the small (~3B) Apple Intelligence model. The
+ * output SHAPE is already forced by the Swift @Generable schema, so this
+ * teaches only SEMANTICS, with worked examples for the exact patterns the
+ * small model gets wrong: one item with a price change (not two), the account
+ * in its own field (not notes), and keeping a real brand name. It omits the
+ * self-reporting (assumed/uncertain) the small model over-reports into a wall
+ * of flags; the parser's own heuristics raise the review flags instead. Feeds
+ * the SAME parseImportDocument as every other path.
+ */
+export function buildOnDevicePrompt({ today, defaultCurrency }: ImportPromptContext): string {
+  return `Turn a person's rough notes about their recurring payments into structured items for the Keel app. Today is ${today}. Produce one item per real payment.
+
+Fill each field from the notes:
+- name: what the payment is for, in the user's own words. If they give a real name or brand ("Amazon Prime", "Netflix", "CSS"), use it EXACTLY. Never replace a real name with a placeholder like "subscription".
+- amount (or "total" for a purchase split into instalments): the price as a number, e.g. 19 or 17.60. A free trial is 0.
+- currency: one of EUR USD GBP CHF CAD AUD JPY. Use ${defaultCurrency} when none is stated.
+- settlement: "automatic" normally. "manual" ONLY if the user says they pay it themselves (a bill, a transfer). If they say "automatic", it is automatic; do not second-guess what they stated.
+- category: the closest of streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other.
+- cadence: monthly = {"unit":"month","interval":1}; yearly = {"unit":"year","interval":1}; every 2 months = {"unit":"month","interval":2}.
+- firstDate: "YYYY-MM-DD". Keep any day the user gives (the 22nd stays the 22nd). "from March 2026" means that day in March 2026. Resolve "next" or "last month" against ${today}.
+- account: the bank or account name exactly as written ("CIC", "Revolut", "BCV"). Put it in THIS field, never inside notes.
+- priceChange {"newAmount":N,"on":"YYYY-MM-DD"}: when one payment's price changes over time, keep it as ONE item and record the change here. The words "then", "since", "from", "goes to", "up to", "changed to", "now" before a SECOND price all describe the SAME payment changing price. "20 then 24 since January" is ONE item, amount 20, priceChange to 24 in January. It is NEVER two items.
+
+The rules that matter most:
+- ONE payment on ONE line = ONE item, even when it names two prices at two dates. If the same name appears with an old price and a new price, that is ONE item with a priceChange, NEVER two items with the same name. Only make separate items for genuinely different payments (different names).
+- Read fields from the notes; do not invent amounts, dates, names or accounts that are not there. You only infer the category.
+
+Examples.
+
+Notes: netflix 25th 20 euros since may 2025 then 24 euros since january 2026 automatic
+Item: ONE item. type subscription, name "Netflix", amount 20, currency EUR, category streaming, cadence monthly, firstDate 2025-05-25, settlement automatic, priceChange {"newAmount":24,"on":"2026-01-25"}.
+
+Notes: Netflix 13.99 monthly on the 6th from Revolut
+Item: type subscription, name "Netflix", amount 13.99, currency ${defaultCurrency}, category streaming, cadence monthly, firstDate the 6th of the current month, account "Revolut", settlement automatic.
+
+Notes: amazon prime 22th automatic 19 euros on CIC from march 2026 then 23 from july 2026
+Item: ONE item. type subscription, name "Amazon Prime", amount 19, currency EUR, category streaming, cadence monthly, firstDate 2026-03-22, account "CIC", settlement automatic, priceChange {"newAmount":23,"on":"2026-07-22"}.
+
+Notes: new sofa 900 in 3 with klarna, first payment 15 August 2026
+Item: type split_payment, name "Sofa", total 900, installments 3, provider klarna, currency ${defaultCurrency}, category shopping, cadence monthly, firstDate 2026-08-15.
+
+The user's notes follow.`;
+}
