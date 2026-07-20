@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
+import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { AppStateProvider } from "../src/state/app-state";
 import { AssistantSessionProvider } from "../src/state/assistant-session";
@@ -27,9 +28,11 @@ function RootNavigator() {
   const { colors, scheme } = useTheme();
   const router = useRouter();
 
-  // Read the stored brand-logo choice once, before any badge renders.
+  // Read the stored brand-logo and AI-visibility choices once, before any
+  // badge or AI surface renders.
   useEffect(() => {
     void hydrateLogoConsent();
+    void hydrateAiVisibility();
   }, []);
 
   // Tapping a reminder lands on the commitment it's about.

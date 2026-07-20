@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useAiHidden } from "../../src/lib/ai-visibility";
 import { bumpTabReset } from "../../src/lib/tabReset";
 import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
@@ -30,6 +31,9 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // The hard AI lock removes the AI slot; the dock folds back to 4.
+  const aiHidden = useAiHidden();
+  const tabs = aiHidden ? TABS.filter((tab) => tab.name !== "ai") : TABS;
 
   return (
     <View
@@ -41,7 +45,7 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
         tint={scheme === "dark" ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
         style={[styles.dock, { borderColor: colors.hairline, backgroundColor: colors.material }]}
       >
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           if (tab.action) {
             return (
               <Pressable

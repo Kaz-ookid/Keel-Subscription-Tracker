@@ -498,6 +498,9 @@ export const fr: typeof en = {
       "Keel n'a pas pu enregistrer vos derniers changements sur ce téléphone, même après un nouvel essai. En général, le stockage est plein. Libérez de l'espace, puis faites une petite modification pour que Keel enregistre à nouveau.",
   },
   settings: {
+    aiFeatures: "Fonctions d'IA",
+    aiFeaturesFooter:
+      "Désactivé : tout ce qui mène à l'IA disparaît de l'app. Vos données et l'historique IA restent intacts.",
     groupGeneral: "Général",
     groupPrivacy: "Confidentialité",
     groupBackup: "Sauvegarde",
@@ -727,13 +730,11 @@ export const fr: typeof en = {
     seeAll: "Tout voir",
     privacyTitle: "Privé par conception",
     privacy0:
-      "L'IA est entièrement optionnelle. Si vous ne l'utilisez pas, rien ne s'exécute et aucun modèle ne lit jamais vos données.",
+      "L'IA est entièrement optionnelle. Rien ne s'exécute sans vous, et les Réglages peuvent masquer toute trace d'IA.",
     privacy1:
-      "L'assistant et la lecture utilisent le modèle sur appareil d'Apple Intelligence ; Apple documente ce traitement comme local et hors ligne.",
+      "L'app elle-même est privée par conception : pas de serveur, pas de compte, pas de pistage. L'IA peut se tromper, donc chaque changement passe par votre relecture et une sauvegarde est créée d'abord.",
     privacy2:
-      "L'IA peut mal lire. Chaque changement passe d'abord par votre relecture, et Keel sauvegarde tout avant d'appliquer un plan de l'assistant.",
-    privacy3:
-      "Passer par votre propre IA partage ce que vous collez avec ce service, à votre initiative ; Keel n'envoie rien de lui-même.",
+      "Les modèles ne sont pas les nôtres : Apple documente son modèle sur appareil comme local et hors ligne, et votre propre IA suit les conditions de son fournisseur. Les utiliser reste votre choix.",
   },
   assistant: {
     title: "Assistant",

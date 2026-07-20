@@ -3,7 +3,7 @@
 // stated plainly. Everything here runs through the same review-first
 // philosophy: AI proposes, the user confirms, Keel keeps a backup.
 
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +16,7 @@ import {
   toolLabelKey,
   useActivitySummary,
 } from "../../src/lib/ai-activity-display";
+import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useTabReset } from "../../src/lib/tabReset";
 import { useAppData } from "../../src/state/app-state";
 import {
@@ -37,6 +38,7 @@ export default function AiHubScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { aiActivity } = useAppData();
   const summarize = useActivitySummary();
+  const aiHidden = useAiHidden();
 
   // Tab re-tap (§9i): back to the top.
   const scrollRef = useRef<ScrollView>(null);
@@ -44,6 +46,9 @@ export default function AiHubScreen() {
   useEffect(() => {
     if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [resetSignal]);
+
+  // The hard AI lock: even a stale link to this tab lands on Payments.
+  if (aiHidden) return <Redirect href="/" />;
 
   const preview = aiActivity.slice(0, PREVIEW_COUNT);
 
@@ -109,14 +114,15 @@ export default function AiHubScreen() {
           )}
         </Card>
 
+        {/* The stance, in three calm lines: optional (with the hard lock),
+            what Keel itself promises, and the honest limit of that promise. */}
         <Text style={styles.groupLabel}>{t("aiHub.privacyTitle")}</Text>
         <Card>
           {(
             [
               ["aiHub.privacy0", "hand.raised"],
-              ["aiHub.privacy1", "iphone"],
-              ["aiHub.privacy2", "checkmark.shield"],
-              ["aiHub.privacy3", "lock.shield"],
+              ["aiHub.privacy1", "checkmark.shield"],
+              ["aiHub.privacy2", "lock.shield"],
             ] as const
           ).map(([key, icon], i) => (
             <View key={key} style={[styles.privacyRow, i > 0 && styles.privacyRowGap]}>

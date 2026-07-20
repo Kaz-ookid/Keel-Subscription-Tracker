@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ModalClose } from "../../src/components/ModalClose";
 import { SuggestionPicker } from "../../src/components/SuggestionPicker";
+import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useAppData } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
@@ -21,6 +22,7 @@ export default function AddChooserScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items } = useAppData();
+  const aiHidden = useAiHidden();
 
   // Tracked names show greyed rather than hidden — a missing Netflix reads
   // as a gap in the bank, a greyed one as "you already have it".
@@ -39,15 +41,17 @@ export default function AddChooserScreen() {
         <Text style={styles.customHint}>{t("add.scratchHint")}</Text>
       </Pressable>
       {/* The quiet just-in-time discovery of the AI import (§6.1) — Settings
-          stays its deliberate home. */}
-      <Pressable
-        style={[styles.customRow, styles.aiRow]}
-        onPress={() => router.push("/add/import")}
-      >
-        <SymbolView name="sparkles" size={16} tintColor={colors.accent} />
-        <Text style={styles.customText}>{t("add.importAI")}</Text>
-        <Text style={styles.customHint}>{t("add.importAIHint")}</Text>
-      </Pressable>
+          stays its deliberate home. Gone entirely under the AI lock. */}
+      {!aiHidden && (
+        <Pressable
+          style={[styles.customRow, styles.aiRow]}
+          onPress={() => router.push("/add/import")}
+        >
+          <SymbolView name="sparkles" size={16} tintColor={colors.accent} />
+          <Text style={styles.customText}>{t("add.importAI")}</Text>
+          <Text style={styles.customHint}>{t("add.importAIHint")}</Text>
+        </Pressable>
+      )}
       {/* The third door: the browse picker in queue mode — tap many services
           now, fill in the details whenever (they wait under All). */}
       <Pressable

@@ -26,6 +26,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Ambient } from "../src/components/Ambient";
+import { useAiHidden } from "../src/lib/ai-visibility";
 import { LightField } from "../src/components/onboarding/LightField";
 import { LockNudge } from "../src/components/onboarding/LockNudge";
 import { MethodDoor } from "../src/components/onboarding/MethodDoor";
@@ -54,6 +55,7 @@ export default function OnboardingScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const aiHidden = useAiHidden();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, pending } = useAppData();
   const { addPendingSuggestions } = useAppActions();
@@ -237,12 +239,14 @@ export default function OnboardingScreen() {
             sub={t("onboarding.methodPickSub")}
             onPress={() => setPhase("pick")}
           />
-          <MethodDoor
-            icon="sparkles"
-            title={t("onboarding.methodAI")}
-            sub={t("onboarding.methodAISub")}
-            onPress={goImport}
-          />
+          {!aiHidden && (
+            <MethodDoor
+              icon="sparkles"
+              title={t("onboarding.methodAI")}
+              sub={t("onboarding.methodAISub")}
+              onPress={goImport}
+            />
+          )}
           <Text style={styles.methodNote}>{t("onboarding.methodNote")}</Text>
           {/* Structurally a skip, not a third door: "no thanks, I'll use +".
               Routed through the done pane so the lock nudge is still seen.

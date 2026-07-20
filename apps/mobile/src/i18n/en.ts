@@ -494,6 +494,9 @@ export const en = {
       "Keel couldn't save your latest changes on this phone, even after retrying. This usually means storage is full. Free up some space, then make any small change so Keel can save again.",
   },
   settings: {
+    aiFeatures: "AI features",
+    aiFeaturesFooter:
+      "Off removes every AI feature and entry point from the app. Your data and AI history stay untouched.",
     groupGeneral: "General",
     groupPrivacy: "Privacy",
     groupBackup: "Backup",
@@ -721,13 +724,11 @@ export const en = {
     seeAll: "See all",
     privacyTitle: "Private by design",
     privacy0:
-      "AI is entirely optional. If you never use it, nothing runs and no model ever reads your data.",
+      "AI is entirely optional. Nothing runs unless you use it, and Settings can hide every AI feature.",
     privacy1:
-      "The assistant and the reader use Apple Intelligence's on-device model; Apple documents this processing as staying on the iPhone and working offline.",
+      "The app itself is private by design: no server, no account, no tracking. AI can misread things, so every change passes your review and a backup is saved first.",
     privacy2:
-      "AI can misread things. Every change is shown for review first, and Keel saves a backup before an assistant plan is applied.",
-    privacy3:
-      "Using your own AI shares what you paste with that service, on your terms; Keel itself sends nothing.",
+      "The models aren't ours to vouch for: Apple documents its on-device model as on-device and offline, and your own AI runs on its provider's terms. Whether to use them is your call.",
   },
   assistant: {
     title: "Assistant",

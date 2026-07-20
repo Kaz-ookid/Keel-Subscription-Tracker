@@ -9,6 +9,7 @@ import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "../src/components/ui/Card";
+import { useAiHidden } from "../src/lib/ai-visibility";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
 // One row per capability: chip icon + color, then title/body i18n keys
@@ -77,6 +78,8 @@ export default function GuideScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // The hard AI lock hides the guide's AI chapter along with the feature.
+  const aiHidden = useAiHidden();
 
   return (
     <ScrollView
@@ -91,15 +94,17 @@ export default function GuideScreen() {
         <View key={group.labelKey} style={styles.group}>
           <Text style={styles.groupLabel}>{t(group.labelKey)}</Text>
           <Card>
-            {group.rows.map((row, i) => (
-              <View key={row.key} style={[styles.row, i > 0 && styles.rowDivider]}>
-                <IconChip icon={row.icon} color={row.color} />
-                <View style={styles.rowTexts}>
-                  <Text style={styles.rowTitle}>{t(`guide.${row.key}Title`)}</Text>
-                  <Text style={styles.rowBody}>{t(`guide.${row.key}Body`)}</Text>
+            {group.rows
+              .filter((row) => !(aiHidden && row.key === "ai"))
+              .map((row, i) => (
+                <View key={row.key} style={[styles.row, i > 0 && styles.rowDivider]}>
+                  <IconChip icon={row.icon} color={row.color} />
+                  <View style={styles.rowTexts}>
+                    <Text style={styles.rowTitle}>{t(`guide.${row.key}Title`)}</Text>
+                    <Text style={styles.rowBody}>{t(`guide.${row.key}Body`)}</Text>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
           </Card>
         </View>
       ))}

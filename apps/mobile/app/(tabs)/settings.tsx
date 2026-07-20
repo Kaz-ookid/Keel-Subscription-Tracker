@@ -44,6 +44,7 @@ import {
   type AuthKind,
 } from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
+import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
 import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
@@ -158,6 +159,8 @@ export default function SettingsScreen() {
   // re-shows the onboarding explanation as a reminder before it commits.
   const logoConsent = useLogoConsent();
   const [logoSheet, setLogoSheet] = useState(false);
+  // The hard AI lock: on = every AI surface and entry point disappears.
+  const aiHidden = useAiHidden();
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
@@ -439,15 +442,18 @@ export default function SettingsScreen() {
             divider
             onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
           />
-          {/* The deliberate home of the AI import (§6.1) — the Add flow only hints. */}
-          <SettingsRow
-            icon="sparkles"
-            chipColor={CHIP.importAI}
-            label={t("settings.importAI")}
-            chevron
-            divider
-            onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
-          />
+          {/* The deliberate home of the AI import (§6.1) — the Add flow only
+              hints. Gone entirely under the AI lock. */}
+          {!aiHidden && (
+            <SettingsRow
+              icon="sparkles"
+              chipColor={CHIP.importAI}
+              label={t("settings.importAI")}
+              chevron
+              divider
+              onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
+            />
+          )}
           <SettingsRow
             icon="lightbulb.fill"
             chipColor={CHIP.guide}
@@ -474,6 +480,22 @@ export default function SettingsScreen() {
               />
             }
           />
+          {/* The hard AI lock: off removes every AI surface and entry point.
+              This row is the one AI mention that must survive its own switch. */}
+          <SettingsRow
+            icon="sparkles"
+            chipColor={CHIP.importAI}
+            label={t("settings.aiFeatures")}
+            divider
+            right={
+              <Switch
+                value={!aiHidden}
+                onValueChange={(next) => setAiHidden(!next)}
+                trackColor={{ true: colors.accent }}
+              />
+            }
+          />
+          {aiHidden && <Text style={styles.privacyFooter}>{t("settings.aiFeaturesFooter")}</Text>}
           <SettingsRow
             icon="faceid"
             chipColor={authKind === "unavailable" ? CHIP.debug : CHIP.faceid}

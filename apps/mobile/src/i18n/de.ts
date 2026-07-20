@@ -498,6 +498,9 @@ export const de: typeof en = {
       "Keel konnte deine letzten Änderungen auch nach einem zweiten Versuch nicht auf diesem iPhone speichern. Meist ist der Speicher voll. Schaffe etwas Platz und mach dann irgendeine kleine Änderung, damit Keel wieder speichern kann.",
   },
   settings: {
+    aiFeatures: "KI-Funktionen",
+    aiFeaturesFooter:
+      "Aus entfernt jede KI-Funktion und jeden Einstieg aus der App. Deine Daten und der KI-Verlauf bleiben unberührt.",
     groupGeneral: "Allgemein",
     groupPrivacy: "Privatsphäre",
     groupBackup: "Backup",
@@ -727,13 +730,11 @@ export const de: typeof en = {
     seeAll: "Alle anzeigen",
     privacyTitle: "Privat gebaut",
     privacy0:
-      "KI ist komplett optional. Wenn du sie nicht nutzt, läuft nichts und kein Modell liest je deine Daten.",
+      "KI ist komplett optional. Ohne dich läuft nichts, und in den Einstellungen lässt sich jede KI-Funktion ausblenden.",
     privacy1:
-      "Assistent und Lesen nutzen das On-Device-Modell von Apple Intelligence; Apple dokumentiert diese Verarbeitung als lokal und offline.",
+      "Die App selbst ist privat gebaut: kein Server, kein Konto, kein Tracking. KI kann sich verlesen, darum geht jede Änderung durch deine Durchsicht, und vorher wird ein Backup gesichert.",
     privacy2:
-      "KI kann sich verlesen. Jede Änderung geht zuerst durch deine Durchsicht, und Keel sichert alles, bevor ein Assistent-Plan angewendet wird.",
-    privacy3:
-      "Mit deiner eigenen KI teilst du, was du einfügst, mit diesem Dienst, auf deine Entscheidung; Keel selbst sendet nichts.",
+      "Die Modelle sind nicht unsere: Apple dokumentiert sein On-Device-Modell als lokal und offline, deine eigene KI folgt den Bedingungen ihres Anbieters. Ob du sie nutzt, entscheidest du.",
   },
   assistant: {
     title: "Assistent",

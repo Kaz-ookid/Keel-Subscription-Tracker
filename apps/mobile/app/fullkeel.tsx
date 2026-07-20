@@ -13,6 +13,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 import { FULL_KEEL_PRICE, FULL_KEEL_PRICE_LATER } from "../src/constants";
 import { Button } from "../src/components/ui/Button";
 import { Sheen } from "../src/components/ui/Sheen";
+import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
@@ -22,6 +23,7 @@ export default function FullKeelScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { full } = useEntitlement();
   const [cardWidth, setCardWidth] = useState(0);
+  const aiHidden = useAiHidden();
 
   const buy = () =>
     Alert.alert(t("fullkeel.soonTitle"), t("fullkeel.soonMsg"), [{ text: t("common.done") }]);
@@ -60,12 +62,14 @@ export default function FullKeelScreen() {
       </View>
 
       <View style={styles.list}>
-        {(["includeAi", "includeFuture", "includeFamily"] as const).map((key) => (
-          <View key={key} style={styles.listRow}>
-            <SymbolView name="checkmark.circle.fill" size={18} tintColor={colors.accentStrong} />
-            <Text style={styles.listText}>{t(`fullkeel.${key}`)}</Text>
-          </View>
-        ))}
+        {(["includeAi", "includeFuture", "includeFamily"] as const)
+          .filter((key) => !(aiHidden && key === "includeAi"))
+          .map((key) => (
+            <View key={key} style={styles.listRow}>
+              <SymbolView name="checkmark.circle.fill" size={18} tintColor={colors.accentStrong} />
+              <Text style={styles.listText}>{t(`fullkeel.${key}`)}</Text>
+            </View>
+          ))}
       </View>
 
       <Text style={styles.honesty}>{t("fullkeel.honesty")}</Text>

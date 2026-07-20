@@ -525,6 +525,9 @@ const translation = {
       "Keel nie zdołał zapisać twoich ostatnich zmian na tym telefonie, nawet po ponownej próbie. Zwykle oznacza to pełną pamięć. Zwolnij trochę miejsca, a potem zrób dowolną drobną zmianę, aby Keel mógł znów zapisać.",
   },
   settings: {
+    aiFeatures: "Funkcje AI",
+    aiFeaturesFooter:
+      "Wyłączenie usuwa z aplikacji każdą funkcję i wejście AI. Twoje dane i historia AI zostają nietknięte.",
     groupGeneral: "Ogólne",
     groupPrivacy: "Prywatność",
     groupBackup: "Kopie zapasowe",
@@ -755,13 +758,11 @@ const translation = {
     seeAll: "Zobacz wszystko",
     privacyTitle: "Prywatność w standardzie",
     privacy0:
-      "AI jest całkowicie opcjonalna. Jeśli z niej nie korzystasz, nic się nie uruchamia i żaden model nigdy nie czyta twoich danych.",
+      "AI jest całkowicie opcjonalna. Nic nie działa bez ciebie, a w Ustawieniach można ukryć wszystkie funkcje AI.",
     privacy1:
-      "Asystent i czytanie używają modelu Apple Intelligence na urządzeniu; Apple dokumentuje to przetwarzanie jako lokalne i offline.",
+      "Sama aplikacja jest prywatna w standardzie: bez serwera, konta i śledzenia. AI może się pomylić, więc każda zmiana przechodzi przez twój przegląd, a wcześniej zapisywana jest kopia.",
     privacy2:
-      "AI może się pomylić. Każda zmiana najpierw trafia do twojego przeglądu, a przed zastosowaniem planu asystenta Keel zapisuje kopię zapasową.",
-    privacy3:
-      "Użycie własnej AI oznacza udostępnienie wklejonych treści temu serwisowi, z twojej decyzji; sam Keel niczego nie wysyła.",
+      "Modele nie są nasze: Apple dokumentuje swój model na urządzeniu jako lokalny i offline, a twoja własna AI działa na warunkach swojego dostawcy. Czy z nich korzystać, decydujesz ty.",
   },
   assistant: {
     title: "Asystent",
