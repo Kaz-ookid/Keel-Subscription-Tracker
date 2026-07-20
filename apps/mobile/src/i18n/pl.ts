@@ -526,6 +526,12 @@ const translation = {
   },
   settings: {
     aiFeatures: "Funkcje AI",
+    aiCloud: "Używaj modelu chmurowego Apple",
+    aiCloudInfo:
+      "AI Keela może działać na dwa sposoby.\n\nWłączone: zapytania trafiają do modelu chmurowego Apple Intelligence (Private Cloud Compute). Znacznie lepiej czyta nieuporządkowane listy i rozumie, o co prosisz. Wymaga połączenia z internetem, a Apple deklaruje, że wysłane tam dane nie są przechowywane ani dostępne dla Apple i służą wyłącznie do odpowiedzi na twoje zapytanie.\n\nWyłączone: wszystko dzieje się na tym iPhonie. Nic nie opuszcza urządzenia i działa offline, ale model lokalny jest dużo mniejszy: spodziewaj się prostszych wyników i kłopotów z długimi lub skomplikowanymi listami.\n\nTak czy inaczej AI pozostaje opcjonalna. Możesz ją całkiem wyłączyć powyżej, a Keel działa w pełni bez niej.",
+    aiCloudOn: "Lepsze wyniki, wymaga internetu. Wyłącz, aby wszystko zostawało na tym iPhonie.",
+    aiCloudOff:
+      "Wszystko dzieje się na tym iPhonie, offline. Prostsze wyniki, długie listy bywają za trudne.",
     aiFeaturesFooter:
       "Wyłączenie usuwa z aplikacji każdą funkcję i wejście AI. Twoje dane i historia AI zostają nietknięte.",
     groupGeneral: "Ogólne",
@@ -846,8 +852,15 @@ const translation = {
     footer:
       "Akcje asystenta można cofać, dopóki istnieje ich kopia zapasowa (Keel trzyma 10 ostatnich).",
   },
+  aiEngine: {
+    fallbackTitle: "Używamy modelu lokalnego",
+    fallbackBody:
+      "Model chmurowy Apple nie jest teraz dostępny (brak połączenia albo wyczerpany dzienny limit), więc zadziała mniejszy model na twoim iPhonie. Nadal działa, ale spodziewaj się prostszych wyników, zwłaszcza przy długich listach. Nic cię to nie kosztuje.",
+    fallbackGo: "Kontynuuj",
+  },
   onDevice: {
     hero: "Czyta Apple Intelligence, prosto na tym iPhonie.",
+    inputPlaceholder: "Netflix 12,99 6. dnia, siłownia 40 miesięcznie, Spotify od maja…",
     hint: "Wpisz lub wklej swoje subskrypcje, z grubsza wystarczy: nazwa, cena, kiedy schodzi, które konto.",
     reading: "Czytam twoją listę…",
     errModel: "Model nie zdołał tego przeczytać. Przeformułuj albo dodaj trochę szczegółów.",

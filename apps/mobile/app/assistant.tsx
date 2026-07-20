@@ -25,8 +25,10 @@ import { Button } from "../src/components/ui/Button";
 import {
   assistOnDevice,
   onDeviceAvailability,
+  resolveEngine,
   type OnDeviceAvailability,
 } from "../src/lib/apple-intelligence";
+import { confirmLocalFallback } from "../src/lib/ai-fallback";
 import { consumeAiRead, useEntitlement } from "../src/lib/entitlement";
 import { useAppData } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
@@ -58,15 +60,17 @@ export default function AssistantScreen() {
       router.push("/fullkeel");
       return;
     }
+    // Same contract as the import: warn before a weaker engine answers.
+    const chosen = await resolveEngine();
+    if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
     try {
-      const raw = await assistOnDevice(text.trim(), {
-        items,
-        accounts,
-        today: today(),
-        defaultCurrency: displayCurrency,
-      });
+      const { json: raw, ranOn } = await assistOnDevice(
+        text.trim(),
+        { items, accounts, today: today(), defaultCurrency: displayCurrency },
+        chosen,
+      );
       const plan = parseAssistantPlan(raw, {
         items,
         accounts,
@@ -79,8 +83,8 @@ export default function AssistantScreen() {
         setError(plan.error);
         return;
       }
-      // A successful read spends one; failures never do.
-      void consumeAiRead();
+      // Only the cloud engine spends a read; the on-device model is free.
+      if (ranOn === "cloud") void consumeAiRead();
       startPlan(plan);
       router.push("/assistant-review");
     } catch {

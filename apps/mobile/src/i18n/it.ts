@@ -498,6 +498,12 @@ export const it: typeof en = {
   },
   settings: {
     aiFeatures: "Funzioni IA",
+    aiCloud: "Usa il modello cloud di Apple",
+    aiCloudInfo:
+      "L'IA di Keel può funzionare in due modi.\n\nAttiva, le richieste vanno al modello cloud di Apple Intelligence (Private Cloud Compute). È molto più bravo a leggere elenchi disordinati e a capire ciò che chiedi. Serve una connessione, e Apple dichiara che i dati inviati non vengono conservati né resi accessibili ad Apple, e servono solo a rispondere alla tua richiesta.\n\nDisattivata, tutto avviene su questo iPhone. Nulla lascia il dispositivo e funziona offline, ma il modello locale è molto più piccolo: aspettati risultati più semplici e difficoltà con elenchi lunghi o complicati.\n\nIn entrambi i casi l'IA resta opzionale. Puoi spegnerla del tutto qui sopra, e Keel funziona benissimo senza.",
+    aiCloudOn: "Risultati migliori, serve internet. Disattiva per tenere tutto su questo iPhone.",
+    aiCloudOff:
+      "Tutto avviene su questo iPhone, offline. Risultati più semplici, elenchi lunghi difficili.",
     aiFeaturesFooter:
       "Disattivato, ogni funzione e accesso IA sparisce dall'app. I tuoi dati e la cronologia IA restano intatti.",
     groupGeneral: "Generali",
@@ -805,8 +811,15 @@ export const it: typeof en = {
     footer:
       "Le azioni dell'assistente restano annullabili finché esiste il loro backup (Keel tiene gli ultimi 10).",
   },
+  aiEngine: {
+    fallbackTitle: "Uso del modello locale",
+    fallbackBody:
+      "Il modello cloud di Apple non è disponibile ora (nessuna connessione, o quota di oggi esaurita), quindi girerà sul modello più piccolo del tuo iPhone. Funziona lo stesso, ma aspettati risultati più semplici, soprattutto su elenchi lunghi. Non ti costa nulla.",
+    fallbackGo: "Continua",
+  },
   onDevice: {
     hero: "Letto da Apple Intelligence, direttamente su questo iPhone.",
+    inputPlaceholder: "Netflix 12,99 il 6, palestra 40 al mese, Spotify da maggio…",
     hint: "Scrivi o incolla i tuoi abbonamenti, va bene alla buona: nome, prezzo, quando parte, quale conto.",
     reading: "Sto leggendo la tua lista…",
     errModel: "Il modello non è riuscito a leggere. Riformula o aggiungi qualche dettaglio.",

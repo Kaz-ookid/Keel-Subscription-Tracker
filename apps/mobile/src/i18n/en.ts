@@ -495,6 +495,12 @@ export const en = {
   },
   settings: {
     aiFeatures: "AI features",
+    aiCloud: "Use Apple's cloud model",
+    aiCloudInfo:
+      "Keel's AI can run two ways.\n\nWith this on, requests go to Apple Intelligence's cloud model (Private Cloud Compute). It is far better at reading messy lists and understanding what you ask. It needs an internet connection, and Apple states that data sent there is not stored or made accessible to Apple, and is used only to answer your request.\n\nWith it off, everything runs on this iPhone instead. Nothing leaves the device and it works offline, but the on-device model is much smaller: expect simpler results and trouble with long or complicated lists.\n\nEither way, AI stays optional. You can switch it off completely just above, and Keel works fully without it.",
+    aiCloudOn: "Better results, needs internet. Switch off to keep every request on this iPhone.",
+    aiCloudOff:
+      "Everything runs on this iPhone, offline. Results are simpler, and long lists may fail.",
     aiFeaturesFooter:
       "Off removes every AI feature and entry point from the app. Your data and AI history stay untouched.",
     groupGeneral: "General",
@@ -800,8 +806,15 @@ export const en = {
     footer:
       "Assistant actions can be reverted while their safety backup is kept (Keel keeps the last 10 backups).",
   },
+  aiEngine: {
+    fallbackTitle: "Using the on-device model",
+    fallbackBody:
+      "Apple's cloud model isn't available right now (no connection, or today's allowance is used up), so this will run on the smaller model on your iPhone. It still works, but expect simpler results, especially on long lists. This costs you nothing.",
+    fallbackGo: "Continue",
+  },
   onDevice: {
     hero: "Read by Apple Intelligence, right on this iPhone.",
+    inputPlaceholder: "Netflix 12.99 on the 6th, gym 40 a month, Spotify since May…",
     hint: "Type or paste your subscriptions, rough is fine: name, price, when it hits, which account.",
     reading: "Reading your list…",
     errModel: "The model couldn't read this. Try rephrasing or add a little detail.",

@@ -499,6 +499,13 @@ export const de: typeof en = {
   },
   settings: {
     aiFeatures: "KI-Funktionen",
+    aiCloud: "Apples Cloud-Modell nutzen",
+    aiCloudInfo:
+      "Keels KI kann auf zwei Arten laufen.\n\nEingeschaltet gehen Anfragen an das Cloud-Modell von Apple Intelligence (Private Cloud Compute). Es liest unordentliche Listen deutlich besser und versteht besser, was du willst. Es braucht eine Internetverbindung, und Apple gibt an, dass dorthin gesendete Daten weder gespeichert noch für Apple zugänglich sind und nur zur Beantwortung deiner Anfrage dienen.\n\nAusgeschaltet läuft alles auf diesem iPhone. Nichts verlässt das Gerät und es funktioniert offline, aber das lokale Modell ist viel kleiner: rechne mit einfacheren Ergebnissen und Problemen bei langen oder komplizierten Listen.\n\nSo oder so bleibt KI optional. Du kannst sie direkt darüber ganz abschalten, und Keel funktioniert vollständig ohne sie.",
+    aiCloudOn:
+      "Bessere Ergebnisse, braucht Internet. Ausschalten hält jede Anfrage auf diesem iPhone.",
+    aiCloudOff:
+      "Alles läuft auf diesem iPhone, offline. Einfachere Ergebnisse, lange Listen scheitern eher.",
     aiFeaturesFooter:
       "Aus entfernt jede KI-Funktion und jeden Einstieg aus der App. Deine Daten und der KI-Verlauf bleiben unberührt.",
     groupGeneral: "Allgemein",
@@ -807,8 +814,15 @@ export const de: typeof en = {
     footer:
       "Assistent-Aktionen bleiben zurücknehmbar, solange ihre Sicherung existiert (Keel behält die letzten 10 Backups).",
   },
+  aiEngine: {
+    fallbackTitle: "Lokales Modell wird genutzt",
+    fallbackBody:
+      "Apples Cloud-Modell ist gerade nicht verfügbar (keine Verbindung, oder das heutige Kontingent ist aufgebraucht), also läuft das auf dem kleineren Modell auf deinem iPhone. Es funktioniert weiterhin, aber rechne mit einfacheren Ergebnissen, vor allem bei langen Listen. Das kostet dich nichts.",
+    fallbackGo: "Weiter",
+  },
   onDevice: {
     hero: "Gelesen von Apple Intelligence, direkt auf diesem iPhone.",
+    inputPlaceholder: "Netflix 12,99 am 6., Fitness 40 im Monat, Spotify seit Mai…",
     hint: "Tippe oder füge deine Abos ein, grob reicht: Name, Preis, wann es abgeht, welches Konto.",
     reading: "Deine Liste wird gelesen …",
     errModel: "Das Modell konnte das nicht lesen. Formuliere um oder gib etwas mehr Details an.",

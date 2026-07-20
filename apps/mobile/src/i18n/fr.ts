@@ -499,6 +499,13 @@ export const fr: typeof en = {
   },
   settings: {
     aiFeatures: "Fonctions d'IA",
+    aiCloud: "Utiliser le modèle cloud d'Apple",
+    aiCloudInfo:
+      "L'IA de Keel peut fonctionner de deux façons.\n\nActivée, les demandes vont au modèle cloud d'Apple Intelligence (Private Cloud Compute). Il est bien meilleur pour lire des listes en vrac et comprendre ce que vous demandez. Il faut une connexion, et Apple indique que les données qui y sont envoyées ne sont ni conservées ni accessibles à Apple, et servent uniquement à répondre à votre demande.\n\nDésactivée, tout se passe sur cet iPhone. Rien ne quitte l'appareil et ça marche hors ligne, mais le modèle local est bien plus petit : attendez-vous à des résultats plus simples et à des difficultés sur les listes longues ou compliquées.\n\nDans les deux cas, l'IA reste optionnelle. Vous pouvez la couper entièrement juste au-dessus, et Keel fonctionne très bien sans.",
+    aiCloudOn:
+      "Meilleurs résultats, connexion requise. Désactivez pour tout garder sur cet iPhone.",
+    aiCloudOff:
+      "Tout se passe sur cet iPhone, hors ligne. Résultats plus simples, listes longues difficiles.",
     aiFeaturesFooter:
       "Désactivé : tout ce qui mène à l'IA disparaît de l'app. Vos données et l'historique IA restent intacts.",
     groupGeneral: "Général",
@@ -807,8 +814,15 @@ export const fr: typeof en = {
     footer:
       "Les actions de l'assistant restent annulables tant que leur sauvegarde existe (Keel garde les 10 dernières).",
   },
+  aiEngine: {
+    fallbackTitle: "Utilisation du modèle local",
+    fallbackBody:
+      "Le modèle cloud d'Apple n'est pas disponible (pas de connexion, ou quota du jour épuisé), donc ceci tournera sur le plus petit modèle de votre iPhone. Ça marche quand même, mais attendez-vous à des résultats plus simples, surtout sur les longues listes. Cela ne vous coûte rien.",
+    fallbackGo: "Continuer",
+  },
   onDevice: {
     hero: "Lu par Apple Intelligence, directement sur cet iPhone.",
+    inputPlaceholder: "Netflix 12,99 le 6, salle de sport 40 par mois, Spotify depuis mai…",
     hint: "Tapez ou collez vos abonnements, même en vrac : nom, prix, date, compte.",
     reading: "Lecture de votre liste…",
     errModel: "Le modèle n'a pas pu lire ceci. Reformulez ou ajoutez un peu de détail.",

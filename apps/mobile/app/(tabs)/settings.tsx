@@ -44,12 +44,14 @@ import {
   type AuthKind,
 } from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
+import { setAiEngine, useAiEngine } from "../../src/lib/ai-engine";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
 import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
+import { InfoDot } from "../../src/components/InfoDot";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
 import { Sheen } from "../../src/components/ui/Sheen";
@@ -161,6 +163,8 @@ export default function SettingsScreen() {
   const [logoSheet, setLogoSheet] = useState(false);
   // The hard AI lock: on = every AI surface and entry point disappears.
   const aiHidden = useAiHidden();
+  // Which model answers: Apple's cloud (default, better) or on-device only.
+  const aiEngine = useAiEngine();
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
@@ -496,6 +500,32 @@ export default function SettingsScreen() {
             }
           />
           {aiHidden && <Text style={styles.privacyFooter}>{t("settings.aiFeaturesFooter")}</Text>}
+          {/* Which engine answers. Cloud is the default because the on-device
+              model can't carry the feature honestly; the (i) explains the
+              trade both ways without talking anyone out of either. */}
+          {!aiHidden && (
+            <SettingsRow
+              icon="cloud.fill"
+              chipColor={CHIP.exportBackup}
+              label={t("settings.aiCloud")}
+              divider
+              right={
+                <View style={styles.engineRight}>
+                  <InfoDot title={t("settings.aiCloud")} body={t("settings.aiCloudInfo")} />
+                  <Switch
+                    value={aiEngine === "cloud"}
+                    onValueChange={(next) => setAiEngine(next ? "cloud" : "local")}
+                    trackColor={{ true: colors.accent }}
+                  />
+                </View>
+              }
+            />
+          )}
+          {!aiHidden && (
+            <Text style={styles.privacyFooter}>
+              {t(aiEngine === "cloud" ? "settings.aiCloudOn" : "settings.aiCloudOff")}
+            </Text>
+          )}
           <SettingsRow
             icon="faceid"
             chipColor={authKind === "unavailable" ? CHIP.debug : CHIP.faceid}
@@ -713,6 +743,7 @@ function createStyles(colors: ThemeColors) {
       paddingBottom: spacing.md,
       paddingTop: spacing.xs,
     },
+    engineRight: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     footer: {
       ...typography.caption,
       color: colors.mutedText,

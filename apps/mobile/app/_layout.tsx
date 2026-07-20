@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
+import { hydrateAiEngine } from "../src/lib/ai-engine";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { AppStateProvider } from "../src/state/app-state";
@@ -33,6 +34,7 @@ function RootNavigator() {
   useEffect(() => {
     void hydrateLogoConsent();
     void hydrateAiVisibility();
+    void hydrateAiEngine();
   }, []);
 
   // Tapping a reminder lands on the commitment it's about.

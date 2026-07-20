@@ -27,8 +27,10 @@ import { Button } from "../../src/components/ui/Button";
 import {
   onDeviceAvailability,
   parseOnDevice,
+  resolveEngine,
   type OnDeviceAvailability,
 } from "../../src/lib/apple-intelligence";
+import { confirmLocalFallback } from "../../src/lib/ai-fallback";
 import { consumeAiRead, useEntitlement } from "../../src/lib/entitlement";
 import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
@@ -71,13 +73,18 @@ export default function OnDeviceImportScreen() {
       router.push("/fullkeel");
       return;
     }
+    // Which engine can actually run, and does the user accept a weaker
+    // answer? Asked BEFORE anything is generated, never after.
+    const chosen = await resolveEngine();
+    if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
     try {
-      const json = await parseOnDevice(text.trim(), {
-        today: today(),
-        defaultCurrency: displayCurrency,
-      });
+      const { json, ranOn } = await parseOnDevice(
+        text.trim(),
+        { today: today(), defaultCurrency: displayCurrency },
+        chosen,
+      );
       const result = parseImportDocument(json, {
         defaultCurrency: displayCurrency,
         today: today(),
@@ -89,8 +96,9 @@ export default function OnDeviceImportScreen() {
         setError(result.error ?? "empty");
         return;
       }
-      // A successful read spends one; failures never do.
-      void consumeAiRead();
+      // Only the cloud engine spends a read: the on-device model is free and
+      // unlimited, so a weaker answer never costs the user anything.
+      if (ranOn === "cloud") void consumeAiRead();
       startSession(result.drafts, result.skipped, "ondevice_import");
       router.push("/add/import-review");
     } catch {
@@ -144,7 +152,7 @@ export default function OnDeviceImportScreen() {
                 setText(next);
                 if (error) setError(null);
               }}
-              placeholder={t("importAI.pastePlaceholder")}
+              placeholder={t("onDevice.inputPlaceholder")}
               placeholderTextColor={colors.mutedText}
               multiline
               autoCorrect={false}
