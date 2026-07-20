@@ -30,7 +30,7 @@
 import { setFullKeel } from "./entitlement";
 
 /** Must match the App Store Connect product id exactly (wiring step 3). */
-export const FULL_KEEL_PRODUCT_ID = "com.keel.app.fullkeel";
+export const FULL_KEEL_PRODUCT_ID = "ch.keelapp.keel.fullkeel";
 
 export type PurchaseOutcome = "purchased" | "cancelled" | "failed" | "unavailable";
 export type RestoreOutcome = "restored" | "none" | "failed" | "unavailable";

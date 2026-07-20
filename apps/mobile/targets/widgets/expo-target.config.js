@@ -10,6 +10,6 @@ module.exports = {
   entitlements: {
     // Must match SharedStore.appGroup (Shared.swift) and WIDGET_APP_GROUP
     // (src/lib/widgets.ts); the app itself needs the same group in app.json.
-    "com.apple.security.application-groups": ["group.com.keel.app"],
+    "com.apple.security.application-groups": ["group.ch.keelapp.keel"],
   },
 };

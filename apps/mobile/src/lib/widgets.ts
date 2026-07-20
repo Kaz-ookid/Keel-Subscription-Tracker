@@ -31,7 +31,7 @@ import { monthFull } from "../i18n/dates";
 import { brandBleed } from "./brand";
 
 /** Must match SharedStore.appGroup in targets/widgets/Shared.swift. */
-export const WIDGET_APP_GROUP = "group.com.keel.app";
+export const WIDGET_APP_GROUP = "group.ch.keelapp.keel";
 /** Must match SharedStore.key in targets/widgets/Shared.swift. */
 export const WIDGET_SNAPSHOT_KEY = "keel.widget.snapshot.v1";
 

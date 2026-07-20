@@ -37,7 +37,7 @@ struct WidgetSnapshot: Codable {
 
 enum SharedStore {
   /// Must match expo-target.config.js and WIDGET_APP_GROUP in widgets.ts.
-  static let appGroup = "group.com.keel.app"
+  static let appGroup = "group.ch.keelapp.keel"
   /// Must match WIDGET_SNAPSHOT_KEY in widgets.ts.
   static let key = "keel.widget.snapshot.v1"
 

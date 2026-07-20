@@ -37,7 +37,7 @@ Behavior details:
    ```json
    "ios": {
      "entitlements": {
-       "com.apple.security.application-groups": ["group.com.keel.app"]
+       "com.apple.security.application-groups": ["group.ch.keelapp.keel"]
      }
    }
    ```
@@ -61,7 +61,7 @@ Behavior details:
 
 ## Constraints to remember
 
-- The three identifiers must stay in sync (`group.com.keel.app`,
+- The three identifiers must stay in sync (`group.ch.keelapp.keel`,
   `keel.widget.snapshot.v1`): `Shared.swift` / `expo-target.config.js` /
   `widgets.ts`.
 - Swift here has never been compiled (written blind on Windows); budget a

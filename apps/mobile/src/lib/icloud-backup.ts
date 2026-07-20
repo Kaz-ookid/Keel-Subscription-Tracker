@@ -14,10 +14,10 @@
 //   1. npx expo install react-native-cloud-storage; add the iCloud
 //      entitlements to app.json ios.entitlements:
 //        "com.apple.developer.icloud-container-identifiers":
-//          ["iCloud.com.keel.app"],
+//          ["iCloud.ch.keelapp.keel"],
 //        "com.apple.developer.icloud-services": ["CloudDocuments"],
 //        "com.apple.developer.ubiquity-container-identifiers":
-//          ["iCloud.com.keel.app"]
+//          ["iCloud.ch.keelapp.keel"]
 //      and register the container in the Apple Developer portal.
 //   2. Delete the @ts-expect-error below once the package exists, and check
 //      the structural type against the installed version's API (written
