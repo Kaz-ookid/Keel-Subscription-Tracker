@@ -45,6 +45,7 @@ import {
 } from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { setAiEngine, useAiEngine } from "../../src/lib/ai-engine";
+import { cloudStanding } from "../../src/lib/apple-intelligence";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
 import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
@@ -164,7 +165,13 @@ export default function SettingsScreen() {
   // The hard AI lock: on = every AI surface and entry point disappears.
   const aiHidden = useAiHidden();
   // Which model answers: Apple's cloud (default, better) or on-device only.
+  // The row only appears where cloud can actually run, so we never offer a
+  // model this build/OS cannot reach (PCC needs the iOS 27 SDK).
   const aiEngine = useAiEngine();
+  const [cloudSupported, setCloudSupported] = useState(false);
+  useEffect(() => {
+    void cloudStanding().then((standing) => setCloudSupported(standing.supported));
+  }, []);
 
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
@@ -503,7 +510,7 @@ export default function SettingsScreen() {
           {/* Which engine answers. Cloud is the default because the on-device
               model can't carry the feature honestly; the (i) explains the
               trade both ways without talking anyone out of either. */}
-          {!aiHidden && (
+          {!aiHidden && cloudSupported && (
             <SettingsRow
               icon="cloud.fill"
               chipColor={CHIP.exportBackup}
@@ -521,7 +528,7 @@ export default function SettingsScreen() {
               }
             />
           )}
-          {!aiHidden && (
+          {!aiHidden && cloudSupported && (
             <Text style={styles.privacyFooter}>
               {t(aiEngine === "cloud" ? "settings.aiCloudOn" : "settings.aiCloudOff")}
             </Text>

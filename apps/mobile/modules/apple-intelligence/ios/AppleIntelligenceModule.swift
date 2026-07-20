@@ -17,16 +17,26 @@ import ExpoModulesCore
 #if canImport(FoundationModels)
   import FoundationModels
 
-  /// One session builder for both engines: the only difference is which model
-  /// backs it (Apple's LanguageModel protocol makes this a one-line swap).
+  /// One session builder for both engines.
+  ///
+  /// CLOUD IS NOT BUILDABLE YET (checked 2026-07-20).
+  /// `PrivateCloudComputeLanguageModel` arrived with the WWDC26 SDK, i.e.
+  /// iOS 27 / Xcode 27. This target compiles against iPhoneOS26.0.sdk (EAS's
+  /// stable image), where the symbol does not exist: referencing it fails the
+  /// archive with "cannot find 'PrivateCloudComputeLanguageModel' in scope".
+  /// So "cloud" resolves to the on-device model for now, and `cloudQuota()`
+  /// reports unsupported so the JS side quietly uses local instead of
+  /// pretending a fallback happened.
+  ///
+  /// TO ENABLE once EAS ships an Xcode 27 image AND the deployment target
+  /// allows iOS 27: restore the branch below, guarded by
+  /// `if #available(iOS 27.0, *)`.
+  ///     if engine == "cloud", #available(iOS 27.0, *) {
+  ///       return LanguageModelSession(
+  ///         model: PrivateCloudComputeLanguageModel(), instructions: instructions)
+  ///     }
   @available(iOS 26.0, *)
-  private func makeSession(engine: String, instructions: String) -> LanguageModelSession {
-    if engine == "cloud" {
-      return LanguageModelSession(
-        model: PrivateCloudComputeLanguageModel(),
-        instructions: instructions
-      )
-    }
+  private func makeSession(engine _: String, instructions: String) -> LanguageModelSession {
     return LanguageModelSession(instructions: instructions)
   }
 
@@ -68,16 +78,14 @@ public class AppleIntelligenceModule: Module {
     // user's daily allowance is spent. The JS side uses this to show the
     // remaining-allowance hint and to warn BEFORE quietly dropping to the
     // weaker local model.
+    // Always "unsupported" until this target can build against the iOS 27
+    // SDK (see makeSession). The JS side reads this to decide whether cloud
+    // is even an option, so nothing in the UI offers a model that cannot run.
+    // TO ENABLE: return the real quota, guarded by #available(iOS 27.0, *):
+    //     let usage = PrivateCloudComputeLanguageModel().quotaUsage
+    //     return ["supported": true, "limitReached": usage.isLimitReached]
     Function("cloudQuota") { () -> [String: Any] in
-      #if canImport(FoundationModels)
-        guard #available(iOS 26.0, *) else {
-          return ["supported": false, "limitReached": false]
-        }
-        let usage = PrivateCloudComputeLanguageModel().quotaUsage
-        return ["supported": true, "limitReached": usage.isLimitReached]
-      #else
-        return ["supported": false, "limitReached": false]
-      #endif
+      return ["supported": false, "limitReached": false]
     }
 
     // Rough notes in, import-format-v1 JSON out. The instructions come from
@@ -89,12 +97,11 @@ public class AppleIntelligenceModule: Module {
         guard #available(iOS 26.0, *) else {
           throw AppleIntelligenceError.unavailable
         }
-        // Only the local engine depends on the on-device model being ready;
-        // the cloud engine has its own availability and quota.
-        if engine != "cloud" {
-          guard case .available = SystemLanguageModel.default.availability else {
-            throw AppleIntelligenceError.unavailable
-          }
+        // Every request runs on-device while cloud is unbuildable, so the
+        // on-device model must be ready. (When cloud is restored, make this
+        // conditional on `engine != "cloud"` again.)
+        guard case .available = SystemLanguageModel.default.availability else {
+          throw AppleIntelligenceError.unavailable
         }
         let session = makeSession(engine: engine, instructions: instructions)
         let response = try await session.respond(
@@ -118,12 +125,11 @@ public class AppleIntelligenceModule: Module {
         guard #available(iOS 26.0, *) else {
           throw AppleIntelligenceError.unavailable
         }
-        // Only the local engine depends on the on-device model being ready;
-        // the cloud engine has its own availability and quota.
-        if engine != "cloud" {
-          guard case .available = SystemLanguageModel.default.availability else {
-            throw AppleIntelligenceError.unavailable
-          }
+        // Every request runs on-device while cloud is unbuildable, so the
+        // on-device model must be ready. (When cloud is restored, make this
+        // conditional on `engine != "cloud"` again.)
+        guard case .available = SystemLanguageModel.default.availability else {
+          throw AppleIntelligenceError.unavailable
         }
         let session = makeSession(engine: engine, instructions: instructions)
         let response = try await session.respond(

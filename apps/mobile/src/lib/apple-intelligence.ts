@@ -88,8 +88,12 @@ export async function resolveEngine(): Promise<{ engine: AiEngine; fellBack: boo
   const wanted = currentAiEngine();
   if (wanted === "local") return { engine: "local", fellBack: false };
   const standing = await cloudStanding();
-  const usable = standing.supported && !standing.limitReached;
-  return usable ? { engine: "cloud", fellBack: false } : { engine: "local", fellBack: true };
+  // Cloud not existing on this build/OS is NOT a fallback: there was never
+  // anything to fall back from, so warning on every request would just nag.
+  // Only a cloud that COULD have run (allowance spent) earns the warning.
+  if (!standing.supported) return { engine: "local", fellBack: false };
+  if (standing.limitReached) return { engine: "local", fellBack: true };
+  return { engine: "cloud", fellBack: false };
 }
 
 /** Rough notes in, import-format JSON out. Throws when no engine can run;
