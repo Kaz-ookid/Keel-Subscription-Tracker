@@ -106,27 +106,19 @@ export function buildWidgetSnapshot(
  *  anywhere: in Expo Go (or before the package is installed) it is a no-op. */
 export async function writeWidgetSnapshot(snapshot: WidgetSnapshot): Promise<void> {
   try {
-    // Lazy so the native module is only touched where it exists.
-    const targets = (await import("@bacons/apple-targets")) as {
-      ExtensionStorage: {
-        new (group: string): {
-          set(key: string, value: string): void;
-          get(key: string): string | null | undefined;
-        };
-        reloadWidget(name?: string): void;
-      };
-    };
-    const storage = new targets.ExtensionStorage(WIDGET_APP_GROUP);
-    storage.set(WIDGET_SNAPSHOT_KEY, JSON.stringify(snapshot));
-    // The library degrades to SILENT no-op stubs when its native module is
-    // not in the binary (Expo Go, stale build). Read the value back to tell
-    // "written" from "swallowed": the stub's get returns undefined, the real
-    // one returns the string. Without this, an unfed widget has no cause.
-    const readBack = storage.get(WIDGET_SNAPSHOT_KEY);
-    if (readBack === undefined) {
-      console.warn(
-        "[widgets] ExtensionStorage native module missing (Expo Go or a build older than the widget target): snapshot NOT written",
-      );
+    // Our own local native module (modules/extension-storage): the mechanism
+    // EAS provably compiles, unlike the equivalent pod from the widget
+    // plugin's package, which its autolinking silently skipped. Lazy so it
+    // is only touched where the native half exists.
+    const storage = (await import("../../modules/extension-storage")).default;
+    const payload = JSON.stringify(snapshot);
+    storage.setString(WIDGET_SNAPSHOT_KEY, payload, WIDGET_APP_GROUP);
+    // Write verification: read the suite back. A mismatch means the write
+    // landed somewhere the widget can't see (entitlement problem) — the one
+    // failure that must never stay silent.
+    const readBack = storage.getString(WIDGET_SNAPSHOT_KEY, WIDGET_APP_GROUP);
+    if (readBack !== payload) {
+      console.warn("[widgets] snapshot readback mismatch: App Group not writable?");
       return;
     }
     if (__DEV__) {
@@ -134,10 +126,10 @@ export async function writeWidgetSnapshot(snapshot: WidgetSnapshot): Promise<voi
         `[widgets] snapshot written: ${snapshot.payments.length} payments (${snapshot.payments.filter((p) => p.overdue).length} overdue)`,
       );
     }
-    targets.ExtensionStorage.reloadWidget();
+    storage.reloadWidgets();
   } catch (error) {
-    // Expo Go / package missing: the widgets simply stay unfed — but say so
-    // in dev instead of hiding the reason.
-    if (__DEV__) console.warn("[widgets] snapshot write failed:", error);
+    // Expo Go or a build without the module: the widgets simply stay unfed,
+    // but say why in dev instead of hiding the reason.
+    if (__DEV__) console.warn("[widgets] native module unavailable:", error);
   }
 }
