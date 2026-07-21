@@ -473,6 +473,9 @@ const translation = {
     addCategory: "Dodaj kategorię",
   },
   harbor: {
+    explainer:
+      "Każdy statek to dzień płatności płynący do nabrzeża. Ładunek pozostawiony na kei jest zaległy, dotknij go, aby uregulować.",
+    overdueA11y: "{{name}}, zaległe",
     dock: "Dziś",
     days: "{{count}} d",
     year: "1 r",

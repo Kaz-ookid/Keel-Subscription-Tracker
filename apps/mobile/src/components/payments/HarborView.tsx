@@ -1,5 +1,5 @@
-// The Harbor view (DESIGN.md §3.7 B, experimental — behind the Settings debug
-// toggle): the coming YEAR of charges as a fleet arriving at an industrial
+// The Harbor view (DESIGN.md §3.7 B, now a permanent bonus lens of the
+// calendar): the coming YEAR of charges as a fleet arriving at an industrial
 // quay. Every projected charge sails in — a monthly subscription appears
 // twelve times up the sea, not just once. Each billing day is one vessel;
 // same-day payments share it as cargo. Vessel type and size follow the DAY'S
@@ -7,7 +7,9 @@
 // scales with ITS charge, and distance from the quay maps days until due on a
 // linear scale (equal water is equal time). Tapping a vessel opens a day
 // bubble (what lands, for how much); tapping a bubble row opens the item.
-// Opens at the quay, scrolls out.
+// An OVERDUE charge has already docked: it stands at the quay edge as
+// warning-ringed cargo, tap it to open the item and settle. Opens at the
+// quay, scrolls out; the sea fades into the page at the top.
 
 import {
   addRecurrence,
@@ -38,6 +40,7 @@ import {
   spacing,
   typography,
   useTheme,
+  withAlpha,
   type ThemeColors,
 } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
@@ -125,7 +128,7 @@ export function HarborView() {
   const quayTop = CANVAS_HEIGHT - QUAY_HEIGHT;
   const surfaceTop = quayTop + WALL_H + HAZARD_H;
 
-  const { vessels, paused } = useMemo(() => {
+  const { vessels, paused, overdue } = useMemo(() => {
     const pausedItems = items.filter((i) => i.status === "paused");
 
     // The same projection engine as the Upcoming list, a year deep: EVERY
@@ -134,10 +137,19 @@ export function HarborView() {
     const horizonEnd = addRecurrence(asOf, { unit: "month", interval: 12 });
     const charges = projectCharges(items, horizonEnd);
 
+    // A charge whose day has passed already DOCKED: it becomes cargo standing
+    // at the quay edge, waiting to be collected (tap → mark it paid), instead
+    // of a ship pretending it is still at sea.
+    const landed: Cargo[] = [];
+
     // One vessel per billing day: same-day payments sail together.
     const byDay = new Map<CalendarDate, Cargo[]>();
     for (const charge of charges) {
       const cargo = { charge, value: numeric(charge.amount) };
+      if (charge.dueDate < asOf) {
+        landed.push(cargo);
+        continue;
+      }
       const bucket = byDay.get(charge.dueDate);
       if (bucket) bucket.push(cargo);
       else byDay.set(charge.dueDate, [cargo]);
@@ -214,11 +226,14 @@ export function HarborView() {
       });
     });
 
-    return { vessels: placed, paused: pausedItems };
+    // Oldest debt first: the crate that has waited longest leads the row.
+    landed.sort((a, b) => (a.charge.dueDate < b.charge.dueDate ? -1 : 1));
+
+    return { vessels: placed, paused: pausedItems, overdue: landed };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, asOf, width, displayCurrency, rates]);
 
-  if (vessels.length === 0 && paused.length === 0) {
+  if (vessels.length === 0 && paused.length === 0 && overdue.length === 0) {
     return (
       <View style={styles.center}>
         <EmptyState
@@ -248,6 +263,8 @@ export function HarborView() {
 
   const craneX = width * 0.68;
   const craneBase = CANVAS_HEIGHT - 12;
+  // How many overdue crates fit along the quay edge before the +N chip.
+  const overdueShown = width > 0 ? Math.min(8, Math.max(1, Math.floor((width - 70) / 40))) : 0;
   const selected = selectedKey ? (vessels.find((v) => v.key === selectedKey) ?? null) : null;
 
   // The day bubble's frame: above the vessel when there's room, else below,
@@ -267,402 +284,451 @@ export function HarborView() {
   })();
 
   return (
-    // Opens AT the quay: the initial offset overshoots and clamps to the
-    // bottom, so there is no first frame at the horizon and no visible jump.
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={styles.content}
-      contentOffset={{ x: 0, y: CANVAS_HEIGHT }}
-    >
-      {/* The scene assembles organically: water first, then the fleet fades
-          in from the quay outward, the crane joining last — no single pop. */}
-      <Animated.View
-        style={styles.canvas}
-        entering={FadeIn.duration(200)}
-        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+    <View style={styles.screen}>
+      {/* Opens AT the quay: the initial offset overshoots and clamps to the
+          bottom, so there is no first frame at the horizon and no visible
+          jump. */}
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={styles.content}
+        contentOffset={{ x: 0, y: CANVAS_HEIGHT }}
       >
-        {/* Open water: deeper (darker) the farther from the quay. */}
-        <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
+        {/* The scene assembles organically: water first, then the fleet fades
+          in from the quay outward, the crane joining last — no single pop. */}
+        <Animated.View
+          style={styles.canvas}
+          entering={FadeIn.duration(200)}
+          onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        >
+          {/* Open water: deeper (darker) the farther from the quay. */}
+          <LinearGradient colors={[sea.deep, sea.shallow]} style={StyleSheet.absoluteFill} />
 
-        {/* The tide: two sheets of ripples drifting toward the quay. */}
-        {width > 0 && (
-          <>
-            <Tide
-              width={width}
-              height={CANVAS_HEIGHT}
-              ripples={ripples.filter((_, i) => i % 2 === 0)}
-              color={sea.ripple}
-              phase={0}
-            />
-            <Tide
-              width={width}
-              height={CANVAS_HEIGHT}
-              ripples={ripples.filter((_, i) => i % 2 === 1)}
-              color={sea.ripple}
-              phase={0.5}
-            />
-          </>
-        )}
+          {/* The tide: two sheets of ripples drifting toward the quay. */}
+          {width > 0 && (
+            <>
+              <Tide
+                width={width}
+                height={CANVAS_HEIGHT}
+                ripples={ripples.filter((_, i) => i % 2 === 0)}
+                color={sea.ripple}
+                phase={0}
+              />
+              <Tide
+                width={width}
+                height={CANVAS_HEIGHT}
+                ripples={ripples.filter((_, i) => i % 2 === 1)}
+                color={sea.ripple}
+                phase={0.5}
+              />
+            </>
+          )}
 
-        {/* Water lapping at the seawall: UNDER the quay drawing, so the wall
+          {/* Water lapping at the seawall: UNDER the quay drawing, so the wall
             and the crane stand in front of the waves, not behind them. */}
-        {width > 0 && (
-          <View style={styles.lapWrap} pointerEvents="none">
-            <Waterline height={LAP_HEIGHT} width={width} color={colors.accentStrong} />
-          </View>
-        )}
+          {width > 0 && (
+            <View style={styles.lapWrap} pointerEvents="none">
+              <Waterline height={LAP_HEIGHT} width={width} color={colors.accentStrong} />
+            </View>
+          )}
 
-        {width > 0 && (
-          <Svg width={width} height={CANVAS_HEIGHT} style={StyleSheet.absoluteFill}>
-            {/* Gulls over the far water. */}
-            <Path
-              d={`M ${width * 0.32} 46 q 4 -5 8 0 q 4 -5 8 0`}
-              stroke={sea.sail}
-              strokeWidth={1.4}
-              fill="none"
-            />
-            <Path
-              d={`M ${width * 0.46} 62 q 3 -4 6 0 q 3 -4 6 0`}
-              stroke={sea.sail}
-              strokeWidth={1.2}
-              fill="none"
-            />
+          {width > 0 && (
+            <Svg width={width} height={CANVAS_HEIGHT} style={StyleSheet.absoluteFill}>
+              {/* Gulls over the far water. */}
+              <Path
+                d={`M ${width * 0.32} 46 q 4 -5 8 0 q 4 -5 8 0`}
+                stroke={sea.sail}
+                strokeWidth={1.4}
+                fill="none"
+              />
+              <Path
+                d={`M ${width * 0.46} 62 q 3 -4 6 0 q 3 -4 6 0`}
+                stroke={sea.sail}
+                strokeWidth={1.2}
+                fill="none"
+              />
 
-            {/* Depth lines: the distance axis, quiet but present. */}
-            {gridDays.map((d) => (
+              {/* Depth lines: the distance axis, quiet but present. */}
+              {gridDays.map((d) => (
+                <Line
+                  key={`grid-${d}`}
+                  x1={0}
+                  x2={width}
+                  y1={gridY(d)}
+                  y2={gridY(d)}
+                  stroke={sea.ripple}
+                  strokeWidth={StyleSheet.hairlineWidth}
+                  strokeDasharray="6 8"
+                />
+              ))}
+
+              {/* The seawall the water laps against: the quay has HEIGHT. */}
+              <Rect x={0} y={quayTop} width={width} height={WALL_H} fill={sea.wall} />
+              {Array.from({ length: Math.floor(width / 90) + 1 }, (_, i) => (
+                <Line
+                  key={`stain-${i}`}
+                  x1={i * 90 + 34}
+                  x2={i * 90 + 34}
+                  y1={quayTop + 4}
+                  y2={quayTop + WALL_H}
+                  stroke="rgba(0,0,0,0.22)"
+                  strokeWidth={2}
+                />
+              ))}
+
+              {/* The hazard-striped lip of the surface. */}
+              <Rect x={0} y={quayTop + WALL_H} width={width} height={HAZARD_H} fill={sea.hazard} />
+              {Array.from({ length: Math.ceil(width / 14) + 1 }, (_, i) => (
+                <Path
+                  key={`hz-${i}`}
+                  d={`M ${i * 14} ${quayTop + WALL_H + HAZARD_H} l 7 -${HAZARD_H} l 4 0 l -7 ${HAZARD_H} Z`}
+                  fill={sea.hazardDark}
+                />
+              ))}
+
+              {/* The walk surface: concrete, expansion joints, TODAY stencil. */}
+              <Rect
+                x={0}
+                y={surfaceTop}
+                width={width}
+                height={CANVAS_HEIGHT - surfaceTop}
+                fill={sea.concrete}
+              />
               <Line
-                key={`grid-${d}`}
                 x1={0}
                 x2={width}
-                y1={gridY(d)}
-                y2={gridY(d)}
-                stroke={sea.ripple}
-                strokeWidth={StyleSheet.hairlineWidth}
-                strokeDasharray="6 8"
+                y1={surfaceTop + 1}
+                y2={surfaceTop + 1}
+                stroke={sea.concreteEdge}
+                strokeWidth={1.5}
               />
-            ))}
-
-            {/* The seawall the water laps against: the quay has HEIGHT. */}
-            <Rect x={0} y={quayTop} width={width} height={WALL_H} fill={sea.wall} />
-            {Array.from({ length: Math.floor(width / 90) + 1 }, (_, i) => (
-              <Line
-                key={`stain-${i}`}
-                x1={i * 90 + 34}
-                x2={i * 90 + 34}
-                y1={quayTop + 4}
-                y2={quayTop + WALL_H}
-                stroke="rgba(0,0,0,0.22)"
-                strokeWidth={2}
-              />
-            ))}
-
-            {/* The hazard-striped lip of the surface. */}
-            <Rect x={0} y={quayTop + WALL_H} width={width} height={HAZARD_H} fill={sea.hazard} />
-            {Array.from({ length: Math.ceil(width / 14) + 1 }, (_, i) => (
-              <Path
-                key={`hz-${i}`}
-                d={`M ${i * 14} ${quayTop + WALL_H + HAZARD_H} l 7 -${HAZARD_H} l 4 0 l -7 ${HAZARD_H} Z`}
-                fill={sea.hazardDark}
-              />
-            ))}
-
-            {/* The walk surface: concrete, expansion joints, TODAY stencil. */}
-            <Rect
-              x={0}
-              y={surfaceTop}
-              width={width}
-              height={CANVAS_HEIGHT - surfaceTop}
-              fill={sea.concrete}
-            />
-            <Line
-              x1={0}
-              x2={width}
-              y1={surfaceTop + 1}
-              y2={surfaceTop + 1}
-              stroke={sea.concreteEdge}
-              strokeWidth={1.5}
-            />
-            {Array.from({ length: Math.floor(width / 56) }, (_, i) => (
-              <Line
-                key={`joint-${i}`}
-                x1={(i + 1) * 56}
-                x2={(i + 1) * 56}
-                y1={surfaceTop + 3}
-                y2={CANVAS_HEIGHT}
-                stroke={sea.joint}
-                strokeWidth={1}
-              />
-            ))}
-
-            {/* Steel bollards on the lip. */}
-            {[0.26, 0.5, 0.9].map((f) => (
-              <G key={`bollard-${f}`}>
-                <Rect
-                  x={f * width - 4}
-                  y={surfaceTop - 2}
-                  width={8}
-                  height={9}
-                  rx={2}
-                  fill={sea.steelDark}
+              {Array.from({ length: Math.floor(width / 56) }, (_, i) => (
+                <Line
+                  key={`joint-${i}`}
+                  x1={(i + 1) * 56}
+                  x2={(i + 1) * 56}
+                  y1={surfaceTop + 3}
+                  y2={CANVAS_HEIGHT}
+                  stroke={sea.joint}
+                  strokeWidth={1}
                 />
-                <Rect
-                  x={f * width - 6}
-                  y={surfaceTop - 5}
-                  width={12}
-                  height={5}
-                  rx={2.5}
-                  fill={sea.steel}
-                />
-              </G>
-            ))}
+              ))}
 
-            {/* Container stacks in the yard, rising past the wall (the same
-                cheap isometry as the fleet: front face + lit top + dark side). */}
-            {(
-              [
-                { x: 10, y: CANVAS_HEIGHT - 16, c: 0 },
-                { x: 10, y: CANVAS_HEIGHT - 30, c: 1 },
-                { x: 12, y: CANVAS_HEIGHT - 44, c: 2 },
-                { x: 52, y: CANVAS_HEIGHT - 16, c: 3 },
-                { x: 52, y: CANVAS_HEIGHT - 30, c: 4 },
-                { x: width - 48, y: CANVAS_HEIGHT - 16, c: 5 },
-                { x: width - 48, y: CANVAS_HEIGHT - 30, c: 6 },
-              ] as const
-            ).map((s, i) => {
-              const color = colors.chart[s.c % colors.chart.length];
-              return (
-                <G key={`stack-${i}`} opacity={0.92}>
-                  <Rect x={s.x} y={s.y} width={36} height={13} rx={1} fill={color} />
-                  <Path
-                    d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
-                    fill={color}
+              {/* Steel bollards on the lip. */}
+              {[0.26, 0.5, 0.9].map((f) => (
+                <G key={`bollard-${f}`}>
+                  <Rect
+                    x={f * width - 4}
+                    y={surfaceTop - 2}
+                    width={8}
+                    height={9}
+                    rx={2}
+                    fill={sea.steelDark}
                   />
-                  <Path
-                    d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
-                    fill="rgba(255,255,255,0.25)"
+                  <Rect
+                    x={f * width - 6}
+                    y={surfaceTop - 5}
+                    width={12}
+                    height={5}
+                    rx={2.5}
+                    fill={sea.steel}
                   />
-                  <Path
-                    d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
-                    fill={color}
-                  />
-                  <Path
-                    d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
-                    fill="rgba(0,0,0,0.3)"
-                  />
-                  {[9, 18, 27].map((dx) => (
-                    <Line
-                      key={`corr-${dx}`}
-                      x1={s.x + dx}
-                      y1={s.y + 1.5}
-                      x2={s.x + dx}
-                      y2={s.y + 11.5}
-                      stroke="rgba(0,0,0,0.2)"
-                      strokeWidth={1.2}
-                    />
-                  ))}
                 </G>
-              );
-            })}
-          </Svg>
-        )}
+              ))}
 
-        {/* Distance labels ride their lines, out of the fleet's way. */}
-        {width > 0 &&
-          gridDays.map((d) => (
-            <Text key={`label-${d}`} style={[styles.gridLabel, { top: gridY(d) - 16 }]}>
-              {d === 365 ? t("harbor.year") : t("harbor.days", { count: d })}
-            </Text>
-          ))}
+              {/* Container stacks in the yard, rising past the wall (the same
+                cheap isometry as the fleet: front face + lit top + dark side). */}
+              {(
+                [
+                  { x: 10, y: CANVAS_HEIGHT - 16, c: 0 },
+                  { x: 10, y: CANVAS_HEIGHT - 30, c: 1 },
+                  { x: 12, y: CANVAS_HEIGHT - 44, c: 2 },
+                  { x: 52, y: CANVAS_HEIGHT - 16, c: 3 },
+                  { x: 52, y: CANVAS_HEIGHT - 30, c: 4 },
+                  { x: width - 48, y: CANVAS_HEIGHT - 16, c: 5 },
+                  { x: width - 48, y: CANVAS_HEIGHT - 30, c: 6 },
+                ] as const
+              ).map((s, i) => {
+                const color = colors.chart[s.c % colors.chart.length];
+                return (
+                  <G key={`stack-${i}`} opacity={0.92}>
+                    <Rect x={s.x} y={s.y} width={36} height={13} rx={1} fill={color} />
+                    <Path
+                      d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
+                      fill={color}
+                    />
+                    <Path
+                      d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
+                      fill="rgba(255,255,255,0.25)"
+                    />
+                    <Path
+                      d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
+                      fill={color}
+                    />
+                    <Path
+                      d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
+                      fill="rgba(0,0,0,0.3)"
+                    />
+                    {[9, 18, 27].map((dx) => (
+                      <Line
+                        key={`corr-${dx}`}
+                        x1={s.x + dx}
+                        y1={s.y + 1.5}
+                        x2={s.x + dx}
+                        y2={s.y + 11.5}
+                        stroke="rgba(0,0,0,0.2)"
+                        strokeWidth={1.2}
+                      />
+                    ))}
+                  </G>
+                );
+              })}
+            </Svg>
+          )}
 
-        {/* A sail out on the horizon — the harbor is somewhere. */}
-        <View style={styles.sail} pointerEvents="none">
-          <Drift index={99}>
-            <SymbolView name="sailboat.fill" size={22} tintColor={sea.sail} />
-          </Drift>
-        </View>
-
-        {/* The paused shelf: parked, grey, out of the water. */}
-        {paused.length > 0 && (
-          <View style={styles.pausedShelf}>
-            <Text style={styles.pausedLabel}>{t("harbor.paused")}</Text>
-            {paused.slice(0, 8).map((item) => {
-              const category = categories.find((c) => c.id === item.categoryId);
-              return (
-                <Pressable
-                  key={item.id}
-                  onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-                >
-                  <BrandBadge
-                    domain={item.domain}
-                    icon={category?.icon}
-                    fallback={item.name.charAt(0).toUpperCase()}
-                    color={item.color ?? colors.accent}
-                    size={24}
-                  />
-                </Pressable>
-              );
-            })}
-          </View>
-        )}
-
-        {/* The dismiss layer sits UNDER the fleet: tapping open water closes
-            the day bubble, tapping another vessel switches to its day in one
-            tap. */}
-        {selected && (
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setSelectedKey(null)} />
-        )}
-
-        {/* The fleet. Each vessel is a billing day; tap it for the day.
-            Only the near fleet bobs; the far one rides still water. */}
-        {width > 0 &&
-          vessels.map((v, i) => (
-            <Animated.View
-              key={v.key}
-              // Nearest arrivals surface first; the far fleet follows.
-              entering={FadeIn.delay(60 + Math.min(400, v.daysUntil * 6)).duration(180)}
-              // The transform scales around the box center; the top offset
-              // compensates so the waterline still lands exactly on v.y.
-              style={{
-                position: "absolute",
-                left: v.x - v.geo.w / 2,
-                top: v.y - v.geo.h / 2 - (v.geo.waterY - v.geo.h / 2) * v.scale,
-                width: v.geo.w,
-                height: v.geo.h,
-                transform: [{ scale: v.scale }],
-              }}
-            >
-              <MaybeDrift active={v.daysUntil <= DRIFT_DAYS} index={i}>
-                <Pressable
-                  onPress={() => setSelectedKey(selectedKey === v.key ? null : v.key)}
-                  accessibilityLabel={v.cargo.map((c) => c.charge.name).join(", ")}
-                >
-                  <VesselSprite
-                    kind={v.kind}
-                    geo={v.geo}
-                    palette={sea}
-                    facing={v.facing}
-                    cargoColors={v.cargo
-                      .slice(0, v.shown)
-                      .map((c) => c.charge.color ?? colors.accent)}
-                  />
-                  {v.cargo.slice(0, v.shown).map((c, j) => {
-                    const rect = v.geo.cargo[j];
-                    if (!rect) return null;
-                    const anchor = badgeFor(rect);
-                    const bx = v.facing === -1 ? v.geo.w - anchor.x : anchor.x;
-                    const category = categories.find((cat) => cat.id === c.charge.categoryId);
-                    return (
-                      <View
-                        key={`${c.charge.paymentItemId}-${j}`}
-                        pointerEvents="none"
-                        style={{
-                          position: "absolute",
-                          left: bx - anchor.size / 2,
-                          top: anchor.y - anchor.size / 2,
-                          transform: v.geo.tilt ? [{ rotate: `${v.geo.tilt}deg` }] : undefined,
-                        }}
-                      >
-                        <BrandBadge
-                          domain={c.charge.domain}
-                          icon={category?.icon}
-                          fallback={c.charge.name.charAt(0).toUpperCase()}
-                          color={c.charge.color ?? colors.accent}
-                          size={anchor.size}
-                        />
-                      </View>
-                    );
-                  })}
-                  {v.cargo.length > v.shown && (
-                    <View
-                      style={[
-                        styles.cargoMore,
-                        v.facing === -1 ? { top: 8, left: 2 } : { top: 8, right: 2 },
-                      ]}
-                    >
-                      <Text style={styles.cargoMoreText}>
-                        {t("harbor.more", { count: v.cargo.length - v.shown })}
-                      </Text>
-                    </View>
-                  )}
-                </Pressable>
-              </MaybeDrift>
-            </Animated.View>
-          ))}
-
-        {/* The crane stands NEAREST the viewer: drawn over the fleet, so an
-            arriving hull passes behind its legs and boom, never through. */}
-        {width > 0 && (
-          <Animated.View
-            style={StyleSheet.absoluteFill}
-            entering={FadeIn.delay(180).duration(240)}
-            pointerEvents="none"
-          >
-            <DockLife craneX={craneX} craneBase={craneBase} sea={sea} chart={colors.chart} />
-          </Animated.View>
-        )}
-
-        {/* The day bubble: what lands that day, anchored to the hull. */}
-        {selected && bubble && (
-          <>
-            <View style={[styles.bubble, { top: bubble.top, left: bubble.left, width: BUBBLE_W }]}>
-              <Text style={styles.bubbleTitle}>
-                {formatCalendarDate(selected.key)} ·{" "}
-                {t("harbor.days", { count: selected.daysUntil })}
+          {/* Distance labels ride their lines, out of the fleet's way. */}
+          {width > 0 &&
+            gridDays.map((d) => (
+              <Text key={`label-${d}`} style={[styles.gridLabel, { top: gridY(d) - 16 }]}>
+                {d === 365 ? t("harbor.year") : t("harbor.days", { count: d })}
               </Text>
-              {selected.cargo.map((c, j) => {
-                const category = categories.find((cat) => cat.id === c.charge.categoryId);
+            ))}
+
+          {/* A sail out on the horizon — the harbor is somewhere. */}
+          <View style={styles.sail} pointerEvents="none">
+            <Drift index={99}>
+              <SymbolView name="sailboat.fill" size={22} tintColor={sea.sail} />
+            </Drift>
+          </View>
+
+          {/* The paused shelf: parked, grey, out of the water. */}
+          {paused.length > 0 && (
+            <View style={styles.pausedShelf}>
+              <Text style={styles.pausedLabel}>{t("harbor.paused")}</Text>
+              {paused.slice(0, 8).map((item) => {
+                const category = categories.find((c) => c.id === item.categoryId);
                 return (
                   <Pressable
-                    key={`${c.charge.paymentItemId}-${j}`}
-                    style={styles.bubbleRow}
-                    onPress={() => {
-                      setSelectedKey(null);
-                      router.push({ pathname: "/item", params: { id: c.charge.paymentItemId } });
-                    }}
+                    key={item.id}
+                    onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
                   >
                     <BrandBadge
-                      domain={c.charge.domain}
+                      domain={item.domain}
                       icon={category?.icon}
-                      fallback={c.charge.name.charAt(0).toUpperCase()}
-                      color={c.charge.color ?? colors.accent}
-                      size={22}
+                      fallback={item.name.charAt(0).toUpperCase()}
+                      color={item.color ?? colors.accent}
+                      size={24}
                     />
-                    <Text style={styles.bubbleName} numberOfLines={1}>
-                      {c.charge.name}
-                    </Text>
-                    <Text style={styles.bubbleAmount}>{formatMoney(c.charge.amount)}</Text>
                   </Pressable>
                 );
               })}
-              {selected.cargo.length > 1 && (
-                <View style={styles.bubbleTotalRow}>
-                  <Text style={styles.bubbleTotalLabel}>{t("harbor.dayTotal")}</Text>
-                  <Text style={styles.bubbleTotalValue}>
-                    {formatTotalsIn(
-                      selected.cargo.map((c) => c.charge.amount),
-                      displayCurrency,
-                      rates,
-                    )}
-                  </Text>
-                </View>
-              )}
-              <View
-                style={[
-                  styles.bubbleTip,
-                  bubble.above ? styles.bubbleTipDown : styles.bubbleTipUp,
-                  { left: bubble.tipX },
-                ]}
-              />
             </View>
-          </>
-        )}
+          )}
 
-        {/* The quay is today. Everything sails toward it as its charge nears. */}
-        <View style={styles.quayLabelWrap} pointerEvents="none">
-          <Text style={styles.quayLabel}>{t("harbor.dock")}</Text>
-        </View>
-      </Animated.View>
-    </ScrollView>
+          {/* The dismiss layer sits UNDER the fleet: tapping open water closes
+            the day bubble, tapping another vessel switches to its day in one
+            tap. */}
+          {selected && (
+            <Pressable style={StyleSheet.absoluteFill} onPress={() => setSelectedKey(null)} />
+          )}
+
+          {/* Overdue = already docked: cargo standing at the quay edge, waiting
+            to be collected. Tap a crate to open the item and settle it. */}
+          {width > 0 &&
+            overdue.slice(0, overdueShown).map((c, i) => {
+              const category = categories.find((cat) => cat.id === c.charge.categoryId);
+              return (
+                <Pressable
+                  key={`overdue-${c.charge.paymentItemId}-${c.charge.dueDate}`}
+                  style={[styles.overdueCrate, { left: 14 + i * 40, top: surfaceTop - 34 }]}
+                  onPress={() =>
+                    router.push({ pathname: "/item", params: { id: c.charge.paymentItemId } })
+                  }
+                  accessibilityLabel={t("harbor.overdueA11y", { name: c.charge.name })}
+                >
+                  <BrandBadge
+                    domain={c.charge.domain}
+                    icon={category?.icon}
+                    fallback={c.charge.name.charAt(0).toUpperCase()}
+                    color={c.charge.color ?? colors.accent}
+                    size={22}
+                  />
+                </Pressable>
+              );
+            })}
+          {width > 0 && overdue.length > overdueShown && (
+            <View
+              style={[styles.overdueMore, { left: 14 + overdueShown * 40, top: surfaceTop - 26 }]}
+            >
+              <Text style={styles.overdueMoreText}>
+                {t("harbor.more", { count: overdue.length - overdueShown })}
+              </Text>
+            </View>
+          )}
+
+          {/* The fleet. Each vessel is a billing day; tap it for the day.
+            Only the near fleet bobs; the far one rides still water. */}
+          {width > 0 &&
+            vessels.map((v, i) => (
+              <Animated.View
+                key={v.key}
+                // Nearest arrivals surface first; the far fleet follows.
+                entering={FadeIn.delay(60 + Math.min(400, v.daysUntil * 6)).duration(180)}
+                // The transform scales around the box center; the top offset
+                // compensates so the waterline still lands exactly on v.y.
+                style={{
+                  position: "absolute",
+                  left: v.x - v.geo.w / 2,
+                  top: v.y - v.geo.h / 2 - (v.geo.waterY - v.geo.h / 2) * v.scale,
+                  width: v.geo.w,
+                  height: v.geo.h,
+                  transform: [{ scale: v.scale }],
+                }}
+              >
+                <MaybeDrift active={v.daysUntil <= DRIFT_DAYS} index={i}>
+                  <Pressable
+                    onPress={() => setSelectedKey(selectedKey === v.key ? null : v.key)}
+                    accessibilityLabel={v.cargo.map((c) => c.charge.name).join(", ")}
+                  >
+                    <VesselSprite
+                      kind={v.kind}
+                      geo={v.geo}
+                      palette={sea}
+                      facing={v.facing}
+                      cargoColors={v.cargo
+                        .slice(0, v.shown)
+                        .map((c) => c.charge.color ?? colors.accent)}
+                    />
+                    {v.cargo.slice(0, v.shown).map((c, j) => {
+                      const rect = v.geo.cargo[j];
+                      if (!rect) return null;
+                      const anchor = badgeFor(rect);
+                      const bx = v.facing === -1 ? v.geo.w - anchor.x : anchor.x;
+                      const category = categories.find((cat) => cat.id === c.charge.categoryId);
+                      return (
+                        <View
+                          key={`${c.charge.paymentItemId}-${j}`}
+                          pointerEvents="none"
+                          style={{
+                            position: "absolute",
+                            left: bx - anchor.size / 2,
+                            top: anchor.y - anchor.size / 2,
+                            transform: v.geo.tilt ? [{ rotate: `${v.geo.tilt}deg` }] : undefined,
+                          }}
+                        >
+                          <BrandBadge
+                            domain={c.charge.domain}
+                            icon={category?.icon}
+                            fallback={c.charge.name.charAt(0).toUpperCase()}
+                            color={c.charge.color ?? colors.accent}
+                            size={anchor.size}
+                          />
+                        </View>
+                      );
+                    })}
+                    {v.cargo.length > v.shown && (
+                      <View
+                        style={[
+                          styles.cargoMore,
+                          v.facing === -1 ? { top: 8, left: 2 } : { top: 8, right: 2 },
+                        ]}
+                      >
+                        <Text style={styles.cargoMoreText}>
+                          {t("harbor.more", { count: v.cargo.length - v.shown })}
+                        </Text>
+                      </View>
+                    )}
+                  </Pressable>
+                </MaybeDrift>
+              </Animated.View>
+            ))}
+
+          {/* The crane stands NEAREST the viewer: drawn over the fleet, so an
+            arriving hull passes behind its legs and boom, never through. */}
+          {width > 0 && (
+            <Animated.View
+              style={StyleSheet.absoluteFill}
+              entering={FadeIn.delay(180).duration(240)}
+              pointerEvents="none"
+            >
+              <DockLife craneX={craneX} craneBase={craneBase} sea={sea} chart={colors.chart} />
+            </Animated.View>
+          )}
+
+          {/* The day bubble: what lands that day, anchored to the hull. */}
+          {selected && bubble && (
+            <>
+              <View
+                style={[styles.bubble, { top: bubble.top, left: bubble.left, width: BUBBLE_W }]}
+              >
+                <Text style={styles.bubbleTitle}>
+                  {formatCalendarDate(selected.key)} ·{" "}
+                  {t("harbor.days", { count: selected.daysUntil })}
+                </Text>
+                {selected.cargo.map((c, j) => {
+                  const category = categories.find((cat) => cat.id === c.charge.categoryId);
+                  return (
+                    <Pressable
+                      key={`${c.charge.paymentItemId}-${j}`}
+                      style={styles.bubbleRow}
+                      onPress={() => {
+                        setSelectedKey(null);
+                        router.push({ pathname: "/item", params: { id: c.charge.paymentItemId } });
+                      }}
+                    >
+                      <BrandBadge
+                        domain={c.charge.domain}
+                        icon={category?.icon}
+                        fallback={c.charge.name.charAt(0).toUpperCase()}
+                        color={c.charge.color ?? colors.accent}
+                        size={22}
+                      />
+                      <Text style={styles.bubbleName} numberOfLines={1}>
+                        {c.charge.name}
+                      </Text>
+                      <Text style={styles.bubbleAmount}>{formatMoney(c.charge.amount)}</Text>
+                    </Pressable>
+                  );
+                })}
+                {selected.cargo.length > 1 && (
+                  <View style={styles.bubbleTotalRow}>
+                    <Text style={styles.bubbleTotalLabel}>{t("harbor.dayTotal")}</Text>
+                    <Text style={styles.bubbleTotalValue}>
+                      {formatTotalsIn(
+                        selected.cargo.map((c) => c.charge.amount),
+                        displayCurrency,
+                        rates,
+                      )}
+                    </Text>
+                  </View>
+                )}
+                <View
+                  style={[
+                    styles.bubbleTip,
+                    bubble.above ? styles.bubbleTipDown : styles.bubbleTipUp,
+                    { left: bubble.tipX },
+                  ]}
+                />
+              </View>
+            </>
+          )}
+
+          {/* The quay is today. Everything sails toward it as its charge nears. */}
+          <View style={styles.quayLabelWrap} pointerEvents="none">
+            <Text style={styles.quayLabel}>{t("harbor.dock")}</Text>
+          </View>
+        </Animated.View>
+      </ScrollView>
+
+      {/* The sea dissolves into the page instead of cutting off, and the
+          concept sits in one quiet line under the fade. */}
+      <LinearGradient
+        colors={[colors.background, withAlpha(colors.background, 0)]}
+        style={styles.topFade}
+        pointerEvents="none"
+      >
+        <Text style={styles.explainer}>{t("harbor.explainer")}</Text>
+      </LinearGradient>
+    </View>
   );
 }
 
@@ -795,6 +861,45 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       opacity: emphasis.hint,
       letterSpacing: 1.2,
+    },
+    topFade: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      height: 56,
+      paddingTop: 6,
+      alignItems: "center",
+    },
+    explainer: {
+      ...typography.caption,
+      fontSize: 11,
+      color: colors.mutedText,
+      textAlign: "center",
+      paddingHorizontal: spacing.lg,
+    },
+    overdueCrate: {
+      position: "absolute",
+      width: 34,
+      height: 34,
+      borderRadius: radius.sm,
+      borderWidth: 2,
+      borderColor: colors.tones.warning,
+      backgroundColor: colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    overdueMore: {
+      position: "absolute",
+      backgroundColor: colors.surface,
+      borderRadius: radius.sm,
+      paddingHorizontal: 5,
+      paddingVertical: 2,
+    },
+    overdueMoreText: {
+      ...typography.micro,
+      color: colors.tones.warning,
+      fontWeight: "600",
     },
   });
 }

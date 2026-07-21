@@ -445,6 +445,9 @@ export const it: typeof en = {
     addCategory: "Aggiungi categoria",
   },
   harbor: {
+    explainer:
+      "Ogni nave è un giorno di pagamento che naviga verso la banchina. Il carico rimasto a terra è in ritardo, toccalo per saldare.",
+    overdueA11y: "{{name}}, in ritardo",
     dock: "Oggi",
     days: "{{count}} g",
     year: "1 a",

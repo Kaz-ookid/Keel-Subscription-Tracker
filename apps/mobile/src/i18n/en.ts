@@ -442,6 +442,9 @@ export const en = {
     addCategory: "Add category",
   },
   harbor: {
+    explainer:
+      "Every ship is a payment day sailing toward the dock. Cargo left on the quay is overdue, tap it to settle up.",
+    overdueA11y: "{{name}}, overdue",
     dock: "Today",
     days: "{{count}} d",
     year: "1 y",

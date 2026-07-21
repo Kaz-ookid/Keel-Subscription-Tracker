@@ -446,6 +446,9 @@ export const de: typeof en = {
     addCategory: "Kategorie hinzufügen",
   },
   harbor: {
+    explainer:
+      "Jedes Schiff ist ein Zahltag auf dem Weg zum Kai. Fracht, die am Kai stehen bleibt, ist überfällig; tippe sie an, um sie zu begleichen.",
+    overdueA11y: "{{name}}, überfällig",
     dock: "Heute",
     days: "{{count}} T",
     year: "1 J",
