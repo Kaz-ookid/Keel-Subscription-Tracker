@@ -12,7 +12,6 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useAiHidden } from "../../src/lib/ai-visibility";
 import { bumpTabReset } from "../../src/lib/tabReset";
 import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
@@ -22,7 +21,6 @@ const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] =
   { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },
   { name: "insights", titleKey: "tabs.insights", sf: "chart.bar.fill" },
   { name: "new", titleKey: "", sf: "plus", action: true },
-  { name: "ai", titleKey: "tabs.ai", sf: "sparkles" },
   { name: "settings", titleKey: "tabs.settings", sf: "gearshape.fill" },
 ];
 
@@ -31,9 +29,6 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  // The hard AI lock removes the AI slot; the dock folds back to 4.
-  const aiHidden = useAiHidden();
-  const tabs = aiHidden ? TABS.filter((tab) => tab.name !== "ai") : TABS;
 
   return (
     <View
@@ -45,7 +40,7 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
         tint={scheme === "dark" ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
         style={[styles.dock, { borderColor: colors.hairline, backgroundColor: colors.material }]}
       >
-        {tabs.map((tab) => {
+        {TABS.map((tab) => {
           if (tab.action) {
             return (
               <Pressable
@@ -104,7 +99,6 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" />
       <Tabs.Screen name="insights" />
       <Tabs.Screen name="new" />
-      <Tabs.Screen name="ai" />
       <Tabs.Screen name="settings" />
     </Tabs>
   );

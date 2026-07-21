@@ -29,7 +29,6 @@ export const de: typeof en = {
     insights: "Analysen",
     settings: "Einstellungen",
     addA11y: "Abo hinzufügen",
-    ai: "KI",
   },
   titles: {
     details: "Details",
@@ -536,6 +535,7 @@ export const de: typeof en = {
     snapshotRestoreMsg: "Ersetzt alles durch die am {{date}} gesicherten Daten.",
     loadSample: "Beispieldaten laden",
     testOnboarding: "Onboarding testen (löscht Daten)",
+    assistantDebug: "KI-Assistent (experimentell)",
     clearAll: "Alle Daten löschen",
     clearMsg:
       "Jedes Abo, jede Zahlung, jede Kategorie und jedes Konto wird gelöscht. Das lässt sich nicht rückgängig machen.",
@@ -721,25 +721,6 @@ export const de: typeof en = {
     lockBody:
       "Face ID, Touch ID oder dein Code, mit wählbarer Karenzzeit: in den Einstellungen unter Privatsphäre.",
   },
-  aiHub: {
-    title: "KI",
-    hero: "KI in Keel ist optional. Für echte Ergebnisse nimm deine eigene KI. Keel kann einfache Listen auch auf diesem iPhone lesen, und jede Änderung kommt zur Durchsicht zurück.",
-    assistantTitle: "Assistent",
-    assistantBody:
-      "Sag Keel, was passiert ist: Fitnessstudio kündigen, Netflix auf den 12. verschieben, die Miete ist gestiegen, Spotify dazu. Keel bereitet die Änderungen vor und zeigt jede einzelne, bevor irgendetwas gespeichert wird.",
-    toolImport: "Mit KI hinzufügen",
-    toolImportSub: "Keels Lesen auf dem Gerät, oder deine eigene KI: ChatGPT, Claude, Gemini.",
-    historyEmpty:
-      "Alles, was KI hinzufügt oder ändert, erscheint hier: so behältst du immer den Überblick.",
-    seeAll: "Alle anzeigen",
-    privacyTitle: "Privat gebaut",
-    privacy0:
-      "KI ist komplett optional. Ohne dich läuft nichts, und in den Einstellungen lässt sich jede KI-Funktion ausblenden.",
-    privacy1:
-      "Die App selbst ist privat gebaut: kein Server, kein Konto, kein Tracking. KI kann sich verlesen, darum geht jede Änderung durch deine Durchsicht, und vorher wird ein Backup gesichert.",
-    privacy2:
-      "Die Modelle sind nicht unsere: Apple dokumentiert sein On-Device-Modell als lokal und offline, deine eigene KI folgt den Bedingungen ihres Anbieters. Ob du sie nutzt, entscheidest du.",
-  },
   assistant: {
     title: "Assistent",
     hero: "Experimentell. Das lokale Modell schafft einfache Anfragen; prüfe jede Änderung, bevor du sie anwendest.",
@@ -793,6 +774,8 @@ export const de: typeof en = {
   },
   aiHistory: {
     title: "KI-Verlauf",
+    empty:
+      "Alles, was KI hinzufügt oder ändert, erscheint hier: so behältst du immer den Überblick.",
     toolAssistant: "Assistent",
     toolImport: "Import mit eigener KI",
     toolOnDevice: "Von Keel gelesen",

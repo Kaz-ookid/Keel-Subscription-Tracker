@@ -19,6 +19,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
 import { Card } from "../src/components/ui/Card";
+import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
 import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -48,6 +49,7 @@ const CHIP = {
   history: "#5E5CE6",
   exportBackup: "#30B0C7",
   importBackup: "#30D158",
+  ai: "#30B0C7",
   danger: "#FF3B30",
 } as const;
 
@@ -57,6 +59,7 @@ export default function DataScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { exportData, importData, clearAllData } = useAppActions();
+  const aiHidden = useAiHidden();
 
   const [icloud, setIcloud] = useState(false);
   const [backupCount, setBackupCount] = useState(0);
@@ -162,6 +165,18 @@ export default function DataScreen() {
           <IconChip icon="square.and.arrow.down" color={CHIP.importBackup} />
           <Text style={styles.rowText}>{t("settings.restoreBackup")}</Text>
         </Pressable>
+        {/* The AI trace lives with the data it touched (its old tab is gone):
+            what AI added or changed, and the revert per action. */}
+        {!aiHidden && (
+          <Pressable
+            style={[styles.row, styles.rowDivider]}
+            onPress={() => router.push("/ai-history")}
+          >
+            <IconChip icon="sparkles" color={CHIP.ai} />
+            <Text style={styles.rowText}>{t("aiHistory.title")}</Text>
+            <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          </Pressable>
+        )}
         <Text style={styles.footnote}>{t("settings.backupFooter")}</Text>
       </Card>
 

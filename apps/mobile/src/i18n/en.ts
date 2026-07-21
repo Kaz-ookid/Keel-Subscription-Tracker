@@ -28,7 +28,6 @@ export const en = {
     insights: "Insights",
     settings: "Settings",
     addA11y: "Add subscription",
-    ai: "AI",
   },
   titles: {
     details: "Details",
@@ -530,6 +529,7 @@ export const en = {
     snapshotRestoreMsg: "Replaces everything with the data stashed on {{date}}.",
     loadSample: "Load sample data",
     testOnboarding: "Test onboarding (wipes data)",
+    assistantDebug: "AI assistant (experimental)",
     clearAll: "Clear all data",
     clearMsg:
       "Every subscription, payment, category and account will be deleted. This cannot be undone.",
@@ -714,25 +714,6 @@ export const en = {
     lockBody:
       "Face ID, Touch ID or your passcode, with a grace period you choose: in Settings, under Privacy.",
   },
-  aiHub: {
-    title: "AI",
-    hero: "AI in Keel is optional. For real results, bring your own AI. Keel can also read simple lists on this iPhone, and every change comes back to you for review.",
-    assistantTitle: "Assistant",
-    assistantBody:
-      "Tell Keel what happened: cancel the gym, move Netflix to the 12th, the rent went up, add Spotify. Keel prepares the changes and shows every one before anything is saved.",
-    toolImport: "Add with AI",
-    toolImportSub: "Keel's on-device reader, or your own AI: ChatGPT, Claude, Gemini.",
-    historyEmpty:
-      "Everything AI adds or changes shows up here, so you always keep the full picture.",
-    seeAll: "See all",
-    privacyTitle: "Private by design",
-    privacy0:
-      "AI is entirely optional. Nothing runs unless you use it, and Settings can hide every AI feature.",
-    privacy1:
-      "The app itself is private by design: no server, no account, no tracking. AI can misread things, so every change passes your review and a backup is saved first.",
-    privacy2:
-      "The models aren't ours to vouch for: Apple documents its on-device model as on-device and offline, and your own AI runs on its provider's terms. Whether to use them is your call.",
-  },
   assistant: {
     title: "Assistant",
     hero: "Experimental. The on-device model handles simple requests; check every change before applying it.",
@@ -785,6 +766,7 @@ export const en = {
   },
   aiHistory: {
     title: "AI history",
+    empty: "Everything AI adds or changes shows up here, so you always keep the full picture.",
     toolAssistant: "Assistant",
     toolImport: "Your AI import",
     toolOnDevice: "Keel read it",

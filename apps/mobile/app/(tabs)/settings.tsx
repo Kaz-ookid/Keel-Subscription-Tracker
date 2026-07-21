@@ -620,6 +620,20 @@ export default function SettingsScreen() {
                 divider
                 onPress={confirmOnboarding}
               />
+              {/* The conversational assistant, parked here while it runs on
+                  the limited on-device model: reachable for beta testers,
+                  invisible to everyone else. Its tab returns when the model
+                  is worth headlining. */}
+              {!aiHidden && (
+                <SettingsRow
+                  icon="sparkles"
+                  chipColor={CHIP.importAI}
+                  label={t("settings.assistantDebug")}
+                  chevron
+                  divider
+                  onPress={() => router.push("/assistant")}
+                />
+              )}
               <SettingsRow
                 icon="checkmark.seal.fill"
                 chipColor={CHIP.debug}

@@ -29,7 +29,6 @@ export const it: typeof en = {
     insights: "Analisi",
     settings: "Impostazioni",
     addA11y: "Aggiungi abbonamento",
-    ai: "IA",
   },
   titles: {
     details: "Dettagli",
@@ -534,6 +533,7 @@ export const it: typeof en = {
     snapshotRestoreMsg: "Sostituisce tutto con i dati messi da parte il {{date}}.",
     loadSample: "Carica dati di esempio",
     testOnboarding: "Prova l'onboarding (cancella i dati)",
+    assistantDebug: "Assistente IA (sperimentale)",
     clearAll: "Cancella tutti i dati",
     clearMsg:
       "Ogni abbonamento, pagamento, categoria e conto verrà eliminato. Non si può annullare.",
@@ -719,25 +719,6 @@ export const it: typeof en = {
     lockBody:
       "Face ID, Touch ID o il tuo codice, con un periodo di tolleranza a tua scelta: nelle Impostazioni, sotto Privacy.",
   },
-  aiHub: {
-    title: "IA",
-    hero: "L'IA in Keel è opzionale. Per risultati veri, usa la tua IA. Keel può anche leggere elenchi semplici su questo iPhone, e ogni modifica torna a te per la revisione.",
-    assistantTitle: "Assistente",
-    assistantBody:
-      "Racconta a Keel cosa è successo: disdici la palestra, sposta Netflix al 12, l'affitto è salito, aggiungi Spotify. Keel prepara le modifiche e le mostra una per una prima di salvare qualsiasi cosa.",
-    toolImport: "Aggiungi con l'IA",
-    toolImportSub: "La lettura di Keel sul dispositivo, o la tua IA: ChatGPT, Claude, Gemini.",
-    historyEmpty:
-      "Tutto ciò che l'IA aggiunge o modifica compare qui: il quadro completo non si perde mai.",
-    seeAll: "Vedi tutto",
-    privacyTitle: "Privato per costruzione",
-    privacy0:
-      "L'IA è del tutto opzionale. Non gira nulla senza di te, e dalle Impostazioni puoi nascondere ogni funzione IA.",
-    privacy1:
-      "L'app in sé è privata per costruzione: niente server, niente account, niente tracciamento. L'IA può sbagliare, quindi ogni modifica passa dalla tua revisione e prima viene salvato un backup.",
-    privacy2:
-      "I modelli non sono nostri: Apple documenta il suo modello on-device come locale e offline, e la tua IA segue le condizioni del suo fornitore. Se usarli è una tua scelta.",
-  },
   assistant: {
     title: "Assistente",
     hero: "Sperimentale. Il modello locale gestisce richieste semplici; controlla ogni modifica prima di applicarla.",
@@ -790,6 +771,8 @@ export const it: typeof en = {
   },
   aiHistory: {
     title: "Cronologia IA",
+    empty:
+      "Tutto ciò che l'IA aggiunge o modifica compare qui: il quadro completo non si perde mai.",
     toolAssistant: "Assistente",
     toolImport: "Import con la tua IA",
     toolOnDevice: "Letto da Keel",

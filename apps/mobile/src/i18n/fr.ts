@@ -28,7 +28,6 @@ export const fr: typeof en = {
     insights: "Analyses",
     settings: "Réglages",
     addA11y: "Ajouter un abonnement",
-    ai: "IA",
   },
   titles: {
     details: "Détails",
@@ -536,6 +535,7 @@ export const fr: typeof en = {
     snapshotRestoreMsg: "Remplace tout par les données mises de côté le {{date}}.",
     loadSample: "Charger des données d'exemple",
     testOnboarding: "Tester l'accueil (efface tout)",
+    assistantDebug: "Assistant IA (expérimental)",
     clearAll: "Tout effacer",
     clearMsg:
       "Tous les abonnements, paiements, catégories et comptes seront supprimés. Action irréversible.",
@@ -720,26 +720,6 @@ export const fr: typeof en = {
     lockBody:
       "Face ID, Touch ID ou votre code, avec un délai de grâce au choix : dans Réglages, section Confidentialité.",
   },
-  aiHub: {
-    title: "IA",
-    hero: "L'IA dans Keel est optionnelle. Pour de vrais résultats, passez par votre propre IA. Keel peut aussi lire des listes simples sur cet iPhone, et chaque changement vous revient pour relecture.",
-    assistantTitle: "Assistant",
-    assistantBody:
-      "Dites à Keel ce qui s'est passé : résilier la salle de sport, décaler Netflix au 12, le loyer a augmenté, ajouter Spotify. Keel prépare les changements et montre chacun d'eux avant d'enregistrer quoi que ce soit.",
-    toolImport: "Ajouter avec l'IA",
-    toolImportSub:
-      "La lecture par Keel sur l'appareil, ou votre propre IA : ChatGPT, Claude, Gemini.",
-    historyEmpty:
-      "Tout ce que l'IA ajoute ou modifie apparaît ici, pour ne jamais perdre la vue d'ensemble.",
-    seeAll: "Tout voir",
-    privacyTitle: "Privé par conception",
-    privacy0:
-      "L'IA est entièrement optionnelle. Rien ne s'exécute sans vous, et les Réglages peuvent masquer toute trace d'IA.",
-    privacy1:
-      "L'app elle-même est privée par conception : pas de serveur, pas de compte, pas de pistage. L'IA peut se tromper, donc chaque changement passe par votre relecture et une sauvegarde est créée d'abord.",
-    privacy2:
-      "Les modèles ne sont pas les nôtres : Apple documente son modèle sur appareil comme local et hors ligne, et votre propre IA suit les conditions de son fournisseur. Les utiliser reste votre choix.",
-  },
   assistant: {
     title: "Assistant",
     hero: "Expérimental. Le modèle local gère les demandes simples ; vérifiez chaque changement avant de l'appliquer.",
@@ -793,6 +773,8 @@ export const fr: typeof en = {
   },
   aiHistory: {
     title: "Historique IA",
+    empty:
+      "Tout ce que l'IA ajoute ou modifie apparaît ici, pour ne jamais perdre la vue d'ensemble.",
     toolAssistant: "Assistant",
     toolImport: "Votre import IA",
     toolOnDevice: "Lu par Keel",

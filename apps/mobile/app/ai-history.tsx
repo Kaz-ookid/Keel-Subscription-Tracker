@@ -74,7 +74,7 @@ export default function AiHistoryScreen() {
 
       {aiActivity.length === 0 && (
         <Card>
-          <Text style={styles.footnote}>{t("aiHub.historyEmpty")}</Text>
+          <Text style={styles.footnote}>{t("aiHistory.empty")}</Text>
         </Card>
       )}
 

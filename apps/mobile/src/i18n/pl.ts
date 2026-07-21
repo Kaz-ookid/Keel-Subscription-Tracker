@@ -35,7 +35,6 @@ const translation = {
     insights: "Analizy",
     settings: "Ustawienia",
     addA11y: "Dodaj subskrypcję",
-    ai: "AI",
   },
   titles: {
     details: "Szczegóły",
@@ -561,6 +560,7 @@ const translation = {
     snapshotRestoreMsg: "Zastępuje wszystko danymi odłożonymi {{date}}.",
     loadSample: "Wczytaj dane przykładowe",
     testOnboarding: "Testuj onboarding (kasuje dane)",
+    assistantDebug: "Asystent AI (eksperymentalny)",
     clearAll: "Wyczyść wszystkie dane",
     clearMsg:
       "Każda subskrypcja, płatność, kategoria i konto zostaną usunięte. Tego nie da się cofnąć.",
@@ -747,26 +747,6 @@ const translation = {
     lockBody:
       "Face ID, Touch ID albo twój kod, z wybranym okresem karencji: w Ustawieniach, w sekcji Prywatność.",
   },
-  aiHub: {
-    title: "AI",
-    hero: "AI w Keelu jest opcjonalna. Po prawdziwe wyniki sięgnij po własną AI. Keel może też czytać proste listy na tym iPhonie, a każda zmiana wraca do ciebie do przejrzenia.",
-    assistantTitle: "Asystent",
-    assistantBody:
-      "Powiedz Keelowi, co się stało: anuluj siłownię, przesuń Netflixa na 12., czynsz poszedł w górę, dodaj Spotify. Keel przygotuje zmiany i pokaże każdą z nich, zanim cokolwiek zostanie zapisane.",
-    toolImport: "Dodawanie z AI",
-    toolImportSub:
-      "Czytanie przez Keel na urządzeniu albo twoja własna AI: ChatGPT, Claude, Gemini.",
-    historyEmpty:
-      "Wszystko, co AI doda lub zmieni, pojawia się tutaj, więc nigdy nie tracisz pełnego obrazu.",
-    seeAll: "Zobacz wszystko",
-    privacyTitle: "Prywatność w standardzie",
-    privacy0:
-      "AI jest całkowicie opcjonalna. Nic nie działa bez ciebie, a w Ustawieniach można ukryć wszystkie funkcje AI.",
-    privacy1:
-      "Sama aplikacja jest prywatna w standardzie: bez serwera, konta i śledzenia. AI może się pomylić, więc każda zmiana przechodzi przez twój przegląd, a wcześniej zapisywana jest kopia.",
-    privacy2:
-      "Modele nie są nasze: Apple dokumentuje swój model na urządzeniu jako lokalny i offline, a twoja własna AI działa na warunkach swojego dostawcy. Czy z nich korzystać, decydujesz ty.",
-  },
   assistant: {
     title: "Asystent",
     hero: "Eksperymentalne. Model lokalny radzi sobie z prostymi prośbami; sprawdź każdą zmianę przed zastosowaniem.",
@@ -825,6 +805,8 @@ const translation = {
   },
   aiHistory: {
     title: "Historia AI",
+    empty:
+      "Wszystko, co AI doda lub zmieni, pojawia się tutaj, więc nigdy nie tracisz pełnego obrazu.",
     toolAssistant: "Asystent",
     toolImport: "Import z twoją AI",
     toolOnDevice: "Przeczytane przez Keel",

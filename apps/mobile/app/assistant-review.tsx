@@ -71,7 +71,7 @@ export default function AssistantReviewScreen() {
     hapticImportConfirm();
     const result = applyAssistantPlan(includedOps, includedAdditions);
     clear();
-    router.navigate("/ai");
+    router.navigate("/");
     const applied = result.added + result.updated + result.removed;
     Alert.alert(
       t("assistant.appliedTitle"),
