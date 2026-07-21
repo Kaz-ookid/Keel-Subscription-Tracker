@@ -64,8 +64,9 @@ struct UpcomingView: View {
       } else {
         ForEach(upcoming) { payment in
           let late = snapshot.isLate(payment, from: entry.date)
-          Link(destination: URL(string: "keel://item?id=\(payment.id)") ?? URL(string: "keel://")!)
-          {
+          Link(
+            destination: URL(string: "keel://item?id=\(payment.linkId)") ?? URL(string: "keel://")!
+          ) {
             HStack(spacing: 8) {
               Circle()
                 .fill(Color(keelHex: payment.color))
@@ -80,15 +81,30 @@ struct UpcomingView: View {
                   .foregroundStyle(Color.keelWarning)
               }
               Spacer(minLength: 8)
-              Text(snapshot.dueShort(payment, from: entry.date))
-                .font(late ? .caption.weight(.semibold) : .caption)
-                .foregroundStyle(late ? Color.keelWarning : Color.keelMuted)
+              // The trigger date, then the relative read: "25 Jul · 5d".
+              // For an overdue charge the date is the day it SHOULD have
+              // been paid: "25 Jun · late".
+              Text(
+                payment.shortDate.isEmpty
+                  ? snapshot.dueShort(payment, from: entry.date)
+                  : "\(payment.shortDate) · \(snapshot.dueShort(payment, from: entry.date))"
+              )
+              .font(late ? .caption.weight(.semibold) : .caption)
+              .foregroundStyle(late ? Color.keelWarning : Color.keelMuted)
+              .lineLimit(1)
               Text(payment.amount)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)
                 .lineLimit(1)
             }
           }
+        }
+        // The omission made honest: how much more the snapshot holds beyond
+        // the visible rows (`upcoming` is already truncated to rowCount).
+        if snapshot.payments.count > upcoming.count {
+          Text(snapshot.moreLine(snapshot.payments.count - upcoming.count))
+            .font(.caption)
+            .foregroundStyle(Color.keelMuted)
         }
         Spacer(minLength: 0)
       }

@@ -12,12 +12,19 @@ import SwiftUI
 import WidgetKit
 
 struct WidgetPayment: Codable, Identifiable {
+  /// Unique per OCCURRENCE ("itemId:dueDate") — ForEach needs distinct ids
+  /// or it repaints a later cycle with an earlier one's row.
   let id: String
+  /// The item behind the occurrence, for the deep link.
+  let itemId: String?
   let name: String
   /// Pre-formatted by the app ("12,90 CHF"); never computed here.
   let amount: String
   /// Local calendar date "YYYY-MM-DD".
   let dueDate: String
+  /// Pre-localized trigger date ("25 Jul"); for an overdue charge, the day
+  /// it SHOULD have been paid.
+  let dateLabel: String?
   /// "#RRGGBB", resolved by the app's brand rules (never black or white).
   let color: String
   /// True for a charge whose day passed unpaid (optional: older snapshots
@@ -25,6 +32,8 @@ struct WidgetPayment: Codable, Identifiable {
   let overdue: Bool?
 
   var isOverdue: Bool { overdue ?? false }
+  var linkId: String { itemId ?? id }
+  var shortDate: String { dateLabel ?? "" }
 }
 
 struct WidgetSnapshot: Codable {
@@ -198,6 +207,15 @@ extension WidgetSnapshot {
     return "\(count) late"
   }
 
+  /// "+3 more" for the list's truncation footer.
+  func moreLine(_ count: Int) -> String {
+    if isFrench { return "+\(count) autres" }
+    if isGerman { return "+\(count) weitere" }
+    if isItalian { return "+\(count) altri" }
+    if isPolish { return "+\(count) więcej" }
+    return "+\(count) more"
+  }
+
   var emptyLine: String {
     if isFrench { return "Rien à venir" }
     if isGerman { return "Nichts anstehend" }
@@ -266,17 +284,17 @@ extension WidgetSnapshot {
       monthTotal: "128.50 CHF",
       payments: [
         WidgetPayment(
-          id: "sample-1", name: "Netflix", amount: "12.90 CHF", dueDate: day(1),
-          color: "#E50914", overdue: false),
+          id: "sample-1", itemId: "sample-1", name: "Netflix", amount: "12.90 CHF",
+          dueDate: day(1), dateLabel: nil, color: "#E50914", overdue: false),
         WidgetPayment(
-          id: "sample-2", name: "Spotify", amount: "11.99 CHF", dueDate: day(3),
-          color: "#1DB954", overdue: false),
+          id: "sample-2", itemId: "sample-2", name: "Spotify", amount: "11.99 CHF",
+          dueDate: day(3), dateLabel: nil, color: "#1DB954", overdue: false),
         WidgetPayment(
-          id: "sample-3", name: "iCloud+", amount: "2.99 CHF", dueDate: day(6),
-          color: "#3693F3", overdue: false),
+          id: "sample-3", itemId: "sample-3", name: "iCloud+", amount: "2.99 CHF",
+          dueDate: day(6), dateLabel: nil, color: "#3693F3", overdue: false),
         WidgetPayment(
-          id: "sample-4", name: "Gym", amount: "24.90 CHF", dueDate: day(9),
-          color: "#E30613", overdue: false),
+          id: "sample-4", itemId: "sample-4", name: "Gym", amount: "24.90 CHF",
+          dueDate: day(9), dateLabel: nil, color: "#E30613", overdue: false),
       ]
     )
   }

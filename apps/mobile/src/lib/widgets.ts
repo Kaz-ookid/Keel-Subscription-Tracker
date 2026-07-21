@@ -21,7 +21,7 @@ import {
   type PaymentItem,
 } from "@keel/core";
 
-import { monthFull } from "../i18n/dates";
+import { monthFull, monthShort } from "../i18n/dates";
 import { brandBleed } from "./brand";
 
 /** Must match SharedStore.appGroup in targets/widgets/Shared.swift. */
@@ -37,10 +37,19 @@ const MAX_PAYMENTS = 12;
 
 /** Mirror of WidgetPayment in Shared.swift. */
 export interface WidgetPayment {
+  /** Unique PER OCCURRENCE (`itemId:dueDate`): a monthly item appears once
+   *  per cycle, and SwiftUI's ForEach corrupts rows on duplicate ids (the
+   *  bug that painted a future cycle as overdue). */
   id: string;
+  /** The item, for the deep link. */
+  itemId: string;
   name: string;
   amount: string;
   dueDate: string;
+  /** Pre-localized short date ("25 Jul" / "25. Jul"): the trigger date the
+   *  rows show alongside the relative label. For an overdue charge this is
+   *  the day it SHOULD have been paid. */
+  dateLabel: string;
   color: string;
   /** True for a charge whose day has passed unpaid — pinned first, shown in
    *  the warning tone. Optional so older Swift decoders keep working. */
@@ -92,14 +101,28 @@ export function buildWidgetSnapshot(
     ]
       .slice(0, MAX_PAYMENTS)
       .map(({ charge, overdue: isOverdue }) => ({
-        id: charge.paymentItemId,
-        name: charge.name,
+        id: `${charge.paymentItemId}:${charge.dueDate}`,
+        itemId: charge.paymentItemId,
+        // A split payment says which slice this is: "Sofa · 2/4".
+        name:
+          charge.installmentIndex !== undefined && charge.installmentCount !== undefined
+            ? `${charge.name} · ${charge.installmentIndex}/${charge.installmentCount}`
+            : charge.name,
         amount: formatMoney(charge.amount),
         dueDate: charge.dueDate,
+        dateLabel: shortDate(charge.dueDate, locale),
         color: brandBleed(charge, accentFallback),
         overdue: isOverdue,
       })),
   };
+}
+
+/** "25 Jul" (German swaps in its "25. Jul" form) — the month name comes from
+ *  the app's own localized calendar, so it follows the APP language. */
+function shortDate(date: string, locale: "en" | "fr" | "de" | "it" | "pl"): string {
+  const day = Number(date.slice(8, 10));
+  const month = monthShort(Number(date.slice(5, 7)) - 1);
+  return locale === "de" ? `${day}. ${month}` : `${day} ${month}`;
 }
 
 /** Hand the snapshot to the widgets and reload their timelines. Safe to call

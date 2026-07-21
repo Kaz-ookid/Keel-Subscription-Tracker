@@ -42,6 +42,13 @@ struct NextUpView: View {
 
   // MARK: Home screen (small)
 
+  /// The payment after `next`: the small tile teases it so "in 5 days" can't
+  /// hide something landing the day after.
+  private var following: WidgetPayment? {
+    guard let list = snapshot?.upcoming(from: entry.date), list.count > 1 else { return nil }
+    return list[1]
+  }
+
   private var small: some View {
     VStack(alignment: .leading, spacing: 4) {
       if let snapshot, let next {
@@ -49,13 +56,22 @@ struct NextUpView: View {
           Circle()
             .fill(Color(keelHex: next.color))
             .frame(width: 10, height: 10)
-          Text(snapshot.dueLabel(next, from: entry.date))
-            .font(.caption.weight(nextIsLate ? .semibold : .regular))
-            .foregroundStyle(nextIsLate ? Color.keelWarning : Color.keelSeaGlass)
+          // Relative + the trigger date: "In 5 days · 26 Jul"; for overdue,
+          // the date it SHOULD have been paid: "Overdue · 25 Jun".
+          Text(
+            next.shortDate.isEmpty
+              ? snapshot.dueLabel(next, from: entry.date)
+              : "\(snapshot.dueLabel(next, from: entry.date)) · \(next.shortDate)"
+          )
+          .font(.caption.weight(nextIsLate ? .semibold : .regular))
+          .foregroundStyle(nextIsLate ? Color.keelWarning : Color.keelSeaGlass)
+          .lineLimit(1)
+          .minimumScaleFactor(0.8)
           Spacer(minLength: 0)
           if nextIsLate {
-            Image(systemName: "exclamationmark.triangle.fill")
-              .font(.caption2)
+            let lateCount = snapshot.overdueCount(from: entry.date)
+            Text(lateCount > 1 ? "⚠\(lateCount)" : "⚠")
+              .font(.caption2.weight(.bold))
               .foregroundStyle(Color.keelWarning)
           }
         }
@@ -69,6 +85,14 @@ struct NextUpView: View {
           .foregroundStyle(.white)
           .minimumScaleFactor(0.6)
           .lineLimit(1)
+        // What comes right after, so the single hero never hides a same-week
+        // charge: "→ Disney+ · 5d".
+        if let following {
+          Text("→ \(following.name) · \(snapshot.dueShort(following, from: entry.date))")
+            .font(.caption2)
+            .foregroundStyle(Color.keelMuted)
+            .lineLimit(1)
+        }
       } else {
         Spacer(minLength: 0)
         Text(snapshot?.emptyLine ?? "All clear")
@@ -110,12 +134,12 @@ struct NextUpView: View {
               .font(.caption.weight(.bold))
           }
         } else {
-          VStack(spacing: 0) {
-            Text("\(max(next.daysFrom(entry.date), 0))")
-              .font(.title2.weight(.bold))
-            Text(snapshot.isFrench ? "j" : "d")
-              .font(.caption2)
-          }
+          // One line ("5d"), not a number with a stray unit wrapping under
+          // it — the dial reads as "days until the next payment".
+          Text("\(max(next.daysFrom(entry.date), 0))\(snapshot.isFrench ? "j" : "d")")
+            .font(.title3.weight(.bold))
+            .minimumScaleFactor(0.6)
+            .lineLimit(1)
         }
       } else {
         Image(systemName: "checkmark")
@@ -134,9 +158,14 @@ struct NextUpView: View {
           .lineLimit(1)
         Text(next.amount)
           .font(.body.weight(.semibold))
-        Text(snapshot.dueLabel(next, from: entry.date))
-          .font(.caption.weight(nextIsLate ? .semibold : .regular))
-          .foregroundStyle(nextIsLate ? AnyShapeStyle(Color.keelWarning) : AnyShapeStyle(.secondary))
+        Text(
+          next.shortDate.isEmpty
+            ? snapshot.dueLabel(next, from: entry.date)
+            : "\(snapshot.dueLabel(next, from: entry.date)) · \(next.shortDate)"
+        )
+        .font(.caption.weight(nextIsLate ? .semibold : .regular))
+        .foregroundStyle(nextIsLate ? AnyShapeStyle(Color.keelWarning) : AnyShapeStyle(.secondary))
+        .lineLimit(1)
       } else {
         Text(snapshot?.emptyLine ?? "All clear")
           .font(.headline)
@@ -150,6 +179,6 @@ struct NextUpView: View {
   /// expo-router deep link into the charge's own screen.
   private var deepLink: URL? {
     guard let next else { return URL(string: "keel://") }
-    return URL(string: "keel://item?id=\(next.id)")
+    return URL(string: "keel://item?id=\(next.linkId)")
   }
 }
