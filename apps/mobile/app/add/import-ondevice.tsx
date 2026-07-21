@@ -130,10 +130,23 @@ export default function OnDeviceImportScreen() {
 
       {availability === "available" && (
         <>
-          {/* The whole pitch in one quiet line: no accounts, no upload. */}
+          {/* What this actually is: the small on-device model, honestly
+              described rather than sold. */}
           <View style={styles.heroCard}>
             <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
             <Text style={styles.heroText}>{t("onDevice.hero")}</Text>
+          </View>
+
+          {/* The limit, stated before anyone wastes a list on it: Apple's
+              better model isn't available to apps yet, so point people at
+              their own AI for anything real. */}
+          <View style={styles.limitCard}>
+            <SymbolView
+              name="exclamationmark.triangle"
+              size={16}
+              tintColor={colors.tones.warning}
+            />
+            <Text style={styles.limitText}>{t("onDevice.limitation")}</Text>
           </View>
 
           <View style={styles.card}>
@@ -234,6 +247,17 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.md,
     },
     heroText: { ...typography.body, color: colors.text, flex: 1 },
+    limitCard: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: spacing.sm,
+      backgroundColor: withAlpha(colors.tones.warning, 0.1),
+      borderWidth: 1,
+      borderColor: withAlpha(colors.tones.warning, 0.35),
+      borderRadius: radius.xl,
+      padding: spacing.md,
+    },
+    limitText: { ...typography.caption, color: colors.text, flex: 1, lineHeight: 18 },
     card: {
       backgroundColor: colors.material,
       borderWidth: 1,
