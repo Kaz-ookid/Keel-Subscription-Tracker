@@ -854,6 +854,13 @@ export const fr: typeof en = {
     icloudFooter:
       "Vos données suivent votre identifiant Apple : la copie la plus récente gagne entre vos appareils. Les sauvegardes locales restent le filet de sécurité.",
     icloudUnavailable: "Connectez-vous à iCloud sur cet iPhone pour l'utiliser.",
+    icloudStatus: "Copie cloud : {{date}}.",
+    icloudNone: "Pas encore de copie cloud.",
+    icloudChoiceTitle: "Une copie cloud existe",
+    icloudChoiceMsg:
+      "iCloud contient déjà une sauvegarde Keel du {{date}}. L'utiliser sur cet iPhone, ou la remplacer par ce que contient cet iPhone ?",
+    icloudUseCloud: "Utiliser la copie cloud",
+    icloudReplaceCloud: "Remplacer par cet iPhone",
     groupLocal: "Sauvegardes locales",
     backupHistory: "Historique des sauvegardes",
     clearFooter:

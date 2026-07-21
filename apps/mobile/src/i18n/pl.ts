@@ -892,6 +892,13 @@ const translation = {
     icloudFooter:
       "Twoje dane podążają za twoim Apple ID: najnowsza kopia wygrywa między urządzeniami. Lokalne kopie zapasowe pozostają siatką bezpieczeństwa.",
     icloudUnavailable: "Zaloguj się do iCloud na tym iPhonie, aby z tego korzystać.",
+    icloudStatus: "Kopia w chmurze: {{date}}.",
+    icloudNone: "Nie ma jeszcze kopii w chmurze.",
+    icloudChoiceTitle: "Istnieje kopia w chmurze",
+    icloudChoiceMsg:
+      "iCloud ma już kopię Keela z {{date}}. Użyć jej na tym iPhonie, czy zastąpić ją tym, co jest teraz na tym iPhonie?",
+    icloudUseCloud: "Użyj kopii z chmury",
+    icloudReplaceCloud: "Zastąp danymi z tego iPhone'a",
     groupLocal: "Lokalne kopie zapasowe",
     backupHistory: "Historia kopii",
     clearFooter: "To trwale usuwa każdą pozycję, konto i zapis. Nie ma odwrotu.",

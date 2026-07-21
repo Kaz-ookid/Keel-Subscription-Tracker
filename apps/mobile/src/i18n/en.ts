@@ -846,6 +846,13 @@ export const en = {
     icloudFooter:
       "Your data follows your Apple ID: the newest copy wins across your devices. Local backups stay the safety net.",
     icloudUnavailable: "Sign in to iCloud on this iPhone to use this.",
+    icloudStatus: "Cloud copy: {{date}}.",
+    icloudNone: "No cloud copy yet.",
+    icloudChoiceTitle: "A cloud copy exists",
+    icloudChoiceMsg:
+      "iCloud already holds a Keel backup from {{date}}. Use it on this iPhone, or replace it with what this iPhone has now?",
+    icloudUseCloud: "Use the cloud copy",
+    icloudReplaceCloud: "Replace with this iPhone",
     groupLocal: "Local backups",
     backupHistory: "Backup history",
     clearFooter: "This permanently deletes every commitment, account and record. There is no undo.",

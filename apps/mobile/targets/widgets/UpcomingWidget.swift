@@ -38,11 +38,18 @@ struct UpcomingView: View {
 
   private func content(_ snapshot: WidgetSnapshot) -> some View {
     let upcoming = Array(snapshot.upcoming(from: entry.date).prefix(rowCount))
+    let lateCount = snapshot.overdueCount(from: entry.date)
     return VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline) {
         Text(snapshot.upcomingTitle)
           .font(.headline)
           .foregroundStyle(.white)
+        // Anything overdue outranks the month total in the header.
+        if lateCount > 0 {
+          Text(snapshot.lateLine(lateCount))
+            .font(.caption.weight(.semibold))
+            .foregroundStyle(Color.keelWarning)
+        }
         Spacer()
         Text("\(snapshot.monthLabel) · \(snapshot.monthTotal)")
           .font(.caption)
@@ -56,6 +63,7 @@ struct UpcomingView: View {
         Spacer(minLength: 0)
       } else {
         ForEach(upcoming) { payment in
+          let late = snapshot.isLate(payment, from: entry.date)
           Link(destination: URL(string: "keel://item?id=\(payment.id)") ?? URL(string: "keel://")!)
           {
             HStack(spacing: 8) {
@@ -66,10 +74,15 @@ struct UpcomingView: View {
                 .font(.subheadline)
                 .foregroundStyle(.white)
                 .lineLimit(1)
+              if late {
+                Image(systemName: "exclamationmark.triangle.fill")
+                  .font(.caption2)
+                  .foregroundStyle(Color.keelWarning)
+              }
               Spacer(minLength: 8)
               Text(snapshot.dueShort(payment, from: entry.date))
-                .font(.caption)
-                .foregroundStyle(Color.keelMuted)
+                .font(late ? .caption.weight(.semibold) : .caption)
+                .foregroundStyle(late ? Color.keelWarning : Color.keelMuted)
               Text(payment.amount)
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.white)

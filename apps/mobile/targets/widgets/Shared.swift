@@ -20,6 +20,11 @@ struct WidgetPayment: Codable, Identifiable {
   let dueDate: String
   /// "#RRGGBB", resolved by the app's brand rules (never black or white).
   let color: String
+  /// True for a charge whose day passed unpaid (optional: older snapshots
+  /// don't carry it).
+  let overdue: Bool?
+
+  var isOverdue: Bool { overdue ?? false }
 }
 
 struct WidgetSnapshot: Codable {
@@ -76,9 +81,23 @@ extension WidgetPayment {
 }
 
 extension WidgetSnapshot {
-  /// The charges still ahead as of the given timeline day.
+  /// Everything the widgets list. Nothing is filtered out: the snapshot holds
+  /// a full year, so every entry is either ahead or overdue, and an overdue
+  /// charge stays urgent no matter how old. The reference day only changes
+  /// LABELS (a charge that was upcoming at write time flips to overdue when
+  /// its day passes with the app unopened).
   func upcoming(from reference: Date) -> [WidgetPayment] {
-    payments.filter { $0.daysFrom(reference) >= 0 }
+    _ = reference
+    return payments
+  }
+
+  /// Overdue as of the timeline day: the snapshot's flag OR date drift.
+  func isLate(_ payment: WidgetPayment, from reference: Date) -> Bool {
+    payment.isOverdue || payment.daysFrom(reference) < 0
+  }
+
+  func overdueCount(from reference: Date) -> Int {
+    payments.filter { isLate($0, from: reference) }.count
   }
 
   var isFrench: Bool { locale.hasPrefix("fr") }
@@ -170,6 +189,15 @@ extension WidgetSnapshot {
     }
   }
 
+  /// "2 late" in the snapshot's language, for the list header.
+  func lateLine(_ count: Int) -> String {
+    if isFrench { return "\(count) en retard" }
+    if isGerman { return "\(count) überfällig" }
+    if isItalian { return "\(count) in ritardo" }
+    if isPolish { return "\(count) po terminie" }
+    return "\(count) late"
+  }
+
   var emptyLine: String {
     if isFrench { return "Rien à venir" }
     if isGerman { return "Nichts anstehend" }
@@ -204,6 +232,8 @@ extension Color {
   static let keelNavyDeep = Color(keelHex: "#071429")
   static let keelSeaGlass = Color(keelHex: "#7FB8B0")
   static let keelMuted = Color(keelHex: "#93A0B4")
+  /// The dark theme's warning tone (src/theme.tsx): overdue everywhere.
+  static let keelWarning = Color(keelHex: "#F0B35C")
 }
 
 /// The stage every home-screen widget stands on.
@@ -237,16 +267,16 @@ extension WidgetSnapshot {
       payments: [
         WidgetPayment(
           id: "sample-1", name: "Netflix", amount: "12.90 CHF", dueDate: day(1),
-          color: "#E50914"),
+          color: "#E50914", overdue: false),
         WidgetPayment(
           id: "sample-2", name: "Spotify", amount: "11.99 CHF", dueDate: day(3),
-          color: "#1DB954"),
+          color: "#1DB954", overdue: false),
         WidgetPayment(
           id: "sample-3", name: "iCloud+", amount: "2.99 CHF", dueDate: day(6),
-          color: "#3693F3"),
+          color: "#3693F3", overdue: false),
         WidgetPayment(
           id: "sample-4", name: "Gym", amount: "24.90 CHF", dueDate: day(9),
-          color: "#E30613"),
+          color: "#E30613", overdue: false),
       ]
     )
   }

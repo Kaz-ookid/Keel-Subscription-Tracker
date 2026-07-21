@@ -855,6 +855,13 @@ export const de: typeof en = {
     icloudFooter:
       "Deine Daten folgen deiner Apple-ID: Die neueste Kopie gewinnt zwischen deinen Geräten. Lokale Backups bleiben das Sicherheitsnetz.",
     icloudUnavailable: "Melde dich auf diesem iPhone bei iCloud an, um das zu nutzen.",
+    icloudStatus: "Cloud-Kopie: {{date}}.",
+    icloudNone: "Noch keine Cloud-Kopie.",
+    icloudChoiceTitle: "Eine Cloud-Kopie existiert",
+    icloudChoiceMsg:
+      "iCloud hält bereits ein Keel-Backup vom {{date}}. Auf diesem iPhone verwenden, oder durch den Stand dieses iPhones ersetzen?",
+    icloudUseCloud: "Cloud-Kopie verwenden",
+    icloudReplaceCloud: "Durch dieses iPhone ersetzen",
     groupLocal: "Lokale Backups",
     backupHistory: "Backup-Verlauf",
     clearFooter:

@@ -18,10 +18,16 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "re
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
+import { activityDateLabel } from "../src/lib/ai-activity-display";
 import { Card } from "../src/components/ui/Card";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
-import { ICLOUD_ENABLED_KEY, isICloudAvailable, uploadToICloud } from "../src/lib/icloud-backup";
+import {
+  downloadFromICloud,
+  ICLOUD_ENABLED_KEY,
+  isICloudAvailable,
+  uploadToICloud,
+} from "../src/lib/icloud-backup";
 import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -63,11 +69,19 @@ export default function DataScreen() {
   const [icloud, setIcloud] = useState(false);
   // null while probing; false = no iCloud account on this iPhone.
   const [cloudReady, setCloudReady] = useState<boolean | null>(null);
+  // The verifiable truth: when the cloud copy was written ("" = none found).
+  // This line under the switch is how anyone checks the sync is real.
+  const [cloudSavedAt, setCloudSavedAt] = useState<string | null>(null);
   const [backupCount, setBackupCount] = useState(0);
+
+  const refreshCloudStatus = () => {
+    void downloadFromICloud().then((envelope) => setCloudSavedAt(envelope?.savedAt ?? ""));
+  };
 
   useEffect(() => {
     void AsyncStorage.getItem(ICLOUD_ENABLED_KEY).then((stored) => setIcloud(stored === "true"));
     void isICloudAvailable().then(setCloudReady);
+    refreshCloudStatus();
   }, []);
 
   // The count updates when returning from the history screen. Stamps only:
@@ -81,9 +95,37 @@ export default function DataScreen() {
   const toggleIcloud = (next: boolean) => {
     setIcloud(next);
     void AsyncStorage.setItem(ICLOUD_ENABLED_KEY, String(next));
-    // Turning it on writes the first cloud copy right away, so the backup
-    // exists the moment the promise is made, not at the next data change.
-    if (next) void uploadToICloud(exportData());
+    if (!next) return;
+    // Turning it on must NEVER silently clobber an existing cloud copy: a
+    // fresh install flipping the switch would otherwise upload its empty
+    // state over the real backup. If a copy exists, the user picks a side.
+    void downloadFromICloud().then((envelope) => {
+      if (!envelope) {
+        void uploadToICloud(exportData()).then(refreshCloudStatus);
+        return;
+      }
+      Alert.alert(
+        t("data.icloudChoiceTitle"),
+        t("data.icloudChoiceMsg", { date: activityDateLabel(envelope.savedAt) }),
+        [
+          {
+            text: t("data.icloudUseCloud"),
+            onPress: () => {
+              importData(JSON.stringify(envelope.state));
+              refreshCloudStatus();
+            },
+          },
+          {
+            text: t("data.icloudReplaceCloud"),
+            style: "destructive",
+            onPress: () => {
+              void uploadToICloud(exportData()).then(refreshCloudStatus);
+            },
+          },
+          { text: t("common.cancel"), style: "cancel" },
+        ],
+      );
+    });
   };
 
   const exportBackup = async () => {
@@ -154,6 +196,13 @@ export default function DataScreen() {
         </View>
         <Text style={styles.footnote}>
           {cloudReady === false ? t("data.icloudUnavailable") : t("data.icloudFooter")}
+          {cloudReady !== false && cloudSavedAt !== null
+            ? `\n${
+                cloudSavedAt === ""
+                  ? t("data.icloudNone")
+                  : t("data.icloudStatus", { date: activityDateLabel(cloudSavedAt) })
+              }`
+            : ""}
         </Text>
       </Card>
 

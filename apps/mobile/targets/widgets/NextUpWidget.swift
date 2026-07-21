@@ -23,7 +23,13 @@ struct NextUpView: View {
   let entry: KeelEntry
 
   private var snapshot: WidgetSnapshot? { entry.snapshot }
+  /// The single most urgent thing: the oldest overdue charge if any exists
+  /// (the app pins them first), else the nearest upcoming one.
   private var next: WidgetPayment? { snapshot?.upcoming(from: entry.date).first }
+  private var nextIsLate: Bool {
+    guard let snapshot, let next else { return false }
+    return snapshot.isLate(next, from: entry.date)
+  }
 
   var body: some View {
     switch family {
@@ -44,9 +50,14 @@ struct NextUpView: View {
             .fill(Color(keelHex: next.color))
             .frame(width: 10, height: 10)
           Text(snapshot.dueLabel(next, from: entry.date))
-            .font(.caption)
-            .foregroundStyle(Color.keelSeaGlass)
+            .font(.caption.weight(nextIsLate ? .semibold : .regular))
+            .foregroundStyle(nextIsLate ? Color.keelWarning : Color.keelSeaGlass)
           Spacer(minLength: 0)
+          if nextIsLate {
+            Image(systemName: "exclamationmark.triangle.fill")
+              .font(.caption2)
+              .foregroundStyle(Color.keelWarning)
+          }
         }
         Spacer(minLength: 0)
         Text(next.name)
@@ -89,11 +100,22 @@ struct NextUpView: View {
     ZStack {
       AccessoryWidgetBackground()
       if let snapshot, let next {
-        VStack(spacing: 0) {
-          Text("\(max(next.daysFrom(entry.date), 0))")
-            .font(.title2.weight(.bold))
-          Text(snapshot.isFrench ? "j" : "d")
-            .font(.caption2)
+        if nextIsLate {
+          // Days-until makes no sense for a passed date: the dial shows the
+          // alert instead, with how many charges wait.
+          VStack(spacing: 0) {
+            Image(systemName: "exclamationmark.triangle.fill")
+              .font(.body)
+            Text("\(snapshot.overdueCount(from: entry.date))")
+              .font(.caption.weight(.bold))
+          }
+        } else {
+          VStack(spacing: 0) {
+            Text("\(max(next.daysFrom(entry.date), 0))")
+              .font(.title2.weight(.bold))
+            Text(snapshot.isFrench ? "j" : "d")
+              .font(.caption2)
+          }
         }
       } else {
         Image(systemName: "checkmark")
@@ -113,8 +135,8 @@ struct NextUpView: View {
         Text(next.amount)
           .font(.body.weight(.semibold))
         Text(snapshot.dueLabel(next, from: entry.date))
-          .font(.caption)
-          .foregroundStyle(.secondary)
+          .font(.caption.weight(nextIsLate ? .semibold : .regular))
+          .foregroundStyle(nextIsLate ? AnyShapeStyle(Color.keelWarning) : AnyShapeStyle(.secondary))
       } else {
         Text(snapshot?.emptyLine ?? "All clear")
           .font(.headline)
