@@ -66,7 +66,6 @@ async function cloud(): Promise<{
 } | null> {
   try {
     // Lazy so the native module is only touched where it exists.
-    // @ts-expect-error dormant dependency, installed in the dev-build era
     const lib = (await import("react-native-cloud-storage")) as {
       CloudStorage: {
         isCloudAvailable(): Promise<boolean>;

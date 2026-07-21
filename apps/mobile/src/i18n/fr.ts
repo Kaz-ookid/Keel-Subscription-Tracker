@@ -851,7 +851,9 @@ export const fr: typeof en = {
     title: "iCloud et données",
     groupIcloud: "iCloud",
     icloudSync: "Synchroniser avec iCloud",
-    icloudFooter: "La synchronisation arrive. En attendant, seul votre choix est enregistré.",
+    icloudFooter:
+      "Vos données suivent votre identifiant Apple : la copie la plus récente gagne entre vos appareils. Les sauvegardes locales restent le filet de sécurité.",
+    icloudUnavailable: "Connectez-vous à iCloud sur cet iPhone pour l'utiliser.",
     groupLocal: "Sauvegardes locales",
     backupHistory: "Historique des sauvegardes",
     clearFooter:

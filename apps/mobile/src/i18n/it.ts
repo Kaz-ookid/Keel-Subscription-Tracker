@@ -850,7 +850,8 @@ export const it: typeof en = {
     groupIcloud: "iCloud",
     icloudSync: "Sincronizza con iCloud",
     icloudFooter:
-      "La sincronizzazione è in arrivo. Finché non c'è, questo interruttore ricorda solo la tua scelta.",
+      "I tuoi dati seguono il tuo ID Apple: la copia più recente vince tra i tuoi dispositivi. I backup locali restano la rete di sicurezza.",
+    icloudUnavailable: "Accedi a iCloud su questo iPhone per usarlo.",
     groupLocal: "Backup locali",
     backupHistory: "Cronologia dei backup",
     clearFooter: "Elimina definitivamente ogni voce, conto e registrazione. Non si può annullare.",

@@ -81,7 +81,8 @@ const light: ThemeColors = {
   },
 };
 
-const dark: ThemeColors = {
+// Exported for the widgets: they render night-at-sea regardless of scheme.
+export const darkColors: ThemeColors = {
   navy: NAVY,
   navyDeep: NAVY_DEEP,
   white: "#FFFFFF",
@@ -157,7 +158,7 @@ export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
   const { mode } = useContext(ThemeModeContext);
   const system = useColorScheme();
   const scheme: ColorScheme = mode === "system" ? (system === "dark" ? "dark" : "light") : mode;
-  return { colors: scheme === "dark" ? dark : light, scheme };
+  return { colors: scheme === "dark" ? darkColors : light, scheme };
 }
 
 /** A hex color at the given alpha — brand washes and bleeds (§9c). */

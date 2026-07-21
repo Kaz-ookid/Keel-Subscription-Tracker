@@ -853,7 +853,8 @@ export const de: typeof en = {
     groupIcloud: "iCloud",
     icloudSync: "Mit iCloud synchronisieren",
     icloudFooter:
-      "Die Synchronisierung ist unterwegs. Bis sie da ist, merkt sich dieser Schalter nur deine Wahl.",
+      "Deine Daten folgen deiner Apple-ID: Die neueste Kopie gewinnt zwischen deinen Geräten. Lokale Backups bleiben das Sicherheitsnetz.",
+    icloudUnavailable: "Melde dich auf diesem iPhone bei iCloud an, um das zu nutzen.",
     groupLocal: "Lokale Backups",
     backupHistory: "Backup-Verlauf",
     clearFooter:

@@ -843,7 +843,9 @@ export const en = {
     title: "iCloud & data",
     groupIcloud: "iCloud",
     icloudSync: "Sync with iCloud",
-    icloudFooter: "Sync is on the way. Until it ships, this switch only saves your preference.",
+    icloudFooter:
+      "Your data follows your Apple ID: the newest copy wins across your devices. Local backups stay the safety net.",
+    icloudUnavailable: "Sign in to iCloud on this iPhone to use this.",
     groupLocal: "Local backups",
     backupHistory: "Backup history",
     clearFooter: "This permanently deletes every commitment, account and record. There is no undo.",

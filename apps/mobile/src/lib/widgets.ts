@@ -97,7 +97,6 @@ export function buildWidgetSnapshot(
 export async function writeWidgetSnapshot(snapshot: WidgetSnapshot): Promise<void> {
   try {
     // Lazy so the native module is only touched where it exists.
-    // @ts-expect-error dormant dependency, installed in the dev-build era
     const targets = (await import("@bacons/apple-targets")) as {
       ExtensionStorage: {
         new (group: string): { set(key: string, value: string): void };

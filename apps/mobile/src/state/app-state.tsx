@@ -68,11 +68,21 @@ import {
   type SuggestedCommitment,
 } from "@keel/core";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 import { COLOR_SWATCHES } from "../constants";
 import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
+import {
+  chooseNewerState,
+  downloadFromICloud,
+  ICLOUD_ENABLED_KEY,
+  uploadToICloud,
+} from "../lib/icloud-backup";
 import { syncReminders } from "../lib/notifications";
 import { buildSampleData } from "../lib/sample-data";
+import { buildWidgetSnapshot, writeWidgetSnapshot } from "../lib/widgets";
+import { darkColors } from "../theme";
 import {
   loadSnapshot,
   loadState,
@@ -278,7 +288,24 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    loadState().then((state) => {
+    // Hydrate from disk, and where the iCloud switch is on, let the cloud
+    // copy win when it is genuinely newer (another device wrote it) — the
+    // BACKUP that follows the account, not a merge engine. Offline or
+    // signed-out just means the local state stands.
+    const hydrate = async () => {
+      let state = await loadState();
+      try {
+        if ((await AsyncStorage.getItem(ICLOUD_ENABLED_KEY)) === "true") {
+          const remote = await downloadFromICloud();
+          const decision = await chooseNewerState(state, remote);
+          state = decision.state;
+        }
+      } catch {
+        // iCloud being unreachable must never delay or break launch.
+      }
+      return state;
+    };
+    hydrate().then((state) => {
       const accrued: PaymentOccurrence[] = [];
       const caughtUp = state.items.map((item) => {
         const result = catchUp(item);
@@ -349,6 +376,23 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       });
     };
     attempt(1);
+
+    // The widgets eat a pre-formatted snapshot of the same state: rebuilt on
+    // every change (and language switch) so "Tomorrow" and amounts never go
+    // stale on the home screen. No-op where the native half is absent.
+    const locale = (["en", "fr", "de", "it", "pl"] as const).find((l) =>
+      i18n.language.startsWith(l),
+    );
+    void writeWidgetSnapshot(
+      buildWidgetSnapshot(items, displayCurrency, rates, locale ?? "en", darkColors.accent),
+    );
+
+    // And where the iCloud switch is on, the same blob rides to the cloud,
+    // fire-and-forget: the local write above is the source of truth.
+    void AsyncStorage.getItem(ICLOUD_ENABLED_KEY).then((enabled) => {
+      if (enabled === "true") void uploadToICloud(state);
+    });
+
     return () => {
       stale = true;
     };
@@ -359,10 +403,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     customCategories,
     accounts,
     displayCurrency,
+    rates,
     pending,
     aiActivity,
     loading,
     i18n,
+    i18n.language,
   ]);
 
   // The daily local backup: once per launch, right after hydration — the

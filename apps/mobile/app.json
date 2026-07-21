@@ -15,8 +15,15 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "ch.keelapp.keel",
+      "appleTeamId": "TBF3VV2BT8",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.security.application-groups": ["group.ch.keelapp.keel"],
+        "com.apple.developer.icloud-container-identifiers": ["iCloud.ch.keelapp.keel"],
+        "com.apple.developer.icloud-services": ["CloudDocuments"],
+        "com.apple.developer.ubiquity-container-identifiers": ["iCloud.ch.keelapp.keel"]
       }
     },
     "android": {
@@ -27,10 +34,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
-      ]
+      "permissions": ["android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -44,7 +48,9 @@
         {
           "faceIDPermission": "Keel uses Face ID to unlock the app."
         }
-      ]
+      ],
+      "@bacons/apple-targets",
+      "react-native-cloud-storage"
     ],
     "experiments": {
       "typedRoutes": true

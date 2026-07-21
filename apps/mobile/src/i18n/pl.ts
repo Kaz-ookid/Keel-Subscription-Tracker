@@ -890,7 +890,8 @@ const translation = {
     groupIcloud: "iCloud",
     icloudSync: "Synchronizuj z iCloud",
     icloudFooter:
-      "Synchronizacja jest w drodze. Zanim dotrze, ten przełącznik zapamiętuje tylko twój wybór.",
+      "Twoje dane podążają za twoim Apple ID: najnowsza kopia wygrywa między urządzeniami. Lokalne kopie zapasowe pozostają siatką bezpieczeństwa.",
+    icloudUnavailable: "Zaloguj się do iCloud na tym iPhonie, aby z tego korzystać.",
     groupLocal: "Lokalne kopie zapasowe",
     backupHistory: "Historia kopii",
     clearFooter: "To trwale usuwa każdą pozycję, konto i zapis. Nie ma odwrotu.",

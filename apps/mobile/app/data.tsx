@@ -21,10 +21,9 @@ import { useCallback } from "react";
 import { Card } from "../src/components/ui/Card";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
+import { ICLOUD_ENABLED_KEY, isICloudAvailable, uploadToICloud } from "../src/lib/icloud-backup";
 import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
-
-const ICLOUD_KEY = "keel.icloud.enabled.v1";
 
 function IconChip({ icon, color }: { icon: string; color: string }) {
   return (
@@ -62,10 +61,13 @@ export default function DataScreen() {
   const aiHidden = useAiHidden();
 
   const [icloud, setIcloud] = useState(false);
+  // null while probing; false = no iCloud account on this iPhone.
+  const [cloudReady, setCloudReady] = useState<boolean | null>(null);
   const [backupCount, setBackupCount] = useState(0);
 
   useEffect(() => {
-    void AsyncStorage.getItem(ICLOUD_KEY).then((stored) => setIcloud(stored === "true"));
+    void AsyncStorage.getItem(ICLOUD_ENABLED_KEY).then((stored) => setIcloud(stored === "true"));
+    void isICloudAvailable().then(setCloudReady);
   }, []);
 
   // The count updates when returning from the history screen. Stamps only:
@@ -78,7 +80,10 @@ export default function DataScreen() {
 
   const toggleIcloud = (next: boolean) => {
     setIcloud(next);
-    void AsyncStorage.setItem(ICLOUD_KEY, String(next));
+    void AsyncStorage.setItem(ICLOUD_ENABLED_KEY, String(next));
+    // Turning it on writes the first cloud copy right away, so the backup
+    // exists the moment the promise is made, not at the next data change.
+    if (next) void uploadToICloud(exportData());
   };
 
   const exportBackup = async () => {
@@ -143,10 +148,13 @@ export default function DataScreen() {
           <Switch
             value={icloud}
             onValueChange={toggleIcloud}
+            disabled={cloudReady === false}
             trackColor={{ true: colors.accent }}
           />
         </View>
-        <Text style={styles.footnote}>{t("data.icloudFooter")}</Text>
+        <Text style={styles.footnote}>
+          {cloudReady === false ? t("data.icloudUnavailable") : t("data.icloudFooter")}
+        </Text>
       </Card>
 
       <Text style={styles.groupLabel}>{t("data.groupLocal")}</Text>
