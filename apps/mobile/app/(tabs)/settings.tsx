@@ -29,7 +29,6 @@ import {
 } from "react-native";
 
 import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
-import { loadHarborEnabled, setHarborEnabled } from "../../src/lib/experiments";
 import Animated from "react-native-reanimated";
 
 import { foldIn, foldOut } from "../../src/lib/motion";
@@ -118,8 +117,6 @@ const CHIP = {
   restoreBackup: "#30D158",
   debug: "#8E8E93",
   sample: "#FF9F0A",
-  demo: "#BF5AF2",
-  harbor: "#64D2FF",
   danger: "#FF3B30",
   about: "#FF2D55",
 } as const;
@@ -136,14 +133,8 @@ export default function SettingsScreen() {
     if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [resetSignal]);
   const { accounts, displayCurrency, rates, snapshotSavedAt } = useAppData();
-  const {
-    setDisplayCurrency,
-    clearAllData,
-    loadSampleData,
-    loadDemoData,
-    saveSnapshot,
-    restoreSnapshot,
-  } = useAppActions();
+  const { setDisplayCurrency, clearAllData, loadSampleData, saveSnapshot, restoreSnapshot } =
+    useAppActions();
   const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
   const [currencySheet, setCurrencySheet] = useState(false);
@@ -153,8 +144,8 @@ export default function SettingsScreen() {
   const [authKind, setAuthKind] = useState<AuthKind | null>(null);
   const [lockEnabled, setLockEnabled] = useState(false);
   const [graceSeconds, setGraceSeconds] = useState(0);
-  // Experimental Harbor view (DESIGN.md §3.7 B) — a debug-only flag.
-  const [harborOn, setHarborOn] = useState(false);
+  // The debug drawer stays collapsed until a tester opens it.
+  const [debugOpen, setDebugOpen] = useState(false);
   // Full Keel: the banner reflects ownership; the debug switch flips it.
   const entitlement = useEntitlement();
   const [bannerWidth, setBannerWidth] = useState(0);
@@ -180,7 +171,6 @@ export default function SettingsScreen() {
       setLockEnabled(config.enabled);
       setGraceSeconds(config.graceSeconds);
     });
-    void loadHarborEnabled().then(setHarborOn);
   }, []);
 
   // Authenticate in BOTH directions: enabling proves the lock can open (no
@@ -332,12 +322,6 @@ export default function SettingsScreen() {
     Alert.alert(t("settings.loadSample"), t("settings.sampleMsg"), [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("settings.replace"), style: "destructive", onPress: loadSampleData },
-    ]);
-
-  const confirmDemo = () =>
-    Alert.alert(t("settings.loadDemo"), t("settings.demoMsg"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("settings.replace"), style: "destructive", onPress: loadDemoData },
     ]);
 
   // Debug: relive the first launch — wipe everything, forget the tour was
@@ -578,79 +562,9 @@ export default function SettingsScreen() {
           />
         </Card>
 
-        {/* Debug, for dogfooding: seed a realistic household or start clean —
-          bracketed by the snapshot slot so real data survives the play. */}
-        <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
-        <Card>
-          <SettingsRow
-            icon="tray.and.arrow.down.fill"
-            chipColor={CHIP.debug}
-            label={t("settings.snapshotSave")}
-            value={snapshotLabel}
-            onPress={confirmSnapshotSave}
-          />
-          {snapshotSavedAt !== null && (
-            <SettingsRow
-              icon="tray.and.arrow.up.fill"
-              chipColor={CHIP.debug}
-              label={t("settings.snapshotRestore")}
-              divider
-              onPress={confirmSnapshotRestore}
-            />
-          )}
-          <SettingsRow
-            icon="wand.and.stars"
-            chipColor={CHIP.sample}
-            label={t("settings.loadSample")}
-            divider
-            onPress={confirmSample}
-          />
-          <SettingsRow
-            icon="person.crop.square.filled.and.at.rectangle"
-            chipColor={CHIP.demo}
-            label={t("settings.loadDemo")}
-            divider
-            onPress={confirmDemo}
-          />
-          <SettingsRow
-            icon="sailboat"
-            chipColor={CHIP.harbor}
-            label={t("settings.harborExperiment")}
-            divider
-            right={
-              <Switch
-                value={harborOn}
-                onValueChange={(next) => {
-                  setHarborOn(next);
-                  void setHarborEnabled(next);
-                }}
-                trackColor={{ true: colors.accent }}
-              />
-            }
-          />
-          <SettingsRow
-            icon="arrow.counterclockwise"
-            chipColor={CHIP.debug}
-            label={t("settings.testOnboarding")}
-            divider
-            onPress={confirmOnboarding}
-          />
-          <SettingsRow
-            icon="checkmark.seal.fill"
-            chipColor={CHIP.debug}
-            label={t("settings.fullkeelDebug")}
-            divider
-            right={
-              <Switch
-                value={entitlement.full}
-                onValueChange={(next) => void setFullKeel(next)}
-                trackColor={{ true: colors.accent }}
-              />
-            }
-          />
-        </Card>
-
-        {/* The maker, the mailbox, the legal texts: one door for all of it. */}
+        {/* The maker, the mailbox, the legal texts: one door for all of it.
+            Above the debug drawer, because it is the row people actually
+            look for. */}
         <Text style={styles.groupLabel}>{t("settings.groupAbout")}</Text>
         <Card>
           <SettingsRow
@@ -661,6 +575,67 @@ export default function SettingsScreen() {
             onPress={() => router.push("/about")}
           />
         </Card>
+
+        {/* Debug, for dogfooding and beta testers: collapsed by default so it
+            never clutters the list, but one tap away when a tester needs to
+            seed data or replay onboarding. */}
+        <Pressable style={styles.debugHeader} onPress={() => setDebugOpen((open) => !open)}>
+          <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
+          <SymbolView
+            name={debugOpen ? "chevron.down" : "chevron.right"}
+            size={12}
+            tintColor={colors.mutedText}
+          />
+        </Pressable>
+        {debugOpen && (
+          <Animated.View entering={foldIn} exiting={foldOut}>
+            <Card>
+              <SettingsRow
+                icon="tray.and.arrow.down.fill"
+                chipColor={CHIP.debug}
+                label={t("settings.snapshotSave")}
+                value={snapshotLabel}
+                onPress={confirmSnapshotSave}
+              />
+              {snapshotSavedAt !== null && (
+                <SettingsRow
+                  icon="tray.and.arrow.up.fill"
+                  chipColor={CHIP.debug}
+                  label={t("settings.snapshotRestore")}
+                  divider
+                  onPress={confirmSnapshotRestore}
+                />
+              )}
+              <SettingsRow
+                icon="wand.and.stars"
+                chipColor={CHIP.sample}
+                label={t("settings.loadSample")}
+                divider
+                onPress={confirmSample}
+              />
+              <SettingsRow
+                icon="arrow.counterclockwise"
+                chipColor={CHIP.debug}
+                label={t("settings.testOnboarding")}
+                divider
+                onPress={confirmOnboarding}
+              />
+              <SettingsRow
+                icon="checkmark.seal.fill"
+                chipColor={CHIP.debug}
+                label={t("settings.fullkeelDebug")}
+                divider
+                right={
+                  <Switch
+                    value={entitlement.full}
+                    onValueChange={(next) => void setFullKeel(next)}
+                    trackColor={{ true: colors.accent }}
+                  />
+                }
+              />
+            </Card>
+          </Animated.View>
+        )}
 
         <Text style={styles.footer}>
           {APP_NAME}
@@ -751,6 +726,12 @@ function createStyles(colors: ThemeColors) {
       paddingTop: spacing.xs,
     },
     engineRight: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    debugHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      paddingVertical: spacing.xs,
+    },
     footer: {
       ...typography.caption,
       color: colors.mutedText,

@@ -17,7 +17,6 @@ import { ScheduleView, type ScheduleLens } from "../../src/components/payments/S
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { TabFade } from "../../src/components/TabFade";
-import { loadHarborEnabled, onHarborChange } from "../../src/lib/experiments";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppData } from "../../src/state/app-state";
@@ -46,14 +45,6 @@ export default function PaymentsScreen() {
   // The schedule slot's lens lives HERE so the calendar toggle can always
   // bring the grid back, even while the harbor is showing.
   const [scheduleLens, setScheduleLens] = useState<ScheduleLens>("grid");
-  const [harborEnabled, setHarborEnabled] = useState(false);
-  useEffect(() => {
-    void loadHarborEnabled().then(setHarborEnabled);
-    return onHarborChange((enabled) => {
-      setHarborEnabled(enabled);
-      if (!enabled) setScheduleLens("grid");
-    });
-  }, []);
 
   // First launch only: a truly empty app (no items, no accounts) and the tour
   // never shown → open onboarding. Checked once per mount, after hydration.
@@ -192,7 +183,7 @@ export default function PaymentsScreen() {
           </View>
         </PagerView>
       ) : (
-        <ScheduleView lens={scheduleLens} onLens={setScheduleLens} harborEnabled={harborEnabled} />
+        <ScheduleView lens={scheduleLens} onLens={setScheduleLens} />
       )}
     </TabFade>
   );

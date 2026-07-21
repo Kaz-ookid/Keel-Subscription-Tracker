@@ -72,7 +72,6 @@ import { COLOR_SWATCHES } from "../constants";
 import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import { syncReminders } from "../lib/notifications";
-import { buildDemoData } from "../lib/demo-data";
 import { buildSampleData } from "../lib/sample-data";
 import {
   loadSnapshot,
@@ -163,8 +162,6 @@ export interface AppActions {
   clearAllData: () => void;
   /** Debug/testing: replace everything with a realistic seeded household. */
   loadSampleData: () => void;
-  /** Debug/testing: replace everything with the demo seed. */
-  loadDemoData: () => void;
   addPendingSuggestions: (suggestions: SuggestedCommitment[]) => void;
   removePendingSuggestion: (id: string) => void;
   /** Backup: the exact persisted shape, ready to serialise and share. */
@@ -600,14 +597,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts(sample.accounts);
     };
 
-    const loadDemoData = () => {
-      const demo = buildDemoData();
-      setItems(demo.items);
-      setOccurrences(demo.occurrences);
-      setCustomCategories([]);
-      setAccounts(demo.accounts);
-    };
-
     const exportData = (): PersistedState => {
       const s = rawRef.current;
       return {
@@ -824,7 +813,6 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       archiveAccount,
       clearAllData,
       loadSampleData,
-      loadDemoData,
       addPendingSuggestions,
       removePendingSuggestion,
       exportData,

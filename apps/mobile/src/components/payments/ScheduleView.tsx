@@ -24,17 +24,15 @@ export type ScheduleLens = "grid" | "harbor";
 export function ScheduleView({
   lens,
   onLens,
-  harborEnabled,
 }: {
   lens: ScheduleLens;
   onLens: (lens: ScheduleLens) => void;
-  harborEnabled: boolean;
 }) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
-  if (lens === "harbor" && harborEnabled) {
+  if (lens === "harbor") {
     return (
       <View style={styles.fill}>
         {/* Full-bleed sea; the way back floats over the water so nothing
@@ -52,7 +50,7 @@ export function ScheduleView({
   }
   return (
     <Animated.View style={styles.fill} entering={FadeIn.duration(220)}>
-      <CalendarMonthView onOpenHarbor={harborEnabled ? () => onLens("harbor") : undefined} />
+      <CalendarMonthView onOpenHarbor={() => onLens("harbor")} />
     </Animated.View>
   );
 }
