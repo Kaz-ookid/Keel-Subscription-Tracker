@@ -10,9 +10,13 @@ import {
   type PaymentItem,
 } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
-import { useMemo } from "react";
+import { SymbolView } from "expo-symbols";
+import { useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from "react-native-gesture-handler/ReanimatedSwipeable";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { brandBleed } from "../lib/brand";
@@ -123,59 +127,81 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     showMarkPaid = false;
   }
 
-  const confirmDelete = () =>
+  // Swipe left (the mail idiom) or long-press: both land on the same
+  // confirm. The swipeable closes first so the row isn't left hanging open
+  // behind the alert.
+  const swipeRef = useRef<SwipeableMethods>(null);
+  const confirmDelete = () => {
+    swipeRef.current?.close();
     Alert.alert(t("row.deleteTitle"), t("row.deleteAsk", { name: item.name }), [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("common.delete"), style: "destructive", onPress: onDelete },
     ]);
+  };
 
   return (
-    <Pressable
-      onPress={onPress}
-      onLongPress={confirmDelete}
-      style={({ pressed }) => [
-        styles.row,
-        (complete || item.status === "paused") && styles.rowComplete,
-        pressed && styles.rowPressed,
-      ]}
+    <ReanimatedSwipeable
+      ref={swipeRef}
+      friction={2}
+      rightThreshold={36}
+      overshootRight={false}
+      renderRightActions={() => (
+        <Pressable
+          style={styles.deleteAction}
+          onPress={confirmDelete}
+          accessibilityLabel={t("common.delete")}
+        >
+          <SymbolView name="trash.fill" size={20} tintColor="#FFFFFF" />
+        </Pressable>
+      )}
     >
-      {/* The brand's color bleeds softly from the badge side (§9c). */}
-      <LinearGradient
-        colors={[withAlpha(accent, 0.16), "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.65, y: 0 }}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      <BrandBadge
-        domain={item.domain}
-        icon={category?.icon}
-        fallback={item.name.charAt(0).toUpperCase()}
-        color={accent}
-      />
+      <Pressable
+        onPress={onPress}
+        onLongPress={confirmDelete}
+        style={({ pressed }) => [
+          styles.row,
+          (complete || item.status === "paused") && styles.rowComplete,
+          pressed && styles.rowPressed,
+        ]}
+      >
+        {/* The brand's color bleeds softly from the badge side (§9c). */}
+        <LinearGradient
+          colors={[withAlpha(accent, 0.16), "transparent"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0.65, y: 0 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+        <BrandBadge
+          domain={item.domain}
+          icon={category?.icon}
+          fallback={item.name.charAt(0).toUpperCase()}
+          color={accent}
+        />
 
-      <View style={styles.middle}>
-        <Text style={styles.name} numberOfLines={1}>
-          {item.name}
-        </Text>
-        {subLine && (
-          <Text style={styles.sub} numberOfLines={1}>
-            {subLine}
+        <View style={styles.middle}>
+          <Text style={styles.name} numberOfLines={1}>
+            {item.name}
           </Text>
-        )}
-        {tag ? (
-          <Text style={[styles.tag, { color: tagColor }]} numberOfLines={1}>
-            {tag}
-            {account ? <Text style={styles.tagAccount}> · {account.name}</Text> : null}
-          </Text>
-        ) : null}
-      </View>
+          {subLine && (
+            <Text style={styles.sub} numberOfLines={1}>
+              {subLine}
+            </Text>
+          )}
+          {tag ? (
+            <Text style={[styles.tag, { color: tagColor }]} numberOfLines={1}>
+              {tag}
+              {account ? <Text style={styles.tagAccount}> · {account.name}</Text> : null}
+            </Text>
+          ) : null}
+        </View>
 
-      <View style={styles.right}>
-        {amount && <Text style={styles.amount}>{amount}</Text>}
-        {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
-      </View>
-    </Pressable>
+        <View style={styles.right}>
+          {amount && <Text style={styles.amount}>{amount}</Text>}
+          {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
+        </View>
+      </Pressable>
+    </ReanimatedSwipeable>
   );
 }
 
@@ -196,6 +222,15 @@ function createStyles(colors: ThemeColors) {
       opacity: emphasis.dim,
     },
     rowPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
+    // The revealed swipe action: a rounded danger block matching row height.
+    deleteAction: {
+      width: 72,
+      marginLeft: spacing.sm,
+      borderRadius: radius.lg,
+      backgroundColor: colors.tones.danger,
+      alignItems: "center",
+      justifyContent: "center",
+    },
     middle: {
       flex: 1,
       gap: 2,
