@@ -44,6 +44,9 @@ export default function ImportScreen() {
   const { startSession } = useImportSession();
   // The free-read meter (2 reads; a read only counts when it succeeds).
   const { loaded, full, readsLeft } = useEntitlement();
+  // Out of reads: the paste affordances disappear entirely — a Paste button
+  // that leads nowhere would invite work it can't accept.
+  const outOfReads = loaded && !full && readsLeft <= 0;
 
   const [pasted, setPasted] = useState("");
   // Pasting is the expected path (a Paste button, no keyboard); typing by
@@ -64,8 +67,9 @@ export default function ImportScreen() {
   };
 
   const parseAndGo = (text: string) => {
-    // Out of free reads: the button becomes the door to Full Keel.
-    if (loaded && !full && readsLeft <= 0) {
+    // Backstop only — the paste card is already replaced by the Full Keel
+    // door when reads run out, so this should be unreachable.
+    if (outOfReads) {
       router.push("/fullkeel");
       return;
     }
@@ -173,7 +177,14 @@ export default function ImportScreen() {
               : t("importAI.readsOut")}
           </Text>
         )}
-        {manualEntry && (
+        {outOfReads && (
+          <Button
+            icon="checkmark.seal.fill"
+            label={t("fullkeel.cta")}
+            onPress={() => router.push("/fullkeel")}
+          />
+        )}
+        {!outOfReads && manualEntry && (
           <TextInput
             style={styles.paste}
             value={pasted}
@@ -189,7 +200,7 @@ export default function ImportScreen() {
             autoFocus
           />
         )}
-        {!manualEntry && pasted !== "" && (
+        {!outOfReads && !manualEntry && pasted !== "" && (
           <Text style={styles.preview} numberOfLines={5}>
             {pasted}
           </Text>
@@ -205,31 +216,34 @@ export default function ImportScreen() {
             )}
           </Text>
         )}
-        {manualEntry ? (
-          <Button
-            label={t("importAI.read")}
-            onPress={() => parseAndGo(pasted)}
-            disabled={pasted.trim() === ""}
-          />
-        ) : (
-          <Button
-            icon="doc.on.clipboard"
-            label={t("importAI.pasteButton")}
-            onPress={() => void pasteAnswer()}
-          />
+        {!outOfReads &&
+          (manualEntry ? (
+            <Button
+              label={t("importAI.read")}
+              onPress={() => parseAndGo(pasted)}
+              disabled={pasted.trim() === ""}
+            />
+          ) : (
+            <Button
+              icon="doc.on.clipboard"
+              label={t("importAI.pasteButton")}
+              onPress={() => void pasteAnswer()}
+            />
+          ))}
+        {!outOfReads && (
+          <View style={styles.pasteLinks}>
+            {!manualEntry && (
+              <Pressable onPress={() => setManualEntry(true)} hitSlop={8}>
+                <Text style={styles.quietLink}>{t("importAI.typeManually")}</Text>
+              </Pressable>
+            )}
+            {(pasted !== "" || manualEntry) && (
+              <Pressable onPress={clearPaste} hitSlop={8}>
+                <Text style={styles.quietLink}>{t("importAI.clear")}</Text>
+              </Pressable>
+            )}
+          </View>
         )}
-        <View style={styles.pasteLinks}>
-          {!manualEntry && (
-            <Pressable onPress={() => setManualEntry(true)} hitSlop={8}>
-              <Text style={styles.quietLink}>{t("importAI.typeManually")}</Text>
-            </Pressable>
-          )}
-          {(pasted !== "" || manualEntry) && (
-            <Pressable onPress={clearPaste} hitSlop={8}>
-              <Text style={styles.quietLink}>{t("importAI.clear")}</Text>
-            </Pressable>
-          )}
-        </View>
       </View>
 
       <Pressable onPress={() => setPopup("privacy")} hitSlop={8} style={styles.privacyLink}>

@@ -25,6 +25,7 @@ import {
 import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
 import {
+  cloudStanding,
   onDeviceAvailability,
   parseOnDevice,
   resolveEngine,
@@ -61,21 +62,26 @@ export default function OnDeviceImportScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
   // Same meter as the bring-your-own-AI path: two free reads, success-only.
+  // But only the CLOUD engine spends them, so the meter only shows where
+  // cloud can actually run — on-device reads are free and unlimited.
   const { loaded, full, readsLeft } = useEntitlement();
+  const [cloudSupported, setCloudSupported] = useState(false);
 
   useEffect(() => {
     void onDeviceAvailability().then(setAvailability);
+    void cloudStanding().then((standing) => setCloudSupported(standing.supported));
   }, []);
 
   const read = async () => {
-    // Out of free reads: the button becomes the door to Full Keel.
-    if (loaded && !full && readsLeft <= 0) {
-      router.push("/fullkeel");
-      return;
-    }
     // Which engine can actually run, and does the user accept a weaker
     // answer? Asked BEFORE anything is generated, never after.
     const chosen = await resolveEngine();
+    // Only the cloud engine spends a read (below), so only the cloud path
+    // closes when they run out. The on-device model stays free.
+    if (chosen.engine === "cloud" && loaded && !full && readsLeft <= 0) {
+      router.push("/fullkeel");
+      return;
+    }
     if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
@@ -151,7 +157,7 @@ export default function OnDeviceImportScreen() {
 
           <View style={styles.card}>
             <Text style={styles.hint}>{t("onDevice.hint")}</Text>
-            {loaded && !full && (
+            {cloudSupported && loaded && !full && (
               <Text style={styles.hint}>
                 {readsLeft > 0
                   ? `${t("importAI.readsLeft", { count: readsLeft })} · ${t("importAI.readsHint")}`
