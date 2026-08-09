@@ -217,7 +217,9 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
       borderRadius: radius.md,
       padding: spacing.md,
     },
@@ -232,7 +234,9 @@ function createStyles(colors: ThemeColors) {
     sub: { ...typography.caption, color: colors.mutedText },
     leftOut: { ...typography.caption, color: colors.tones.warning },
     unresolvedCard: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
       borderRadius: radius.md,
       padding: spacing.md,
       gap: spacing.xs,
@@ -249,7 +253,7 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
-      backgroundColor: colors.background,
+      backgroundColor: colors.materialStrong,
     },
   });
 }

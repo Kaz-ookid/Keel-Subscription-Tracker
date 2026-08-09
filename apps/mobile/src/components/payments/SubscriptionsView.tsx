@@ -383,7 +383,9 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
     },
     pendingList: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
       borderRadius: radius.md,
       paddingHorizontal: spacing.md,
     },

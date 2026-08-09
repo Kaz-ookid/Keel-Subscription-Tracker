@@ -269,7 +269,7 @@ function createStyles(colors: ThemeColors) {
     // Divider on top, skipped for the first ("None") row: no trailing line.
     rowDivider: {
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: colors.hairline,
     },
     left: {
       flexDirection: "row",

@@ -45,7 +45,7 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       paddingVertical: spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: colors.hairline,
     },
     rowFirst: {
       borderTopWidth: 0,

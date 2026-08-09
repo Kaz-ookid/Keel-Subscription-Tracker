@@ -206,7 +206,7 @@ function createHeaderStyles(colors: ThemeColors) {
     },
     suggestRowDivider: {
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: colors.hairline,
     },
     suggestName: {
       flex: 1,

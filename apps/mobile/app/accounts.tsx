@@ -143,8 +143,10 @@ function createStyles(colors: ThemeColors) {
     row: {
       flexDirection: "row",
       alignItems: "center",
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+      borderRadius: radius.lg,
       padding: spacing.md,
       gap: spacing.md,
     },

@@ -56,7 +56,7 @@ function createFormStyles(colors: ThemeColors) {
     field: {
       paddingVertical: spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: colors.hairline,
       gap: spacing.sm,
     },
     rowField: {
@@ -65,7 +65,7 @@ function createFormStyles(colors: ThemeColors) {
       justifyContent: "space-between",
       paddingVertical: spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
+      borderTopColor: colors.hairline,
       gap: spacing.sm,
     },
     // The group's first row: the Card's own edge is the separation.

@@ -17,7 +17,15 @@ import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { suggestionMatches } from "../lib/suggestions";
-import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import {
+  emphasis,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  withAlpha,
+  type ThemeColors,
+} from "../theme";
 import { BrandBadge } from "./BrandBadge";
 import { LogoConsentGate } from "./LogoConsentGate";
 import { Button } from "./ui/Button";
@@ -259,7 +267,7 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderRadius: radius.md,
       borderWidth: 1,
       borderColor: colors.border,
@@ -285,13 +293,14 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.xs + 2,
       paddingHorizontal: spacing.sm + 4,
       borderRadius: radius.lg,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
     },
+    // Tinted, never a solid block (§9f).
     chipActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.action,
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
     chipText: {
       ...typography.caption,
@@ -299,7 +308,7 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
     },
     chipTextActive: {
-      color: colors.actionText,
+      color: colors.accent,
     },
     list: {
       flex: 1,
@@ -312,7 +321,9 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
       borderRadius: radius.md,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,

@@ -158,7 +158,9 @@ export function MonthDetailList({ items, occurrences, projected, selectedKey, as
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     detailCard: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
       borderRadius: radius.md,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.xs,
