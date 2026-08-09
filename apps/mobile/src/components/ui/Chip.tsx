@@ -12,17 +12,20 @@ interface Props {
   label: string;
   selected: boolean;
   onPress: () => void;
+  /** Optional press-and-hold action (account chips open their editor). */
+  onLongPress?: () => void;
   /** Optional leading color dot (account chips). */
   dot?: string;
 }
 
-export function Chip({ label, selected, onPress, dot }: Props) {
+export function Chip({ label, selected, onPress, onLongPress, dot }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable
       style={[styles.chip, selected && styles.chipSelected]}
       onPress={onPress}
+      onLongPress={onLongPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}
     >

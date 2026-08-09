@@ -32,6 +32,7 @@ import {
   useTheme,
   type ThemeColors,
 } from "../../theme";
+import { AccountChipsRow } from "./AccountChipsRow";
 import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
@@ -104,7 +105,7 @@ export function SubscriptionsView() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, pending, displayCurrency, rates, loading } = useAppData();
+  const { items, pending, accounts, displayCurrency, rates, loading } = useAppData();
   const { removeSubscription, removePendingSuggestion, markPaid, markInstallmentPaid } =
     useAppActions();
   // Open by default — the whole point of the list is to be acted on.
@@ -117,6 +118,8 @@ export function SubscriptionsView() {
   const [shown, setShown] = useState<Set<StatusKey>>(
     () => new Set<StatusKey>(["ongoing", "paused", "done"]),
   );
+  // Same account lens as Upcoming: "all" | "none" | an account id.
+  const [accountFilter, setAccountFilter] = useState("all");
   const toggleStatus = (key: StatusKey) =>
     setShown((prev) => {
       const next = new Set(prev);
@@ -173,6 +176,13 @@ export function SubscriptionsView() {
   // where "next charge" would reorder the list all the time.
   const sorted = items
     .filter((i) => shown.has(statusOf(i, asOf)))
+    .filter((i) =>
+      accountFilter === "all"
+        ? true
+        : accountFilter === "none"
+          ? !i.accountId
+          : i.accountId === accountFilter,
+    )
     .sort((a, b) => {
       const doneA = isPaymentItemComplete(a, asOf) ? 1 : 0;
       const doneB = isPaymentItemComplete(b, asOf) ? 1 : 0;
@@ -280,6 +290,8 @@ export function SubscriptionsView() {
               </View>
             )}
           </View>
+
+          <AccountChipsRow accounts={accounts} filter={accountFilter} onFilter={setAccountFilter} />
 
           {/* Status filter (§9h) on the left; the current order on the right. */}
           <View style={styles.filterRow}>

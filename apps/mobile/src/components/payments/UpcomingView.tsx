@@ -24,7 +24,7 @@ import { hapticMarkPaid } from "../../lib/haptics";
 import Animated from "react-native-reanimated";
 
 import { foldIn, foldLayout, foldOut } from "../../lib/motion";
-import { Chip } from "../ui/Chip";
+import { AccountChipsRow } from "./AccountChipsRow";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
 import { useAppActions, useAppData } from "../../state/app-state";
@@ -270,25 +270,7 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
         sub={heroSub}
       />
 
-      {accounts.length > 0 && (
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.chipRow}>
-            {[
-              { id: "all", label: t("upcoming.chipAll") },
-              ...accounts.map((a) => ({ id: a.id, label: a.name, dot: a.color })),
-              { id: "none", label: t("upcoming.chipNoAccount") },
-            ].map((chip) => (
-              <Chip
-                key={chip.id}
-                label={chip.label}
-                selected={filter === chip.id}
-                onPress={() => setFilter(chip.id)}
-                dot={"dot" in chip ? chip.dot : undefined}
-              />
-            ))}
-          </View>
-        </ScrollView>
-      )}
+      <AccountChipsRow accounts={accounts} filter={filter} onFilter={setFilter} />
     </View>
   );
 
@@ -417,10 +399,6 @@ function createStyles(colors: ThemeColors) {
     header: {
       gap: spacing.md,
       marginBottom: spacing.sm,
-    },
-    chipRow: {
-      flexDirection: "row",
-      gap: spacing.sm,
     },
     sectionHeaderWrap: {
       backgroundColor: "transparent",
