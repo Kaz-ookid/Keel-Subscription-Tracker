@@ -6,7 +6,7 @@
 
 import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { radius, spacing, useTheme } from "../../theme";
+import { cardShadow, radius, spacing, useTheme } from "../../theme";
 import type { ReactNode } from "react";
 
 export type CardVariant = "list" | "free";
@@ -18,12 +18,14 @@ interface Props {
 }
 
 export function Card({ variant = "list", style, children }: Props) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   return (
     <View
       style={[
         styles.base,
         { backgroundColor: colors.material, borderColor: colors.hairline },
+        // Light mode's separation whisper; a no-op in dark (see theme).
+        cardShadow[scheme],
         variant === "list" ? styles.list : styles.free,
         style,
       ]}

@@ -15,14 +15,19 @@ export function Ambient() {
   const dark = scheme === "dark";
   return (
     <LinearGradient
-      colors={dark ? ["#0C1830", "#0A1020", "#070C18"] : ["#EAF2F1", "#F4F6F8", "#EFF3F5"]}
+      // The stops live in the theme (colors.stage) so the stage can never
+      // drift out of sync with the background token.
+      colors={[...colors.stage]}
       style={StyleSheet.absoluteFill}
       pointerEvents="none"
     >
       <Svg width="100%" height="100%">
         <Defs>
           <RadialGradient id="aura" cx="50%" cy="-12%" r="85%">
-            <Stop offset="0%" stopColor={colors.accentStrong} stopOpacity={dark ? 0.2 : 0.28} />
+            {/* The morning haze needs a stronger aura than the night: sea
+                glass over a light ground reads at a fraction of its dark
+                glow, so light gets 0.32 where dark keeps 0.20. */}
+            <Stop offset="0%" stopColor={colors.accentStrong} stopOpacity={dark ? 0.2 : 0.32} />
             <Stop offset="55%" stopColor={colors.accentStrong} stopOpacity={0.05} />
             <Stop offset="100%" stopColor={colors.accentStrong} stopOpacity={0} />
           </RadialGradient>

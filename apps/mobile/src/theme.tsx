@@ -40,6 +40,10 @@ export interface ThemeColors {
   selection: string;
   /** Modal backdrop. */
   scrim: string;
+  /** The Ambient stage's vertical gradient (top, middle, bottom): night at
+   *  sea after dark, a sea-glass morning haze by day. Lives here so the
+   *  stage can never drift out of sync with `background`. */
+  stage: readonly [string, string, string];
   /** Categorical chart palette (donut slices, future charts). */
   chart: readonly string[];
   /** The core's semantic tones, tuned per scheme: darker inks on light
@@ -51,17 +55,22 @@ const NAVY = "#0B1E3F";
 const NAVY_DEEP = "#071429";
 const SEA_GLASS = "#7FB8B0";
 
+// "Morning at sea" (reworked 2026-07-22): the earlier light palette sat
+// white-on-near-white with no atmosphere, which is why dark became the
+// default. The stage now carries a real sea-glass haze at the top, cards
+// are brighter than the ground they float on, and a whisper of shadow
+// (see cardShadow) gives light mode the separation dark gets for free.
 const light: ThemeColors = {
   navy: NAVY,
   navyDeep: NAVY_DEEP,
   white: "#FFFFFF",
-  background: "#F4F6F8",
+  background: "#F1F5F6",
   surface: "#FFFFFF",
-  surface2: "#EDF1F4",
-  material: "rgba(255,255,255,0.78)",
-  materialStrong: "rgba(255,255,255,0.92)",
-  hairline: "rgba(11,30,63,0.08)",
-  border: "#E2E8EE",
+  surface2: "#E7EDF0",
+  material: "rgba(255,255,255,0.85)",
+  materialStrong: "rgba(255,255,255,0.97)",
+  hairline: "rgba(11,30,63,0.1)",
+  border: "#DCE4EA",
   text: "#0F1720",
   mutedText: "#5C6B7A",
   action: NAVY,
@@ -71,6 +80,7 @@ const light: ThemeColors = {
   accentStrong: SEA_GLASS,
   selection: "#DCEBE8",
   scrim: "rgba(7,20,41,0.45)",
+  stage: ["#DCEAE8", "#F1F5F6", "#E8EDF0"],
   chart: ["#3E8578", "#4E79A7", "#E8A87C", "#B56576", "#6C8EBF", "#8FBC94", "#C9A66B", "#7A6C9E"],
   tones: {
     neutral: "#6E7B8A",
@@ -102,6 +112,7 @@ export const darkColors: ThemeColors = {
   accentStrong: SEA_GLASS,
   selection: "#1E3A38",
   scrim: "rgba(0,0,0,0.55)",
+  stage: ["#0C1830", "#0A1020", "#070C18"],
   chart: ["#8FC7BF", "#7FA6D9", "#E8B48C", "#C97C8C", "#8BA7D9", "#A3CCA8", "#D9BC85", "#9C8FC7"],
   tones: {
     neutral: "#8E9BAD",
@@ -160,6 +171,20 @@ export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
   const scheme: ColorScheme = mode === "system" ? (system === "dark" ? "dark" : "light") : mode;
   return { colors: scheme === "dark" ? darkColors : light, scheme };
 }
+
+/** The separation model light mode was missing: a whisper of navy shadow
+ *  under every material card (iOS-conventional). Dark needs none — light
+ *  ink on dark ground separates by itself — so its entry is empty and the
+ *  spread stays a no-op there. Applied in ONE place (ui/Card). */
+export const cardShadow = {
+  light: {
+    shadowColor: NAVY,
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  dark: {},
+} as const;
 
 /** A hex color at the given alpha — brand washes and bleeds (§9c). */
 export function withAlpha(hex: string, alpha: number): string {
