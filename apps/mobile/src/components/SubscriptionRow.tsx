@@ -92,7 +92,12 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
         amount = formatMoney(trial.regularAmount);
         tag = t("row.trial", { date: formatCalendarDate(trial.convertsOn) });
       } else {
-        tag = t("row.priceChange", { date: formatCalendarDate(trial.convertsOn) });
+        // The NEW amount rides in the tag, so editing the future price shows
+        // its effect immediately (the big number stays today's price).
+        tag = t("row.priceChange", {
+          amount: formatMoney(trial.regularAmount),
+          date: formatCalendarDate(trial.convertsOn),
+        });
       }
       tagColor = colors.accent;
     }

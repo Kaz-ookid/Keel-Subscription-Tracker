@@ -45,11 +45,12 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
   );
 }
 
-/** Free trial / intro price: a recurring price that changes on a date. Niche
- *  but discoverable, like RepeatsOnRow — off by default, and when on it folds
- *  the regular price + conversion date in (replacing the plain "First billing"
- *  date, which for a free trial IS the conversion date). */
-function TrialRow({ form }: { form: AddForm }) {
+/** Trial / price change: a recurring price that changes on a date. One
+ *  mechanism, two readings — with a 0 amount it's a free trial (the first
+ *  real charge IS the conversion date), with a paid amount it's a scheduled
+ *  price change on a normal billing grid. The labels follow the same
+ *  free-vs-paid split the item detail screen already uses. */
+function TrialRow({ form, freeTrial }: { form: AddForm; freeTrial: boolean }) {
   const { t } = useTranslation();
   const styles = useFormStyles();
   return (
@@ -71,7 +72,9 @@ function TrialRow({ form }: { form: AddForm }) {
       {form.showTrial && (
         <>
           <View style={styles.rowField}>
-            <Text style={styles.label}>{t("add.regularPrice")}</Text>
+            <Text style={styles.label}>
+              {freeTrial ? t("add.regularPrice") : t("item.newPrice")}
+            </Text>
             <View style={styles.rowControl}>
               <TextInput
                 style={styles.input}
@@ -84,7 +87,7 @@ function TrialRow({ form }: { form: AddForm }) {
           </View>
 
           <FieldButton
-            label={t("add.trialEnds")}
+            label={freeTrial ? t("add.trialEnds") : t("item.changesOn")}
             value={formatCalendarDate(form.convertsCal)}
             onPress={() => form.setSheet("convertsDate")}
           />
@@ -139,6 +142,13 @@ export function ScheduleSection({ form }: { form: AddForm }) {
     );
   }
 
+  // Only a FREE trial folds the billing rows away (its first real charge IS
+  // the conversion date). A paid item with a scheduled price change keeps
+  // billing on its own grid, so First/Last billing must stay visible and
+  // editable — hiding them here was the beta bug "changing the date does
+  // nothing": the date that moves the next payment was unreachable.
+  const freeTrial = form.showTrial && !(form.amountValue > 0);
+
   return (
     <>
       <Card variant="list" style={styles.group}>
@@ -155,9 +165,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
           </View>
         </View>
 
-        {/* A free trial's first real charge IS the conversion date, so the plain
-            "First/Last billing" rows give way to the trial fields. */}
-        {!form.showTrial && (
+        {!freeTrial && (
           <FieldButton
             label={t("add.firstBilling")}
             value={formatCalendarDate(form.firstDateCal)}
@@ -167,9 +175,9 @@ export function ScheduleSection({ form }: { form: AddForm }) {
 
         <RepeatsOnRow form={form} />
 
-        <TrialRow form={form} />
+        <TrialRow form={form} freeTrial={freeTrial} />
 
-        {!form.showTrial && (
+        {!freeTrial && (
           <FieldButton
             label={t("add.lastBilling")}
             value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
