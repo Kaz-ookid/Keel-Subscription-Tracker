@@ -1,6 +1,5 @@
 import { currencyLabel, type Account } from "@keel/core";
 import { Stack } from "expo-router";
-import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
@@ -42,7 +41,9 @@ export default function AccountsScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* The screen's single primary action lives in the header (§3.5). */}
+      {/* The screen's single primary action lives in the header (§3.5).
+          Text, not a glyph: custom header glyphs drift off-center in the
+          native bar (see ModalClose's rule). */}
       <Stack.Screen
         options={{
           headerRight: () => (
@@ -51,7 +52,7 @@ export default function AccountsScreen() {
               hitSlop={12}
               accessibilityLabel={t("accounts.addAccount")}
             >
-              <SymbolView name="plus" size={20} tintColor={colors.accent} />
+              <Text style={styles.headerAction}>{t("common.add")}</Text>
             </Pressable>
           ),
         }}
@@ -119,6 +120,8 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: "transparent",
     },
+    // Mirrors the right-side header actions elsewhere (label 15/600, accent).
+    headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.xs },
     // Below the transparent header (back + add float above this).
     largeTitle: {
       fontSize: 34,
