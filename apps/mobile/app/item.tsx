@@ -12,6 +12,7 @@ import {
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
+  shiftOffWeekend,
   summarizeInstallmentPlan,
   sumByCurrency,
   today,
@@ -245,7 +246,9 @@ export default function ItemScreen() {
             {!complete && (
               <InfoRow
                 label={t("item.nextBilling")}
-                value={formatCalendarDate(recurring.nextChargeDate)}
+                value={formatCalendarDate(
+                  shiftOffWeekend(recurring.nextChargeDate, item.weekendShift),
+                )}
                 styles={styles}
               />
             )}

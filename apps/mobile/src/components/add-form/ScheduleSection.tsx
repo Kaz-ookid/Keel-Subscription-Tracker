@@ -45,6 +45,30 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
   );
 }
 
+/** Some banks never debit on a weekend: the charge effectively moves to the
+ *  Friday before or the Monday after. Off by default; the recurrence grid
+ *  stays anchored, only the shown/charged dates shift. */
+function WeekendRow({ form }: { form: AddForm }) {
+  const { t } = useTranslation();
+  const styles = useFormStyles();
+  return (
+    <View style={styles.rowField}>
+      <Text style={styles.label}>{t("add.weekends")}</Text>
+      <View style={styles.rowControl}>
+        <Segmented
+          options={[
+            { value: "none", label: t("add.weekendKeep") },
+            { value: "before", label: t("add.weekendBefore") },
+            { value: "after", label: t("add.weekendAfter") },
+          ]}
+          value={form.weekendShift}
+          onChange={form.setWeekendShift}
+        />
+      </View>
+    </View>
+  );
+}
+
 /** Trial / price change: a recurring price that changes on a date. One
  *  mechanism, two readings — with a 0 amount it's a free trial (the first
  *  real charge IS the conversion date), with a paid amount it's a scheduled
@@ -131,6 +155,8 @@ export function ScheduleSection({ form }: { form: AddForm }) {
 
         <RepeatsOnRow form={form} />
 
+        <WeekendRow form={form} />
+
         <FieldButton
           label={t("add.provider")}
           value={t(`providers.${form.provider}`, {
@@ -174,6 +200,8 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         )}
 
         <RepeatsOnRow form={form} />
+
+        <WeekendRow form={form} />
 
         <TrialRow form={form} freeTrial={freeTrial} />
 

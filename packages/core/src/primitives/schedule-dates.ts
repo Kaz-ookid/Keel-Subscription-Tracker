@@ -109,6 +109,25 @@ export function listOccurrenceDates(
   return dates;
 }
 
+/** Which side of a weekend a shifted charge lands on. */
+export type WeekendShift = "before" | "after";
+
+/**
+ * The working day the money actually moves, for items whose bank never
+ * debits on a weekend: Saturday/Sunday step to the Friday before or the
+ * Monday after. The recurrence GRID stays canonical (the 1st shifts to the
+ * 3rd, but next month is still anchored on the 1st) — this is a pure
+ * projection applied where a date faces the outside world, never a
+ * mutation of the stepping itself.
+ */
+export function shiftOffWeekend(date: CalendarDate, shift?: WeekendShift): CalendarDate {
+  if (!shift) return date;
+  const weekday = weekdayOf(date);
+  if (weekday === 6) return addDays(date, shift === "before" ? -1 : 2);
+  if (weekday === 0) return addDays(date, shift === "before" ? -2 : 1);
+  return date;
+}
+
 /** Step a calendar date by whole days (negative allowed — "3 days before"). */
 export function addDays(date: CalendarDate, days: number): CalendarDate {
   const [y, m, d] = date.split("-").map(Number);

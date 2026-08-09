@@ -4,7 +4,7 @@
 // state change, so a paid/paused/edited commitment can never fire stale.
 
 import type { Money } from "../primitives/money";
-import { addDays } from "../primitives/schedule-dates";
+import { addDays, shiftOffWeekend } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import {
   isInstallmentSchedule,
@@ -85,6 +85,10 @@ export function plannedReminders(
         dueDate = next?.dueDate;
         amount = next?.amount;
       }
+      // The reminder is about the day the money MOVES: a Saturday charge
+      // shifted to Monday must count its "days before" from Monday, or a
+      // 3-day lead would fire five days early.
+      if (dueDate) dueDate = shiftOffWeekend(dueDate, item.weekendShift);
       // amount > 0 skips a free trial's 0-priced "next charge" — its
       // trial-end reminder above already covers the real upcoming cost.
       if (dueDate && amount && amount.amount > 0 && dueDate >= asOf) {

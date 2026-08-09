@@ -3,7 +3,7 @@
 // (payment-item-factory.ts) so creation and mutation each read in one sitting.
 // Same purity contract: all non-determinism (ids, "now") is injected.
 
-import { addRecurrence, nextDueDate } from "../primitives/schedule-dates";
+import { addRecurrence, nextDueDate, shiftOffWeekend } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate, type Timestamp } from "../primitives/temporal";
 import {
   COVERED_INSTALLMENT_STATUSES,
@@ -442,14 +442,19 @@ export function accrueDueOccurrences(
 
   let schedule = item.schedule;
   const { endDate } = schedule;
-  // Never accrue past the subscription's end date.
-  const limit = endDate && endDate < asOf ? endDate : asOf;
   const occurrences: PaymentOccurrence[] = [];
 
   // CalendarDate is YYYY-MM-DD, so string comparison is chronological.
+  // The grid governs WHAT bills (never past the end date); the weekend-
+  // shifted date governs WHEN the money moves — a Saturday charge shifted
+  // to Monday must not accrue on Saturday. dueDate stays the grid date;
+  // chargedDate/paidDate carry the shifted one (their documented job).
   let crossedConversion = false;
-  while (schedule.nextChargeDate <= limit) {
+  for (;;) {
     const due = schedule.nextChargeDate;
+    if (endDate && due > endDate) break;
+    const charged = shiftOffWeekend(due, item.weekendShift);
+    if (charged > asOf) break;
     const amount = effectiveRecurringAmount(schedule, due);
     // Free-trial occurrences (0) aren't real charges — advance past them
     // without logging, exactly as the projection skips them.
@@ -458,8 +463,8 @@ export function accrueDueOccurrences(
         id: ctx.makeId(),
         paymentItemId: item.id,
         dueDate: due,
-        chargedDate: due,
-        paidDate: due,
+        chargedDate: charged,
+        paidDate: charged,
         paidFromAccountId: item.accountId,
         recordedAt: ctx.now,
         amount,
@@ -471,6 +476,7 @@ export function accrueDueOccurrences(
   }
 
   // Finalize a converted trial once a charge has crossed its conversion date.
+  const limit = endDate && endDate < asOf ? endDate : asOf;
   if (crossedConversion) schedule = graduateIfConverted(schedule, limit);
 
   // The plan is finished once the cursor has moved past its end date.
@@ -510,12 +516,14 @@ export function accrueDueInstallments(
 
   let changed = false;
   const installments: Installment[] = schedule.installments.map((inst) => {
-    if (COVERED_INSTALLMENT_STATUSES.includes(inst.status) || inst.dueDate > asOf) return inst;
+    // The weekend-shifted date is when the provider actually debits.
+    const charged = shiftOffWeekend(inst.dueDate, item.weekendShift);
+    if (COVERED_INSTALLMENT_STATUSES.includes(inst.status) || charged > asOf) return inst;
     changed = true;
     return {
       ...inst,
       status: "paid" as InstallmentStatus,
-      paidDate: inst.dueDate,
+      paidDate: charged,
       paidFromAccountId: item.accountId ?? inst.paidFromAccountId,
     };
   });

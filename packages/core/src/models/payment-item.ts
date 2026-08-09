@@ -3,6 +3,7 @@ import type { DescriptorMap } from "../primitives/descriptor";
 import type { Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
+import type { WeekendShift } from "../primitives/schedule-dates";
 import type { CalendarDate, Timestamp } from "../primitives/temporal";
 import type { Installment } from "./installment";
 
@@ -135,6 +136,12 @@ export interface PaymentItem {
   domain?: string;
   /** Optional per-subscription reminder; absent = never remind. */
   reminder?: ReminderRule;
+  /** The bank never debits this one on a weekend: charges landing on Sat/Sun
+   *  effectively move to the Friday before or the Monday after. The
+   *  recurrence grid stays canonical; only externalized dates shift.
+   *  Absent = charges on the calendar day. (v2 slot: a holidayCalendar
+   *  country code beside this for public-holiday shifting.) */
+  weekendShift?: WeekendShift;
   scheduleType: ScheduleType;
   schedule: Schedule;
   status: PaymentItemStatus;

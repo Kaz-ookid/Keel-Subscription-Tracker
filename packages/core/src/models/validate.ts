@@ -196,6 +196,7 @@ export function isValidPaymentItem(value: unknown): value is PaymentItem {
     optional(value.color, (v) => typeof v === "string") &&
     optional(value.domain, (v) => typeof v === "string") &&
     optional(value.reminder, isValidReminder) &&
+    optional(value.weekendShift, (v) => v === "before" || v === "after") &&
     isValidSchedule(value.schedule) &&
     value.scheduleType === (value.schedule as Schedule).kind &&
     typeof value.status === "string" &&

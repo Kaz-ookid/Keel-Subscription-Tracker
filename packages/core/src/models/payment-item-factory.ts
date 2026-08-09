@@ -8,7 +8,12 @@ import type { BnplProviderId } from "../constants/bnpl-providers";
 import { splitMoney, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
-import { addRecurrence, alignToOccurrence, nthWeekdayOfMonth } from "../primitives/schedule-dates";
+import {
+  addRecurrence,
+  alignToOccurrence,
+  nthWeekdayOfMonth,
+  type WeekendShift,
+} from "../primitives/schedule-dates";
 import type { CalendarDate, Timestamp } from "../primitives/temporal";
 
 /** A weekday-anchored rule's grid must START on the anchor — snap the chosen
@@ -39,6 +44,7 @@ export interface NewRecurringInput {
   color?: string;
   domain?: string;
   reminder?: ReminderRule;
+  weekendShift?: WeekendShift;
   notes?: string;
   endDate?: CalendarDate;
   /** A trial/intro offer: `amount` is the intro price (0 = free) until
@@ -81,6 +87,7 @@ export function makeRecurringPaymentItem(input: NewRecurringInput, ctx: MakeCont
     color: input.color,
     domain: input.domain,
     reminder: input.reminder,
+    weekendShift: input.weekendShift,
     notes: input.notes,
     scheduleType: "RECURRING",
     schedule,
@@ -104,6 +111,7 @@ export interface NewInstallmentInput {
   color?: string;
   domain?: string;
   reminder?: ReminderRule;
+  weekendShift?: WeekendShift;
   notes?: string;
 }
 
@@ -161,6 +169,7 @@ export function makeInstallmentPaymentItem(
     color: input.color,
     domain: input.domain,
     reminder: input.reminder,
+    weekendShift: input.weekendShift,
     notes: input.notes,
     scheduleType: "INSTALLMENT",
     schedule,

@@ -198,6 +198,10 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [reminderKey, setReminderKey] = useState(() =>
     seedItem?.reminder ? String(seedItem.reminder.daysBefore) : "never",
   );
+  // Weekend shift: "none" | "before" | "after" (none is not persisted).
+  const [weekendShift, setWeekendShift] = useState<"none" | "before" | "after">(
+    () => seedItem?.weekendShift ?? "none",
+  );
   // "default" follows the app-wide fire hour; a number is this item's own.
   // The UI shows the RESOLVED hour either way (no "default" entry to decode),
   // so the app-wide hour is loaded to fill the label and preselect the wheel.
@@ -436,6 +440,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         color,
         domain,
         reminder: reminderFromKey(reminderKey, reminderHourKey),
+        weekendShift: weekendShift === "none" ? undefined : weekendShift,
         notes: notes.trim() || undefined,
       };
       if (editItem) updateInstallmentPlan(editItem.id, input);
@@ -463,6 +468,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         color,
         domain,
         reminder: reminderFromKey(reminderKey, reminderHourKey),
+        weekendShift: weekendShift === "none" ? undefined : weekendShift,
         notes: notes.trim() || undefined,
         introOffer,
       };
@@ -564,6 +570,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     setSettlementMode,
     reminderKey,
     setReminderKey,
+    weekendShift,
+    setWeekendShift,
     setReminderEnabled,
     reminderHourKey,
     setReminderHourKey,

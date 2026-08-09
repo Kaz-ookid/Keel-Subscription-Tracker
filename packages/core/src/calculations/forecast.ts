@@ -6,7 +6,7 @@
 
 import { money, sumByCurrency, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
-import { addRecurrence } from "../primitives/schedule-dates";
+import { addRecurrence, shiftOffWeekend } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import { COVERED_INSTALLMENT_STATUSES } from "../models/installment";
 import {
@@ -74,7 +74,12 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
       // the intro amount before. Free-trial occurrences (0) carry no real
       // charge — skip them so the timeline only shows what actually bills.
       const amount = effectiveRecurringAmount(schedule, due);
-      if (amount.amount > 0) charges.push({ ...base, dueDate: due, amount });
+      // The projection tells the user WHEN the money moves, so the emitted
+      // date is weekend-shifted; the loop stays on the grid (the window test
+      // may drift ±2 days at the very edge — accepted).
+      if (amount.amount > 0) {
+        charges.push({ ...base, dueDate: shiftOffWeekend(due, item.weekendShift), amount });
+      }
       due = addRecurrence(due, recurrence);
     }
     return charges;
@@ -86,7 +91,7 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
       .filter((i) => !COVERED_INSTALLMENT_STATUSES.includes(i.status) && i.dueDate <= until)
       .map((i) => ({
         ...base,
-        dueDate: i.dueDate,
+        dueDate: shiftOffWeekend(i.dueDate, item.weekendShift),
         amount: i.amount,
         installmentIndex: i.index,
         installmentCount: count,

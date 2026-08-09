@@ -1,6 +1,7 @@
 import {
   canMarkPaid,
   formatCalendarDate,
+  shiftOffWeekend,
   formatMoney,
   isInstallmentSchedule,
   isPaymentItemComplete,
@@ -75,7 +76,9 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     const when =
       complete && recurring.endDate
         ? t("row.endedOn", { date: formatCalendarDate(recurring.endDate) })
-        : t("row.next", { date: formatCalendarDate(recurring.nextChargeDate) });
+        : t("row.next", {
+            date: formatCalendarDate(shiftOffWeekend(recurring.nextChargeDate, item.weekendShift)),
+          });
     subLine = `${localizedRecurrence(recurring.recurrence)} · ${when}`;
     amount = formatMoney(recurring.amount);
     tag = isManual ? t("row.manual") : t("row.automatic");
@@ -109,7 +112,9 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     const next = s.nextDue;
     subLine =
       t("row.planSub", { count: s.totalCount, paid: s.paidCount, total: s.totalCount }) +
-      (next ? ` · ${t("row.next", { date: formatCalendarDate(next.dueDate) })}` : "");
+      (next
+        ? ` · ${t("row.next", { date: formatCalendarDate(shiftOffWeekend(next.dueDate, item.weekendShift)) })}`
+        : "");
     amount = formatMoney(next ? next.amount : s.totalAmount);
     showMarkPaid = canMark;
     if (!canMark && s.paidCount > 0 && !s.isComplete) {
