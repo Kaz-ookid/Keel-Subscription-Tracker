@@ -19,6 +19,15 @@ import { pl } from "./pl";
 export const APP_LANGUAGES = ["en", "fr", "de", "it", "pl"] as const;
 export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
+/** Each language named in itself — pickers show these, never translations. */
+export const LANGUAGE_LABELS: Record<AppLanguage, string> = {
+  en: "English",
+  fr: "Français",
+  de: "Deutsch",
+  it: "Italiano",
+  pl: "Polski",
+};
+
 /** "system" follows the device; the rest force a language. */
 export type LanguageMode = "system" | AppLanguage;
 

@@ -33,6 +33,8 @@ import { MethodDoor } from "../src/components/onboarding/MethodDoor";
 import { Dot, TourPane } from "../src/components/onboarding/TourElements";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { Button } from "../src/components/ui/Button";
+import { APP_LANGUAGES, LANGUAGE_LABELS, setLanguageMode, type AppLanguage } from "../src/i18n";
+import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { requestPaymentsView } from "../src/lib/tabReset";
 import { useAppActions, useAppData } from "../src/state/app-state";
@@ -52,8 +54,8 @@ type Phase = "tour" | "method" | "pick" | "done";
 export default function OnboardingScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
-  const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { colors, scheme } = useTheme();
+  const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const aiHidden = useAiHidden();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -97,6 +99,23 @@ export default function OnboardingScreen() {
     );
   }, [items, pending]);
   const remaining = SUGGESTED_COMMITMENTS.length - addedIds.size;
+
+  // Language, offered on the very first screen: onboarding happens once, so
+  // reading it in the wrong language wastes the one tour the user gets. The
+  // globe shows the CURRENT language and opens the same picker Settings has.
+  const currentLanguage: AppLanguage = APP_LANGUAGES.find((l) => l === i18n.language) ?? "en";
+  const pickLanguage = () =>
+    showNativeActionSheet(
+      {
+        title: t("settings.language"),
+        options: [...APP_LANGUAGES.map((l) => LANGUAGE_LABELS[l]), t("common.cancel")],
+        cancelButtonIndex: APP_LANGUAGES.length,
+        userInterfaceStyle: scheme,
+      },
+      (index) => {
+        if (index < APP_LANGUAGES.length) void setLanguageMode(APP_LANGUAGES[index]);
+      },
+    );
 
   const finish = () => {
     // Whatever the tour added lives under All: close onto it, so the first
@@ -158,6 +177,10 @@ export default function OnboardingScreen() {
           exiting={FadeOutLeft.duration(200)}
         >
           <View style={styles.topBar}>
+            <Pressable onPress={pickLanguage} hitSlop={12} style={styles.langButton}>
+              <SymbolView name="globe" size={14} tintColor={colors.mutedText} />
+              <Text style={styles.skip}>{LANGUAGE_LABELS[currentLanguage]}</Text>
+            </Pressable>
             {/* On the last pane the main button IS the way forward; a Skip
                 doing the same thing would just be noise. */}
             {pane < TOUR_PANES.length - 1 && (
@@ -353,10 +376,16 @@ function createStyles(colors: ThemeColors) {
     // Fixed height so the panes don't shift when Skip retires on the last one.
     topBar: {
       flexDirection: "row",
-      justifyContent: "flex-end",
+      alignItems: "center",
+      justifyContent: "space-between",
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.md,
       minHeight: 48,
+    },
+    langButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
     },
     skip: {
       ...typography.label,

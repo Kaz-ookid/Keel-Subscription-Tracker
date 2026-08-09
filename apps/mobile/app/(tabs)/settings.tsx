@@ -27,7 +27,13 @@ import {
   View,
 } from "react-native";
 
-import { loadLanguageMode, setLanguageMode, type LanguageMode } from "../../src/i18n";
+import {
+  APP_LANGUAGES,
+  LANGUAGE_LABELS,
+  loadLanguageMode,
+  setLanguageMode,
+  type LanguageMode,
+} from "../../src/i18n";
 import Animated from "react-native-reanimated";
 
 import { foldIn, foldOut } from "../../src/lib/motion";
@@ -83,11 +89,7 @@ const THEME_OPTIONS: { value: ThemeMode; labelKey: string }[] = [
 // translate, or you can't find the way back out of a language you don't read.
 const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string }[] = [
   { value: "system", labelKey: "settings.matchDevice" },
-  { value: "en", label: "English" },
-  { value: "fr", label: "Français" },
-  { value: "de", label: "Deutsch" },
-  { value: "it", label: "Italiano" },
-  { value: "pl", label: "Polski" },
+  ...APP_LANGUAGES.map((l) => ({ value: l, label: LANGUAGE_LABELS[l] })),
 ];
 
 // Same React-19 children alias as the Add form's pickers.
