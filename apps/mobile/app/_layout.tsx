@@ -60,7 +60,9 @@ function RootNavigator() {
     colors: {
       ...base.colors,
       background: colors.background,
-      card: colors.navy,
+      // What react-navigation paints where a screen doesn't: navy suits the
+      // night scheme; on light it must be the light ground, not a navy slab.
+      card: scheme === "dark" ? colors.navy : colors.background,
     },
   };
 

@@ -113,7 +113,7 @@ export function HarborView() {
   const router = useRouter();
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, scheme), [colors, scheme]);
   const { items, categories, displayCurrency, rates } = useAppData();
   const [width, setWidth] = useState(0);
   // The day bubble: which vessel's cargo is being previewed.
@@ -370,7 +370,7 @@ export function HarborView() {
                   x2={i * 90 + 34}
                   y1={quayTop + 4}
                   y2={quayTop + WALL_H}
-                  stroke="rgba(0,0,0,0.22)"
+                  stroke={sea.groove}
                   strokeWidth={2}
                 />
               ))}
@@ -458,7 +458,7 @@ export function HarborView() {
                     />
                     <Path
                       d={`M ${s.x} ${s.y} L ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 5} ${s.y - 5} Z`}
-                      fill="rgba(255,255,255,0.25)"
+                      fill={sea.glint}
                     />
                     <Path
                       d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
@@ -466,7 +466,7 @@ export function HarborView() {
                     />
                     <Path
                       d={`M ${s.x + 36} ${s.y} L ${s.x + 41} ${s.y - 5} L ${s.x + 41} ${s.y + 8} L ${s.x + 36} ${s.y + 13} Z`}
-                      fill="rgba(0,0,0,0.3)"
+                      fill={sea.shade}
                     />
                     {[9, 18, 27].map((dx) => (
                       <Line
@@ -475,7 +475,7 @@ export function HarborView() {
                         y1={s.y + 1.5}
                         x2={s.x + dx}
                         y2={s.y + 11.5}
-                        stroke="rgba(0,0,0,0.2)"
+                        stroke={sea.groove}
                         strokeWidth={1.2}
                       />
                     ))}
@@ -732,7 +732,7 @@ export function HarborView() {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, scheme: "light" | "dark") {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: dockClearance, gap: spacing.sm },
@@ -798,8 +798,10 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
+      // The bubble floats over the water: full-weight shadow at night, a
+      // breath of one over the light sea.
       shadowColor: "#000",
-      shadowOpacity: 0.3,
+      shadowOpacity: scheme === "dark" ? 0.3 : 0.12,
       shadowRadius: 10,
       shadowOffset: { width: 0, height: 4 },
     },

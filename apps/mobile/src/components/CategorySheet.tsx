@@ -106,7 +106,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
                   <SymbolView
                     name={choice as SymbolName}
                     size={22}
-                    tintColor={icon === choice ? colors.white : colors.text}
+                    tintColor={icon === choice ? colors.actionText : colors.text}
                   />
                 </Pressable>
               ))}

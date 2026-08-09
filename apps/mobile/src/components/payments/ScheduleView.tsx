@@ -28,9 +28,9 @@ export function ScheduleView({
   lens: ScheduleLens;
   onLens: (lens: ScheduleLens) => void;
 }) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useMemo(() => createStyles(colors, scheme), [colors, scheme]);
 
   if (lens === "harbor") {
     return (
@@ -55,7 +55,7 @@ export function ScheduleView({
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles(colors: ThemeColors, scheme: "light" | "dark") {
   return StyleSheet.create({
     fill: { flex: 1 },
     // Floats over the canvas top-right corner, clear of the paused shelf.
@@ -69,8 +69,10 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.surface,
       alignItems: "center",
       justifyContent: "center",
+      // A floating control needs a real shadow in the dark, only a breath
+      // of one on the light ground (iOS light convention).
       shadowColor: "#000",
-      shadowOpacity: 0.25,
+      shadowOpacity: scheme === "dark" ? 0.25 : 0.08,
       shadowRadius: 6,
       shadowOffset: { width: 0, height: 2 },
     },

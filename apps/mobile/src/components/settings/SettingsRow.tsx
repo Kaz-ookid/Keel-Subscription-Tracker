@@ -9,25 +9,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
 
-/** The saturated rounded square with a white glyph — the system's own visual
- *  language for settings lists. */
-export function IconChip({ icon, color }: { icon: string; color: string }) {
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: color }]}>
-      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
-    </View>
-  );
-}
+// The one implementation lives in ui/; re-exported for existing importers.
+import { IconChip } from "../ui/IconChip";
 
-const chipStyles = StyleSheet.create({
-  chip: {
-    width: 29,
-    height: 29,
-    borderRadius: 6.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
+export { IconChip };
 
 interface Props {
   icon: string;

@@ -23,7 +23,7 @@ import {
   lookupCachedLogo,
   noteLogoCached,
 } from "../lib/logos";
-import { useTheme } from "../theme";
+import { contrastText, useTheme } from "../theme";
 
 interface Props {
   /** Brand website ("netflix.com"); absent → straight to the plain badge. */
@@ -40,7 +40,9 @@ interface Props {
 /** The plain circle: colour + icon or letter. Owns the SF-Symbol name cast so
  *  call sites stay clean. */
 function FallbackBadge({ icon, fallback, color, size }: Omit<Props, "domain"> & { size: number }) {
-  const { colors } = useTheme();
+  // The glyph must read on ANY brand/user color — forced white died on the
+  // pale swatches (yellow, mint). contrastText picks per background.
+  const mark = contrastText(color);
   return (
     <View
       style={{
@@ -56,10 +58,10 @@ function FallbackBadge({ icon, fallback, color, size }: Omit<Props, "domain"> & 
         <SymbolView
           name={icon as SymbolViewProps["name"]}
           size={Math.round(size / 2)}
-          tintColor={colors.white}
+          tintColor={mark}
         />
       ) : (
-        <Text style={{ color: colors.white, fontSize: Math.round(size * 0.45), fontWeight: "700" }}>
+        <Text style={{ color: mark, fontSize: Math.round(size * 0.45), fontWeight: "700" }}>
           {fallback}
         </Text>
       )}

@@ -26,6 +26,7 @@ import {
 import Animated from "react-native-reanimated";
 
 import { REMINDER_OPTIONS } from "../src/components/add-form/useAddForm";
+import { IconChip } from "../src/components/ui/IconChip";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { Sheet } from "../src/components/Sheet";
 import { Card } from "../src/components/ui/Card";
@@ -53,32 +54,14 @@ const Picker = RNPicker as unknown as ComponentType<{
   children: ReactNode;
 }> & { Item: typeof RNPicker.Item };
 
-function IconChip({ icon, color }: { icon: string; color: string }) {
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: color }]}>
-      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
-    </View>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    width: 29,
-    height: 29,
-    borderRadius: 6.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
-
 const CHIP = {
   master: "#FF3B30",
   allow: "#FF9500",
-  lead: "#5E5CE6",
+  lead: "#5856D6",
   hour: "#8E8E93",
   preview: "#30B0C7",
   add: "#34C759",
-  digest: "#FF9F0A",
+  digest: "#FF9500",
 } as const;
 
 /** Monday-first, the European reading order; values stay JS weekdays. */

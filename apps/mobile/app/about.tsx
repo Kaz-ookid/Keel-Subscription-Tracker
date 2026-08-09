@@ -17,36 +17,18 @@ import {
   Share,
   StyleSheet,
   Text,
-  View,
 } from "react-native";
 
 import { APP_STORE_ID, SUPPORT_EMAIL, WEBSITE_URL } from "../src/constants";
 import { InfoPopup } from "../src/components/InfoPopup";
+import { IconChip } from "../src/components/ui/IconChip";
 import { Card } from "../src/components/ui/Card";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
-
-function IconChip({ icon, color }: { icon: string; color: string }) {
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: color }]}>
-      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
-    </View>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    width: 29,
-    height: 29,
-    borderRadius: 6.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 const CHIP = {
   bug: "#FF3B30",
   idea: "#FFCC00",
-  web: "#0A84FF",
+  web: "#007AFF",
   rate: "#FF9500",
   share: "#007AFF",
   privacy: "#8E8E93",

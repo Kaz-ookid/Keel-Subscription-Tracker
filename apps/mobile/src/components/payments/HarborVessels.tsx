@@ -33,6 +33,12 @@ export interface HarborPalette {
   cardboardDark: string;
   glass: string;
   wake: string;
+  /** Plank/corrugation lines and quay stains: the scene's linework ink. */
+  groove: string;
+  /** Dark side-face shading on crates and containers. */
+  shade: string;
+  /** The light catching a top face. */
+  glint: string;
 }
 
 /** Night water and day water; the fleet's paint rides the theme with it. */
@@ -61,6 +67,9 @@ export function harborPalette(scheme: "light" | "dark"): HarborPalette {
         cardboardDark: "#846A47",
         glass: "rgba(190,215,235,0.38)",
         wake: "rgba(237,241,245,0.35)",
+        groove: "rgba(0,0,0,0.2)",
+        shade: "rgba(0,0,0,0.3)",
+        glint: "rgba(255,255,255,0.25)",
       }
     : {
         deep: "#8FB6C4",
@@ -85,6 +94,10 @@ export function harborPalette(scheme: "light" | "dark"): HarborPalette {
         cardboardDark: "#A0855C",
         glass: "rgba(255,255,255,0.62)",
         wake: "rgba(255,255,255,0.6)",
+        // Navy-tinted inks: pure black linework read too heavy on day water.
+        groove: "rgba(11,30,63,0.16)",
+        shade: "rgba(11,30,63,0.2)",
+        glint: "rgba(255,255,255,0.5)",
       };
 }
 
@@ -305,7 +318,7 @@ function ShipBody({
             y1={c.y + 1.5}
             x2={c.x + 3}
             y2={c.y + c.h - 1.5}
-            stroke="rgba(0,0,0,0.18)"
+            stroke={palette.groove}
             strokeWidth={1.4}
           />
           <Line
@@ -313,7 +326,7 @@ function ShipBody({
             y1={c.y + 1.5}
             x2={c.x + c.w - 3}
             y2={c.y + c.h - 1.5}
-            stroke="rgba(0,0,0,0.18)"
+            stroke={palette.groove}
             strokeWidth={1.4}
           />
         </G>

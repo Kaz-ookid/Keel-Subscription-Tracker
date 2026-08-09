@@ -469,7 +469,9 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: "transparent",
     },
     emptyHint: { ...typography.body, color: colors.mutedText },
-    headerAction: { ...typography.label, color: colors.white, paddingHorizontal: spacing.sm },
+    // Accent like every header action (accounts, form) — white was invisible
+    // over the light Ambient with the transparent header.
+    headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.sm },
     identity: {
       alignItems: "center",
       gap: spacing.xs,

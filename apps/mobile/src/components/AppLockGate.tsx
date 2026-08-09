@@ -8,6 +8,7 @@
 //      only the retry. The device passcode always works as fallback.
 
 import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -120,6 +121,10 @@ export function AppLockGate() {
   // import…) present above the root view, and the lock must sit above them.
   return (
     <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
+      {/* The cover is brand-navy in BOTH schemes, so the bar goes light for
+          as long as it shows — the root layout's scheme-following bar would
+          print dark glyphs on navy in light mode. */}
+      <StatusBar style="light" />
       <View style={styles.cover}>
         <LinearGradient colors={[NAVY, NAVY_DEEP]} style={StyleSheet.absoluteFill} />
         {/* The brand's water, calm at the foot of the lock (§3.7 D). */}

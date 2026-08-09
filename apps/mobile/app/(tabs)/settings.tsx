@@ -106,7 +106,7 @@ const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 const CHIP = {
   accounts: "#007AFF",
   currency: "#34C759",
-  appearance: "#5E5CE6",
+  appearance: "#5856D6",
   language: "#AF52DE",
   reminders: "#FF3B30",
   browse: "#FF9500",
@@ -115,10 +115,10 @@ const CHIP = {
   faceid: "#32ADE6",
   logos: "#5AC8FA",
   grace: "#8E8E93",
-  exportBackup: "#0A84FF",
-  restoreBackup: "#30D158",
+  exportBackup: "#007AFF",
+  restoreBackup: "#34C759",
   debug: "#8E8E93",
-  sample: "#FF9F0A",
+  sample: "#FF9500",
   danger: "#FF3B30",
   about: "#FF2D55",
 } as const;
@@ -355,13 +355,11 @@ export default function SettingsScreen() {
           onPress={() => router.push("/fullkeel")}
           onLayout={(e) => setBannerWidth(e.nativeEvent.layout.width)}
         >
-          {bannerWidth > 0 && (
-            <Sheen width={bannerWidth} color={colors.accentStrong} opacity={0.12} />
-          )}
+          {bannerWidth > 0 && <Sheen width={bannerWidth} color={colors.accent} opacity={0.12} />}
           <SymbolView
             name={entitlement.full ? "checkmark.seal.fill" : "sailboat.fill"}
             size={22}
-            tintColor={colors.accentStrong}
+            tintColor={colors.accent}
           />
           <View style={styles.fullkeelTexts}>
             <Text style={styles.fullkeelTitle}>{t("fullkeel.title")}</Text>
@@ -728,7 +726,7 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.sm,
       backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: withAlpha(colors.accentStrong, 0.35),
+      borderColor: withAlpha(colors.accent, 0.35),
       borderRadius: 24,
       padding: spacing.md,
       overflow: "hidden",

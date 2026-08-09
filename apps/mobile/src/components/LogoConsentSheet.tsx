@@ -53,7 +53,11 @@ export function LogoConsentSheet({ visible, onChoose, onDismiss }: Props) {
               width: badge,
               height: badge,
               borderRadius: badge / 2,
-              backgroundColor: "#FFF",
+              // The plate is genuinely white (logos expect it); the hairline
+              // keeps it visible on the light scheme's near-white well.
+              backgroundColor: colors.white,
+              borderWidth: 1,
+              borderColor: colors.hairline,
             }}
             contentFit="cover"
           />

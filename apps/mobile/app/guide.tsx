@@ -3,12 +3,12 @@
 // makes it usable. No walkthrough chrome, no screenshots; the app itself is
 // one tab away.
 
-import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "../src/components/ui/Card";
+import { IconChip } from "../src/components/ui/IconChip";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -26,13 +26,13 @@ const GROUPS: {
       { key: "overdue", icon: "exclamationmark.circle.fill", color: "#FF3B30" },
       { key: "pause", icon: "pause.circle.fill", color: "#8E8E93" },
       { key: "peek", icon: "calendar.badge.clock", color: "#007AFF" },
-      { key: "currency", icon: "coloncurrencysign.circle", color: "#5E5CE6" },
+      { key: "currency", icon: "coloncurrencysign.circle", color: "#5856D6" },
     ],
   },
   {
     labelKey: "guide.groupAhead",
     rows: [
-      { key: "trial", icon: "hourglass", color: "#FF9F0A" },
+      { key: "trial", icon: "hourglass", color: "#FF9500" },
       { key: "priceChange", icon: "chart.line.uptrend.xyaxis", color: "#FF3B30" },
       { key: "reminders", icon: "bell.fill", color: "#AF52DE" },
     ],
@@ -50,29 +50,11 @@ const GROUPS: {
     rows: [
       { key: "ai", icon: "sparkles", color: "#30B0C7" },
       { key: "todo", icon: "rectangle.stack.fill", color: "#FF9500" },
-      { key: "backup", icon: "externaldrive.fill", color: "#0A84FF" },
+      { key: "backup", icon: "externaldrive.fill", color: "#007AFF" },
       { key: "lock", icon: "faceid", color: "#32ADE6" },
     ],
   },
 ];
-
-function IconChip({ icon, color }: { icon: string; color: string }) {
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: color }]}>
-      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
-    </View>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    width: 29,
-    height: 29,
-    borderRadius: 6.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
 
 export default function GuideScreen() {
   const { colors } = useTheme();

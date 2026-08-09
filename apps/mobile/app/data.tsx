@@ -20,6 +20,7 @@ import { useCallback } from "react";
 
 import { activityDateLabel } from "../src/lib/ai-activity-display";
 import { Card } from "../src/components/ui/Card";
+import { IconChip } from "../src/components/ui/IconChip";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
 import {
@@ -31,29 +32,11 @@ import {
 import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
-function IconChip({ icon, color }: { icon: string; color: string }) {
-  return (
-    <View style={[chipStyles.chip, { backgroundColor: color }]}>
-      <SymbolView name={icon as never} size={15} tintColor="#FFFFFF" />
-    </View>
-  );
-}
-
-const chipStyles = StyleSheet.create({
-  chip: {
-    width: 29,
-    height: 29,
-    borderRadius: 6.5,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-});
-
 const CHIP = {
-  icloud: "#0A84FF",
-  history: "#5E5CE6",
+  icloud: "#007AFF",
+  history: "#5856D6",
   exportBackup: "#30B0C7",
-  importBackup: "#30D158",
+  importBackup: "#34C759",
   ai: "#30B0C7",
   danger: "#FF3B30",
 } as const;

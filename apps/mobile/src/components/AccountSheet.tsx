@@ -89,7 +89,7 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
               <SymbolView
                 name={choice as SymbolViewProps["name"]}
                 size={20}
-                tintColor={icon === choice ? colors.white : colors.text}
+                tintColor={icon === choice ? colors.actionText : colors.text}
               />
             </Pressable>
           ))}

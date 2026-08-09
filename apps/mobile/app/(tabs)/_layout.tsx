@@ -48,7 +48,7 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
                 onPress={() => router.push("/add")}
                 accessibilityLabel={t("tabs.addA11y")}
                 // Tinted, not solid (§9f): an accent wash in the glass.
-                style={[styles.plus, { backgroundColor: withAlpha(colors.accentStrong, 0.28) }]}
+                style={[styles.plus, { backgroundColor: withAlpha(colors.accent, 0.28) }]}
               >
                 <SymbolView name={tab.sf as SymbolName} size={22} tintColor={colors.accent} />
               </Pressable>

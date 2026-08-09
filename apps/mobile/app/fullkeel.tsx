@@ -42,16 +42,16 @@ export default function FullKeelScreen() {
         style={[styles.hero, full && styles.heroOwned]}
         onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
       >
-        {cardWidth > 0 && <Sheen width={cardWidth} color={colors.accentStrong} />}
+        {cardWidth > 0 && <Sheen width={cardWidth} color={colors.accent} />}
         {full ? (
           <>
-            <SymbolView name="checkmark.seal.fill" size={34} tintColor={colors.accentStrong} />
+            <SymbolView name="checkmark.seal.fill" size={34} tintColor={colors.accent} />
             <Text style={styles.heroPrice}>{t("fullkeel.ownedTitle")}</Text>
             <Text style={styles.heroNote}>{t("fullkeel.ownedBody")}</Text>
           </>
         ) : (
           <>
-            <SymbolView name="sailboat.fill" size={34} tintColor={colors.accentStrong} />
+            <SymbolView name="sailboat.fill" size={34} tintColor={colors.accent} />
             <Text style={styles.heroPrice}>{FULL_KEEL_PRICE}</Text>
             <Text style={styles.heroTag}>{t("fullkeel.priceTag")}</Text>
             <Text style={styles.heroNote}>
@@ -66,7 +66,7 @@ export default function FullKeelScreen() {
           .filter((key) => !(aiHidden && key === "includeAi"))
           .map((key) => (
             <View key={key} style={styles.listRow}>
-              <SymbolView name="checkmark.circle.fill" size={18} tintColor={colors.accentStrong} />
+              <SymbolView name="checkmark.circle.fill" size={18} tintColor={colors.accent} />
               <Text style={styles.listText}>{t(`fullkeel.${key}`)}</Text>
             </View>
           ))}
@@ -96,14 +96,14 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.xs,
       backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: withAlpha(colors.accentStrong, 0.35),
+      borderColor: withAlpha(colors.accent, 0.35),
       borderRadius: radius.xl,
       paddingVertical: spacing.xl,
       paddingHorizontal: spacing.md,
       overflow: "hidden",
     },
     heroOwned: {
-      borderColor: withAlpha(colors.accentStrong, 0.55),
+      borderColor: withAlpha(colors.accent, 0.55),
     },
     heroPrice: { ...typography.display, color: colors.text, marginTop: spacing.sm },
     heroTag: {
