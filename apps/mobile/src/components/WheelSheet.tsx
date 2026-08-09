@@ -41,7 +41,7 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.scrim,
     },
     sheet: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.materialStrong,
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
       paddingBottom: spacing.xl,
@@ -53,7 +53,7 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      borderBottomColor: colors.hairline,
     },
     title: {
       ...typography.label,

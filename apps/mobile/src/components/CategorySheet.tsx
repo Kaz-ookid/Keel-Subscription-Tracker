@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { useAppActions, useAppData } from "../state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../theme";
 import { Sheet } from "./Sheet";
 import { Button } from "./ui/Button";
 
@@ -106,7 +106,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
                   <SymbolView
                     name={choice as SymbolName}
                     size={22}
-                    tintColor={icon === choice ? colors.actionText : colors.text}
+                    tintColor={icon === choice ? colors.accent : colors.text}
                   />
                 </Pressable>
               ))}
@@ -162,9 +162,9 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.md,
     },
     input: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
       borderRadius: radius.sm,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
@@ -182,13 +182,14 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.md,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
     },
+    // Tinted, never a solid block (§9f) — same language as ui/Chip.
     iconChoiceActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.action,
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
   });
 }

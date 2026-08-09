@@ -12,7 +12,15 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-
 
 import { COLOR_SWATCHES } from "../constants";
 import { useAppActions, useAppData } from "../state/app-state";
-import { contrastText, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import {
+  contrastText,
+  radius,
+  spacing,
+  typography,
+  useTheme,
+  withAlpha,
+  type ThemeColors,
+} from "../theme";
 import { BrandBadge } from "./BrandBadge";
 import { Sheet } from "./Sheet";
 import { Button } from "./ui/Button";
@@ -89,7 +97,7 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
               <SymbolView
                 name={choice as SymbolViewProps["name"]}
                 size={20}
-                tintColor={icon === choice ? colors.actionText : colors.text}
+                tintColor={icon === choice ? colors.accent : colors.text}
               />
             </Pressable>
           ))}
@@ -286,9 +294,9 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.md,
     },
     input: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
       borderRadius: radius.sm,
       paddingVertical: spacing.sm,
       paddingHorizontal: spacing.md,
@@ -308,31 +316,33 @@ function createStyles(colors: ThemeColors) {
       borderRadius: radius.sm,
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
     },
+    // Tinted, never a solid block (§9f) — same language as ui/Chip.
     iconChoiceActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.action,
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
     chip: {
       paddingVertical: spacing.xs + 2,
       paddingHorizontal: spacing.md,
       borderRadius: radius.lg,
       borderWidth: 1,
-      borderColor: colors.border,
+      borderColor: colors.hairline,
+      backgroundColor: colors.material,
     },
     chipActive: {
-      backgroundColor: colors.action,
-      borderColor: colors.action,
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
     },
     chipText: {
       ...typography.label,
       color: colors.text,
     },
     chipTextActive: {
-      color: colors.actionText,
+      color: colors.accent,
     },
     swatch: {
       width: 32,

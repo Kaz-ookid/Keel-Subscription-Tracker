@@ -128,7 +128,7 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: colors.scrim,
     },
     card: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.materialStrong,
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
       paddingTop: spacing.sm,

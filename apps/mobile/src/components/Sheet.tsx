@@ -53,7 +53,7 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.md,
       borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.border,
+      borderBottomColor: colors.hairline,
     },
     title: {
       ...typography.label,
