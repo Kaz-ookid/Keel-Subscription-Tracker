@@ -57,6 +57,15 @@ export function hydrateLogoConsent(): Promise<void> {
   return hydrating;
 }
 
+/** Back to "never asked" — the debug onboarding replay uses this so a fresh
+ *  run asks the logo question again, like a real first launch. */
+export function resetLogoConsent(): void {
+  emit({ status: "unset", hydrated: true });
+  void AsyncStorage.removeItem(KEY).catch(() => {
+    // Best-effort, like every write here.
+  });
+}
+
 /** Record the user's choice; persists and updates every badge live. */
 export function setLogoConsent(on: boolean): void {
   emit({ status: on ? "on" : "off", hydrated: true });

@@ -52,7 +52,7 @@ import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { setAiEngine, useAiEngine } from "../../src/lib/ai-engine";
 import { cloudStanding } from "../../src/lib/apple-intelligence";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
-import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
+import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
@@ -332,6 +332,9 @@ export default function SettingsScreen() {
         onPress: () => {
           clearAllData();
           void resetOnboardingSeen();
+          // A replay should feel like a real first launch, logo question
+          // included — without this, an old choice silently answers it.
+          resetLogoConsent();
           router.push("/onboarding");
         },
       },

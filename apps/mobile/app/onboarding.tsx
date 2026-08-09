@@ -29,6 +29,7 @@ import { Ambient } from "../src/components/Ambient";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { LightField } from "../src/components/onboarding/LightField";
 import { LockNudge } from "../src/components/onboarding/LockNudge";
+import { LogoConsentGate } from "../src/components/LogoConsentGate";
 import { MethodDoor } from "../src/components/onboarding/MethodDoor";
 import { Dot, TourPane } from "../src/components/onboarding/TourElements";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
@@ -361,6 +362,11 @@ export default function OnboardingScreen() {
             style={styles.ctaSecondary}
           />
           <Button label={t("onboarding.startUsing")} onPress={finish} style={styles.cta} />
+          {/* The logo question is a REQUIRED first-run decision. The picker
+              and the AI review ask it in context; this is the catch-all for
+              the manual path, since every route exits through this pane. It
+              renders nothing once a choice exists. */}
+          <LogoConsentGate />
         </Animated.View>
       )}
     </View>
