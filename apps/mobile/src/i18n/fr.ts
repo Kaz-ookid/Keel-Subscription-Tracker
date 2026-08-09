@@ -829,6 +829,10 @@ export const fr: typeof en = {
     priceChangeBody: "Le prix passe à {{amount}} le {{date}}",
     previewName: "Keel",
     previewBody: "Voici à quoi ressemble un rappel.",
+    digestTitle_one: "{{count}} paiement en retard",
+    digestTitle_other: "{{count}} paiements en retard",
+    digestBody: "Toujours à payer : {{names}}.",
+    digestBodyMore: "Toujours à payer : {{names}} et {{count}} de plus.",
   },
   notifCenter: {
     title: "Notifications",
@@ -849,6 +853,13 @@ export const fr: typeof en = {
     preview: "Aperçu de la notification",
     previewFailTitle: "Pas d'aperçu",
     previewFailMsg: "Autorisez d'abord les notifications.",
+    digestGroup: "Récap des retards",
+    digestRow: "Me rappeler les retards",
+    digestWeekly: "Chaque semaine",
+    digestMonthly: "Chaque mois",
+    digestDayN: "le {{day}}",
+    digestFooter:
+      "Un récap des paiements en attente, à l'heure de vos rappels. Il ne part que s'il y a vraiment un retard.",
   },
   data: {
     title: "iCloud et données",

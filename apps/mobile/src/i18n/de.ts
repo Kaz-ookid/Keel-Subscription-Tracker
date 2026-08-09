@@ -830,6 +830,10 @@ export const de: typeof en = {
     priceChangeBody: "Preis ändert sich am {{date}} auf {{amount}}",
     previewName: "Keel",
     previewBody: "So sieht eine Erinnerung aus.",
+    digestTitle_one: "{{count}} überfällige Zahlung",
+    digestTitle_other: "{{count}} überfällige Zahlungen",
+    digestBody: "Noch offen: {{names}}.",
+    digestBodyMore: "Noch offen: {{names}} und {{count}} weitere.",
   },
   notifCenter: {
     title: "Mitteilungen",
@@ -850,6 +854,13 @@ export const de: typeof en = {
     preview: "Mitteilung testen",
     previewFailTitle: "Keine Vorschau",
     previewFailMsg: "Erlaube zuerst Mitteilungen.",
+    digestGroup: "Überfällig-Überblick",
+    digestRow: "An Überfälliges erinnern",
+    digestWeekly: "Jede Woche",
+    digestMonthly: "Jeden Monat",
+    digestDayN: "am {{day}}.",
+    digestFooter:
+      "Ein Überblick über wartende Zahlungen, zur Erinnerungszeit. Er kommt nur, wenn wirklich etwas überfällig ist.",
   },
   data: {
     title: "iCloud & Daten",

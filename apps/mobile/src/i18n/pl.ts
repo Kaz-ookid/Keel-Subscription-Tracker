@@ -873,6 +873,12 @@ const translation = {
     priceChangeBody: "Cena zmienia się na {{amount}} od {{date}}",
     previewName: "Keel",
     previewBody: "Tak wygląda przypomnienie.",
+    digestTitle_one: "{{count}} zaległa płatność",
+    digestTitle_few: "{{count}} zaległe płatności",
+    digestTitle_many: "{{count}} zaległych płatności",
+    digestTitle_other: "{{count}} zaległych płatności",
+    digestBody: "Wciąż do zapłaty: {{names}}.",
+    digestBodyMore: "Wciąż do zapłaty: {{names}} i jeszcze {{count}}.",
   },
   notifCenter: {
     title: "Powiadomienia",
@@ -893,6 +899,13 @@ const translation = {
     preview: "Podejrzyj powiadomienie",
     previewFailTitle: "Brak podglądu",
     previewFailMsg: "Najpierw zezwól na powiadomienia.",
+    digestGroup: "Podsumowanie zaległości",
+    digestRow: "Przypominaj o zaległościach",
+    digestWeekly: "Co tydzień",
+    digestMonthly: "Co miesiąc",
+    digestDayN: "{{day}}. dnia",
+    digestFooter:
+      "Podsumowanie czekających płatności, o godzinie przypomnień. Przychodzi tylko wtedy, gdy coś naprawdę zalega.",
   },
   data: {
     title: "iCloud i dane",

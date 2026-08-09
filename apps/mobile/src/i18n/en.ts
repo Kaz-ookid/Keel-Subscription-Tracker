@@ -821,6 +821,10 @@ export const en = {
     priceChangeBody: "Price changes to {{amount}} on {{date}}",
     previewName: "Keel",
     previewBody: "This is how a reminder looks.",
+    digestTitle_one: "{{count}} overdue payment",
+    digestTitle_other: "{{count}} overdue payments",
+    digestBody: "Still unpaid: {{names}}.",
+    digestBodyMore: "Still unpaid: {{names}} and {{count}} more.",
   },
   notifCenter: {
     title: "Notifications",
@@ -841,6 +845,13 @@ export const en = {
     preview: "Preview the notification",
     previewFailTitle: "No preview",
     previewFailMsg: "Allow notifications first.",
+    digestGroup: "Overdue summary",
+    digestRow: "Remind me about overdue",
+    digestWeekly: "Every week",
+    digestMonthly: "Every month",
+    digestDayN: "the {{day}}.",
+    digestFooter:
+      "A recap of payments still waiting, at your reminder time. It only fires when something is actually overdue.",
   },
   data: {
     title: "iCloud & data",

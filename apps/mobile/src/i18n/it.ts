@@ -827,6 +827,10 @@ export const it: typeof en = {
     priceChangeBody: "Il prezzo cambia a {{amount}} il {{date}}",
     previewName: "Keel",
     previewBody: "Ecco come appare un promemoria.",
+    digestTitle_one: "{{count}} pagamento in ritardo",
+    digestTitle_other: "{{count}} pagamenti in ritardo",
+    digestBody: "Ancora da pagare: {{names}}.",
+    digestBodyMore: "Ancora da pagare: {{names}} e altri {{count}}.",
   },
   notifCenter: {
     title: "Notifiche",
@@ -847,6 +851,13 @@ export const it: typeof en = {
     preview: "Prova la notifica",
     previewFailTitle: "Nessuna anteprima",
     previewFailMsg: "Consenti prima le notifiche.",
+    digestGroup: "Riepilogo ritardi",
+    digestRow: "Ricordami i ritardi",
+    digestWeekly: "Ogni settimana",
+    digestMonthly: "Ogni mese",
+    digestDayN: "il {{day}}",
+    digestFooter:
+      "Un riepilogo dei pagamenti in attesa, all'ora dei promemoria. Parte solo se c'è davvero un ritardo.",
   },
   data: {
     title: "iCloud e dati",
