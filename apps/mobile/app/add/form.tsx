@@ -72,6 +72,7 @@ export default function AddFormScreen() {
   return (
     <ScrollView
       style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
     >
@@ -115,7 +116,7 @@ export default function AddFormScreen() {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl },
     modeSwitch: {
       marginBottom: spacing.md,

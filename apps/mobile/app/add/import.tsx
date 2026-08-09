@@ -114,6 +114,7 @@ export default function ImportScreen() {
   return (
     <ScrollView
       style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
@@ -329,7 +330,7 @@ function StepRow({
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
     methods: { flexDirection: "row", gap: spacing.sm },
     // Material cards (§9f): the chosen method is a tint, not a heavy border.

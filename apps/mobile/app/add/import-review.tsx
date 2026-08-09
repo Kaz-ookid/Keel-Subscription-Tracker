@@ -268,6 +268,7 @@ export default function ImportReviewScreen() {
       {/* First AI review also shows brand logos: ask before any load. */}
       <LogoConsentGate />
       <FlatList
+        contentInsetAdjustmentBehavior="automatic"
         data={drafts}
         keyExtractor={(d) => d.id}
         renderItem={renderDraft}
@@ -298,7 +299,7 @@ export default function ImportReviewScreen() {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     listContent: { padding: spacing.md, paddingBottom: spacing.xl * 2, gap: spacing.sm },
     card: {
       flexDirection: "row",

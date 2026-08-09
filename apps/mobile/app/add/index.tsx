@@ -5,6 +5,7 @@
 // button is the system's own.
 
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
+import { useHeaderHeight } from "@react-navigation/elements";
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
@@ -21,6 +22,8 @@ export default function AddChooserScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
+  // Not a scroll view, so the transparent glass header needs manual clearance.
+  const headerHeight = useHeaderHeight();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items } = useAppData();
   const aiHidden = useAiHidden();
@@ -35,7 +38,7 @@ export default function AddChooserScreen() {
   }, [items]);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: headerHeight }]}>
       <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} />
       {/* The quiet just-in-time discovery of the AI import (§6.1) — Settings
           stays its deliberate home. Gone entirely under the AI lock. */}
@@ -73,7 +76,7 @@ export default function AddChooserScreen() {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     customRow: {
       flexDirection: "row",
       alignItems: "center",

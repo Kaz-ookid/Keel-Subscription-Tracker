@@ -117,6 +117,7 @@ export default function OnDeviceImportScreen() {
   return (
     <ScrollView
       style={styles.screen}
+      contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={styles.content}
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
@@ -240,7 +241,7 @@ export default function OnDeviceImportScreen() {
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: { flex: 1, backgroundColor: colors.background },
+    screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
     heroCard: {
       flexDirection: "row",
