@@ -14,6 +14,7 @@ import {
   type ImportWarning,
   type NewAccountInput,
 } from "@keel/core";
+import { useNavigation } from "@react-navigation/native";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
@@ -58,6 +59,7 @@ const FIELD_KEYS: Record<ImportFieldName, string> = {
 
 export default function ImportReviewScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -137,7 +139,13 @@ export default function ImportReviewScreen() {
       backupName,
     });
     clear();
-    router.dismissAll();
+    // Close the WHOLE Add sheet, back to whoever presented it (the tabs,
+    // Settings, or onboarding — which then advances to its done pane).
+    // dismissAll() only pops to the sheet's own first screen, which stranded
+    // the user back on the import hub after saving.
+    const sheet = navigation.getParent();
+    if (sheet) sheet.goBack();
+    else router.back();
   };
 
   const renderDraft = ({ item: draft }: { item: ImportDraft }) => {
