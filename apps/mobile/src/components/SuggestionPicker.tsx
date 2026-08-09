@@ -32,12 +32,17 @@ interface Props {
   /** Single-select mode (the Add flow): a row tap picks immediately —
    *  no checkmarks, no confirm button. Takes precedence over onAdd. */
   onPick?: (suggestion: SuggestedCommitment) => void;
+  /** The way out of the bank when a service isn't in it: a persistent "New
+   *  subscription" first row, and while searching a "Create ‹typed name›"
+   *  row with the results — the answer appears exactly where the question
+   *  ("mine isn't here?") comes up. */
+  onCreate?: (name: string) => void;
 }
 
 const CATEGORY_NAMES = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.name]));
 const CATEGORY_ICONS = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.icon]));
 
-export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props) {
+export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreate }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -146,8 +151,40 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick }: Props
         keyExtractor={(s) => s.id}
         contentContainerStyle={styles.listContent}
         keyboardShouldPersistTaps="handled"
+        ListHeaderComponent={
+          onCreate && !query.trim() ? (
+            <Pressable style={styles.row} onPress={() => onCreate("")}>
+              <View style={styles.createBadge}>
+                <SymbolView name="plus" size={16} tintColor={colors.accent} />
+              </View>
+              <View style={styles.middle}>
+                <Text style={styles.name}>{t("titles.newSubscription")}</Text>
+                <Text style={styles.caption}>{t("add.scratchHint")}</Text>
+              </View>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+          ) : null
+        }
+        ListFooterComponent={
+          onCreate && query.trim() ? (
+            <Pressable style={styles.row} onPress={() => onCreate(query.trim())}>
+              <View style={styles.createBadge}>
+                <SymbolView name="plus" size={16} tintColor={colors.accent} />
+              </View>
+              <View style={styles.middle}>
+                <Text style={styles.name} numberOfLines={1}>
+                  {t("picker.createNamed", { name: query.trim() })}
+                </Text>
+                <Text style={styles.caption}>{t("add.scratchHint")}</Text>
+              </View>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+          ) : null
+        }
         ListEmptyComponent={
-          <Text style={styles.empty}>{query.trim() ? t("picker.noMatch") : ""}</Text>
+          onCreate ? null : (
+            <Text style={styles.empty}>{query.trim() ? t("picker.noMatch") : ""}</Text>
+          )
         }
         renderItem={({ item }) => {
           const isChecked = checked.has(item.id);
@@ -283,6 +320,17 @@ function createStyles(colors: ThemeColors) {
     },
     rowAdded: {
       opacity: emphasis.dim,
+    },
+    // The create rows' badge: same footprint as a BrandBadge, clearly "new".
+    createBadge: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderStyle: "dashed",
+      borderColor: colors.accent,
+      alignItems: "center",
+      justifyContent: "center",
     },
     middle: {
       flex: 1,

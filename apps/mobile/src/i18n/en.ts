@@ -259,7 +259,6 @@ export const en = {
   add: {
     subscription: "Subscription",
     installment: "Split payments",
-    startScratch: "Start from scratch",
     scratchHint: "type everything yourself",
     priceEditTitle: "Price edited",
     priceEditBody: "Did the price really change, or are you fixing a typo?",
@@ -606,6 +605,7 @@ export const en = {
     searchPlaceholder: "Search all brands…",
     chipAll: "All",
     noMatch: "No brand matches that. You can still add it by hand later.",
+    createNamed: 'Create "{{name}}"',
     usuallyMonthly: "usually monthly",
     usuallyYearly: "usually yearly",
     alreadyInList: "already in your list",

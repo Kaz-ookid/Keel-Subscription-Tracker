@@ -1,5 +1,6 @@
 // The Add chooser: pick from the brand bank (pre-fills name, category, brand
-// color, logo, cadence), start from scratch, or hand the batch to the AI
+// color, logo, cadence), create your own (the bank's first row, or the
+// "Create ‹typed name›" row while searching), or hand the batch to the AI
 // import. Picking pushes /add/form — a real navigation, so the form's back
 // button is the system's own.
 
@@ -36,26 +37,19 @@ export default function AddChooserScreen() {
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} />
-      <Pressable style={styles.customRow} onPress={() => router.push("/add/form")}>
-        <Text style={styles.customText}>{t("add.startScratch")}</Text>
-        <Text style={styles.customHint}>{t("add.scratchHint")}</Text>
-      </Pressable>
       {/* The quiet just-in-time discovery of the AI import (§6.1) — Settings
           stays its deliberate home. Gone entirely under the AI lock. */}
       {!aiHidden && (
-        <Pressable
-          style={[styles.customRow, styles.aiRow]}
-          onPress={() => router.push("/add/import")}
-        >
+        <Pressable style={styles.customRow} onPress={() => router.push("/add/import")}>
           <SymbolView name="sparkles" size={16} tintColor={colors.accent} />
           <Text style={styles.customText}>{t("add.importAI")}</Text>
           <Text style={styles.customHint}>{t("add.importAIHint")}</Text>
         </Pressable>
       )}
-      {/* The third door: the browse picker in queue mode — tap many services
+      {/* The second door: the browse picker in queue mode — tap many services
           now, fill in the details whenever (they wait under All). */}
       <Pressable
-        style={[styles.customRow, styles.aiRow]}
+        style={[styles.customRow, styles.secondRow]}
         onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
       >
         <SymbolView name="rectangle.stack.badge.plus" size={16} tintColor={colors.accent} />
@@ -63,10 +57,15 @@ export default function AddChooserScreen() {
         <Text style={styles.customHint}>{t("add.todoDoorHint")}</Text>
       </Pressable>
       <Text style={styles.orPick}>{t("add.orPick")}</Text>
+      {/* "Start from scratch" lives INSIDE the bank now: a persistent New
+          subscription first row, and a Create ‹typed name› row while
+          searching — the beta lesson was that a separate door above didn't
+          answer "what if mine isn't in the list?" at the moment it's asked. */}
       <SuggestionPicker
         suggestions={SUGGESTED_COMMITMENTS}
         addedIds={addedIds}
         onPick={(s) => router.push({ pathname: "/add/form", params: { pick: s.id } })}
+        onCreate={(name) => router.push({ pathname: "/add/form", params: name ? { name } : {} })}
       />
     </View>
   );
@@ -77,7 +76,7 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: colors.background },
     customRow: {
       flexDirection: "row",
-      alignItems: "baseline",
+      alignItems: "center",
       gap: spacing.sm,
       backgroundColor: colors.surface,
       borderRadius: radius.md,
@@ -97,9 +96,8 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       flexShrink: 1,
     },
-    aiRow: {
+    secondRow: {
       marginTop: 0,
-      alignItems: "center",
     },
     // Breathing room on both sides: it separates the doors above from the
     // bank's search field below instead of sticking to either.

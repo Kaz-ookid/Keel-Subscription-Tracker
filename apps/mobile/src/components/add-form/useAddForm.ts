@@ -126,11 +126,12 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const draftRec = draft?.kind === "subscription" ? draft.input : undefined;
   const draftInst = draft?.kind === "split" ? draft.input : undefined;
   const isDraft = !!draft;
-  // Route params (To-complete flow) win over an in-screen pick; neither
-  // applies when editing or reviewing a draft. Saving clears any matching
+  // Route params win over an in-screen pick; neither applies when editing
+  // or reviewing a draft. A bare `name` (the bank's "Create ‹typed name›"
+  // row) prefills too — no suggestion id needed. Saving clears any matching
   // pending entry.
   const suggestion: SuggestionPrefill | undefined =
-    editItem || draft ? undefined : suggestionIdParam ? suggested : prefill;
+    editItem || draft ? undefined : suggestionIdParam || suggested.name ? suggested : prefill;
   const suggestionId = editItem || draft ? undefined : (suggestionIdParam ?? prefill?.id);
   const editRec =
     editItem && isRecurringSchedule(editItem.schedule) ? editItem.schedule : undefined;

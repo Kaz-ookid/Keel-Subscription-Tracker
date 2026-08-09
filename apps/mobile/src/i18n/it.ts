@@ -261,7 +261,6 @@ export const it: typeof en = {
   add: {
     subscription: "Abbonamento",
     installment: "Pagamento a rate",
-    startScratch: "Parti da zero",
     scratchHint: "scrivi tutto tu",
     priceEditTitle: "Prezzo modificato",
     priceEditBody: "Il prezzo è cambiato davvero, o stai correggendo un refuso?",
@@ -610,6 +609,7 @@ export const it: typeof en = {
     searchPlaceholder: "Cerca tra tutti i marchi…",
     chipAll: "Tutti",
     noMatch: "Nessun marchio corrisponde. Puoi comunque aggiungerlo a mano più tardi.",
+    createNamed: 'Crea "{{name}}"',
     usuallyMonthly: "di solito mensile",
     usuallyYearly: "di solito annuale",
     alreadyInList: "già nella tua lista",

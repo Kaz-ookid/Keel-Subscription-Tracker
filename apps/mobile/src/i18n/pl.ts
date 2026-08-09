@@ -282,7 +282,6 @@ const translation = {
   add: {
     subscription: "Subskrypcja",
     installment: "Raty",
-    startScratch: "Zacznij od zera",
     scratchHint: "wpisz wszystko samodzielnie",
     priceEditTitle: "Zmieniona cena",
     priceEditBody: "Cena naprawdę się zmieniła, czy poprawiasz literówkę?",
@@ -638,6 +637,7 @@ const translation = {
     searchPlaceholder: "Szukaj wśród wszystkich marek…",
     chipAll: "Wszystkie",
     noMatch: "Żadna marka nie pasuje. Możesz dodać ją później ręcznie.",
+    createNamed: 'Utwórz "{{name}}"',
     usuallyMonthly: "zwykle miesięcznie",
     usuallyYearly: "zwykle rocznie",
     alreadyInList: "już na twojej liście",
