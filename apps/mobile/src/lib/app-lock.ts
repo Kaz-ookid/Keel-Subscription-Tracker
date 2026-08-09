@@ -6,6 +6,7 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as LocalAuthentication from "expo-local-authentication";
+import { useSyncExternalStore } from "react";
 
 const ENABLED_KEY = "keel.applock.enabled.v1";
 const GRACE_KEY = "keel.applock.grace.v1";
@@ -21,9 +22,13 @@ export const GRACE_OPTIONS = [0, 60, 300] as const;
 
 const DEFAULT_CONFIG: AppLockConfig = { enabled: false, graceSeconds: 0 };
 
-// Settings writes, the gate reacts — a tiny in-memory pub/sub avoids polling.
+// Any writer notifies, every reader reacts — a tiny in-memory pub/sub avoids
+// polling, and a snapshot on top makes it an external store so components
+// (Settings, the onboarding nudge) render the SAME state instead of keeping
+// per-screen copies that drift (same pattern as logo-consent).
 type Listener = (config: AppLockConfig) => void;
 const listeners = new Set<Listener>();
+let snapshot: AppLockConfig = DEFAULT_CONFIG;
 
 export function onAppLockChange(listener: Listener): () => void {
   listeners.add(listener);
@@ -31,7 +36,24 @@ export function onAppLockChange(listener: Listener): () => void {
 }
 
 function notify(config: AppLockConfig) {
+  snapshot = config;
   listeners.forEach((listener) => listener(config));
+}
+
+// Read the stored config once, at startup (called from the root layout, like
+// hydrateLogoConsent). The locked-off default renders safely until then.
+let hydrating: Promise<void> | null = null;
+export function hydrateAppLock(): Promise<void> {
+  if (!hydrating) hydrating = loadAppLockConfig().then(notify);
+  return hydrating;
+}
+
+const subscribe = (listener: () => void) => onAppLockChange(() => listener());
+const getSnapshot = () => snapshot;
+
+/** Live app-lock config for components; updates wherever it was changed. */
+export function useAppLockConfig(): AppLockConfig {
+  return useSyncExternalStore(subscribe, getSnapshot);
 }
 
 export async function loadAppLockConfig(): Promise<AppLockConfig> {

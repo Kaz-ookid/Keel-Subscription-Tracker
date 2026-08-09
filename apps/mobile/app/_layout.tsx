@@ -10,6 +10,7 @@ import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
 import { hydrateAiEngine } from "../src/lib/ai-engine";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
+import { hydrateAppLock } from "../src/lib/app-lock";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { AppStateProvider } from "../src/state/app-state";
 import { AssistantSessionProvider } from "../src/state/assistant-session";
@@ -29,12 +30,13 @@ function RootNavigator() {
   const { colors, scheme } = useTheme();
   const router = useRouter();
 
-  // Read the stored brand-logo and AI-visibility choices once, before any
-  // badge or AI surface renders.
+  // Read the stored brand-logo, AI-visibility and app-lock choices once,
+  // before any surface that shows them renders.
   useEffect(() => {
     void hydrateLogoConsent();
     void hydrateAiVisibility();
     void hydrateAiEngine();
+    void hydrateAppLock();
   }, []);
 
   // Tapping a reminder lands on the commitment it's about.

@@ -37,8 +37,8 @@ import {
   authenticate,
   getAuthKind,
   GRACE_OPTIONS,
-  loadAppLockConfig,
   setAppLockEnabled as persistLockEnabled,
+  useAppLockConfig,
   setAppLockGrace as persistLockGrace,
   type AuthKind,
 } from "../../src/lib/app-lock";
@@ -142,8 +142,7 @@ export default function SettingsScreen() {
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
   // App lock: what the device offers (wording + availability) and the config.
   const [authKind, setAuthKind] = useState<AuthKind | null>(null);
-  const [lockEnabled, setLockEnabled] = useState(false);
-  const [graceSeconds, setGraceSeconds] = useState(0);
+  const { enabled: lockEnabled, graceSeconds } = useAppLockConfig();
   // The debug drawer stays collapsed until a tester opens it.
   const [debugOpen, setDebugOpen] = useState(false);
   // Full Keel: the banner reflects ownership; the debug switch flips it.
@@ -167,10 +166,6 @@ export default function SettingsScreen() {
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
     void getAuthKind().then(setAuthKind);
-    void loadAppLockConfig().then((config) => {
-      setLockEnabled(config.enabled);
-      setGraceSeconds(config.graceSeconds);
-    });
   }, []);
 
   // Authenticate in BOTH directions: enabling proves the lock can open (no
@@ -179,7 +174,6 @@ export default function SettingsScreen() {
   const toggleLock = async (next: boolean) => {
     const ok = await authenticate(t(next ? "applock.confirmPrompt" : "applock.disablePrompt"));
     if (!ok) return;
-    setLockEnabled(next);
     await persistLockEnabled(next);
   };
 
@@ -268,7 +262,6 @@ export default function SettingsScreen() {
       GRACE_OPTIONS.map((seconds) => graceLabel(seconds)),
       [...GRACE_OPTIONS],
       (seconds) => {
-        setGraceSeconds(seconds);
         void persistLockGrace(seconds);
       },
     );

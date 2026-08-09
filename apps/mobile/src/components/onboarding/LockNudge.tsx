@@ -11,8 +11,8 @@ import { StyleSheet, Text, View } from "react-native";
 import {
   authenticate,
   getAuthKind,
-  loadAppLockConfig,
   setAppLockEnabled,
+  useAppLockConfig,
   type AuthKind,
 } from "../../lib/app-lock";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
@@ -24,10 +24,9 @@ export function LockNudge() {
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const [kind, setKind] = useState<AuthKind | null>(null);
-  const [on, setOn] = useState(false);
+  const { enabled: on } = useAppLockConfig();
   useEffect(() => {
     void getAuthKind().then(setKind);
-    void loadAppLockConfig().then((config) => setOn(config.enabled));
   }, []);
 
   // Authenticate on the way IN so enabling can never lock the user out.
@@ -35,7 +34,6 @@ export function LockNudge() {
     const ok = await authenticate(t("applock.confirmPrompt"));
     if (!ok) return;
     await setAppLockEnabled(true);
-    setOn(true);
   };
 
   if (kind === null || kind === "unavailable") return null;
