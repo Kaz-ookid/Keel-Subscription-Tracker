@@ -196,6 +196,7 @@ export const fr: typeof en = {
   dates: {
     today: "Aujourd'hui",
     tomorrow: "Demain",
+    inDays: "dans {{count}} jours",
   },
   payments: {
     upcoming: "À venir",
@@ -821,7 +822,9 @@ export const fr: typeof en = {
     openSettings: "Ouvrir les Réglages",
   },
   notifications: {
-    body: "{{amount}} dû le {{date}}",
+    bodyToday: "{{amount}} à payer aujourd'hui",
+    bodyTomorrow: "{{amount}} à payer demain",
+    bodyInDays: "{{amount}} à payer dans {{count}} jours ({{date}})",
     trialBody: "Fin de l'essai le {{date}}, vous serez ensuite facturé {{amount}}",
     priceChangeBody: "Le prix passe à {{amount}} le {{date}}",
     previewName: "Keel",

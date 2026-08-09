@@ -17,6 +17,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 
 import i18n from "../i18n";
+import { daysUntil } from "../i18n/dates";
 import { fromCalendarDate } from "./dates";
 
 Notifications.setNotificationHandler({
@@ -141,17 +142,18 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
       await Notifications.scheduleNotificationAsync({
         content: {
           title: reminder.name,
-          body: i18n.t(
-            reminder.kind === "trialEnd"
-              ? "notifications.trialBody"
-              : reminder.kind === "priceChange"
-                ? "notifications.priceChangeBody"
-                : "notifications.body",
-            {
-              amount: formatMoney(reminder.amount),
-              date: formatCalendarDate(reminder.dueDate),
-            },
-          ),
+          body:
+            reminder.kind === "trialEnd" || reminder.kind === "priceChange"
+              ? i18n.t(
+                  reminder.kind === "trialEnd"
+                    ? "notifications.trialBody"
+                    : "notifications.priceChangeBody",
+                  {
+                    amount: formatMoney(reminder.amount),
+                    date: formatCalendarDate(reminder.dueDate),
+                  },
+                )
+              : dueBody(formatMoney(reminder.amount), reminder.dueDate, reminder.fireDate),
           data: { itemId: reminder.paymentItemId },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
@@ -160,6 +162,20 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
   } catch {
     // Notifications are best-effort; the app itself stays the source of truth.
   }
+}
+
+/** "18.90 CHF due in 3 days (25 July)" — the count is computed against the
+ *  reminder's FIRE date, so the sentence is true at the moment it appears
+ *  on the lock screen, not at the moment it was scheduled. */
+function dueBody(amount: string, dueDate: CalendarDate, fireDate: CalendarDate): string {
+  const days = daysUntil(dueDate, fireDate);
+  if (days <= 0) return i18n.t("notifications.bodyToday", { amount });
+  if (days === 1) return i18n.t("notifications.bodyTomorrow", { amount });
+  return i18n.t("notifications.bodyInDays", {
+    amount,
+    count: days,
+    date: formatCalendarDate(dueDate),
+  });
 }
 
 /** Current permission state for the Settings row. */
@@ -196,10 +212,7 @@ export async function previewNotification(
       content: {
         title: sample?.name ?? i18n.t("notifications.previewName"),
         body: sample
-          ? i18n.t("notifications.body", {
-              amount: formatMoney(sample.amount),
-              date: formatCalendarDate(sample.dueDate as never),
-            })
+          ? dueBody(formatMoney(sample.amount), sample.dueDate as CalendarDate, today())
           : i18n.t("notifications.previewBody"),
       },
       trigger: null,

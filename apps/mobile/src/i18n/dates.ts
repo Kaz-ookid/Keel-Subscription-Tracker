@@ -27,11 +27,21 @@ export function weekdayShort(day: number): string {
   return i18n.t(`weekdays.short.${day}`);
 }
 
-/** "Today" / "Tomorrow" / "Mon 15.06" — short-window day labels. */
+/** Whole days from `asOf` to `date` (UTC, format-only dates). */
+export function daysUntil(date: CalendarDate, asOf: CalendarDate): number {
+  const ms = Date.parse(`${date}T00:00:00Z`) - Date.parse(`${asOf}T00:00:00Z`);
+  return Math.round(ms / 86_400_000);
+}
+
+/** "Today" / "Tomorrow" / "Mon 15.06 · in 5 days" — short-window day labels.
+ *  The count rides along because a bare date makes people do calendar math
+ *  ("is the 13th this week?"); the answer is printed instead. */
 export function dayLabel(date: CalendarDate, asOf: CalendarDate): string {
   if (date === asOf) return i18n.t("dates.today");
   if (date === addRecurrence(asOf, { unit: "day", interval: 1 })) return i18n.t("dates.tomorrow");
   const [y, m, d] = date.split("-").map(Number);
   const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
-  return `${weekdayShort(weekday)} ${date.slice(8, 10)}.${date.slice(5, 7)}`;
+  const base = `${weekdayShort(weekday)} ${date.slice(8, 10)}.${date.slice(5, 7)}`;
+  const days = daysUntil(date, asOf);
+  return days > 1 ? `${base} · ${i18n.t("dates.inDays", { count: days })}` : base;
 }

@@ -194,6 +194,7 @@ export const en = {
   dates: {
     today: "Today",
     tomorrow: "Tomorrow",
+    inDays: "in {{count}} days",
   },
   payments: {
     upcoming: "Upcoming",
@@ -813,7 +814,9 @@ export const en = {
     openSettings: "Open Settings",
   },
   notifications: {
-    body: "{{amount}} due {{date}}",
+    bodyToday: "{{amount}} due today",
+    bodyTomorrow: "{{amount}} due tomorrow",
+    bodyInDays: "{{amount}} due in {{count}} days ({{date}})",
     trialBody: "Trial ends {{date}}, then you'll be charged {{amount}}",
     priceChangeBody: "Price changes to {{amount}} on {{date}}",
     previewName: "Keel",

@@ -217,6 +217,10 @@ const translation = {
   dates: {
     today: "Dziś",
     tomorrow: "Jutro",
+    inDays: "za {{count}} dni",
+    inDays_few: "za {{count}} dni",
+    inDays_many: "za {{count}} dni",
+    inDays_other: "za {{count}} dnia",
   },
   payments: {
     upcoming: "Nadchodzące",
@@ -859,7 +863,12 @@ const translation = {
     openSettings: "Otwórz Ustawienia",
   },
   notifications: {
-    body: "{{amount}} do zapłaty {{date}}",
+    bodyToday: "{{amount}} do zapłaty dziś",
+    bodyTomorrow: "{{amount}} do zapłaty jutro",
+    bodyInDays: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
+    bodyInDays_few: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
+    bodyInDays_many: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
+    bodyInDays_other: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
     trialBody: "Okres próbny kończy się {{date}}, potem zapłacisz {{amount}}",
     priceChangeBody: "Cena zmienia się na {{amount}} od {{date}}",
     previewName: "Keel",
