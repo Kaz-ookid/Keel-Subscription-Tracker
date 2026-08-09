@@ -61,11 +61,9 @@ export default function OnboardingScreen() {
   const { addPendingSuggestions } = useAppActions();
 
   // "browse" (Settings, the pending list) jumps straight to the picker;
-  // "start" (the empty-state Get started button) skips the tour but keeps the
-  // method step; a plain open is the full first-launch run.
-  const [phase, setPhase] = useState<Phase>(
-    mode === "browse" ? "pick" : mode === "start" ? "method" : "tour",
-  );
+  // a plain open is the full first-launch run. (The empty-state Get started
+  // button opens the Add sheet directly and never lands here.)
+  const [phase, setPhase] = useState<Phase>(mode === "browse" ? "pick" : "tour");
   const [pane, setPane] = useState(0);
   // The pager's live offset drives everything visual: pane parallax, the
   // dots' pill morph, and the aura's drift. One driver, no state races.

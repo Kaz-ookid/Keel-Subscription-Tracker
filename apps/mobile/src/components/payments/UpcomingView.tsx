@@ -310,8 +310,9 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
             items.length === 0
               ? {
                   label: t("common.getStarted"),
-                  onPress: () =>
-                    router.push({ pathname: "/onboarding", params: { mode: "start" } }),
+                  // Straight into the Add sheet (same door as the dock's +),
+                  // not back into onboarding's method screen.
+                  onPress: () => router.push("/add"),
                 }
               : undefined
           }
