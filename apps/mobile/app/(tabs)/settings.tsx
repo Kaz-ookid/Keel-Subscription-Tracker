@@ -17,7 +17,6 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActionSheetIOS,
   Alert,
   AppState,
   Pressable,
@@ -42,6 +41,7 @@ import {
   setAppLockGrace as persistLockGrace,
   type AuthKind,
 } from "../../src/lib/app-lock";
+import { showNativeActionSheet } from "../../src/lib/native-sheet";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { setAiEngine, useAiEngine } from "../../src/lib/ai-engine";
 import { cloudStanding } from "../../src/lib/apple-intelligence";
@@ -230,7 +230,7 @@ export default function SettingsScreen() {
     values: T[],
     onPick: (value: T) => void,
   ) => {
-    ActionSheetIOS.showActionSheetWithOptions(
+    showNativeActionSheet(
       {
         title,
         options: [...labels, t("common.cancel")],

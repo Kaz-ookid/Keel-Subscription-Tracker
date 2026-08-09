@@ -13,7 +13,6 @@ import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  ActionSheetIOS,
   Alert,
   AppState,
   Linking,
@@ -33,6 +32,7 @@ import { Card } from "../src/components/ui/Card";
 import { WheelSheet } from "../src/components/WheelSheet";
 import { formatHour } from "../src/lib/dates";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
+import { showNativeActionSheet } from "../src/lib/native-sheet";
 import {
   DEFAULT_LEAD_OPTIONS,
   loadNotificationSettings,
@@ -130,7 +130,7 @@ export default function NotificationsScreen() {
 
   const pickLead = () => {
     const labels = DEFAULT_LEAD_OPTIONS.map((key) => leadLabel(key));
-    ActionSheetIOS.showActionSheetWithOptions(
+    showNativeActionSheet(
       {
         title: t("notifCenter.defaultLead"),
         options: [...labels, t("common.cancel")],
@@ -170,7 +170,7 @@ export default function NotificationsScreen() {
     const options = removable
       ? [t("notifCenter.openItem"), t("notifCenter.removeReminder"), t("common.cancel")]
       : [t("notifCenter.openItem"), t("common.cancel")];
-    ActionSheetIOS.showActionSheetWithOptions(
+    showNativeActionSheet(
       {
         title: name,
         options,

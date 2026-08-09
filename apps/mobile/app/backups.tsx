@@ -7,7 +7,7 @@ import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActionSheetIOS, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "../src/components/ui/Card";
 import {
@@ -18,6 +18,7 @@ import {
   readBackup,
   type BackupEntry,
 } from "../src/lib/backups";
+import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { useAppActions } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
@@ -69,7 +70,7 @@ export default function BackupsScreen() {
     ]);
 
   const openEntry = (entry: BackupEntry) => {
-    ActionSheetIOS.showActionSheetWithOptions(
+    showNativeActionSheet(
       {
         title: entryDateLabel(entry),
         options: [

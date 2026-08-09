@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
+import { SheetShield } from "../src/components/SheetShield";
 import { hydrateAiEngine } from "../src/lib/ai-engine";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateAppLock } from "../src/lib/app-lock";
@@ -120,6 +121,10 @@ function RootNavigator() {
           </ImportSessionProvider>
           {/* No colored bars anymore: the status bar follows the scheme. */}
           <StatusBar style={scheme === "dark" ? "light" : "dark"} />
+          {/* Catches the touch that falls through a dismissing native action
+              sheet (see lib/native-sheet.ts). Covers the tab and pushed
+              screens, which is where every such sheet opens from. */}
+          <SheetShield />
           {/* Above everything, including native modals: the app lock. */}
           <AppLockGate />
         </AppStateProvider>
