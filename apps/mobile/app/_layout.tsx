@@ -12,6 +12,7 @@ import { SheetShield } from "../src/components/SheetShield";
 import { hydrateAiEngine } from "../src/lib/ai-engine";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateAppLock } from "../src/lib/app-lock";
+import { hydrateBrandTints } from "../src/lib/dominant-color";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { AppStateProvider } from "../src/state/app-state";
 import { AssistantSessionProvider } from "../src/state/assistant-session";
@@ -38,6 +39,7 @@ function RootNavigator() {
     void hydrateAiVisibility();
     void hydrateAiEngine();
     void hydrateAppLock();
+    void hydrateBrandTints();
   }, []);
 
   // Tapping a reminder lands on the commitment it's about.

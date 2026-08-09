@@ -20,6 +20,7 @@ import ReanimatedSwipeable, {
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { brandBleed } from "../lib/brand";
+import { useBrandTints } from "../lib/dominant-color";
 import { useAppData } from "../state/app-state";
 import {
   emphasis,
@@ -49,6 +50,8 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   const account = accounts.find((a) => a.id === item.accountId);
 
   // Resolved brand color: the item's own, else the bank's, never mono.
+  // Repaint when a logo's extracted tint lands (dev builds).
+  useBrandTints();
   const accent = brandBleed(item, colors.accent);
 
   const complete = isPaymentItemComplete(item, today());

@@ -15,6 +15,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
+import { noteBrandLogo } from "../lib/dominant-color";
 import { useLogosEnabled } from "../lib/logo-consent";
 import {
   knownCachedLogo,
@@ -135,6 +136,9 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
         onLoad={() => {
           setLoaded(true);
           if (logosEnabled) noteLogoCached(domain);
+          // The one moment we KNOW the logo renders: extract its dominant
+          // color (once per domain; a no-op without the native module).
+          noteBrandLogo(domain, uri);
         }}
         onError={() => setFailed(true)}
         style={{

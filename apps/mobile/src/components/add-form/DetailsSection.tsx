@@ -7,6 +7,7 @@ import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-nati
 import Animated from "react-native-reanimated";
 
 import { brandBleed } from "../../lib/brand";
+import { useBrandTints } from "../../lib/dominant-color";
 import { foldIn, foldOut } from "../../lib/motion";
 
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
@@ -34,6 +35,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
   // glows in the service's true color, live as the identity takes shape —
   // pick Netflix and the card turns Netflix. brandBleed resolves own color →
   // bank color → accent, rejecting near-mono.
+  useBrandTints();
   const brand = brandBleed(
     { name: form.name, domain: form.domain, color: form.color },
     colors.accent,

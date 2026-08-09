@@ -12,6 +12,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { brandBleed } from "../lib/brand";
+import { useBrandTints } from "../lib/dominant-color";
 import { useAppData } from "../state/app-state";
 import {
   emphasis,
@@ -62,6 +63,7 @@ export function UpcomingRow({
 
   const category = categories.find((c) => c.id === charge.categoryId);
   const account = accounts.find((a) => a.id === charge.accountId);
+  useBrandTints();
   const accent = brandBleed(charge, colors.accent);
   const settled = paid || skipped;
 

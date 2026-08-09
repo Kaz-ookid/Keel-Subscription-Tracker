@@ -27,6 +27,7 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { Button } from "../src/components/ui/Button";
 import { Card } from "../src/components/ui/Card";
 import { brandBleed } from "../src/lib/brand";
+import { useBrandTints } from "../src/lib/dominant-color";
 import { formatHour } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
@@ -62,6 +63,8 @@ export default function ItemScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  // Repaint when a logo's extracted tint lands (dev builds).
+  useBrandTints();
   const { items, occurrences, accounts, categories } = useAppData();
   const {
     markPaid,
