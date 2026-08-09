@@ -184,6 +184,58 @@ export function buildSampleData(): SampleData {
     accountId: revolut.id,
   });
 
+  addAuto({
+    ...bank("chatgpt"),
+    amount: eur(23),
+    recurrence: monthly,
+    firstChargeDate: monthShift(asOf, -5, 19),
+    settlementMode: "automatic",
+    accountId: revolut.id,
+  });
+
+  addAuto({
+    ...bank("youtube-premium"),
+    amount: chf(15.9),
+    recurrence: monthly,
+    firstChargeDate: monthShift(asOf, -16, 23),
+    settlementMode: "automatic",
+    accountId: bcv.id,
+  });
+
+  // Every 3 months → lands in the "Other" cycle bucket, not monthly/yearly.
+  addAuto({
+    ...bank("electricity"),
+    amount: chf(184.5),
+    recurrence: { unit: "month", interval: 3 },
+    firstChargeDate: monthShift(asOf, -7, 15),
+    settlementMode: "automatic",
+    accountId: bcv.id,
+  });
+
+  // Second yearly, due in five months — the far edge of the forecast.
+  addAuto({
+    ...bank("sbb-halbtax"),
+    amount: chf(190),
+    recurrence: yearly,
+    firstChargeDate: monthShift(asOf, -7, 18),
+    settlementMode: "automatic",
+    accountId: bcv.id,
+  });
+
+  // The big real-life number: health insurance, billed and paid by hand,
+  // up to date (unlike Spotify below, which is behind).
+  addManual(
+    {
+      ...bank("helsana"),
+      amount: chf(289.6),
+      recurrence: monthly,
+      firstChargeDate: monthShift(asOf, -7, 1),
+      settlementMode: "manual",
+      accountId: bcv.id,
+    },
+    ["pay", "pay", "pay", "pay", "pay", "pay", "pay"],
+  );
+
   // Manual, paid every month so far except the current one → due/overdue now.
   addManual(
     {
@@ -255,6 +307,27 @@ export function buildSampleData(): SampleData {
   iphone = markNextInstallmentPaid(iphone, { paidDate: monthShift(asOf, -2, 10), now: now() });
   iphone = markNextInstallmentPaid(iphone, { paidDate: monthShift(asOf, -1, 10), now: now() });
   items.push(iphone);
+
+  // A second plan mid-flight, longer horizon: 6 of 10 paid.
+  let ebike = makeInstallmentPaymentItem(
+    {
+      name: "E-bike",
+      totalAmount: chf(2790),
+      numberOfInstallments: 10,
+      recurrence: monthly,
+      firstInstallmentDate: monthShift(asOf, -6, 22),
+      provider: "other",
+      settlementMode: "manual",
+      categoryId: "transport",
+      color: "#0F766E",
+      accountId: bcv.id,
+    },
+    { id: randomUUID(), now: now(), makeId: randomUUID },
+  );
+  for (let i = 0; i < 6; i++) {
+    ebike = markNextInstallmentPaid(ebike, { paidDate: monthShift(asOf, -6 + i, 22), now: now() });
+  }
+  items.push(ebike);
 
   // BNPL finished: shows the "Done" state and counts in past months.
   let sofa = makeInstallmentPaymentItem(
