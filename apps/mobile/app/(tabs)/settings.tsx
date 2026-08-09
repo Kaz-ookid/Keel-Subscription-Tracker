@@ -37,8 +37,8 @@ import {
   getAuthKind,
   GRACE_OPTIONS,
   setAppLockEnabled as persistLockEnabled,
-  useAppLockConfig,
   setAppLockGrace as persistLockGrace,
+  useAppLockConfig,
   type AuthKind,
 } from "../../src/lib/app-lock";
 import { showNativeActionSheet } from "../../src/lib/native-sheet";
@@ -140,7 +140,9 @@ export default function SettingsScreen() {
   const [currencySheet, setCurrencySheet] = useState(false);
   const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
-  // App lock: what the device offers (wording + availability) and the config.
+  // App lock: what the device offers (wording + availability) and the live
+  // config from the shared store, so enabling it anywhere (onboarding's nudge
+  // included) is reflected here without a reload.
   const [authKind, setAuthKind] = useState<AuthKind | null>(null);
   const { enabled: lockEnabled, graceSeconds } = useAppLockConfig();
   // The debug drawer stays collapsed until a tester opens it.
@@ -573,7 +575,10 @@ export default function SettingsScreen() {
             never clutters the list, but one tap away when a tester needs to
             seed data or replay onboarding. */}
         <Pressable style={styles.debugHeader} onPress={() => setDebugOpen((open) => !open)}>
-          <Text style={styles.groupLabel}>{t("settings.groupDebug")}</Text>
+          {/* groupLabel's negative bottom margin (the card tuck) would lift
+              the text off the chevron's centerline inside this row; the row
+              carries the tuck instead. */}
+          <Text style={[styles.groupLabel, styles.debugLabel]}>{t("settings.groupDebug")}</Text>
           <SymbolView
             name={debugOpen ? "chevron.down" : "chevron.right"}
             size={12}
@@ -738,7 +743,9 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.xs,
       paddingVertical: spacing.xs,
+      marginBottom: -spacing.sm,
     },
+    debugLabel: { marginBottom: 0 },
     footer: {
       ...typography.caption,
       color: colors.mutedText,
