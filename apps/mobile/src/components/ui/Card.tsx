@@ -4,7 +4,13 @@
 // vertical padding (facts, settings rows); "free" is a freestanding block
 // (stat cards, price-change cards).
 
-import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
+import {
+  StyleSheet,
+  View,
+  type LayoutChangeEvent,
+  type StyleProp,
+  type ViewStyle,
+} from "react-native";
 
 import { cardShadow, radius, spacing, useTheme } from "../../theme";
 import type { ReactNode } from "react";
@@ -14,13 +20,16 @@ export type CardVariant = "list" | "free";
 interface Props {
   variant?: CardVariant;
   style?: StyleProp<ViewStyle>;
+  /** For cards that host width-aware content (a Sheen sweep). */
+  onLayout?: (event: LayoutChangeEvent) => void;
   children: ReactNode;
 }
 
-export function Card({ variant = "list", style, children }: Props) {
+export function Card({ variant = "list", style, onLayout, children }: Props) {
   const { colors, scheme } = useTheme();
   return (
     <View
+      onLayout={onLayout}
       style={[
         styles.base,
         { backgroundColor: colors.material, borderColor: colors.hairline },

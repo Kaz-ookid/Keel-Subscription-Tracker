@@ -84,9 +84,10 @@ function createFormStyles(colors: ThemeColors) {
       color: colors.text,
       textAlign: "right",
     },
-    // A standalone input on a sheet (the logo/domain field): keeps a box.
+    // A standalone input on a sheet (the logo/domain field): keeps a box,
+    // as a material like everything else.
     sheetInput: {
-      backgroundColor: colors.surface,
+      backgroundColor: colors.material,
       borderWidth: 1,
       borderColor: colors.hairline,
       borderRadius: radius.sm,
