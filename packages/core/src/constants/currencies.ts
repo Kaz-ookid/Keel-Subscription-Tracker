@@ -18,6 +18,9 @@ export interface CurrencyInfo {
   readonly flag: string;
 }
 
+// Every entry must be covered by the exchange-rate source (ECB reference
+// rates via Frankfurter) or cross-currency totals silently stop converting —
+// check https://api.frankfurter.dev/v1/currencies before adding one.
 export const CURRENCIES = {
   EUR: { code: "EUR", name: "Euro", symbol: "€", decimalDigits: 2, flag: "🇪🇺" },
   USD: { code: "USD", name: "US Dollar", symbol: "$", decimalDigits: 2, flag: "🇺🇸" },
@@ -26,6 +29,21 @@ export const CURRENCIES = {
   CAD: { code: "CAD", name: "Canadian Dollar", symbol: "$", decimalDigits: 2, flag: "🇨🇦" },
   AUD: { code: "AUD", name: "Australian Dollar", symbol: "$", decimalDigits: 2, flag: "🇦🇺" },
   JPY: { code: "JPY", name: "Japanese Yen", symbol: "¥", decimalDigits: 0, flag: "🇯🇵" },
+  PLN: { code: "PLN", name: "Polish Złoty", symbol: "zł", decimalDigits: 2, flag: "🇵🇱" },
+  SEK: { code: "SEK", name: "Swedish Krona", symbol: "kr", decimalDigits: 2, flag: "🇸🇪" },
+  NOK: { code: "NOK", name: "Norwegian Krone", symbol: "kr", decimalDigits: 2, flag: "🇳🇴" },
+  DKK: { code: "DKK", name: "Danish Krone", symbol: "kr", decimalDigits: 2, flag: "🇩🇰" },
+  CZK: { code: "CZK", name: "Czech Koruna", symbol: "Kč", decimalDigits: 2, flag: "🇨🇿" },
+  HUF: { code: "HUF", name: "Hungarian Forint", symbol: "Ft", decimalDigits: 2, flag: "🇭🇺" },
+  RON: { code: "RON", name: "Romanian Leu", symbol: "lei", decimalDigits: 2, flag: "🇷🇴" },
+  TRY: { code: "TRY", name: "Turkish Lira", symbol: "₺", decimalDigits: 2, flag: "🇹🇷" },
+  CNY: { code: "CNY", name: "Chinese Yuan", symbol: "¥", decimalDigits: 2, flag: "🇨🇳" },
+  INR: { code: "INR", name: "Indian Rupee", symbol: "₹", decimalDigits: 2, flag: "🇮🇳" },
+  BRL: { code: "BRL", name: "Brazilian Real", symbol: "R$", decimalDigits: 2, flag: "🇧🇷" },
+  MXN: { code: "MXN", name: "Mexican Peso", symbol: "$", decimalDigits: 2, flag: "🇲🇽" },
+  KRW: { code: "KRW", name: "South Korean Won", symbol: "₩", decimalDigits: 0, flag: "🇰🇷" },
+  SGD: { code: "SGD", name: "Singapore Dollar", symbol: "$", decimalDigits: 2, flag: "🇸🇬" },
+  NZD: { code: "NZD", name: "New Zealand Dollar", symbol: "$", decimalDigits: 2, flag: "🇳🇿" },
 } as const satisfies Record<string, CurrencyInfo>;
 
 /** Every supported currency code, derived from `CURRENCIES` — the single

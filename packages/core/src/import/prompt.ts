@@ -6,11 +6,15 @@
 // Always generated fresh (the header encodes our data model — never let a
 // stale saved copy circulate).
 
-import type { CurrencyCode } from "../constants/currencies";
+import { CURRENCIES, type CurrencyCode } from "../constants/currencies";
 import type { CalendarDate } from "../primitives/temporal";
 
 /** Bumped whenever the import format changes shape. */
 export const IMPORT_FORMAT_VERSION = 1;
+
+// Derived from the table so the prompt can never drift from what the app
+// actually accepts.
+const CURRENCY_LIST = Object.keys(CURRENCIES).join(", ");
 
 export interface ImportPromptContext {
   today: CalendarDate;
@@ -26,7 +30,7 @@ Reply with ONLY a JSON object of the form {"items":[ ... ]}, and present it insi
 Each item:
 - "type": "subscription" for anything recurring; "split_payment" for a purchase paid in a fixed number of instalments (pay in 4, BNPL, Klarna, etc.).
 - "name": what the payment is for, kept in the user's own words and language. Do not translate or rename it. If the input gives no clear name, use a short descriptive one and record in "notes" that the name was guessed.
-- "currency": one of EUR, USD, GBP, CHF, CAD, AUD, JPY. If the amount is in another currency (e.g. HKD), convert it to the equivalent the user states and add a "notes" recording the original. If no currency is given, use the default currency: ${defaultCurrency}.
+- "currency": one of ${CURRENCY_LIST}. If the amount is in another currency (e.g. HKD), convert it to the equivalent the user states and add a "notes" recording the original. If no currency is given, use the default currency: ${defaultCurrency}.
 - "amount" (subscription) or "total" (split_payment): a decimal in the currency's main unit (17.6 means 17.60). A FREE trial uses "amount": 0.
 - "settlement": "manual" if the user says they pay it themselves / by transfer / marks it manual; otherwise "automatic".
 - "category": the closest of: streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other. Use "other" if unsure. (rent→housing, loan/pension/bank fee→finance, transit→transport, ISP/mobile→communications, TV-licence/electricity→utilities, gym→health, union/association→memberships, cloud/AI/app→software.)
@@ -81,7 +85,7 @@ export function buildOnDevicePrompt({ today, defaultCurrency }: ImportPromptCont
 Fill each field from the notes:
 - name: what the payment is for, in the user's own words. If they give a real name or brand ("Amazon Prime", "Netflix", "CSS"), use it EXACTLY. Never replace a real name with a placeholder like "subscription".
 - amount (or "total" for a purchase split into instalments): the price as a number, e.g. 19 or 17.60. A free trial is 0.
-- currency: one of EUR USD GBP CHF CAD AUD JPY. Use ${defaultCurrency} when none is stated.
+- currency: one of ${CURRENCY_LIST}. Use ${defaultCurrency} when none is stated.
 - settlement: "automatic" normally. "manual" ONLY if the user says they pay it themselves (a bill, a transfer). If they say "automatic", it is automatic; do not second-guess what they stated.
 - category: the closest of streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other.
 - cadence: monthly = {"unit":"month","interval":1}; yearly = {"unit":"year","interval":1}; every 2 months = {"unit":"month","interval":2}.

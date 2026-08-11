@@ -4,10 +4,14 @@
 // carries text back and forth and every platform asks the same way.
 
 import type { CalendarDate } from "../primitives/temporal";
-import type { CurrencyCode } from "../constants/currencies";
+import { CURRENCIES, type CurrencyCode } from "../constants/currencies";
 import { toMajor } from "../primitives/money";
 import type { Account } from "../models/account";
 import type { PaymentItem } from "../models/payment-item";
+
+// Derived from the table so the prompt can never drift from what the app
+// actually accepts.
+const CURRENCY_CODES = Object.keys(CURRENCIES).join("|");
 
 export interface AssistantPromptContext {
   items: readonly PaymentItem[];
@@ -81,7 +85,7 @@ Pick the action from what they MEAN. These are different; do not confuse them:
 - mark_paid: {"op":"mark_paid","item":name}. Triggers: "I paid X".
 - skip: {"op":"skip","item":name}. Triggers: "skip X this month".
 
-"additions" = NEW commitments they describe: {"type":"subscription"|"split_payment","name":...,"amount":N (or "total" and "installments" for split_payment),"currency":"EUR|USD|GBP|CHF|CAD|AUD|JPY" (default ${ctx.defaultCurrency}),"cadence":{"unit":"month"|"year"|"week"|"day","interval":N},"firstDate":"YYYY-MM-DD","settlement":"automatic"|"manual","category":one of streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other,"account":name optional}.
+"additions" = NEW commitments they describe: {"type":"subscription"|"split_payment","name":...,"amount":N (or "total" and "installments" for split_payment),"currency":"${CURRENCY_CODES}" (default ${ctx.defaultCurrency}),"cadence":{"unit":"month"|"year"|"week"|"day","interval":N},"firstDate":"YYYY-MM-DD","settlement":"automatic"|"manual","category":one of streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other,"account":name optional}.
 
 Rules:
 - pause is NOT end. "Re-enable" / "put back on" is resume, NOT an addition.

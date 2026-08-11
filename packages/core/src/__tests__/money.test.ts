@@ -24,7 +24,10 @@ describe("Money", () => {
 
   it("formats with symbol and the currency's decimal places", () => {
     expect(formatMoney(fromMajor(9.99, "EUR"))).toBe("9,99 €");
-    expect(formatMoney(fromMajor(500, "JPY"))).toBe("500 ¥");
+    // "¥" is shared (JPY/CNY), so both fall back to their ISO code — the
+    // label must never be ambiguous. Zero-decimal stays zero-decimal.
+    expect(formatMoney(fromMajor(500, "JPY"))).toBe("500 JPY");
+    expect(formatMoney(fromMajor(35, "CNY"))).toBe("35,00 CNY");
   });
 });
 
