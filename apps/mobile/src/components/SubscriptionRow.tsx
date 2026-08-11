@@ -11,13 +11,9 @@ import {
   type PaymentItem,
 } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
-import { SymbolView } from "expo-symbols";
-import { useMemo, useRef } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
-import ReanimatedSwipeable, {
-  type SwipeableMethods,
-} from "react-native-gesture-handler/ReanimatedSwipeable";
+import { Alert, StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { brandBleed } from "../lib/brand";
@@ -32,17 +28,16 @@ import {
   withAlpha,
   type ThemeColors,
 } from "../theme";
-import { Button } from "./ui/Button";
+import { SwipeRow } from "./ui/SwipeRow";
 import { BrandBadge } from "./BrandBadge";
 
 interface Props {
   item: PaymentItem;
   onPress: () => void;
-  onMarkPaid: () => void;
   onDelete: () => void;
 }
 
-export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) {
+export function SubscriptionRow({ item, onPress, onDelete }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -66,7 +61,6 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   let amount: string | undefined;
   let tag = "";
   let tagColor = colors.mutedText;
-  let showMarkPaid = false;
 
   // One shared rule for both payment types: current month only.
   const canMark = canMarkPaid(item, today());
@@ -83,7 +77,6 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
     amount = formatMoney(recurring.amount);
     tag = isManual ? t("row.manual") : t("row.automatic");
     tagColor = isManual ? colors.tones.warning : colors.tones.info;
-    showMarkPaid = canMark;
     // Ticked off for this month: say so instead of offering the button.
     if (isManual && !canMark && !complete && recurring.nextChargeDate > recurring.firstChargeDate) {
       tag = t("row.paidThisCycle");
@@ -116,7 +109,6 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
         ? ` · ${t("row.next", { date: formatCalendarDate(shiftOffWeekend(next.dueDate, item.weekendShift)) })}`
         : "");
     amount = formatMoney(next ? next.amount : s.totalAmount);
-    showMarkPaid = canMark;
     if (!canMark && s.paidCount > 0 && !s.isComplete) {
       tag = t("row.paidThisCycle");
       tagColor = colors.tones.success;
@@ -130,22 +122,17 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   if (item.status === "paused") {
     tag = t("row.paused");
     tagColor = colors.mutedText;
-    showMarkPaid = false;
   }
 
   // A finished item: greyed, labelled, no action.
   if (complete) {
     tag = recurring ? t("row.ended") : t("row.doneTag");
     tagColor = colors.mutedText;
-    showMarkPaid = false;
   }
 
-  // Swipe left (the mail idiom) or long-press: both land on the same
-  // confirm. The swipeable closes first so the row isn't left hanging open
-  // behind the alert.
-  const swipeRef = useRef<SwipeableMethods>(null);
+  // Swipe left reveals the one destructive action (the mail idiom; long-press
+  // retired — one clear gesture). The confirm alert stays.
   const confirmDelete = () => {
-    swipeRef.current?.close();
     Alert.alert(t("row.deleteTitle"), t("row.deleteAsk", { name: item.name }), [
       { text: t("common.cancel"), style: "cancel" },
       { text: t("common.delete"), style: "destructive", onPress: onDelete },
@@ -153,30 +140,8 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
   };
 
   return (
-    <ReanimatedSwipeable
-      ref={swipeRef}
-      friction={2}
-      rightThreshold={36}
-      overshootRight={false}
-      renderRightActions={() => (
-        <Pressable
-          style={styles.deleteAction}
-          onPress={confirmDelete}
-          accessibilityLabel={t("common.delete")}
-        >
-          <SymbolView name="trash.fill" size={20} tintColor="#FFFFFF" />
-        </Pressable>
-      )}
-    >
-      <Pressable
-        onPress={onPress}
-        onLongPress={confirmDelete}
-        style={({ pressed }) => [
-          styles.row,
-          (complete || item.status === "paused") && styles.rowComplete,
-          pressed && styles.rowPressed,
-        ]}
-      >
+    <SwipeRow rowId={item.id} onPress={onPress} onAction={confirmDelete}>
+      <View style={[styles.row, (complete || item.status === "paused") && styles.rowComplete]}>
         {/* The brand's color bleeds softly from the badge side (§9c). */}
         <LinearGradient
           colors={[withAlpha(accent, 0.16), "transparent"]}
@@ -209,12 +174,9 @@ export function SubscriptionRow({ item, onPress, onMarkPaid, onDelete }: Props) 
           ) : null}
         </View>
 
-        <View style={styles.right}>
-          {amount && <Text style={styles.amount}>{amount}</Text>}
-          {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
-        </View>
-      </Pressable>
-    </ReanimatedSwipeable>
+        <View style={styles.right}>{amount && <Text style={styles.amount}>{amount}</Text>}</View>
+      </View>
+    </SwipeRow>
   );
 }
 
@@ -233,16 +195,6 @@ function createStyles(colors: ThemeColors) {
     },
     rowComplete: {
       opacity: emphasis.dim,
-    },
-    rowPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
-    // The revealed swipe action: a rounded danger block matching row height.
-    deleteAction: {
-      width: 72,
-      marginLeft: spacing.sm,
-      borderRadius: radius.lg,
-      backgroundColor: colors.tones.danger,
-      alignItems: "center",
-      justifyContent: "center",
     },
     middle: {
       flex: 1,

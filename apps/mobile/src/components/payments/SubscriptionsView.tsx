@@ -21,7 +21,6 @@ import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { hapticMarkPaid } from "../../lib/haptics";
 import { amountInDisplay } from "../../lib/money-display";
 import { useAppActions, useAppData } from "../../state/app-state";
 import {
@@ -106,8 +105,7 @@ export function SubscriptionsView() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, pending, accounts, displayCurrency, rates, loading } = useAppData();
-  const { removeSubscription, removePendingSuggestion, markPaid, markInstallmentPaid } =
-    useAppActions();
+  const { removeSubscription, removePendingSuggestion } = useAppActions();
   // Open by default — the whole point of the list is to be acted on.
   const [pendingOpen, setPendingOpen] = useState(true);
   // Catalog ordering: stable billing-day by default; the control above the
@@ -321,11 +319,6 @@ export function SubscriptionsView() {
         <SubscriptionRow
           item={item}
           onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-          onMarkPaid={() => {
-            hapticMarkPaid();
-            if (isInstallmentSchedule(item.schedule)) markInstallmentPaid(item.id);
-            else markPaid(item.id);
-          }}
           onDelete={() => removeSubscription(item.id)}
         />
       )}
