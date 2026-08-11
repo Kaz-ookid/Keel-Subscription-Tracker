@@ -1,16 +1,18 @@
-// Mail-style swipe-to-delete, built to coexist with a native pager: the pan
-// activates ONLY on a clearly-leftward drag and fails immediately rightward
-// or vertically, so page swipes and list scrolls never feel blocked (the
-// off-the-shelf Swipeable claimed both directions inside react-native-
-// pager-view and read as "bugged"). One row open at a time — opening a row
-// closes the previous one — and while a row is open or mid-drag, its press
-// action is suppressed: a tap then CLOSES the row instead of navigating.
+// Mail-style swipe-to-delete, built to coexist with a native pager: while
+// CLOSED the pan activates ONLY on a clearly-leftward drag and fails
+// immediately rightward or vertically, so page swipes and list scrolls never
+// feel blocked (the off-the-shelf Swipeable claimed both directions inside
+// react-native-pager-view and read as "bugged"). Once a row is OPEN it owns
+// rightward too: swiping back closes it rather than paging away. One row
+// open at a time — opening a row closes the previous one — and while a row
+// is open or mid-drag, its press action is suppressed: a tap then CLOSES
+// the row instead of navigating.
 //
 // The host list must be the gesture-handler FlatList (not react-native's):
 // that registers the scroll with the gesture system so a leftward drag can
 // win against it instead of being cancelled the moment the list moves.
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -60,11 +62,17 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
   const setEngaged = (value: boolean) => {
     engaged.current = value;
   };
+  // The LATCHED state, as React state on purpose: the gesture's activation
+  // offsets are fixed at creation, and an open row needs a different set
+  // (rightward must belong to the row, so swiping back closes it instead
+  // of paging away) — so open/close rebuilds the gesture between gestures.
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     closers.set(rowId, () => {
       translateX.value = withTiming(0, { duration: 160 });
       engaged.current = false;
+      setOpen(false);
     });
     return () => {
       closers.delete(rowId);
@@ -78,6 +86,7 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
   const close = () => {
     translateX.value = withTiming(0, { duration: 160 });
     engaged.current = false;
+    setOpen(false);
   };
 
   const handlePress = () => {
@@ -95,12 +104,14 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
 
   const gesture = useMemo(() => {
     const pan = Gesture.Pan()
-      // Leftward only, and EAGER: the surrounding scroll surfaces begin
-      // claiming around 10pt of travel, so activating any later loses the
-      // race and the swipe reads as dead. Rightward and vertical still fail
+      // CLOSED: leftward only, and EAGER — the surrounding scroll surfaces
+      // begin claiming around 10pt of travel, so activating any later loses
+      // the race and the swipe reads as dead; rightward and vertical fail
       // instantly, keeping the pager and the list scroll native.
-      .activeOffsetX([-10, Number.MAX_SAFE_INTEGER])
-      .failOffsetX(10)
+      // OPEN: rightward activates too — swiping back closes the row instead
+      // of handing the drag to the pager (which paged away to Upcoming).
+      .activeOffsetX(open ? [-10, 10] : [-10, Number.MAX_SAFE_INTEGER])
+      .failOffsetX(open ? Number.MAX_SAFE_INTEGER : 10)
       .failOffsetY([-12, 12])
       .onStart(() => {
         startX.value = translateX.value;
@@ -119,9 +130,11 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
         const shouldOpen = !flickClose && (translateX.value < OPEN_X / 2 || e.velocityX < -400);
         if (shouldOpen) {
           translateX.value = withTiming(OPEN_X, { duration: 160 });
+          runOnJS(setOpen)(true);
         } else {
           translateX.value = withTiming(0, { duration: 160 });
           runOnJS(setEngaged)(false);
+          runOnJS(setOpen)(false);
         }
       });
     // The press is a gesture too, EXCLUSIVE with the pan: it can only win
@@ -135,7 +148,7 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
     });
     return Gesture.Exclusive(pan, tap);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowId]);
+  }, [rowId, open]);
 
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
 
