@@ -120,7 +120,10 @@ export default function ImportScreen() {
       automaticallyAdjustKeyboardInsets
     >
       {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
-      {/* The two delivery paths, as they'll eventually look side by side. */}
+      {/* One delivery path for now. "Keel reads it for you" is HIDDEN until
+          Apple's cloud model ships to apps (PCC, iOS 27) — the on-device
+          screen stays wired for that day (import-ondevice.tsx); shipping a
+          door to a weak model read as a broken promise in beta. */}
       <View style={styles.methods}>
         <View style={[styles.methodCard, styles.methodActive]}>
           <SymbolView
@@ -131,11 +134,6 @@ export default function ImportScreen() {
           <Text style={styles.methodTitle}>{t("importAI.methodOwn")}</Text>
           <Text style={styles.methodSub}>{t("importAI.methodOwnSub")}</Text>
         </View>
-        <Pressable style={styles.methodCard} onPress={() => router.push("/add/import-ondevice")}>
-          <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
-          <Text style={styles.methodTitle}>{t("importAI.methodKeel")}</Text>
-          <Text style={styles.methodSub}>{t("importAI.methodKeelSub")}</Text>
-        </Pressable>
       </View>
 
       {/* The three steps — short, numbered, nothing else on the main path. */}
