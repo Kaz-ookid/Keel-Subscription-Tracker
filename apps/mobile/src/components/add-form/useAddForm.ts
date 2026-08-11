@@ -31,7 +31,6 @@ import { Alert } from "react-native";
 
 import { COLOR_SWATCHES } from "../../constants";
 import { localizedAnchor } from "../../i18n/recurrence";
-import { nearestColor } from "../../lib/brand-color";
 import { formatHour, fromCalendarDate, toCalendarDate } from "../../lib/dates";
 import { noteCustomService } from "../../lib/custom-bank";
 import { dominantColor, subscribeBrandTints } from "../../lib/dominant-color";
@@ -240,39 +239,46 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   );
   const [accountId, setAccountId] = useState<string | undefined>(() => seedItem?.accountId);
   // The logo's color LEADS (§9c inversion, post round 2); the stored color
-  // is its durable backup, kept ON the swatch grid so the grid always shows
-  // it selected. `mirrorSwatch` snaps any brand color (extracted tint, bank
-  // hex, AI-supplied color) to the nearest swatch; a hand-picked swatch is
-  // already a member, so mirroring never fights the user. The mirror runs
-  // ONLY from init, event handlers and the tint subscription below — never
-  // during render, which fought the identity sheet's controlled input.
-  const mirrorSwatch = (hex: string) => nearestColor(hex, COLOR_SWATCHES);
+  // is its durable backup — the EXACT brand color, never snapped to a fixed
+  // swatch (nearest-match picked dark blue for a green logo). The grid shows
+  // it as one extra ADAPTIVE swatch: set by the latest logo (or a bank hex),
+  // it outlives removing the logo, and the fixed swatches stay as they are.
+  // All writes happen in init, event handlers or the tint subscription —
+  // never during render, which fought the identity sheet's controlled input.
+  const isSwatch = (hex: string) => (COLOR_SWATCHES as readonly string[]).includes(hex);
   const [color, setColor] = useState<string | undefined>(() => {
     const seeded = seedItem?.color ?? suggestion?.color;
-    const tinted = seedItem?.domain ? dominantColor(seedItem.domain) : undefined;
-    if (tinted) return mirrorSwatch(tinted);
-    return seeded ? mirrorSwatch(seeded) : undefined;
+    return (seedItem?.domain ? dominantColor(seedItem.domain) : undefined) ?? seeded;
   });
+  const [adaptiveColor, setAdaptiveColor] = useState<string | undefined>(() => {
+    const seeded = seedItem?.color ?? suggestion?.color;
+    const tinted = seedItem?.domain ? dominantColor(seedItem.domain) : undefined;
+    return tinted ?? (seeded && !isSwatch(seeded) ? seeded : undefined);
+  });
+  const takeTint = (tinted: string) => {
+    setColor(tinted);
+    setAdaptiveColor(tinted);
+  };
   // The brand website behind the logo — seeded from a suggestion or the edited
   // item, and editable: pick a brand by name (applySuggestion) or type a domain
-  // for a custom logo. Setting one whose tint is already known mirrors the
-  // backup swatch in the same breath.
+  // for a custom logo. Setting one whose tint is already known adopts it in
+  // the same breath.
   const [domain, setDomainState] = useState<string | undefined>(
     () => seedItem?.domain ?? suggestion?.domain,
   );
   const setDomain = (next: string | undefined) => {
     setDomainState(next);
     const tinted = next ? dominantColor(next) : undefined;
-    if (tinted) setColor(mirrorSwatch(tinted));
+    if (tinted) takeTint(tinted);
   };
   // A tint extracted WHILE the form is open (the preview badge just rendered
-  // a fresh logo): mirror it as it lands. setState inside an external-store
+  // a fresh logo): adopt it as it lands. setState inside an external-store
   // subscription callback is the sanctioned shape for this.
   useEffect(
     () =>
       subscribeBrandTints(() => {
         const tinted = domain ? dominantColor(domain) : undefined;
-        if (tinted) setColor(mirrorSwatch(tinted));
+        if (tinted) takeTint(tinted);
       }),
     [domain],
   );
@@ -449,12 +455,13 @@ export function useAddForm(prefill?: SuggestionPrefill) {
 
   /** Apply a brand-bank entry to the live form — name, look, category, cadence.
    *  The same effect as picking it from the upfront chooser. The bank color
-   *  lands as its backup swatch (setDomain then upgrades to the logo's tint
-   *  when one is known). */
+   *  lands as the adaptive backup (setDomain then upgrades to the logo's
+   *  tint when one is known). */
   const applySuggestion = (s: SuggestedCommitment) => {
     setName(t(`bank.${s.id}`, { defaultValue: s.name }));
     if (s.categoryId) setCategoryId(s.categoryId);
-    setColor(s.color ? mirrorSwatch(s.color) : undefined);
+    setColor(s.color);
+    if (s.color && !isSwatch(s.color)) setAdaptiveColor(s.color);
     setDomain(s.domain);
     if (s.unit === "month" || s.unit === "year") setUnit(s.unit);
   };
@@ -635,6 +642,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     accountId,
     color,
     setColor,
+    adaptiveColor,
     domain,
     setDomain,
     nameSuggestions,

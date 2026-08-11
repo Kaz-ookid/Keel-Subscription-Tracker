@@ -17,6 +17,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { dominantColor, useBrandTints } from "../lib/dominant-color";
 import { suggestionMatches } from "../lib/suggestions";
 import {
   emphasis,
@@ -58,6 +59,12 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());
+  // Rows glow in the logo's OWN color once its tint is extracted (§9c:
+  // pixel first); the hand-tuned entry color covers it until then, and
+  // entries with neither stay plain — no accent noise.
+  useBrandTints();
+  const rowGlow = (s: SuggestedCommitment) =>
+    (s.domain ? dominantColor(s.domain) : undefined) ?? s.color;
 
   const region = useMemo(() => getLocales()[0]?.regionCode ?? undefined, []);
 
@@ -198,6 +205,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
         renderItem={({ item }) => {
           const isChecked = checked.has(item.id);
           const added = addedIds?.has(item.id) ?? false;
+          const glow = rowGlow(item);
           return (
             <Pressable
               style={[styles.row, added && styles.rowAdded]}
@@ -210,9 +218,9 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
             >
               {/* The brand's color bleeds from the badge side (§9c) — the
                   bank reads as a wall of real brands, not grey rows. */}
-              {item.color ? (
+              {glow ? (
                 <LinearGradient
-                  colors={[withAlpha(item.color, 0.14), "transparent"]}
+                  colors={[withAlpha(glow, 0.14), "transparent"]}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 0.65, y: 0 }}
                   style={StyleSheet.absoluteFill}
@@ -223,7 +231,7 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
                 domain={item.domain}
                 icon={CATEGORY_ICONS.get(item.categoryId ?? "")}
                 fallback={item.name.charAt(0).toUpperCase()}
-                color={item.color ?? colors.accent}
+                color={glow ?? colors.accent}
                 size={36}
               />
               <View style={styles.middle}>

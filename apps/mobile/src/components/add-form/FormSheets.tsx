@@ -239,6 +239,28 @@ export function FormSheets({ form }: { form: AddForm }) {
           {t("add.orColour")}
         </Text>
         <ScrollView contentContainerStyle={styles.swatchGrid}>
+          {/* The ADAPTIVE swatch: the exact color of the latest logo (or a
+              bank hex) leads the grid. It sticks around even after the logo
+              is removed, so "that green" stays pickable as a plain colour. */}
+          {form.adaptiveColor && (
+            <Pressable
+              onPress={() => {
+                // Same grammar as any swatch: a colour, not a logo.
+                form.setColor(form.adaptiveColor);
+                form.setDomain(undefined);
+                close();
+              }}
+              style={[styles.colorSwatch, { backgroundColor: form.adaptiveColor }]}
+            >
+              {form.color === form.adaptiveColor && (
+                <SymbolView
+                  name="checkmark"
+                  size={18}
+                  tintColor={contrastText(form.adaptiveColor)}
+                />
+              )}
+            </Pressable>
+          )}
           {COLOR_SWATCHES.map((c) => (
             <Pressable
               key={c}
@@ -250,10 +272,7 @@ export function FormSheets({ form }: { form: AddForm }) {
               }}
               style={[styles.colorSwatch, { backgroundColor: c }]}
             >
-              {/* A checkmark reads on any swatch — a dark ring didn't. With a
-                  logo set, the check marks the AUTO-MIRRORED backup swatch
-                  (nearest to the logo's color); tapping any swatch still
-                  means "use a colour, not a logo". */}
+              {/* A checkmark reads on any swatch — a dark ring didn't. */}
               {form.color === c && (
                 <SymbolView name="checkmark" size={18} tintColor={contrastText(c)} />
               )}

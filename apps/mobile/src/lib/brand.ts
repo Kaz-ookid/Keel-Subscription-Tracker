@@ -4,8 +4,8 @@
 // Resolution order:
 //   1. the logo's pixel-derived dominant color — FIRST, always (user
 //      decision, post round 2): what the badge shows is what the surface
-//      wears; the stored color is its durable backup, auto-mirrored to the
-//      nearest swatch by the form,
+//      wears; the stored color is its durable backup, auto-adopted by the
+//      form as the grid's ADAPTIVE swatch (the exact hex, never snapped),
 //   2. the item's own stored color,
 //   3. the brand bank's color for a matching name or domain,
 //   4. the caller's fallback (the theme accent),
