@@ -850,7 +850,7 @@ export const en = {
     previewFailTitle: "No preview",
     previewFailMsg: "Allow notifications first.",
     digestGroup: "Overdue summary",
-    digestRow: "Remind me about overdue",
+    digestRow: "Remind me",
     digestWeekly: "Every week",
     digestMonthly: "Every month",
     digestDayN: "the {{day}}.",

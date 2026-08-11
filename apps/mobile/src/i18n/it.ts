@@ -856,7 +856,7 @@ export const it: typeof en = {
     previewFailTitle: "Nessuna anteprima",
     previewFailMsg: "Consenti prima le notifiche.",
     digestGroup: "Riepilogo ritardi",
-    digestRow: "Ricordami i ritardi",
+    digestRow: "Ricordamelo",
     digestWeekly: "Ogni settimana",
     digestMonthly: "Ogni mese",
     digestDayN: "il {{day}}",

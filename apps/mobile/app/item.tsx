@@ -502,7 +502,9 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
-      paddingTop: spacing.sm,
+      // Symmetric padding so the Undo button sits centered between the card
+      // edge and the first history row, not glued to the divider below.
+      paddingVertical: spacing.sm,
     },
     // Dividers sit on TOP so a list never ends on a stray line; the card's
     // first row opts out via InfoRow's `first`.

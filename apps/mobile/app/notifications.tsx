@@ -282,8 +282,12 @@ export default function NotificationsScreen() {
           <Card style={styles.group}>
             <Pressable style={styles.row} onPress={pickDigest}>
               <IconChip icon="clock.badge.exclamationmark" color={CHIP.digest} />
-              <Text style={styles.rowText}>{t("notifCenter.digestRow")}</Text>
-              <Text style={styles.rowValue}>{digestLabel(settings.digest)}</Text>
+              <Text style={styles.rowText} numberOfLines={2}>
+                {t("notifCenter.digestRow")}
+              </Text>
+              <Text style={styles.rowValue2} numberOfLines={1}>
+                {digestLabel(settings.digest)}
+              </Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
             </Pressable>
             <Text style={styles.footnote}>{t("notifCenter.digestFooter")}</Text>
@@ -292,7 +296,9 @@ export default function NotificationsScreen() {
           <Text style={styles.groupLabel}>{t("notifCenter.scheduledGroup")}</Text>
           <Card style={styles.group}>
             {planned.length === 0 ? (
-              <Text style={styles.footnote}>{t("notifCenter.nothingScheduled")}</Text>
+              <Text style={[styles.footnote, styles.emptyCentered]}>
+                {t("notifCenter.nothingScheduled")}
+              </Text>
             ) : (
               planned.map((reminder, i) => (
                 <Pressable
@@ -445,6 +451,19 @@ function createStyles(colors: ThemeColors) {
       ...typography.body,
       color: colors.text,
       flex: 1,
+    },
+    // Long values (the digest schedule) truncate instead of crushing the
+    // label into a three-line wrap.
+    rowValue2: {
+      ...typography.body,
+      color: colors.mutedText,
+      flexShrink: 1,
+      textAlign: "right",
+      maxWidth: "55%",
+    },
+    emptyCentered: {
+      textAlign: "center",
+      paddingVertical: spacing.lg,
     },
     rowSub: { ...typography.caption, color: colors.mutedText },
     rowValue: {

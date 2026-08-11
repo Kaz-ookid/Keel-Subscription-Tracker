@@ -422,6 +422,9 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "space-between",
       gap: spacing.sm,
+      // Verbose locales (FR "Jour de facturation") wrap the sort control to
+      // its own line instead of colliding with the status chips.
+      flexWrap: "wrap",
     },
     statusChips: {
       flexDirection: "row",

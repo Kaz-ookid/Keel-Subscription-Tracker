@@ -859,7 +859,7 @@ export const de: typeof en = {
     previewFailTitle: "Keine Vorschau",
     previewFailMsg: "Erlaube zuerst Mitteilungen.",
     digestGroup: "Überfällig-Überblick",
-    digestRow: "An Überfälliges erinnern",
+    digestRow: "Erinnern",
     digestWeekly: "Jede Woche",
     digestMonthly: "Jeden Monat",
     digestDayN: "am {{day}}.",

@@ -9,15 +9,7 @@ import Constants from "expo-constants";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Linking,
-  Platform,
-  Pressable,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-} from "react-native";
+import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text } from "react-native";
 
 import { APP_STORE_ID, SUPPORT_EMAIL, WEBSITE_URL } from "../src/constants";
 import { InfoPopup } from "../src/components/InfoPopup";

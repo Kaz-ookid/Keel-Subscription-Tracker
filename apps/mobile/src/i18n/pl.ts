@@ -904,7 +904,7 @@ const translation = {
     previewFailTitle: "Brak podglądu",
     previewFailMsg: "Najpierw zezwól na powiadomienia.",
     digestGroup: "Podsumowanie zaległości",
-    digestRow: "Przypominaj o zaległościach",
+    digestRow: "Przypominaj",
     digestWeekly: "Co tydzień",
     digestMonthly: "Co miesiąc",
     digestDayN: "{{day}}. dnia",
