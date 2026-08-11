@@ -5,11 +5,17 @@
 // pager-view and read as "bugged"). One row open at a time — opening a row
 // closes the previous one — and while a row is open or mid-drag, its press
 // action is suppressed: a tap then CLOSES the row instead of navigating.
+//
+// The host list must be the gesture-handler FlatList (not react-native's):
+// that registers the scroll with the gesture system so a leftward drag can
+// win against it instead of being cancelled the moment the list moves.
 
 import { useEffect, useMemo, useRef } from "react";
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
+  Extrapolation,
+  interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -21,6 +27,8 @@ import { radius, spacing, useTheme } from "../../theme";
 
 const ACTION_W = 72;
 const OPEN_X = -(ACTION_W + spacing.sm);
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 // The one-open-at-a-time registry: each mounted row parks a close callback;
 // a row starting to drag closes every other row first.
@@ -75,10 +83,12 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
   const pan = useMemo(
     () =>
       Gesture.Pan()
-        // Leftward only: rightward and vertical fail instantly so the pager and
-        // the list scroll keep their native feel.
-        .activeOffsetX([-16, Number.MAX_SAFE_INTEGER])
-        .failOffsetX(12)
+        // Leftward only, and EAGER: the surrounding scroll surfaces begin
+        // claiming around 10pt of travel, so activating any later loses the
+        // race and the swipe reads as dead. Rightward and vertical still fail
+        // instantly, keeping the pager and the list scroll native.
+        .activeOffsetX([-10, Number.MAX_SAFE_INTEGER])
+        .failOffsetX(10)
         .failOffsetY([-12, 12])
         .onStart(() => {
           startX.value = translateX.value;
@@ -101,9 +111,15 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rowId],
   );
-  /* eslint-enable react-hooks/immutability, react-hooks/refs */
 
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
+
+  // The rows are translucent material, so the pane can't just sit behind
+  // them — it fades in with the drag and is fully gone at rest.
+  const actionStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(translateX.value, [OPEN_X * 0.6, 0], [1, 0], Extrapolation.CLAMP),
+  }));
+  /* eslint-enable react-hooks/immutability, react-hooks/refs */
 
   const handlePress = () => {
     // An open (or mid-drag) row swallows the tap and just closes.
@@ -121,9 +137,13 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
 
   return (
     <View style={styles.frame}>
-      <Pressable style={styles.action} onPress={handleAction} accessibilityLabel="delete">
+      <AnimatedPressable
+        style={[styles.action, actionStyle]}
+        onPress={handleAction}
+        accessibilityLabel="delete"
+      >
         <SymbolView name={actionIcon as never} size={20} tintColor="#FFFFFF" />
-      </Pressable>
+      </AnimatedPressable>
       <GestureDetector gesture={pan}>
         <Animated.View style={rowStyle}>
           <Pressable onPress={handlePress}>{children}</Pressable>

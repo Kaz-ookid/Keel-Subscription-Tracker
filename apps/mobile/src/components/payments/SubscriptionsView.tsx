@@ -19,7 +19,10 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+// The gesture-handler FlatList registers its scroll with the gesture system,
+// which the rows' swipe pan needs to win a leftward drag (see SwipeRow).
+import { FlatList } from "react-native-gesture-handler";
 
 import { amountInDisplay } from "../../lib/money-display";
 import { useAppActions, useAppData } from "../../state/app-state";
