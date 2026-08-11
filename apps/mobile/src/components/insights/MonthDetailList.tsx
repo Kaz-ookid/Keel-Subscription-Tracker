@@ -16,6 +16,9 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
+
+import { brandBleed } from "../../lib/brand";
+import { BrandBadge } from "../BrandBadge";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -54,6 +57,7 @@ export function MonthDetailList({ items, occurrences, projected, selectedKey, as
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const itemNames = new Map(items.map((i) => [i.id, i.name]));
+  const itemsById = new Map(items.map((i) => [i.id, i]));
   const details: MonthDetail[] = [
     ...occurrences
       .filter((o) => o.status === "charged" && o.dueDate.slice(0, 7) === selectedKey)
@@ -111,6 +115,13 @@ export function MonthDetailList({ items, occurrences, projected, selectedKey, as
             style={[styles.detailRow, i > 0 && styles.detailRowDivider]}
             onPress={() => router.push({ pathname: "/item", params: { id: d.paymentItemId } })}
           >
+            {/* The brand face makes the list scannable without reading. */}
+            <BrandBadge
+              domain={itemsById.get(d.paymentItemId)?.domain}
+              fallback={d.name.charAt(0).toUpperCase()}
+              color={brandBleed(itemsById.get(d.paymentItemId) ?? { name: d.name }, colors.accent)}
+              size={22}
+            />
             <SymbolView
               name={
                 d.kind === "paid"

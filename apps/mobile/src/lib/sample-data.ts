@@ -9,6 +9,7 @@
 
 import {
   accrueDueOccurrences,
+  updateRecurringPaymentItem,
   calendarDate,
   endOfMonth,
   makeAccount,
@@ -127,14 +128,40 @@ export function buildSampleData(): SampleData {
   const yearly = { unit: "year" as const, interval: 1 };
 
   // ── From the bank (logos + brand colors) ─────────────────────────────
-  addAuto({
+  // Netflix carries a real price history (16.90 -> 18.90 five months ago),
+  // so the Price-changes insight has something true to show.
+  const netflix = addAuto({
     ...bank("netflix"),
-    amount: chf(18.9),
+    amount: chf(16.9),
     recurrence: monthly,
     firstChargeDate: monthShift(asOf, -14, 14),
     settlementMode: "automatic",
     accountId: bcv.id,
   });
+  {
+    const raised = updateRecurringPaymentItem(
+      netflix,
+      {
+        ...bank("netflix"),
+        amount: chf(18.9),
+        recurrence: monthly,
+        firstChargeDate: monthShift(asOf, -14, 14),
+        settlementMode: "automatic",
+        accountId: bcv.id,
+      },
+      { now: now(), lastChargedDate: monthShift(asOf, -1, 14), priceEdit: "change" },
+    );
+    // Stamp the change where it historically happened, not "now".
+    if (raised.schedule.kind === "RECURRING") {
+      const history = raised.schedule.priceHistory.map((entry, i, all) =>
+        i === all.length - 1 ? { ...entry, effectiveFrom: monthShift(asOf, -5, 14) } : entry,
+      );
+      items[items.indexOf(netflix)] = {
+        ...raised,
+        schedule: { ...raised.schedule, priceHistory: history },
+      };
+    }
+  }
 
   addAuto({
     ...bank("swisscom"),
