@@ -54,6 +54,7 @@ export type OpenSheet =
   | "account"
   | "color"
   | "provider"
+  | "weekend"
   | null;
 
 export const REMINDER_OPTIONS: { value: string; labelKey: string; count?: number }[] = [

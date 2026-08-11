@@ -859,6 +859,7 @@ export const en = {
     digestRow: "Remind me",
     digestWeekly: "Every week",
     digestMonthly: "Every month",
+    digestDay: "Day",
     digestDayN: "the {{day}}.",
     digestFooter:
       "A recap of payments still waiting, at your reminder time. It only fires when something is actually overdue.",

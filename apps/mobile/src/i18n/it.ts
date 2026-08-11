@@ -865,6 +865,7 @@ export const it: typeof en = {
     digestRow: "Ricordamelo",
     digestWeekly: "Ogni settimana",
     digestMonthly: "Ogni mese",
+    digestDay: "Giorno",
     digestDayN: "il {{day}}",
     digestFooter:
       "Un riepilogo dei pagamenti in attesa, all'ora dei promemoria. Parte solo se c'è davvero un ritardo.",

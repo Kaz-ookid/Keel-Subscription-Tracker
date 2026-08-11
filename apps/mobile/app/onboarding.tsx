@@ -34,8 +34,8 @@ import { MethodDoor } from "../src/components/onboarding/MethodDoor";
 import { Dot, TourPane } from "../src/components/onboarding/TourElements";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { Button } from "../src/components/ui/Button";
+import { OptionWheel } from "../src/components/ui/OptionWheel";
 import { APP_LANGUAGES, LANGUAGE_LABELS, setLanguageMode, type AppLanguage } from "../src/i18n";
-import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { requestPaymentsView } from "../src/lib/tabReset";
 import { useAppActions, useAppData } from "../src/state/app-state";
@@ -55,7 +55,7 @@ type Phase = "tour" | "method" | "pick" | "done";
 export default function OnboardingScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const aiHidden = useAiHidden();
@@ -103,20 +103,9 @@ export default function OnboardingScreen() {
 
   // Language, offered on the very first screen: onboarding happens once, so
   // reading it in the wrong language wastes the one tour the user gets. The
-  // globe shows the CURRENT language and opens the same picker Settings has.
+  // globe shows the CURRENT language and opens the same wheel Settings has.
   const currentLanguage: AppLanguage = APP_LANGUAGES.find((l) => l === i18n.language) ?? "en";
-  const pickLanguage = () =>
-    showNativeActionSheet(
-      {
-        title: t("settings.language"),
-        options: [...APP_LANGUAGES.map((l) => LANGUAGE_LABELS[l]), t("common.cancel")],
-        cancelButtonIndex: APP_LANGUAGES.length,
-        userInterfaceStyle: scheme,
-      },
-      (index) => {
-        if (index < APP_LANGUAGES.length) void setLanguageMode(APP_LANGUAGES[index]);
-      },
-    );
+  const [langWheel, setLangWheel] = useState(false);
 
   const finish = () => {
     // Whatever the tour added lives under All: close onto it, so the first
@@ -181,7 +170,7 @@ export default function OnboardingScreen() {
           exiting={FadeOutLeft.duration(200)}
         >
           <View style={styles.topBar}>
-            <Pressable onPress={pickLanguage} hitSlop={12} style={styles.langButton}>
+            <Pressable onPress={() => setLangWheel(true)} hitSlop={12} style={styles.langButton}>
               <SymbolView name="globe" size={14} tintColor={colors.mutedText} />
               <Text style={styles.skip}>{LANGUAGE_LABELS[currentLanguage]}</Text>
             </Pressable>
@@ -372,6 +361,15 @@ export default function OnboardingScreen() {
           <LogoConsentGate />
         </Animated.View>
       )}
+
+      <OptionWheel
+        visible={langWheel}
+        title={t("settings.language")}
+        onClose={() => setLangWheel(false)}
+        options={APP_LANGUAGES.map((l) => ({ value: l, label: LANGUAGE_LABELS[l] }))}
+        value={currentLanguage}
+        onChange={(v) => void setLanguageMode(v as AppLanguage)}
+      />
     </View>
   );
 }

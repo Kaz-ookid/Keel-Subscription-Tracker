@@ -22,6 +22,7 @@ import { AccountPickerSheet } from "../AccountSheet";
 import { BrandBadge } from "../BrandBadge";
 import { CategorySheet } from "../CategorySheet";
 import { Sheet } from "../Sheet";
+import { OptionWheel } from "../ui/OptionWheel";
 import { WheelSheet } from "../WheelSheet";
 import { useFormStyles } from "./styles";
 import { REMINDER_OPTIONS, type AddForm } from "./useAddForm";
@@ -36,6 +37,11 @@ const Picker = RNPicker as unknown as ComponentType<{
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 const PROVIDER_IDS = Object.keys(BNPL_PROVIDERS) as BnplProviderId[];
+
+// The native date wheel can measure ZERO height when laid out while the tray
+// is still sliding in, leaving the sheet collapsed at the bottom. Pinning the
+// standard wheel height makes the measurement irrelevant.
+const DATE_WHEEL_HEIGHT = 216;
 
 /** Every picker sheet of the Add form, rendered once and driven by `form.sheet`. */
 export function FormSheets({ form }: { form: AddForm }) {
@@ -54,7 +60,7 @@ export function FormSheets({ form }: { form: AddForm }) {
           {CURRENCY_CODES.map((code) => (
             <Picker.Item
               key={code}
-              label={`${currencyLabel(code)} — ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`}
+              label={`${currencyLabel(code)} · ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`}
               value={code}
               color={colors.text}
             />
@@ -69,6 +75,7 @@ export function FormSheets({ form }: { form: AddForm }) {
           display="spinner"
           themeVariant={scheme}
           textColor={colors.text}
+          style={{ height: DATE_WHEEL_HEIGHT }}
           onChange={(_, d) => {
             if (d) form.setFirstDate(d);
           }}
@@ -86,6 +93,7 @@ export function FormSheets({ form }: { form: AddForm }) {
           display="spinner"
           themeVariant={scheme}
           textColor={colors.text}
+          style={{ height: DATE_WHEEL_HEIGHT }}
           onChange={(_, d) => {
             if (d) form.setConvertsDate(d);
           }}
@@ -144,6 +152,19 @@ export function FormSheets({ form }: { form: AddForm }) {
           ))}
         </Picker>
       </WheelSheet>
+
+      <OptionWheel
+        visible={form.sheet === "weekend"}
+        title={t("add.weekends")}
+        onClose={close}
+        options={[
+          { value: "none", label: t("add.weekendKeep") },
+          { value: "before", label: t("add.weekendBefore") },
+          { value: "after", label: t("add.weekendAfter") },
+        ]}
+        value={form.weekendShift}
+        onChange={(v) => form.setWeekendShift(v as "none" | "before" | "after")}
+      />
 
       <WheelSheet visible={form.sheet === "provider"} title={t("add.provider")} onClose={close}>
         <Picker

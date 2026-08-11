@@ -7,10 +7,9 @@
 // lib/notifications.ts).
 
 import { formatCalendarDate, plannedReminders, today, formatMoney } from "@keel/core";
-import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -30,7 +29,7 @@ import { IconChip } from "../src/components/ui/IconChip";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { Sheet } from "../src/components/Sheet";
 import { Card } from "../src/components/ui/Card";
-import { WheelSheet } from "../src/components/WheelSheet";
+import { OptionWheel } from "../src/components/ui/OptionWheel";
 import { formatHour } from "../src/lib/dates";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
@@ -48,12 +47,6 @@ import {
 import { useAppActions, useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
-const Picker = RNPicker as unknown as ComponentType<{
-  selectedValue: string;
-  onValueChange: (value: string) => void;
-  children: ReactNode;
-}> & { Item: typeof RNPicker.Item };
-
 const CHIP = {
   master: "#FF3B30",
   allow: "#FF9500",
@@ -67,6 +60,10 @@ const CHIP = {
 /** Monday-first, the European reading order; values stay JS weekdays. */
 const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 
+/** Which value wheel is up (§9d: values pick on the bottom wheel; the
+ *  planned-reminder row keeps the native sheet — its options are verbs). */
+type NotifWheel = "lead" | "hour" | "digest" | "digestDay";
+
 export default function NotificationsScreen() {
   const router = useRouter();
   const { colors, scheme } = useTheme();
@@ -77,9 +74,8 @@ export default function NotificationsScreen() {
 
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [granted, setGranted] = useState<boolean | null>(null);
-  const [hourSheet, setHourSheet] = useState(false);
+  const [wheel, setWheel] = useState<NotifWheel | null>(null);
   const [addSheet, setAddSheet] = useState(false);
-  const [digestDaySheet, setDigestDaySheet] = useState(false);
 
   useEffect(() => {
     void loadNotificationSettings().then(setSettings);
@@ -117,63 +113,35 @@ export default function NotificationsScreen() {
     return option ? t(option.labelKey, { count: option.count }) : "";
   };
 
-  // The overdue digest: off, or a weekly/monthly rhythm. The frequency sheet
-  // leads; picking Weekly opens the weekday sheet, Monthly the day wheel.
-  const digestLabel = (rule: DigestRule) =>
+  // The overdue digest: off, or a weekly/monthly rhythm. The frequency picks
+  // on its own wheel; a "Day" row folds in underneath to pick the weekday or
+  // the day of the month (a wheel commits live, so it can't chain-open a
+  // second sheet the way a tapped action could).
+  const digestModeLabel = (rule: DigestRule) =>
     rule.mode === "off"
       ? t("common.none")
       : rule.mode === "weekly"
-        ? `${t("notifCenter.digestWeekly")} · ${t(`weekdays.long.${rule.weekday}`)}`
-        : `${t("notifCenter.digestMonthly")} · ${t("notifCenter.digestDayN", { day: rule.day })}`;
+        ? t("notifCenter.digestWeekly")
+        : t("notifCenter.digestMonthly");
 
-  const pickDigestWeekday = () =>
-    showNativeActionSheet(
-      {
-        title: t("notifCenter.digestWeekly"),
-        options: [...WEEKDAY_ORDER.map((d) => t(`weekdays.long.${d}`)), t("common.cancel")],
-        cancelButtonIndex: WEEKDAY_ORDER.length,
-        userInterfaceStyle: scheme,
-      },
-      (index) => {
-        if (index < WEEKDAY_ORDER.length) {
-          update({ digest: { mode: "weekly", weekday: WEEKDAY_ORDER[index] } });
-        }
-      },
-    );
+  const digestDayLabel = (rule: DigestRule) =>
+    rule.mode === "weekly"
+      ? t(`weekdays.long.${rule.weekday}`)
+      : rule.mode === "monthly"
+        ? t("notifCenter.digestDayN", { day: rule.day })
+        : "";
 
-  const pickDigest = () =>
-    showNativeActionSheet(
-      {
-        title: t("notifCenter.digestRow"),
-        options: [
-          t("common.none"),
-          t("notifCenter.digestWeekly"),
-          t("notifCenter.digestMonthly"),
-          t("common.cancel"),
-        ],
-        cancelButtonIndex: 3,
-        userInterfaceStyle: scheme,
-      },
-      (index) => {
-        if (index === 0) update({ digest: { mode: "off" } });
-        else if (index === 1) pickDigestWeekday();
-        else if (index === 2) setDigestDaySheet(true);
-      },
-    );
-
-  const pickLead = () => {
-    const labels = DEFAULT_LEAD_OPTIONS.map((key) => leadLabel(key));
-    showNativeActionSheet(
-      {
-        title: t("notifCenter.defaultLead"),
-        options: [...labels, t("common.cancel")],
-        cancelButtonIndex: labels.length,
-        userInterfaceStyle: scheme,
-      },
-      (index) => {
-        if (index < labels.length) update({ defaultLeadKey: DEFAULT_LEAD_OPTIONS[index] });
-      },
-    );
+  // Switching mode keeps the previously chosen day where it still applies.
+  const setDigestMode = (mode: string) => {
+    const { digest } = settings ?? {};
+    if (mode === "off") update({ digest: { mode: "off" } });
+    else if (mode === "weekly") {
+      update({
+        digest: { mode: "weekly", weekday: digest?.mode === "weekly" ? digest.weekday : 1 },
+      });
+    } else {
+      update({ digest: { mode: "monthly", day: digest?.mode === "monthly" ? digest.day : 1 } });
+    }
   };
 
   // The live plan, straight from core — the same source the scheduler reads.
@@ -263,13 +231,13 @@ export default function NotificationsScreen() {
         <Animated.View entering={foldIn} exiting={foldOut} layout={foldLayout} style={styles.gap}>
           <Text style={styles.groupLabel}>{t("notifCenter.defaultGroup")}</Text>
           <Card style={styles.group}>
-            <Pressable style={styles.row} onPress={pickLead}>
+            <Pressable style={styles.row} onPress={() => setWheel("lead")}>
               <IconChip icon="calendar.badge.clock" color={CHIP.lead} />
               <Text style={styles.rowText}>{t("notifCenter.defaultLead")}</Text>
               <Text style={styles.rowValue}>{leadLabel(settings.defaultLeadKey)}</Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
             </Pressable>
-            <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setHourSheet(true)}>
+            <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setWheel("hour")}>
               <IconChip icon="clock.fill" color={CHIP.hour} />
               <Text style={styles.rowText}>{t("notifCenter.hour")}</Text>
               <Text style={styles.rowValue}>{formatHour(settings.fireHour)}</Text>
@@ -280,16 +248,29 @@ export default function NotificationsScreen() {
 
           <Text style={styles.groupLabel}>{t("notifCenter.digestGroup")}</Text>
           <Card style={styles.group}>
-            <Pressable style={styles.row} onPress={pickDigest}>
+            <Pressable style={styles.row} onPress={() => setWheel("digest")}>
               <IconChip icon="clock.badge.exclamationmark" color={CHIP.digest} />
               <Text style={styles.rowText} numberOfLines={2}>
                 {t("notifCenter.digestRow")}
               </Text>
               <Text style={styles.rowValue2} numberOfLines={1}>
-                {digestLabel(settings.digest)}
+                {digestModeLabel(settings.digest)}
               </Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
             </Pressable>
+            {settings.digest.mode !== "off" && (
+              <Animated.View entering={foldIn} exiting={foldOut}>
+                <Pressable
+                  style={[styles.row, styles.rowDivider]}
+                  onPress={() => setWheel("digestDay")}
+                >
+                  <IconChip icon="calendar" color={CHIP.hour} />
+                  <Text style={styles.rowText}>{t("notifCenter.digestDay")}</Text>
+                  <Text style={styles.rowValue}>{digestDayLabel(settings.digest)}</Text>
+                  <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+                </Pressable>
+              </Animated.View>
+            )}
             <Text style={styles.footnote}>{t("notifCenter.digestFooter")}</Text>
           </Card>
 
@@ -382,46 +363,67 @@ export default function NotificationsScreen() {
         </ScrollView>
       </Sheet>
 
-      <WheelSheet
-        visible={hourSheet}
+      {/* Every value picker on this screen is the same bottom wheel (§9d). */}
+      <OptionWheel
+        visible={wheel === "lead"}
+        title={t("notifCenter.defaultLead")}
+        onClose={() => setWheel(null)}
+        options={DEFAULT_LEAD_OPTIONS.map((key) => ({ value: key, label: leadLabel(key) }))}
+        value={settings.defaultLeadKey}
+        onChange={(v) => update({ defaultLeadKey: v })}
+      />
+      <OptionWheel
+        visible={wheel === "hour"}
         title={t("notifCenter.hour")}
-        onClose={() => setHourSheet(false)}
-      >
-        <Picker
-          selectedValue={String(settings.fireHour)}
-          onValueChange={(v) => update({ fireHour: Number(v) })}
-        >
-          {Array.from({ length: 24 }, (_, hour) => (
-            <Picker.Item
-              key={hour}
-              label={formatHour(hour)}
-              value={String(hour)}
-              color={colors.text}
-            />
-          ))}
-        </Picker>
-      </WheelSheet>
-
-      <WheelSheet
-        visible={digestDaySheet}
-        title={t("notifCenter.digestMonthly")}
-        onClose={() => setDigestDaySheet(false)}
-      >
-        <Picker
-          selectedValue={String(settings.digest.mode === "monthly" ? settings.digest.day : 1)}
-          onValueChange={(v) => update({ digest: { mode: "monthly", day: Number(v) } })}
-        >
-          {/* 1..28 so every month has the day — no clamping surprises. */}
-          {Array.from({ length: 28 }, (_, i) => (
-            <Picker.Item
-              key={i + 1}
-              label={t("notifCenter.digestDayN", { day: i + 1 })}
-              value={String(i + 1)}
-              color={colors.text}
-            />
-          ))}
-        </Picker>
-      </WheelSheet>
+        onClose={() => setWheel(null)}
+        options={Array.from({ length: 24 }, (_, hour) => ({
+          value: String(hour),
+          label: formatHour(hour),
+        }))}
+        value={String(settings.fireHour)}
+        onChange={(v) => update({ fireHour: Number(v) })}
+      />
+      <OptionWheel
+        visible={wheel === "digest"}
+        title={t("notifCenter.digestRow")}
+        onClose={() => setWheel(null)}
+        options={[
+          { value: "off", label: t("common.none") },
+          { value: "weekly", label: t("notifCenter.digestWeekly") },
+          { value: "monthly", label: t("notifCenter.digestMonthly") },
+        ]}
+        value={settings.digest.mode}
+        onChange={setDigestMode}
+      />
+      <OptionWheel
+        visible={wheel === "digestDay"}
+        title={t("notifCenter.digestDay")}
+        onClose={() => setWheel(null)}
+        options={
+          settings.digest.mode === "weekly"
+            ? WEEKDAY_ORDER.map((d) => ({ value: String(d), label: t(`weekdays.long.${d}`) }))
+            : // 1..28 so every month has the day — no clamping surprises.
+              Array.from({ length: 28 }, (_, i) => ({
+                value: String(i + 1),
+                label: t("notifCenter.digestDayN", { day: i + 1 }),
+              }))
+        }
+        value={String(
+          settings.digest.mode === "weekly"
+            ? settings.digest.weekday
+            : settings.digest.mode === "monthly"
+              ? settings.digest.day
+              : 1,
+        )}
+        onChange={(v) =>
+          update({
+            digest:
+              settings.digest.mode === "weekly"
+                ? { mode: "weekly", weekday: Number(v) }
+                : { mode: "monthly", day: Number(v) },
+          })
+        }
+      />
     </ScrollView>
   );
 }

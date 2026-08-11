@@ -43,8 +43,10 @@ function createStyles(colors: ThemeColors) {
       flex: 1,
       backgroundColor: colors.scrim,
     },
+    // Opaque on purpose: the wheel is text you READ, and content scrolling
+    // through a translucent tray made it murky.
     sheet: {
-      backgroundColor: colors.materialStrong,
+      backgroundColor: colors.surface,
       borderTopLeftRadius: radius.lg,
       borderTopRightRadius: radius.lg,
       paddingBottom: spacing.xl,

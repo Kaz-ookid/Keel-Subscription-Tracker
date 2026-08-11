@@ -10,11 +10,10 @@ import {
   formatCalendarDate,
   type CurrencyCode,
 } from "@keel/core";
-import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
@@ -47,7 +46,6 @@ import {
   useAppLockConfig,
   type AuthKind,
 } from "../../src/lib/app-lock";
-import { showNativeActionSheet } from "../../src/lib/native-sheet";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
 import { setAiEngine, useAiEngine } from "../../src/lib/ai-engine";
 import { cloudStanding } from "../../src/lib/apple-intelligence";
@@ -60,9 +58,9 @@ import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
 import { InfoDot } from "../../src/components/InfoDot";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
+import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
 import { TabFade } from "../../src/components/TabFade";
-import { WheelSheet } from "../../src/components/WheelSheet";
 import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
 import { resetEntitlement, setFullKeel, useEntitlement } from "../../src/lib/entitlement";
 import { useAppActions, useAppData } from "../../src/state/app-state";
@@ -92,14 +90,10 @@ const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string
   ...APP_LANGUAGES.map((l) => ({ value: l, label: LANGUAGE_LABELS[l] })),
 ];
 
-// Same React-19 children alias as the Add form's pickers.
-const Picker = RNPicker as unknown as ComponentType<{
-  selectedValue: string;
-  onValueChange: (value: string) => void;
-  children: ReactNode;
-}> & { Item: typeof RNPicker.Item };
-
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
+
+/** Which value wheel is up (§9d: values pick on the bottom wheel). */
+type SettingsWheel = "currency" | "theme" | "language" | "grace";
 
 // Apple-Settings icon chips (§9d): a saturated rounded square per row, white
 // glyph on top — the system's own visual language for settings lists.
@@ -125,7 +119,7 @@ const CHIP = {
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const { colors, scheme } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => createStyles(colors), [colors]);
   // Tab re-tap (§9i): back to the top.
@@ -139,7 +133,7 @@ export default function SettingsScreen() {
     useAppActions();
   const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
-  const [currencySheet, setCurrencySheet] = useState(false);
+  const [wheel, setWheel] = useState<SettingsWheel | null>(null);
   const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
   const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
   // App lock: what the device offers (wording + availability) and the live
@@ -225,50 +219,6 @@ export default function SettingsScreen() {
     setLanguageModeState(next);
     void setLanguageMode(next);
   };
-
-  // Small pickers ride the native action sheet (§9d, the Apple idiom);
-  // only the long currency list keeps the wheel.
-  const sheetPick = <T,>(
-    title: string,
-    labels: string[],
-    values: T[],
-    onPick: (value: T) => void,
-  ) => {
-    showNativeActionSheet(
-      {
-        title,
-        options: [...labels, t("common.cancel")],
-        cancelButtonIndex: labels.length,
-        userInterfaceStyle: scheme,
-      },
-      (index) => {
-        if (index < labels.length) onPick(values[index]);
-      },
-    );
-  };
-  const pickTheme = () =>
-    sheetPick(
-      t("settings.appearance"),
-      THEME_OPTIONS.map((o) => t(o.labelKey)),
-      THEME_OPTIONS.map((o) => o.value),
-      setMode,
-    );
-  const pickLanguage = () =>
-    sheetPick(
-      t("settings.language"),
-      LANGUAGE_OPTIONS.map((o) => languageLabel(o)),
-      LANGUAGE_OPTIONS.map((o) => o.value),
-      changeLanguage,
-    );
-  const pickGrace = () =>
-    sheetPick(
-      t("applock.requireAfter"),
-      GRACE_OPTIONS.map((seconds) => graceLabel(seconds)),
-      [...GRACE_OPTIONS],
-      (seconds) => {
-        void persistLockGrace(seconds);
-      },
-    );
 
   const languageLabel = (option: (typeof LANGUAGE_OPTIONS)[number]) =>
     option.label ?? t(option.labelKey ?? "");
@@ -393,7 +343,7 @@ export default function SettingsScreen() {
             value={currencyLabel(displayCurrency)}
             chevron
             divider
-            onPress={() => setCurrencySheet(true)}
+            onPress={() => setWheel("currency")}
           />
           <SettingsRow
             icon="circle.lefthalf.filled"
@@ -402,7 +352,7 @@ export default function SettingsScreen() {
             value={t(THEME_OPTIONS.find((o) => o.value === mode)?.labelKey ?? "")}
             chevron
             divider
-            onPress={pickTheme}
+            onPress={() => setWheel("theme")}
           />
           <SettingsRow
             icon="globe"
@@ -413,7 +363,7 @@ export default function SettingsScreen() {
             )}
             chevron
             divider
-            onPress={pickLanguage}
+            onPress={() => setWheel("language")}
           />
           {/* The notification center: master switch, defaults, scheduled list. */}
           <SettingsRow
@@ -545,7 +495,7 @@ export default function SettingsScreen() {
                 value={graceLabel(graceSeconds)}
                 chevron
                 divider
-                onPress={pickGrace}
+                onPress={() => setWheel("grace")}
               />
             </Animated.View>
           )}
@@ -661,25 +611,45 @@ export default function SettingsScreen() {
           {rates ? ` · ${t("settings.ratesFooter", { date: rates.date })}` : ""}
         </Text>
 
-        <WheelSheet
-          visible={currencySheet}
+        {/* Every value picker on this screen is the same bottom wheel (§9d). */}
+        <OptionWheel
+          visible={wheel === "currency"}
           title={t("settings.displayCurrency")}
-          onClose={() => setCurrencySheet(false)}
-        >
-          <Picker
-            selectedValue={displayCurrency}
-            onValueChange={(v) => setDisplayCurrency(v as CurrencyCode)}
-          >
-            {CURRENCY_CODES.map((code) => (
-              <Picker.Item
-                key={code}
-                label={`${currencyLabel(code)} — ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`}
-                value={code}
-                color={colors.text}
-              />
-            ))}
-          </Picker>
-        </WheelSheet>
+          onClose={() => setWheel(null)}
+          options={CURRENCY_CODES.map((code) => ({
+            value: code,
+            label: `${currencyLabel(code)} · ${t(`currencies.${code}`, { defaultValue: CURRENCIES[code].name })}`,
+          }))}
+          value={displayCurrency}
+          onChange={(v) => setDisplayCurrency(v as CurrencyCode)}
+        />
+        <OptionWheel
+          visible={wheel === "theme"}
+          title={t("settings.appearance")}
+          onClose={() => setWheel(null)}
+          options={THEME_OPTIONS.map((o) => ({ value: o.value, label: t(o.labelKey) }))}
+          value={mode}
+          onChange={(v) => setMode(v as ThemeMode)}
+        />
+        <OptionWheel
+          visible={wheel === "language"}
+          title={t("settings.language")}
+          onClose={() => setWheel(null)}
+          options={LANGUAGE_OPTIONS.map((o) => ({ value: o.value, label: languageLabel(o) }))}
+          value={languageMode}
+          onChange={(v) => changeLanguage(v as LanguageMode)}
+        />
+        <OptionWheel
+          visible={wheel === "grace"}
+          title={t("applock.requireAfter")}
+          onClose={() => setWheel(null)}
+          options={GRACE_OPTIONS.map((seconds) => ({
+            value: String(seconds),
+            label: graceLabel(seconds),
+          }))}
+          value={String(graceSeconds)}
+          onChange={(v) => void persistLockGrace(Number(v))}
+        />
 
         {/* Turning brand logos on re-shows the onboarding explanation; it only
             commits when the user confirms in the sheet. */}

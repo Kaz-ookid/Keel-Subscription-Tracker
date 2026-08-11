@@ -867,6 +867,7 @@ export const fr: typeof en = {
     digestRow: "Me rappeler",
     digestWeekly: "Chaque semaine",
     digestMonthly: "Chaque mois",
+    digestDay: "Jour",
     digestDayN: "le {{day}}",
     digestFooter:
       "Un récap des paiements en attente, à l'heure de vos rappels. Il ne part que s'il y a vraiment un retard.",

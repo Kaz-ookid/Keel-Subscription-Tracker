@@ -868,6 +868,7 @@ export const de: typeof en = {
     digestRow: "Erinnern",
     digestWeekly: "Jede Woche",
     digestMonthly: "Jeden Monat",
+    digestDay: "Tag",
     digestDayN: "am {{day}}.",
     digestFooter:
       "Ein Überblick über wartende Zahlungen, zur Erinnerungszeit. Er kommt nur, wenn wirklich etwas überfällig ist.",

@@ -913,6 +913,7 @@ const translation = {
     digestRow: "Przypominaj",
     digestWeekly: "Co tydzień",
     digestMonthly: "Co miesiąc",
+    digestDay: "Dzień",
     digestDayN: "{{day}}. dnia",
     digestFooter:
       "Podsumowanie czekających płatności, o godzinie przypomnień. Przychodzi tylko wtedy, gdy coś naprawdę zalega.",
