@@ -135,6 +135,10 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
       )}
       <Image
         source={{ uri, cacheKey: logoCacheKey(domain) }}
+        // A domain change must not keep painting the previous brand while the
+        // new logo loads — the native view recycles its texture otherwise
+        // (the identity sheet showed the old logo after editing the website).
+        recyclingKey={logoCacheKey(domain)}
         // Memory + disk: a logo shown once this session re-renders from RAM in
         // the same frame on later mounts, instead of a per-mount disk read
         // (which is what made every screen change blink).

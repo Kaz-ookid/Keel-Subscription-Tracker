@@ -201,7 +201,11 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
           return (
             <Pressable
               style={[styles.row, added && styles.rowAdded]}
-              disabled={added}
+              // Pick mode keeps "already in your list" rows tappable — a
+              // second Netflix (two profiles, two accounts) is legitimate;
+              // the dim + check stay as information, not a lock. Checklist
+              // mode still disables them: a duplicate PENDING row is noise.
+              disabled={added && !onPick}
               onPress={() => (onPick ? onPick(item) : toggle(item.id))}
             >
               {/* The brand's color bleeds from the badge side (§9c) — the

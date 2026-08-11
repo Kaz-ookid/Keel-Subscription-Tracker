@@ -297,10 +297,13 @@ export default function OnboardingScreen() {
               </View>
               <Text style={styles.pickTitle}>{t("onboarding.pickTitle")}</Text>
               <View style={[styles.pickSide, styles.pickSideRight]}>
-                {/* Browse mode's only exit; during onboarding, back covers it. */}
+                {/* Browse mode's only exit; during onboarding, back covers it.
+                    "Close", muted: it just leaves — the per-selection Add
+                    button below is what commits, and a "Done" up here read
+                    like a second confirm. */}
                 {mode === "browse" && (
                   <Pressable onPress={finish} hitSlop={12}>
-                    <Text style={styles.skip}>{t("onboarding.done")}</Text>
+                    <Text style={styles.skip}>{t("common.close")}</Text>
                   </Pressable>
                 )}
               </View>

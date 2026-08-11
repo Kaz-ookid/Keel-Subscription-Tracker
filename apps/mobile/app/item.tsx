@@ -331,7 +331,11 @@ export default function ItemScreen() {
               <Button
                 size="sm"
                 label={t("common.undoLast")}
-                onPress={() => undoInstallmentPaid(item.id)}
+                onPress={() => {
+                  // Same light note as the tick it reverts.
+                  hapticMarkPaid();
+                  undoInstallmentPaid(item.id);
+                }}
               />
             )}
           </View>
@@ -372,7 +376,14 @@ export default function ItemScreen() {
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>{t("item.history")}</Text>
             {item.settlementMode === "manual" && (
-              <Button size="sm" label={t("common.undoLast")} onPress={() => undoPaid(item.id)} />
+              <Button
+                size="sm"
+                label={t("common.undoLast")}
+                onPress={() => {
+                  hapticMarkPaid();
+                  undoPaid(item.id);
+                }}
+              />
             )}
           </View>
           {history.map((o) => (

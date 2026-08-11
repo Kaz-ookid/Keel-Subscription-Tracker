@@ -361,10 +361,13 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
                 dated={section.key === "paid-month-list"}
                 onUndo={
                   item.undoable
-                    ? () =>
-                        item.scheduleType === "INSTALLMENT"
-                          ? undoInstallmentPaid(item.paymentItemId)
-                          : undoPaid(item.paymentItemId)
+                    ? () => {
+                        // Same light note as the tick it reverts.
+                        hapticMarkPaid();
+                        if (item.scheduleType === "INSTALLMENT")
+                          undoInstallmentPaid(item.paymentItemId);
+                        else undoPaid(item.paymentItemId);
+                      }
                     : undefined
                 }
                 onPress={() =>

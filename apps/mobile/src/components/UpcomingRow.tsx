@@ -4,12 +4,6 @@ import { SymbolView } from "expo-symbols";
 import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from "react-native-reanimated";
 
 import { brandBleed } from "../lib/brand";
 import { useBrandTints } from "../lib/dominant-color";
@@ -66,20 +60,6 @@ export const UpcomingRow = memo(function UpcomingRow({
   useBrandTints();
   const accent = brandBleed(charge, colors.accent);
   const settled = paid || skipped;
-
-  // Mark paid = one ripple ring (§3.7 D): a ring blooms out from where the
-  // button sat and fades as the row settles. Lives on the row, not the
-  // button, so it survives the button's disappearance.
-  const ripple = useSharedValue(0);
-  const rippleStyle = useAnimatedStyle(() => ({
-    opacity: ripple.value === 0 || ripple.value === 1 ? 0 : 0.5 * (1 - ripple.value),
-    transform: [{ scale: 0.35 + ripple.value * 2.1 }],
-  }));
-  const handleMarkPaid = () => {
-    ripple.value = 0;
-    ripple.value = withTiming(1, { duration: 450, easing: Easing.out(Easing.quad) });
-    onMarkPaid();
-  };
 
   // Context line: BNPL progress first, then where the money comes from.
   const parts: string[] = [];
@@ -147,14 +127,11 @@ export const UpcomingRow = memo(function UpcomingRow({
             {formatMoney(charge.amount)}
           </Text>
         </View>
-        {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={handleMarkPaid} />}
+        {/* Ticking off settles QUIETLY (the row dims, the check appears) —
+            the ripple ring that bloomed here read as visual noise. */}
+        {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
         {settled && onUndo && <Button size="sm" label={t("common.undo")} onPress={onUndo} />}
       </View>
-
-      <Animated.View
-        pointerEvents="none"
-        style={[styles.ripple, { borderColor: colors.accent }, rippleStyle]}
-      />
     </Pressable>
   );
 });
@@ -204,18 +181,6 @@ function createStyles(colors: ThemeColors) {
     amount: {
       ...typography.label,
       color: colors.text,
-    },
-    // Centered on the right column, where the Mark paid button lives.
-    ripple: {
-      position: "absolute",
-      right: spacing.md + 12,
-      top: "50%",
-      marginTop: -24,
-      width: 48,
-      height: 48,
-      borderRadius: 24,
-      borderWidth: 1.5,
-      opacity: 0,
     },
   });
 }
