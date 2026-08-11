@@ -8,6 +8,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 
+import { hapticHold } from "../../lib/haptics";
 import { AccountEditSheet } from "../AccountSheet";
 import { Chip } from "../ui/Chip";
 import { spacing } from "../../theme";
@@ -32,6 +33,7 @@ export function AccountChipsRow({ accounts, filter, onFilter }: Props) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [session, setSession] = useState(0);
   const openEditor = (account: Account) => {
+    hapticHold();
     setEditing(account);
     setSession((s) => s + 1);
     setSheetOpen(true);

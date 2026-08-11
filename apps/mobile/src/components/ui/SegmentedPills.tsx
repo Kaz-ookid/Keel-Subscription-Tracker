@@ -6,6 +6,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+
+import { hapticSelection } from "../../lib/haptics";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
@@ -49,7 +51,11 @@ export function SegmentedPills<T extends string>({ options, value, onChange }: P
           <Pressable
             key={option.value}
             style={styles.pill}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              // The picker tick (§3.6): only when the selection actually moves.
+              if (option.value !== value) hapticSelection();
+              onChange(option.value);
+            }}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
           >
