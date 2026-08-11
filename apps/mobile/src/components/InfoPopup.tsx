@@ -10,6 +10,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
+  SlideInDown,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -76,13 +77,14 @@ export function InfoPopup({ visible, title, onClose, tall, children }: Props) {
   const cardDrag = useAnimatedStyle(() => ({ transform: [{ translateY: dragY.value }] }));
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <GestureHandlerRootView style={styles.root}>
         <View style={styles.backdrop}>
           {/* The dimmed area behind the card closes. */}
           <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
           <GestureDetector gesture={pan}>
             <Animated.View
+              entering={SlideInDown.duration(280)}
               style={[
                 styles.card,
                 tall && styles.cardTall,

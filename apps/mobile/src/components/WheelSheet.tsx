@@ -1,6 +1,7 @@
 import { useMemo, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, { SlideInDown } from "react-native-reanimated";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
 
@@ -19,9 +20,11 @@ export function WheelSheet({ visible, title, onClose, children }: Props) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    // Fade the MODAL (the scrim) and slide only the tray: sliding the whole
+    // modal made the backdrop rise as a visible rectangle.
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} />
-      <View style={styles.sheet}>
+      <Animated.View entering={SlideInDown.duration(280)} style={styles.sheet}>
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Pressable onPress={onClose} hitSlop={8}>
@@ -29,7 +32,7 @@ export function WheelSheet({ visible, title, onClose, children }: Props) {
           </Pressable>
         </View>
         {children}
-      </View>
+      </Animated.View>
     </Modal>
   );
 }
