@@ -249,16 +249,19 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     () => seedItem?.domain ?? suggestion?.domain,
   );
   // The logo's color LEADS (§9c inversion, post round 2); the stored color is
-  // its durable backup. Whenever this domain has an extracted tint (it lands
-  // while the preview badge renders — useBrandTints re-renders us then),
-  // converge the color onto the nearest swatch during render: the grid shows
-  // the mirror as selected, and items keep a true color anywhere pixels
-  // can't run (Expo Go, restored data, logos off from day one). Picking a
-  // swatch by hand clears the domain, so the mirror never fights the user.
+  // its durable backup, kept ON the swatch grid so the grid always shows it
+  // selected. Converge during render (useBrandTints re-renders us when a
+  // tint lands mid-typing): the mirror source is the logo's extracted color
+  // when there is one, else any stored color that isn't already a swatch
+  // (bank hexes, AI-supplied colors). A hand-picked swatch IS a member, so
+  // the mirror never fights the user; picking one also clears the domain.
   useBrandTints();
   const extractedTint = domain ? dominantColor(domain) : undefined;
-  if (extractedTint) {
-    const mirror = nearestColor(extractedTint, COLOR_SWATCHES);
+  const mirrorSource =
+    extractedTint ??
+    (color && !(COLOR_SWATCHES as readonly string[]).includes(color) ? color : undefined);
+  if (mirrorSource) {
+    const mirror = nearestColor(mirrorSource, COLOR_SWATCHES);
     if (color !== mirror) setColor(mirror);
   }
   const [notes, setNotes] = useState(() => seedItem?.notes ?? "");

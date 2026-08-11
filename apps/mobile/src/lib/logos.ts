@@ -12,7 +12,8 @@
 
 // Tolerate a pasted full URL — reduce to a bare host so the lookup works
 // whether the user typed "netflix.com" or "https://www.netflix.com/account".
-function hostOf(domain: string): string {
+// (Exported for the tint extractor, which keys and gates by the same host.)
+export function hostOf(domain: string): string {
   return domain
     .trim()
     .toLowerCase()

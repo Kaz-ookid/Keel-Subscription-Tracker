@@ -15,8 +15,15 @@ import { useSyncExternalStore } from "react";
 import { requireOptionalNativeModule } from "expo-modules-core";
 
 import { usableBrandColor } from "./brand-color";
+import { hostOf } from "./logos";
 
 const KEY = "keel.brandtints.v1";
+
+// Extraction stays SILENT for users by design — but that made "no tint, no
+// idea why" undebuggable on a device. In dev, Metro states each verdict.
+function trace(message: string): void {
+  if (__DEV__) console.warn(`[brand-tints] ${message}`);
+}
 
 let tints: Record<string, string> = {};
 /** Domains already tried this session (hit or miss) — no retry loops. */
@@ -79,14 +86,16 @@ function loadNativeModule(): GetColors | null {
   // scope calls requireNativeModule). The optional probe stays silent.
   if (!requireOptionalNativeModule("ImageColors")) {
     getColors = null; // Expo Go / an older build: tints simply stay off.
+    trace("native module missing on this binary — tints are OFF (Expo Go or an old dev build)");
     return getColors;
   }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require("react-native-image-colors") as { getColors: GetColors };
     getColors = mod.getColors;
-  } catch {
+  } catch (error) {
     getColors = null;
+    trace(`JS package failed to load (${String(error)})`);
   }
   return getColors;
 }
@@ -94,6 +103,9 @@ function loadNativeModule(): GetColors | null {
 /** Called when a logo has rendered: extract its dominant color once per
  *  domain and remember it. Fire-and-forget; never throws. */
 export function noteBrandLogo(domain: string, uri: string): void {
+  // The identity sheet renders a badge per KEYSTROKE ("n", "ne", "net"…);
+  // only something shaped like a real host (dot + TLD) is worth a fetch.
+  if (!/\.[a-z]{2,}$/i.test(hostOf(domain))) return;
   if (attempted.has(domain) || tints[domain]) return;
   attempted.add(domain);
   const extract = loadNativeModule();
@@ -105,14 +117,23 @@ export function noteBrandLogo(domain: string, uri: string): void {
       // near-mono filter rejects them.
       const candidates = [result.primary, result.secondary, result.background, result.detail];
       const hex = candidates.find((c): c is string => typeof c === "string" && usableBrandColor(c));
-      if (!hex) return;
+      if (!hex) {
+        trace(
+          `${domain}: every candidate rejected as near-mono (${candidates
+            .filter((c): c is string => typeof c === "string")
+            .join(", ")})`,
+        );
+        return;
+      }
       tints = { ...tints, [domain]: hex.toUpperCase() };
       emit();
+      trace(`${domain}: tint ${hex.toUpperCase()}`);
       void AsyncStorage.setItem(KEY, JSON.stringify(tints)).catch(() => {
         // The in-memory tint already took effect for this session.
       });
     })
-    .catch(() => {
-      // Extraction is a bonus, never an error surface.
+    .catch((error: unknown) => {
+      // Extraction is a bonus, never a user-facing error surface.
+      trace(`${domain}: extraction failed (${String(error)})`);
     });
 }
