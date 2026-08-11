@@ -250,8 +250,11 @@ export function FormSheets({ form }: { form: AddForm }) {
               }}
               style={[styles.colorSwatch, { backgroundColor: c }]}
             >
-              {/* A checkmark reads on any swatch — a dark ring didn't. */}
-              {form.color === c && !form.domain && (
+              {/* A checkmark reads on any swatch — a dark ring didn't. With a
+                  logo set, the check marks the AUTO-MIRRORED backup swatch
+                  (nearest to the logo's color); tapping any swatch still
+                  means "use a colour, not a logo". */}
+              {form.color === c && (
                 <SymbolView name="checkmark" size={18} tintColor={contrastText(c)} />
               )}
             </Pressable>

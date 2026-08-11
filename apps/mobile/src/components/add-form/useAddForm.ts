@@ -29,9 +29,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 
+import { COLOR_SWATCHES } from "../../constants";
 import { localizedAnchor } from "../../i18n/recurrence";
+import { nearestColor } from "../../lib/brand-color";
 import { formatHour, fromCalendarDate, toCalendarDate } from "../../lib/dates";
 import { noteCustomService } from "../../lib/custom-bank";
+import { dominantColor, useBrandTints } from "../../lib/dominant-color";
 import { loadNotificationSettings } from "../../lib/notifications";
 import { matchSuggestions } from "../../lib/suggestions";
 import { useAppActions, useAppData } from "../../state/app-state";
@@ -245,6 +248,19 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [domain, setDomain] = useState<string | undefined>(
     () => seedItem?.domain ?? suggestion?.domain,
   );
+  // The logo's color LEADS (§9c inversion, post round 2); the stored color is
+  // its durable backup. Whenever this domain has an extracted tint (it lands
+  // while the preview badge renders — useBrandTints re-renders us then),
+  // converge the color onto the nearest swatch during render: the grid shows
+  // the mirror as selected, and items keep a true color anywhere pixels
+  // can't run (Expo Go, restored data, logos off from day one). Picking a
+  // swatch by hand clears the domain, so the mirror never fights the user.
+  useBrandTints();
+  const extractedTint = domain ? dominantColor(domain) : undefined;
+  if (extractedTint) {
+    const mirror = nearestColor(extractedTint, COLOR_SWATCHES);
+    if (color !== mirror) setColor(mirror);
+  }
   const [notes, setNotes] = useState(() => seedItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 

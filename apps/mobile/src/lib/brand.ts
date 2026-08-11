@@ -2,11 +2,12 @@
 // service's TRUE color, never black or white.
 //
 // Resolution order:
-//   1. the item's own stored color,
-//   2. the brand bank's color for a matching name or domain,
-//   3. the logo's pixel-derived dominant color (dominant-color.ts, dev
-//      builds only) — DELIBERATELY below the bank: hand-tuned bank colors
-//      beat extraction quality; pixels cover the domains nobody mapped,
+//   1. the logo's pixel-derived dominant color — FIRST, always (user
+//      decision, post round 2): what the badge shows is what the surface
+//      wears; the stored color is its durable backup, auto-mirrored to the
+//      nearest swatch by the form,
+//   2. the item's own stored color,
+//   3. the brand bank's color for a matching name or domain,
 //   4. the caller's fallback (the theme accent),
 // where any candidate too close to black or white is rejected and the chain
 // falls through.
@@ -34,12 +35,12 @@ for (const s of SUGGESTED_COMMITMENTS) {
 }
 
 export function brandBleed(item: Branded, fallback: string): string {
+  const extracted = item.domain ? dominantColor(item.domain) : undefined;
+  if (usableBrandColor(extracted)) return extracted;
   if (usableBrandColor(item.color)) return item.color;
   const banked =
     byName.get(item.name.trim().toLowerCase()) ??
     (item.domain ? byDomain.get(item.domain) : undefined);
   if (usableBrandColor(banked)) return banked;
-  const extracted = item.domain ? dominantColor(item.domain) : undefined;
-  if (usableBrandColor(extracted)) return extracted;
   return fallback;
 }
