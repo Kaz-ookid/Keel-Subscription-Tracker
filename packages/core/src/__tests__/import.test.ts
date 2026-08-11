@@ -307,6 +307,32 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(parseImportDocument('{"items":[]}', ctx).error).toBe("empty");
   });
 
+  it("carries weekendShift onto the input, drops junk with a warning", () => {
+    const doc = (shift: unknown) =>
+      JSON.stringify({
+        items: [
+          {
+            type: "subscription",
+            name: "Rent",
+            amount: 1200,
+            currency: "EUR",
+            cadence: { unit: "month", interval: 1 },
+            firstDate: "2026-08-01",
+            settlement: "automatic",
+            weekendShift: shift,
+          },
+        ],
+      });
+    const good = parseImportDocument(doc("after"), ctx).drafts[0];
+    if (good.kind !== "subscription") throw new Error("expected subscription");
+    expect(good.input.weekendShift).toBe("after");
+
+    const junk = parseImportDocument(doc("weekdays-only"), ctx).drafts[0];
+    if (junk.kind !== "subscription") throw new Error("expected subscription");
+    expect(junk.input.weekendShift).toBeUndefined();
+    expect(junk.warnings.some((w) => w.code === "date-defaulted")).toBe(true);
+  });
+
   it("skips broken items but keeps the good ones", () => {
     const doc = {
       items: [

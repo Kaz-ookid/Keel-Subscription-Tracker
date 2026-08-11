@@ -199,6 +199,9 @@ export const de: typeof en = {
     tomorrow: "Morgen",
     inDays: "in {{count}} Tagen",
   },
+  calendar: {
+    shiftedFrom: "Wochenend-Verschiebung, ursprünglich {{date}}",
+  },
   payments: {
     upcoming: "Anstehend",
     all: "Alle",

@@ -27,6 +27,8 @@ export interface DayCharge {
   overdue: boolean;
   installmentIndex?: number;
   installmentCount?: number;
+  /** The grid date a weekend shift moved this charge from. */
+  shiftedFrom?: CalendarDate;
 }
 
 /** Every charge of one month on its due day — the list view's three sources
@@ -97,6 +99,7 @@ export function monthCharges(
         paid: false,
         overdue: c.dueDate < asOf,
         installmentIndex: c.installmentIndex,
+        shiftedFrom: c.shiftedFrom,
         installmentCount: c.installmentCount,
       })),
   ];

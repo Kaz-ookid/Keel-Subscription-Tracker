@@ -196,6 +196,9 @@ export const en = {
     tomorrow: "Tomorrow",
     inDays: "in {{count}} days",
   },
+  calendar: {
+    shiftedFrom: "Weekend shift, was {{date}}",
+  },
   payments: {
     upcoming: "Upcoming",
     all: "All",

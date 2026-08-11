@@ -139,6 +139,14 @@ class ItemReader {
     return undefined;
   }
 
+  /** The bank-skips-weekends rule: only the two enum strings pass. */
+  weekendShift(value: unknown): "before" | "after" | undefined {
+    if (value === undefined) return undefined;
+    if (value === "before" || value === "after") return value;
+    this.warn("date-defaulted", "weekendShift");
+    return undefined;
+  }
+
   firstDate(value: unknown): CalendarDate {
     const raw = asTrimmedString(value);
     if (raw && isCalendarDate(raw)) return raw;
@@ -272,6 +280,7 @@ function parseItem(
       numberOfInstallments: Math.floor(installments),
       recurrence: cadence,
       firstInstallmentDate: firstDate,
+      weekendShift: reader.weekendShift(item.weekendShift),
       provider: reader.provider(item.provider),
     };
     return {
@@ -311,6 +320,7 @@ function parseItem(
     recurrence,
     firstChargeDate: firstDate,
     endDate: reader.optionalDate(item.endDate, "endDate"),
+    weekendShift: reader.weekendShift(item.weekendShift),
     introOffer,
   };
   return {

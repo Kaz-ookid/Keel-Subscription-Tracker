@@ -45,6 +45,7 @@ Optional fields, to include ONLY when present in the input (never invent them):
 - "reminderDaysBefore": N, only if a reminder is requested.
 - subscription "endDate": "YYYY-MM-DD", a known last charge.
 - subscription "anchor": {"week":1-5,"weekday":0-6} for "1st Thursday" rules (weekday 0=Sunday..4=Thursday..6=Saturday; week 1=first..5=last); monthly only.
+- "weekendShift": "before" or "after" ONLY when the person says the bank never charges on weekends (before = the Friday before, after = the Monday after); omit otherwise.
 - subscription "priceChange": {"newAmount":N,"on":"YYYY-MM-DD"} for a future price change. Use it for trials (amount 0 now → newAmount on the date) AND plain increases/decreases ("goes up to 170 on 26.12.2027", "down to 80 from the next payment").
 - split_payment "installments": N (how many payments); "provider": one of paypal_pay_in_x, klarna, afterpay, alma, oney, cb_nx, other ("PayPal"→paypal_pay_in_x, generic card plan→cb_nx).
 
@@ -86,6 +87,7 @@ Fill each field from the notes:
 - cadence: monthly = {"unit":"month","interval":1}; yearly = {"unit":"year","interval":1}; every 2 months = {"unit":"month","interval":2}.
 - firstDate: "YYYY-MM-DD". Keep any day the user gives (the 22nd stays the 22nd). "from March 2026" means that day in March 2026. Resolve "next" or "last month" against ${today}.
 - account: the bank or account name exactly as written ("CIC", "Revolut", "BCV"). Put it in THIS field, never inside notes.
+- weekendShift: "before" or "after" ONLY when the user says the bank never charges on weekends (before = Friday, after = Monday); omit otherwise.
 - priceChange {"newAmount":N,"on":"YYYY-MM-DD"}: when one payment's price changes over time, keep it as ONE item and record the change here. The words "then", "since", "from", "goes to", "up to", "changed to", "now" before a SECOND price all describe the SAME payment changing price. "20 then 24 since January" is ONE item, amount 20, priceChange to 24 in January. It is NEVER two items.
 
 The rules that matter most:

@@ -9,7 +9,14 @@
 // swipe): the neighbor month is really under your finger, the gesture can be
 // held and pulled back. Three pages recenter invisibly after each landing.
 
-import { endOfMonth, formatMoney, formatTotalsIn, today, type CalendarDate } from "@keel/core";
+import {
+  endOfMonth,
+  formatCalendarDate,
+  formatMoney,
+  formatTotalsIn,
+  today,
+  type CalendarDate,
+} from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { memo, useCallback, useMemo, useRef, useState } from "react";
@@ -193,15 +200,23 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
                   color={c.color ?? colors.accent}
                   size={24}
                 />
-                <Text style={styles.detailName} numberOfLines={1}>
-                  {c.name}
-                  {c.installmentIndex && c.installmentCount ? (
-                    <Text style={styles.detailCount}>
-                      {" "}
-                      · {t("common.xOfY", { x: c.installmentIndex, y: c.installmentCount })}
+                <View style={styles.detailMiddle}>
+                  <Text style={styles.detailName} numberOfLines={1}>
+                    {c.name}
+                    {c.installmentIndex && c.installmentCount ? (
+                      <Text style={styles.detailCount}>
+                        {" "}
+                        · {t("common.xOfY", { x: c.installmentIndex, y: c.installmentCount })}
+                      </Text>
+                    ) : null}
+                  </Text>
+                  {/* A shifted charge explains itself where the day is read. */}
+                  {c.shiftedFrom ? (
+                    <Text style={styles.detailShift} numberOfLines={1}>
+                      {t("calendar.shiftedFrom", { date: formatCalendarDate(c.shiftedFrom) })}
                     </Text>
                   ) : null}
-                </Text>
+                </View>
                 <Text style={styles.detailAmount}>{formatMoney(c.amount)}</Text>
               </Pressable>
             );
@@ -403,8 +418,10 @@ function createStyles(colors: ThemeColors) {
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.border,
     },
-    detailName: { ...typography.caption, color: colors.text, flex: 1 },
+    detailMiddle: { flex: 1, gap: 1 },
+    detailName: { ...typography.caption, color: colors.text },
     detailCount: { ...typography.caption, color: colors.mutedText },
+    detailShift: { ...typography.micro, color: colors.mutedText },
     detailAmount: { ...typography.caption, fontWeight: "600", color: colors.text },
   });
 }

@@ -71,6 +71,8 @@ export interface ImportSubscriptionItem extends ImportItemCommon {
   amount: number;
   endDate?: string;
   anchor?: ImportAnchor;
+  /** The bank never debits on weekends: charges move before (Fri) / after (Mon). */
+  weekendShift?: "before" | "after";
   priceChange?: ImportPriceChange;
 }
 

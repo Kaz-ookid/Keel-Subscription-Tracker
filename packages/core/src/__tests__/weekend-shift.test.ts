@@ -68,6 +68,14 @@ describe("projection with a weekend shift", () => {
     if (item.schedule.kind !== "RECURRING") throw new Error("expected recurring");
     expect(item.schedule.nextChargeDate).toBe(SAT);
   });
+
+  it("marks moved charges with the grid date they left", () => {
+    const item = makeRecurringPaymentItem(base, { id: "w7", now: now() });
+    const charges = projectItemCharges(item, calendarDate("2026-09-30"));
+    // August was shifted (carries its origin); September was not (carries none).
+    expect(charges[0].shiftedFrom).toBe(SAT);
+    expect(charges[1].shiftedFrom).toBeUndefined();
+  });
 });
 
 describe("accrual with a weekend shift", () => {

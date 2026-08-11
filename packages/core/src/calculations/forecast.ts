@@ -38,6 +38,8 @@ export interface ProjectedCharge {
   /** For installments: "payment 3 of 4". */
   installmentIndex?: number;
   installmentCount?: number;
+  /** Set when a weekend shift moved this charge: the grid date it left. */
+  shiftedFrom?: CalendarDate;
 }
 
 /**
@@ -78,7 +80,13 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
       // date is weekend-shifted; the loop stays on the grid (the window test
       // may drift ±2 days at the very edge — accepted).
       if (amount.amount > 0) {
-        charges.push({ ...base, dueDate: shiftOffWeekend(due, item.weekendShift), amount });
+        const shifted = shiftOffWeekend(due, item.weekendShift);
+        charges.push({
+          ...base,
+          dueDate: shifted,
+          amount,
+          ...(shifted !== due ? { shiftedFrom: due } : {}),
+        });
       }
       due = addRecurrence(due, recurrence);
     }
@@ -89,13 +97,17 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
     const count = item.schedule.installments.length;
     return item.schedule.installments
       .filter((i) => !COVERED_INSTALLMENT_STATUSES.includes(i.status) && i.dueDate <= until)
-      .map((i) => ({
-        ...base,
-        dueDate: shiftOffWeekend(i.dueDate, item.weekendShift),
-        amount: i.amount,
-        installmentIndex: i.index,
-        installmentCount: count,
-      }));
+      .map((i) => {
+        const shifted = shiftOffWeekend(i.dueDate, item.weekendShift);
+        return {
+          ...base,
+          dueDate: shifted,
+          amount: i.amount,
+          installmentIndex: i.index,
+          installmentCount: count,
+          ...(shifted !== i.dueDate ? { shiftedFrom: i.dueDate } : {}),
+        };
+      });
   }
 
   // ONE_TIME_ANNUAL projection lands with the M3 smoothing work.
