@@ -53,6 +53,18 @@ async function ensureLoaded(): Promise<void> {
   await loading;
 }
 
+/** Back to the factory state (debug onboarding replay): no Full Keel, all
+ *  free reads restored. */
+export async function resetEntitlement(): Promise<void> {
+  state = { loaded: true, full: false, readsUsed: 0 };
+  notify();
+  try {
+    await AsyncStorage.multiRemove([FULL_KEY, READS_KEY]);
+  } catch {
+    // Best-effort; the in-memory reset already took effect.
+  }
+}
+
 /** Free reads remaining; irrelevant (and huge) once Full Keel is owned. */
 export function aiReadsLeft(snapshot: Entitlement = state): number {
   return snapshot.full ? Number.POSITIVE_INFINITY : Math.max(0, FREE_AI_READS - snapshot.readsUsed);

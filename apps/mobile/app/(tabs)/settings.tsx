@@ -64,7 +64,7 @@ import { Sheen } from "../../src/components/ui/Sheen";
 import { TabFade } from "../../src/components/TabFade";
 import { WheelSheet } from "../../src/components/WheelSheet";
 import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
-import { setFullKeel, useEntitlement } from "../../src/lib/entitlement";
+import { resetEntitlement, setFullKeel, useEntitlement } from "../../src/lib/entitlement";
 import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -332,9 +332,13 @@ export default function SettingsScreen() {
         onPress: () => {
           clearAllData();
           void resetOnboardingSeen();
-          // A replay should feel like a real first launch, logo question
-          // included — without this, an old choice silently answers it.
+          // A replay should feel like a real first launch, every choice
+          // included: logo question, free-read meter, Full Keel debug
+          // switch, and the app lock.
           resetLogoConsent();
+          void resetEntitlement();
+          void persistLockEnabled(false);
+          void persistLockGrace(0);
           router.push("/onboarding");
         },
       },

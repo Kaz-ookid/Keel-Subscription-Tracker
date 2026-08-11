@@ -124,6 +124,9 @@ export default function OnboardingScreen() {
     if (lastAdd) requestPaymentsView("all");
     void markOnboardingSeen();
     router.back();
+    // Always land on Payments — a debug replay would otherwise drop the
+    // user back on the Settings tab that launched it.
+    router.navigate("/");
   };
 
   // The AI door: hand over to the import hub. Pushed (not replaced) so
