@@ -38,9 +38,17 @@ function emit(): void {
 
 const subscribe = (listener: () => void): (() => void) => {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 };
 const getSnapshot = () => version;
+
+/** Plain subscription (no hook) — for callers that react to a tint landing
+ *  with their own state updates (the form's backup-swatch mirror). */
+export function subscribeBrandTints(listener: () => void): () => void {
+  return subscribe(listener);
+}
 
 /** Subscribe a component that paints brand colors: it re-renders when a
  *  freshly extracted tint lands, so rows repaint without a remount. */

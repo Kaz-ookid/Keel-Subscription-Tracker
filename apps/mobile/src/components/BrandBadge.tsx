@@ -12,12 +12,13 @@
 
 import { Image } from "expo-image";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
 import { noteBrandLogo } from "../lib/dominant-color";
 import { useLogosEnabled } from "../lib/logo-consent";
 import {
+  hostOf,
   knownCachedLogo,
   logoCacheKey,
   logoUrl,
@@ -83,6 +84,18 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
     domain ? knownCachedLogo(domain) : undefined,
   );
 
+  // A transient fetch failure (offline blip, the favicon service throttling
+  // a burst) must not pin the monogram until a remount: one quiet retry per
+  // domain, a beat later.
+  const [retried, setRetried] = useState(false);
+  const retryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (retryTimer.current) clearTimeout(retryTimer.current);
+    },
+    [],
+  );
+
   // Re-fetch when the brand changes (e.g. typing a domain in the identity
   // sheet): without this, a previous load/failure pins the badge to the wrong
   // state and the new logo only appears after a remount/relaunch. React's
@@ -92,6 +105,7 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
     setPrevDomain(domain);
     setLoaded(false);
     setFailed(false);
+    setRetried(false);
     setCachedUri(domain ? knownCachedLogo(domain) : undefined);
   }
 
@@ -107,7 +121,10 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
     };
   }, [domain, logosEnabled, cachedUri]);
 
-  if (!domain) {
+  // No domain, or one still being typed ("net", "netflix.c"): the plain
+  // badge, with no fetch — half-typed hosts flashed wrong logos and burned
+  // requests on every keystroke.
+  if (!domain || !/\.[a-z]{2,}$/i.test(hostOf(domain))) {
     return <FallbackBadge icon={icon} fallback={fallback} color={color} size={size} />;
   }
 
@@ -150,7 +167,13 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
           // color (once per domain; a no-op without the native module).
           noteBrandLogo(domain, uri);
         }}
-        onError={() => setFailed(true)}
+        onError={() => {
+          setFailed(true);
+          if (!retried) {
+            setRetried(true);
+            retryTimer.current = setTimeout(() => setFailed(false), 1500);
+          }
+        }}
         style={{
           width: size,
           height: size,

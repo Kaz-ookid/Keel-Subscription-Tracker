@@ -34,7 +34,7 @@ import { localizedAnchor } from "../../i18n/recurrence";
 import { nearestColor } from "../../lib/brand-color";
 import { formatHour, fromCalendarDate, toCalendarDate } from "../../lib/dates";
 import { noteCustomService } from "../../lib/custom-bank";
-import { dominantColor, useBrandTints } from "../../lib/dominant-color";
+import { dominantColor, subscribeBrandTints } from "../../lib/dominant-color";
 import { loadNotificationSettings } from "../../lib/notifications";
 import { matchSuggestions } from "../../lib/suggestions";
 import { useAppActions, useAppData } from "../../state/app-state";
@@ -239,31 +239,43 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     () => seedItem?.categoryId ?? suggestion?.categoryId,
   );
   const [accountId, setAccountId] = useState<string | undefined>(() => seedItem?.accountId);
-  const [color, setColor] = useState<string | undefined>(
-    () => seedItem?.color ?? suggestion?.color,
-  );
+  // The logo's color LEADS (§9c inversion, post round 2); the stored color
+  // is its durable backup, kept ON the swatch grid so the grid always shows
+  // it selected. `mirrorSwatch` snaps any brand color (extracted tint, bank
+  // hex, AI-supplied color) to the nearest swatch; a hand-picked swatch is
+  // already a member, so mirroring never fights the user. The mirror runs
+  // ONLY from init, event handlers and the tint subscription below — never
+  // during render, which fought the identity sheet's controlled input.
+  const mirrorSwatch = (hex: string) => nearestColor(hex, COLOR_SWATCHES);
+  const [color, setColor] = useState<string | undefined>(() => {
+    const seeded = seedItem?.color ?? suggestion?.color;
+    const tinted = seedItem?.domain ? dominantColor(seedItem.domain) : undefined;
+    if (tinted) return mirrorSwatch(tinted);
+    return seeded ? mirrorSwatch(seeded) : undefined;
+  });
   // The brand website behind the logo — seeded from a suggestion or the edited
   // item, and editable: pick a brand by name (applySuggestion) or type a domain
-  // for a custom logo.
-  const [domain, setDomain] = useState<string | undefined>(
+  // for a custom logo. Setting one whose tint is already known mirrors the
+  // backup swatch in the same breath.
+  const [domain, setDomainState] = useState<string | undefined>(
     () => seedItem?.domain ?? suggestion?.domain,
   );
-  // The logo's color LEADS (§9c inversion, post round 2); the stored color is
-  // its durable backup, kept ON the swatch grid so the grid always shows it
-  // selected. Converge during render (useBrandTints re-renders us when a
-  // tint lands mid-typing): the mirror source is the logo's extracted color
-  // when there is one, else any stored color that isn't already a swatch
-  // (bank hexes, AI-supplied colors). A hand-picked swatch IS a member, so
-  // the mirror never fights the user; picking one also clears the domain.
-  useBrandTints();
-  const extractedTint = domain ? dominantColor(domain) : undefined;
-  const mirrorSource =
-    extractedTint ??
-    (color && !(COLOR_SWATCHES as readonly string[]).includes(color) ? color : undefined);
-  if (mirrorSource) {
-    const mirror = nearestColor(mirrorSource, COLOR_SWATCHES);
-    if (color !== mirror) setColor(mirror);
-  }
+  const setDomain = (next: string | undefined) => {
+    setDomainState(next);
+    const tinted = next ? dominantColor(next) : undefined;
+    if (tinted) setColor(mirrorSwatch(tinted));
+  };
+  // A tint extracted WHILE the form is open (the preview badge just rendered
+  // a fresh logo): mirror it as it lands. setState inside an external-store
+  // subscription callback is the sanctioned shape for this.
+  useEffect(
+    () =>
+      subscribeBrandTints(() => {
+        const tinted = domain ? dominantColor(domain) : undefined;
+        if (tinted) setColor(mirrorSwatch(tinted));
+      }),
+    [domain],
+  );
   const [notes, setNotes] = useState(() => seedItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
@@ -436,11 +448,13 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   }, [isEditing, isDraft, domain, name, items]);
 
   /** Apply a brand-bank entry to the live form — name, look, category, cadence.
-   *  The same effect as picking it from the upfront chooser. */
+   *  The same effect as picking it from the upfront chooser. The bank color
+   *  lands as its backup swatch (setDomain then upgrades to the logo's tint
+   *  when one is known). */
   const applySuggestion = (s: SuggestedCommitment) => {
     setName(t(`bank.${s.id}`, { defaultValue: s.name }));
     if (s.categoryId) setCategoryId(s.categoryId);
-    setColor(s.color);
+    setColor(s.color ? mirrorSwatch(s.color) : undefined);
     setDomain(s.domain);
     if (s.unit === "month" || s.unit === "year") setUnit(s.unit);
   };
