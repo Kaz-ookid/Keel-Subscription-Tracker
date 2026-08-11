@@ -44,6 +44,9 @@ export interface ThemeColors {
    *  sea after dark, a sea-glass morning haze by day. Lives here so the
    *  stage can never drift out of sync with `background`. */
   stage: readonly [string, string, string];
+  /** The hero card's gradient: the navy hull at night, deep sea glass by
+   *  day (a navy slab on the light scheme read as a foreign object). */
+  hero: readonly [string, string];
   /** Categorical chart palette (donut slices, future charts). */
   chart: readonly string[];
   /** The core's semantic tones, tuned per scheme: darker inks on light
@@ -81,6 +84,7 @@ const light: ThemeColors = {
   selection: "#DCEBE8",
   scrim: "rgba(7,20,41,0.45)",
   stage: ["#DCEAE8", "#F1F5F6", "#E8EDF0"],
+  hero: ["#3E8578", "#28564D"],
   chart: ["#3E8578", "#4E79A7", "#E8A87C", "#B56576", "#6C8EBF", "#8FBC94", "#C9A66B", "#7A6C9E"],
   tones: {
     neutral: "#6E7B8A",
@@ -113,6 +117,7 @@ export const darkColors: ThemeColors = {
   selection: "#1E3A38",
   scrim: "rgba(0,0,0,0.55)",
   stage: ["#0C1830", "#0A1020", "#070C18"],
+  hero: [NAVY, NAVY_DEEP],
   chart: ["#8FC7BF", "#7FA6D9", "#E8B48C", "#C97C8C", "#8BA7D9", "#A3CCA8", "#D9BC85", "#9C8FC7"],
   tones: {
     neutral: "#8E9BAD",
@@ -141,11 +146,17 @@ const ThemeModeContext = createContext<{ mode: ThemeMode; setMode: (mode: ThemeM
  *  the preference independently of the data blob. */
 export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
   const [mode, setModeState] = useState<ThemeMode>("dark");
+  // Nothing renders until the stored preference is read: the one frame of
+  // default-dark used to flash wrong-scheme tints (teal glass circles, a
+  // dark blink for light users) on every cold start. The read is a few ms.
+  const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    void AsyncStorage.getItem(THEME_KEY).then((stored) => {
-      if (stored === "light" || stored === "dark" || stored === "system") setModeState(stored);
-    });
+    void AsyncStorage.getItem(THEME_KEY)
+      .then((stored) => {
+        if (stored === "light" || stored === "dark" || stored === "system") setModeState(stored);
+      })
+      .finally(() => setHydrated(true));
   }, []);
 
   const setMode = (next: ThemeMode) => {
@@ -153,6 +164,7 @@ export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
     void AsyncStorage.setItem(THEME_KEY, next);
   };
 
+  if (!hydrated) return null;
   return (
     <ThemeModeContext.Provider value={{ mode, setMode }}>{children}</ThemeModeContext.Provider>
   );

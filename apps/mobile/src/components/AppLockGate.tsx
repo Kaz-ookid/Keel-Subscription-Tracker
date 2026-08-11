@@ -25,16 +25,26 @@ import {
   type AppLockConfig,
   type AuthKind,
 } from "../lib/app-lock";
-import { radius, spacing, typography } from "../theme";
+import { radius, spacing, typography, useTheme } from "../theme";
 
-// The cover is deliberately brand-navy in both themes (the theme's `navy`) —
-// it reads as a splash, not as a broken screen. The gradient partner is the
-// theme's `navyDeep` (§3.6: hero, lock and onboarding share it).
+// The cover follows the scheme (beta feedback: the navy cover read as
+// dark-mode leakage on a light phone): night keeps the brand navy, day gets
+// the morning haze with navy ink. Both read as a splash, never a broken
+// screen.
 const NAVY = "#0B1E3F";
 const NAVY_DEEP = "#071429";
 
 export function AppLockGate() {
   const { t } = useTranslation();
+  const { colors, scheme } = useTheme();
+  const dark = scheme === "dark";
+  // The lock's ink set: light ink on navy at night, navy ink on haze by day.
+  const coverTop = dark ? NAVY : colors.stage[0];
+  const coverBottom = dark ? NAVY_DEEP : colors.stage[2];
+  const ink = dark ? "#FFFFFF" : NAVY;
+  const inkSoft = dark ? "rgba(255,255,255,0.75)" : "rgba(11,30,63,0.7)";
+  const plate = dark ? "#FFFFFF" : NAVY;
+  const plateInk = dark ? NAVY : "#FFFFFF";
   // null = config not read yet → keep the cover up (no content flash).
   const [config, setConfig] = useState<AppLockConfig | null>(null);
   const [locked, setLocked] = useState(false);
@@ -121,21 +131,19 @@ export function AppLockGate() {
   // import…) present above the root view, and the lock must sit above them.
   return (
     <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
-      {/* The cover is brand-navy in BOTH schemes, so the bar goes light for
-          as long as it shows — the root layout's scheme-following bar would
-          print dark glyphs on navy in light mode. */}
-      <StatusBar style="light" />
-      <View style={styles.cover}>
-        <LinearGradient colors={[NAVY, NAVY_DEEP]} style={StyleSheet.absoluteFill} />
+      {/* The bar follows the cover's ink, not the app behind it. */}
+      <StatusBar style={dark ? "light" : "dark"} />
+      <View style={[styles.cover, { backgroundColor: coverTop }]}>
+        <LinearGradient colors={[coverTop, coverBottom]} style={StyleSheet.absoluteFill} />
         {/* The brand's water, calm at the foot of the lock (§3.7 D). */}
         <Waterline height={36} width={Dimensions.get("window").width} color="#7FB8B0" />
-        <View style={styles.badge}>
-          <SymbolView name={locked ? "lock.fill" : "shield.fill"} size={30} tintColor={NAVY} />
+        <View style={[styles.badge, { backgroundColor: plate }]}>
+          <SymbolView name={locked ? "lock.fill" : "shield.fill"} size={30} tintColor={plateInk} />
         </View>
-        <Text style={styles.appName}>{APP_NAME}</Text>
+        <Text style={[styles.appName, { color: ink }]}>{APP_NAME}</Text>
         {locked && (
           <>
-            <Text style={styles.sub}>
+            <Text style={[styles.sub, { color: inkSoft }]}>
               {t(
                 failed
                   ? "applock.failedSub"
@@ -144,15 +152,18 @@ export function AppLockGate() {
                     : "applock.lockedSubCode",
               )}
             </Text>
-            <Pressable style={styles.unlock} onPress={() => void tryUnlock()}>
+            <Pressable
+              style={[styles.unlock, { backgroundColor: plate }]}
+              onPress={() => void tryUnlock()}
+            >
               <SymbolView
                 name={
                   authKind === "faceId" ? "faceid" : authKind === "touchId" ? "touchid" : "key.fill"
                 }
                 size={18}
-                tintColor={NAVY}
+                tintColor={plateInk}
               />
-              <Text style={styles.unlockText}>{t("applock.unlock")}</Text>
+              <Text style={[styles.unlockText, { color: plateInk }]}>{t("applock.unlock")}</Text>
             </Pressable>
           </>
         )}

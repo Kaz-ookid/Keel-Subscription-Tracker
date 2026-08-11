@@ -27,7 +27,7 @@ export function HeroCard({ label, amount, sub }: Props) {
 
   return (
     <View style={styles.card} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
-      <LinearGradient colors={[colors.navy, colors.navyDeep]} style={StyleSheet.absoluteFill} />
+      <LinearGradient colors={[...colors.hero]} style={StyleSheet.absoluteFill} />
       {width > 0 && <Waterline height={14} width={width} color={colors.accentStrong} />}
       <Text style={styles.label}>{label}</Text>
       {/* Living number (§9g): digits roll and merge on change. Long
@@ -53,7 +53,7 @@ export function HeroCard({ label, amount, sub }: Props) {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     card: {
-      backgroundColor: colors.navy,
+      backgroundColor: colors.hero[0],
       borderRadius: radius.xl,
       padding: spacing.lg,
       gap: spacing.xs,

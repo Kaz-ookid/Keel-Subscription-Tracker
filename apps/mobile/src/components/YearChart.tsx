@@ -100,7 +100,11 @@ export function YearChart({
   onSelect,
   scaleMax,
 }: Props) {
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
+  // Bars are big fills: the semantic warning INK is too hot on the light
+  // ground next to the teal, so light borrows the chart palette's soft
+  // orange; dark keeps the vivid one.
+  const spikeFill = scheme === "dark" ? colors.tones.warning : colors.chart[2];
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
 
@@ -176,7 +180,7 @@ export function YearChart({
                         selection dims the others, never the chosen one. */}
                     <SoundingBar
                       height={height}
-                      color={spiking ? colors.tones.warning : colors.accent}
+                      color={spiking ? spikeFill : colors.accent}
                       dim={!(selected === null || i === selected)}
                       delay={i * 20}
                     />
