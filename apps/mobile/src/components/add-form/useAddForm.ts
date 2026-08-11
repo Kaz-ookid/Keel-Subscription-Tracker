@@ -31,6 +31,7 @@ import { Alert } from "react-native";
 
 import { localizedAnchor } from "../../i18n/recurrence";
 import { formatHour, fromCalendarDate, toCalendarDate } from "../../lib/dates";
+import { noteCustomService } from "../../lib/custom-bank";
 import { loadNotificationSettings } from "../../lib/notifications";
 import { matchSuggestions } from "../../lib/suggestions";
 import { useAppActions, useAppData } from "../../state/app-state";
@@ -445,7 +446,17 @@ export function useAddForm(prefill?: SuggestionPrefill) {
       };
       if (editItem) updateInstallmentPlan(editItem.id, input);
       else if (draft) updateDraft(draft.id, { kind: "split", input });
-      else addInstallmentPlan(input);
+      else {
+        addInstallmentPlan(input);
+        // A created service joins the brand bank for next time.
+        noteCustomService({
+          name: input.name,
+          categoryId,
+          color,
+          domain,
+          unit: unit === "year" ? "year" : "month",
+        });
+      }
     } else {
       // Trial price (0 = free) until conversion; the regular price lives in the
       // intro offer. A free trial bills nothing before conversion, so the grid
@@ -510,7 +521,17 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         }
         updateSubscription(editItem.id, input);
       } else if (draft) updateDraft(draft.id, { kind: "subscription", input });
-      else addSubscription(input);
+      else {
+        addSubscription(input);
+        // A created service joins the brand bank for next time.
+        noteCustomService({
+          name: input.name,
+          categoryId,
+          color,
+          domain,
+          unit: unit === "year" ? "year" : "month",
+        });
+      }
     }
     // The suggestion is now a real commitment — its To-complete row retires
     // (a no-op when it was never pending, e.g. picked in the Add flow).

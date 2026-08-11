@@ -14,6 +14,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { ModalClose } from "../../src/components/ModalClose";
 import { SuggestionPicker } from "../../src/components/SuggestionPicker";
+import { useCustomBank } from "../../src/lib/custom-bank";
 import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useAppData } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
@@ -27,15 +28,16 @@ export default function AddChooserScreen() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items } = useAppData();
   const aiHidden = useAiHidden();
+  // The bank plus the services the user created themselves (custom-bank).
+  const customs = useCustomBank();
+  const bank = useMemo(() => [...SUGGESTED_COMMITMENTS, ...customs], [customs]);
 
   // Tracked names show greyed rather than hidden — a missing Netflix reads
   // as a gap in the bank, a greyed one as "you already have it".
   const addedIds = useMemo(() => {
     const taken = new Set(items.map((i) => i.name.trim().toLowerCase()));
-    return new Set(
-      SUGGESTED_COMMITMENTS.filter((s) => taken.has(s.name.toLowerCase())).map((s) => s.id),
-    );
-  }, [items]);
+    return new Set(bank.filter((s) => taken.has(s.name.toLowerCase())).map((s) => s.id));
+  }, [items, bank]);
 
   return (
     <View style={[styles.screen, { paddingTop: headerHeight }]}>
@@ -65,9 +67,22 @@ export default function AddChooserScreen() {
           searching — the beta lesson was that a separate door above didn't
           answer "what if mine isn't in the list?" at the moment it's asked. */}
       <SuggestionPicker
-        suggestions={SUGGESTED_COMMITMENTS}
+        suggestions={bank}
         addedIds={addedIds}
-        onPick={(s) => router.push({ pathname: "/add/form", params: { pick: s.id } })}
+        onPick={(s) =>
+          router.push({
+            pathname: "/add/form",
+            params: s.id.startsWith("custom-")
+              ? {
+                  name: s.name,
+                  ...(s.categoryId ? { categoryId: s.categoryId } : {}),
+                  ...(s.color ? { color: s.color } : {}),
+                  ...(s.domain ? { domain: s.domain } : {}),
+                  unit: s.unit,
+                }
+              : { pick: s.id },
+          })
+        }
         onCreate={(name) => router.push({ pathname: "/add/form", params: name ? { name } : {} })}
       />
     </View>
