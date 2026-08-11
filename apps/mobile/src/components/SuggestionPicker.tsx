@@ -10,6 +10,7 @@ import {
   SUGGESTION_CATEGORY_ORDER,
   type SuggestedCommitment,
 } from "@keel/core";
+import { LinearGradient } from "expo-linear-gradient";
 import { getLocales } from "expo-localization";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
@@ -203,6 +204,17 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
               disabled={added}
               onPress={() => (onPick ? onPick(item) : toggle(item.id))}
             >
+              {/* The brand's color bleeds from the badge side (§9c) — the
+                  bank reads as a wall of real brands, not grey rows. */}
+              {item.color ? (
+                <LinearGradient
+                  colors={[withAlpha(item.color, 0.14), "transparent"]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 0.65, y: 0 }}
+                  style={StyleSheet.absoluteFill}
+                  pointerEvents="none"
+                />
+              ) : null}
               <BrandBadge
                 domain={item.domain}
                 icon={CATEGORY_ICONS.get(item.categoryId ?? "")}
@@ -328,6 +340,7 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.sm,
       marginBottom: 4,
+      overflow: "hidden",
     },
     rowAdded: {
       opacity: emphasis.dim,

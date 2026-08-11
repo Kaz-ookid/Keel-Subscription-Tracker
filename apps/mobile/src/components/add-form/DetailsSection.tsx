@@ -1,22 +1,18 @@
 import { type SettlementMode } from "@keel/core";
-import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import Animated from "react-native-reanimated";
 
-import { brandBleed } from "../../lib/brand";
-import { useBrandTints } from "../../lib/dominant-color";
 import { foldIn, foldOut } from "../../lib/motion";
 
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
 import { Card } from "../ui/Card";
-import { Sheen } from "../ui/Sheen";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
@@ -31,33 +27,9 @@ export function IdentityHeader({ form }: { form: AddForm }) {
   const styles = useFormStyles();
   const header = useMemo(() => createHeaderStyles(colors), [colors]);
 
-  // The dominant-color shine (§9c, same rule as the item screen): the card
-  // glows in the service's true color, live as the identity takes shape —
-  // pick Netflix and the card turns Netflix. brandBleed resolves own color →
-  // bank color → accent, rejecting near-mono.
-  useBrandTints();
-  const brand = brandBleed(
-    { name: form.name, domain: form.domain, color: form.color },
-    colors.accent,
-  );
-  const [cardWidth, setCardWidth] = useState(0);
-
   return (
     <View>
-      <Card
-        variant="free"
-        style={styles.group}
-        onLayout={(e) => setCardWidth(e.nativeEvent.layout.width)}
-      >
-        {/* The identity halo: fades in AND out (a hard edge reads as a seam
-            when clipped), exactly like the item screen's. */}
-        <LinearGradient
-          colors={["transparent", withAlpha(brand, 0.2), "transparent"]}
-          locations={[0, 0.35, 1]}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
-        {cardWidth > 0 && <Sheen width={cardWidth} color={brand} opacity={0.08} />}
+      <Card variant="free" style={styles.group}>
         <View style={header.wrap}>
           <Pressable
             onPress={() => form.setSheet("color")}
