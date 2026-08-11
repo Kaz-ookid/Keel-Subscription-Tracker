@@ -163,6 +163,8 @@ export function buildSampleData(): SampleData {
     }
   }
 
+  // Swisscom carries a SCHEDULED raise (49.90 -> 54.90 in two months): the
+  // row wears the upcoming-change tag and the forecast steps up on that day.
   addAuto({
     ...bank("swisscom"),
     amount: chf(49.9),
@@ -170,6 +172,7 @@ export function buildSampleData(): SampleData {
     firstChargeDate: monthShift(asOf, -11, 2),
     settlementMode: "automatic",
     accountId: bcv.id,
+    introOffer: { regularAmount: chf(54.9), convertsOn: monthShift(asOf, 2, 2) },
   });
 
   addAuto({
@@ -201,14 +204,17 @@ export function buildSampleData(): SampleData {
     accountId: bcv.id,
   });
 
-  // Second currency, on the EUR account.
+  // Second currency, on the EUR account — and the one price DROP (3.49 ->
+  // 2.99 six months ago): a past-dated conversion accrues the early months
+  // at the old price, then graduates with a true price-history entry.
   addAuto({
     ...bank("icloud"),
-    amount: eur(2.99),
+    amount: eur(3.49),
     recurrence: monthly,
     firstChargeDate: monthShift(asOf, -12, 7),
     settlementMode: "automatic",
     accountId: revolut.id,
+    introOffer: { regularAmount: eur(2.99), convertsOn: monthShift(asOf, -6, 7) },
   });
 
   addAuto({
@@ -220,13 +226,17 @@ export function buildSampleData(): SampleData {
     accountId: revolut.id,
   });
 
+  // YouTube Premium rose 13.90 -> 15.90 eight months ago, same mechanism:
+  // the ledger holds the old price for the early months, the price-history
+  // card shows both eras (Netflix above exercises the EDIT path instead).
   addAuto({
     ...bank("youtube-premium"),
-    amount: chf(15.9),
+    amount: chf(13.9),
     recurrence: monthly,
     firstChargeDate: monthShift(asOf, -16, 23),
     settlementMode: "automatic",
     accountId: bcv.id,
+    introOffer: { regularAmount: chf(15.9), convertsOn: monthShift(asOf, -8, 23) },
   });
 
   // Every 3 months → lands in the "Other" cycle bucket, not monthly/yearly.
