@@ -1,7 +1,7 @@
 import { formatCalendarDate, formatMoney, type ProjectedCharge } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -45,7 +45,7 @@ interface Props {
 }
 
 /** One charge in the Upcoming timeline — same card language as the list. */
-export function UpcomingRow({
+export const UpcomingRow = memo(function UpcomingRow({
   charge,
   overdue,
   showMarkPaid,
@@ -157,7 +157,7 @@ export function UpcomingRow({
       />
     </Pressable>
   );
-}
+});
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({

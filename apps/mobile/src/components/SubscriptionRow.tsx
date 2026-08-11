@@ -11,7 +11,7 @@ import {
   type PaymentItem,
 } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
-import { useMemo } from "react";
+import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
@@ -37,7 +37,7 @@ interface Props {
   onDelete: () => void;
 }
 
-export function SubscriptionRow({ item, onPress, onDelete }: Props) {
+export const SubscriptionRow = memo(function SubscriptionRow({ item, onPress, onDelete }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -178,7 +178,7 @@ export function SubscriptionRow({ item, onPress, onDelete }: Props) {
       </View>
     </SwipeRow>
   );
-}
+});
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({

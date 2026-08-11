@@ -74,8 +74,12 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   const monthEnd = endOfMonth(asOf);
   const windowEnd = endOfMonth(addRecurrence(asOf, { unit: "month", interval: 1 }));
 
-  // Cheap at this scale (a few dozen items × a 2-month window) — recompute.
-  const allCharges = projectCharges(items, windowEnd);
+  // Memoized: with a real dataset the projection over two months is the
+  // priciest thing on this screen, and it only changes with the data.
+  // windowEnd is a render-derived but DAY-STABLE string, so the dep is sound;
+  // the compiler rule just can't see that.
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+  const allCharges = useMemo(() => projectCharges(items, windowEnd), [items, windowEnd]);
 
   if (loading) {
     return (

@@ -63,6 +63,28 @@ export default function InsightsScreen() {
   // the tap ("Tap a month…") until the user picks one.
   const [selected, setSelected] = useState<number | null>(null);
 
+  // The analysis window, frozen per mount: the values are day-stable and the
+  // tab remounts far more often than midnight passes. Memoizing them lets the
+  // compiler preserve the bucket memo below.
+  const { asOf, windowStart, windowMonths, windowEnd } = useMemo(() => {
+    const anchor = today();
+    return {
+      asOf: anchor,
+      windowStart: monthShifted(anchor, -MONTHS_BACK),
+      windowMonths: MONTHS_BACK + 1 + MONTHS_AHEAD,
+      windowEnd: endOfMonth(monthShifted(anchor, MONTHS_AHEAD)),
+    };
+  }, []);
+
+  // Past months read from the payment ledger (what was actually paid — it
+  // survives pausing and editing); the future is projected; an unpaid charge
+  // stays standing in the month it was due until it's ticked off or skipped.
+  // (Above the loading return: hooks must run unconditionally.)
+  const buckets = useMemo(
+    () => spendingByMonth(items, occurrences, windowStart, windowMonths),
+    [items, occurrences, windowStart, windowMonths],
+  );
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -70,16 +92,6 @@ export default function InsightsScreen() {
       </View>
     );
   }
-
-  const asOf = today();
-  const windowStart = monthShifted(asOf, -MONTHS_BACK);
-  const windowMonths = MONTHS_BACK + 1 + MONTHS_AHEAD;
-  const windowEnd = endOfMonth(monthShifted(asOf, MONTHS_AHEAD));
-
-  // Past months read from the payment ledger (what was actually paid — it
-  // survives pausing and editing); the future is projected; an unpaid charge
-  // stays standing in the month it was due until it's ticked off or skipped.
-  const buckets = spendingByMonth(items, occurrences, windowStart, windowMonths);
   const todayIndex = MONTHS_BACK;
 
   const commitments = summarizeCommitments(items, asOf);

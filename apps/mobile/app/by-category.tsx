@@ -47,11 +47,17 @@ export default function ByCategoryScreen() {
 
   const asOf = today();
   const year = asOf.slice(0, 4);
-  const groups = spendingByCategory(
-    items,
-    occurrences,
-    calendarDate(`${year}-01-01`),
-    calendarDate(`${year}-12-31`),
+  // A full-year aggregation over every occurrence: memoized, or every
+  // expand/collapse re-runs it (the lag felt with a big dataset).
+  const groups = useMemo(
+    () =>
+      spendingByCategory(
+        items,
+        occurrences,
+        calendarDate(`${year}-01-01`),
+        calendarDate(`${year}-12-31`),
+      ),
+    [items, occurrences, year],
   );
 
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
