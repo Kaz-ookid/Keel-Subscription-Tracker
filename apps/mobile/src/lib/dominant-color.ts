@@ -14,10 +14,14 @@ import { useSyncExternalStore } from "react";
 
 import { requireOptionalNativeModule } from "expo-modules-core";
 
-import { usableBrandColor } from "./brand-color";
+import { refineBrandColor, usableBrandColor } from "./brand-color";
 import { hostOf } from "./logos";
 
-const KEY = "keel.brandtints.v1";
+// v2: tints are stored REFINED (saturation recovered, lightness settled).
+// Bumping the key re-extracts every v1 tint, which was stored raw and
+// often washed out; the orphaned v1 blob is swept on hydrate.
+const KEY = "keel.brandtints.v2";
+const OLD_KEY = "keel.brandtints.v1";
 
 // Extraction stays SILENT for users by design — but that made "no tint, no
 // idea why" undebuggable on a device. In dev, Metro states each verdict.
@@ -65,6 +69,9 @@ export function dominantColor(domain: string): string | undefined {
 let hydrating: Promise<void> | null = null;
 export function hydrateBrandTints(): Promise<void> {
   if (!hydrating) {
+    void AsyncStorage.removeItem(OLD_KEY).catch(() => {
+      // Best-effort sweep of the raw v1 tints.
+    });
     hydrating = AsyncStorage.getItem(KEY)
       .then((raw) => {
         if (!raw) return;
@@ -120,11 +127,12 @@ export function noteBrandLogo(domain: string, uri: string): void {
   if (!extract) return;
   void extract(uri, { cache: true, key: domain, quality: "low" })
     .then((result) => {
-      // iOS shape: { background, primary, secondary, detail }. The order
-      // favors the mark over the plate: plates are white/near-black and the
-      // near-mono filter rejects them.
+      // iOS shape: { background, primary, secondary, detail }. The plate
+      // colors (white/near-black/grey) are filtered out; among what's left
+      // the most SATURATED candidate wins and gets un-washed — downscaled
+      // favicons hand the histogram a white-blended pastel otherwise.
       const candidates = [result.primary, result.secondary, result.background, result.detail];
-      const hex = candidates.find((c): c is string => typeof c === "string" && usableBrandColor(c));
+      const hex = refineBrandColor(candidates);
       if (!hex) {
         trace(
           `${domain}: every candidate rejected as near-mono (${candidates
@@ -133,9 +141,13 @@ export function noteBrandLogo(domain: string, uri: string): void {
         );
         return;
       }
-      tints = { ...tints, [domain]: hex.toUpperCase() };
+      tints = { ...tints, [domain]: hex };
       emit();
-      trace(`${domain}: tint ${hex.toUpperCase()}`);
+      trace(
+        `${domain}: tint ${hex} (from ${candidates
+          .filter((c): c is string => typeof c === "string")
+          .join(", ")})`,
+      );
       void AsyncStorage.setItem(KEY, JSON.stringify(tints)).catch(() => {
         // The in-memory tint already took effect for this session.
       });
