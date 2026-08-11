@@ -12,7 +12,9 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSyncExternalStore } from "react";
 
-import { usableBrandColor } from "./brand";
+import { requireOptionalNativeModule } from "expo-modules-core";
+
+import { usableBrandColor } from "./brand-color";
 
 const KEY = "keel.brandtints.v1";
 
@@ -72,12 +74,19 @@ type GetColors = (uri: string, config: Record<string, unknown>) => Promise<Recor
 let getColors: GetColors | null | undefined;
 function loadNativeModule(): GetColors | null {
   if (getColors !== undefined) return getColors;
+  // Probe availability FIRST: importing the JS package on a binary without
+  // the native module logs a red error even inside try/catch (its module
+  // scope calls requireNativeModule). The optional probe stays silent.
+  if (!requireOptionalNativeModule("ImageColors")) {
+    getColors = null; // Expo Go / an older build: tints simply stay off.
+    return getColors;
+  }
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const mod = require("react-native-image-colors") as { getColors: GetColors };
     getColors = mod.getColors;
   } catch {
-    getColors = null; // Expo Go / an older build: tints simply stay off.
+    getColors = null;
   }
   return getColors;
 }

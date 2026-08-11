@@ -13,23 +13,15 @@
 
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
 
+import { usableBrandColor } from "./brand-color";
 import { dominantColor } from "./dominant-color";
+
+export { usableBrandColor };
 
 interface Branded {
   name: string;
   domain?: string;
   color?: string;
-}
-
-/** Near-black and near-white make invisible washes — reject them. */
-export function usableBrandColor(hex: string | undefined): hex is string {
-  if (!hex || !/^#[0-9a-fA-F]{6}$/.test(hex)) return false;
-  const n = parseInt(hex.slice(1), 16);
-  const r = (n >> 16) & 255;
-  const g = (n >> 8) & 255;
-  const b = n & 255;
-  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return luminance > 0.09 && luminance < 0.91;
 }
 
 // One index, built once: the bank by lowercased name and by domain.

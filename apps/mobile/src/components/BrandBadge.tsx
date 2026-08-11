@@ -118,11 +118,17 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
     return <FallbackBadge icon={icon} fallback={fallback} color={color} size={size} />;
   }
 
+  // A logo this session has already shown paints from the memory cache in
+  // the same frame — putting the colored circle underneath anyway made every
+  // remount (the calendar's many small badges) flash brand color first.
+  const expectInstant = logosEnabled ? knownCachedLogo(domain) != null : cachedUri != null;
+
   return (
     <View style={{ width: size, height: size }}>
       {/* The fallback badge sits underneath until the logo has actually
-          rendered — no blank circle while fetching. */}
-      {!loaded && (
+          rendered — no blank circle while fetching, no color flash when the
+          logo is already at hand. */}
+      {!loaded && !expectInstant && (
         <View style={{ position: "absolute" }}>
           <FallbackBadge icon={icon} fallback={fallback} color={color} size={size} />
         </View>
