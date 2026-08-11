@@ -222,6 +222,9 @@ const translation = {
     inDays_many: "za {{count}} dni",
     inDays_other: "za {{count}} dnia",
   },
+  calendar: {
+    shiftedFrom: "Przesunięte z weekendu, było {{date}}",
+  },
   payments: {
     upcoming: "Nadchodzące",
     all: "Wszystkie",
@@ -339,9 +342,12 @@ const translation = {
     lastBilling: "Ostatnie obciążenie",
     repeatsOn: "Powtarza się",
     weekends: "Weekendy",
-    weekendKeep: "Bez zmian",
-    weekendBefore: "Pt. przed",
-    weekendAfter: "Pon. po",
+    weekendKeep: "Zgodnie z planem",
+    weekendBefore: "Piątek przed",
+    weekendAfter: "Poniedziałek po",
+    infoWeekendsTitle: "Obciążenia w weekend",
+    infoWeekendsBody:
+      "Niektóre banki nigdy nie pobierają opłat w sobotę ani niedzielę. Jeśli ta płatność tak działa, wybierz, czy przesunąć ją na piątek przed, czy na poniedziałek po. Keel pokaże prawdziwy dzień obciążenia, a sam cykl się nie zmieni.",
     freeTrial: "Okres próbny / zmiana ceny",
     regularPrice: "Cena regularna potem",
     trialEnds: "Koniec okresu próbnego / pierwsze obciążenie",

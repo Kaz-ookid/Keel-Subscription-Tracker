@@ -1,7 +1,10 @@
 import { BNPL_PROVIDERS, formatCalendarDate, type TimeUnit } from "@keel/core";
+import { SymbolView } from "expo-symbols";
 import { useTranslation } from "react-i18next";
-import { Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 
+import { showNativeActionSheet } from "../../lib/native-sheet";
+import { useTheme } from "../../theme";
 import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
@@ -47,24 +50,49 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
 
 /** Some banks never debit on a weekend: the charge effectively moves to the
  *  Friday before or the Monday after. Off by default; the recurrence grid
- *  stays anchored, only the shown/charged dates shift. */
+ *  stays anchored, only the shown/charged dates shift. A field + native
+ *  sheet (not a three-way segment: it wrapped to two ugly lines), with an
+ *  (i) since "moves to Monday" deserves a sentence. */
 function WeekendRow({ form }: { form: AddForm }) {
   const { t } = useTranslation();
+  const { scheme, colors } = useTheme();
+  const mutedText = colors.mutedText;
   const styles = useFormStyles();
+  const valueKey =
+    form.weekendShift === "before"
+      ? "add.weekendBefore"
+      : form.weekendShift === "after"
+        ? "add.weekendAfter"
+        : "add.weekendKeep";
+  const pick = () =>
+    showNativeActionSheet(
+      {
+        title: t("add.weekends"),
+        options: [
+          t("add.weekendKeep"),
+          t("add.weekendBefore"),
+          t("add.weekendAfter"),
+          t("common.cancel"),
+        ],
+        cancelButtonIndex: 3,
+        userInterfaceStyle: scheme,
+      },
+      (index) => {
+        if (index === 0) form.setWeekendShift("none");
+        else if (index === 1) form.setWeekendShift("before");
+        else if (index === 2) form.setWeekendShift("after");
+      },
+    );
   return (
     <View style={styles.rowField}>
-      <Text style={styles.label}>{t("add.weekends")}</Text>
-      <View style={styles.rowControl}>
-        <Segmented
-          options={[
-            { value: "none", label: t("add.weekendKeep") },
-            { value: "before", label: t("add.weekendBefore") },
-            { value: "after", label: t("add.weekendAfter") },
-          ]}
-          value={form.weekendShift}
-          onChange={form.setWeekendShift}
-        />
+      <View style={styles.labelWithInfo}>
+        <Text style={styles.label}>{t("add.weekends")}</Text>
+        <InfoDot title={t("add.infoWeekendsTitle")} body={t("add.infoWeekendsBody")} />
       </View>
+      <Pressable style={styles.rowValueButton} onPress={pick} hitSlop={8}>
+        <Text style={styles.rowValueText}>{t(valueKey)}</Text>
+        <SymbolView name="chevron.up.chevron.down" size={11} tintColor={mutedText} />
+      </Pressable>
     </View>
   );
 }

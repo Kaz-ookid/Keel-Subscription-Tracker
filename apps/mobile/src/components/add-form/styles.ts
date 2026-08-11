@@ -76,6 +76,15 @@ function createFormStyles(colors: ThemeColors) {
     label: { ...typography.label, color: colors.text },
     // A label with a small (i) explainer sitting right after it.
     labelWithInfo: { flexDirection: "row", alignItems: "center", gap: spacing.xs + 2 },
+    // A tappable value on the row's right (the weekend picker): quiet text
+    // plus the up/down chevron, native-settings style.
+    rowValueButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+      paddingVertical: spacing.xs,
+    },
+    rowValueText: { ...typography.body, color: colors.accent, fontWeight: "600" },
     // Inline value editing, iOS style: no box, the row is the field.
     input: {
       flex: 1,

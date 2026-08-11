@@ -198,6 +198,9 @@ export const it: typeof en = {
     tomorrow: "Domani",
     inDays: "tra {{count}} giorni",
   },
+  calendar: {
+    shiftedFrom: "Spostato dal weekend, era {{date}}",
+  },
   payments: {
     upcoming: "In arrivo",
     all: "Tutti",
@@ -315,9 +318,12 @@ export const it: typeof en = {
     lastBilling: "Ultimo addebito",
     repeatsOn: "Si ripete",
     weekends: "Weekend",
-    weekendKeep: "Invariato",
-    weekendBefore: "Ven. prima",
-    weekendAfter: "Lun. dopo",
+    weekendKeep: "Come previsto",
+    weekendBefore: "Venerdì prima",
+    weekendAfter: "Lunedì dopo",
+    infoWeekendsTitle: "Addebiti nel weekend",
+    infoWeekendsBody:
+      "Alcune banche non addebitano mai di sabato o domenica. Se questo pagamento funziona così, scegli se anticiparlo al venerdì o spostarlo al lunedì. Keel mostra il vero giorno di addebito, senza spostare il ciclo.",
     freeTrial: "Prova / cambio prezzo",
     regularPrice: "Prezzo pieno dopo",
     trialEnds: "Fine prova / primo addebito",
