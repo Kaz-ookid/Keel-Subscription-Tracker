@@ -80,37 +80,62 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
     engaged.current = false;
   };
 
-  const pan = useMemo(
-    () =>
-      Gesture.Pan()
-        // Leftward only, and EAGER: the surrounding scroll surfaces begin
-        // claiming around 10pt of travel, so activating any later loses the
-        // race and the swipe reads as dead. Rightward and vertical still fail
-        // instantly, keeping the pager and the list scroll native.
-        .activeOffsetX([-10, Number.MAX_SAFE_INTEGER])
-        .failOffsetX(10)
-        .failOffsetY([-12, 12])
-        .onStart(() => {
-          startX.value = translateX.value;
-          runOnJS(closeOthers)(rowId);
-          runOnJS(setEngaged)(true);
-        })
-        .onUpdate((e) => {
-          const raw = Math.min(0, startX.value + e.translationX);
-          // Gentle resistance past the open position.
-          translateX.value = raw < OPEN_X ? OPEN_X + (raw - OPEN_X) / 3 : raw;
-        })
-        .onEnd(() => {
-          if (translateX.value < OPEN_X / 2) {
-            translateX.value = withTiming(OPEN_X, { duration: 160 });
-          } else {
-            translateX.value = withTiming(0, { duration: 160 });
-            runOnJS(setEngaged)(false);
-          }
-        }),
+  const handlePress = () => {
+    // An open (or mid-drag) row swallows the tap and just closes.
+    if (engaged.current) {
+      close();
+      return;
+    }
+    onPress();
+  };
+  // The gesture is memoised per row; the tap reads the CURRENT handler
+  // through this ref so it never closes over a stale onPress.
+  const pressRef = useRef(handlePress);
+  pressRef.current = handlePress;
+
+  const gesture = useMemo(() => {
+    const pan = Gesture.Pan()
+      // Leftward only, and EAGER: the surrounding scroll surfaces begin
+      // claiming around 10pt of travel, so activating any later loses the
+      // race and the swipe reads as dead. Rightward and vertical still fail
+      // instantly, keeping the pager and the list scroll native.
+      .activeOffsetX([-10, Number.MAX_SAFE_INTEGER])
+      .failOffsetX(10)
+      .failOffsetY([-12, 12])
+      .onStart(() => {
+        startX.value = translateX.value;
+        runOnJS(closeOthers)(rowId);
+        runOnJS(setEngaged)(true);
+      })
+      .onUpdate((e) => {
+        const raw = Math.min(0, startX.value + e.translationX);
+        // Gentle resistance past the open position.
+        translateX.value = raw < OPEN_X ? OPEN_X + (raw - OPEN_X) / 3 : raw;
+      })
+      .onEnd((e) => {
+        // Latch open on position OR a leftward flick — a quick swipe releases
+        // long before the halfway point and must still hold.
+        const flickClose = e.velocityX > 400;
+        const shouldOpen = !flickClose && (translateX.value < OPEN_X / 2 || e.velocityX < -400);
+        if (shouldOpen) {
+          translateX.value = withTiming(OPEN_X, { duration: 160 });
+        } else {
+          translateX.value = withTiming(0, { duration: 160 });
+          runOnJS(setEngaged)(false);
+        }
+      });
+    // The press is a gesture too, EXCLUSIVE with the pan: it can only win
+    // once the pan has failed. A plain RN Pressable inside kept firing on
+    // drag-release (touch-cancel never reaches it through the detector),
+    // and that phantom press snapped the row shut the instant it latched
+    // open. Inside the gesture system the race cannot exist.
+    const firePress = () => pressRef.current();
+    const tap = Gesture.Tap().onEnd((_e, success) => {
+      if (success) runOnJS(firePress)();
+    });
+    return Gesture.Exclusive(pan, tap);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rowId],
-  );
+  }, [rowId]);
 
   const rowStyle = useAnimatedStyle(() => ({ transform: [{ translateX: translateX.value }] }));
 
@@ -120,15 +145,6 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
     opacity: interpolate(translateX.value, [OPEN_X * 0.6, 0], [1, 0], Extrapolation.CLAMP),
   }));
   /* eslint-enable react-hooks/immutability, react-hooks/refs */
-
-  const handlePress = () => {
-    // An open (or mid-drag) row swallows the tap and just closes.
-    if (engaged.current) {
-      close();
-      return;
-    }
-    onPress();
-  };
 
   const handleAction = () => {
     close();
@@ -144,9 +160,11 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
       >
         <SymbolView name={actionIcon as never} size={20} tintColor="#FFFFFF" />
       </AnimatedPressable>
-      <GestureDetector gesture={pan}>
-        <Animated.View style={rowStyle}>
-          <Pressable onPress={handlePress}>{children}</Pressable>
+      <GestureDetector gesture={gesture}>
+        {/* The tap gesture IS the press — no Pressable inside, so nothing
+            can fire on a drag's release. */}
+        <Animated.View style={rowStyle} accessible accessibilityRole="button">
+          {children}
         </Animated.View>
       </GestureDetector>
     </View>
