@@ -666,7 +666,6 @@ const translation = {
     includeAi: "Wszystkie importy i narzędzia AI",
     includeFuture: "Każda przyszła funkcja premium Keel",
     includeFamily: "Współdzielone z rodziną Apple, do 5 osób",
-    familyNote: "Udostępnianie rodzinne w zestawie: jeden zakup obejmuje do 5 osób.",
     honesty:
       "Twoje dane, wykresy, oznaczanie jako zapłacone i eksport pozostają darmowe na zawsze, z zakupem czy bez. Full Keel przywraca narzędzia i jest też sposobem, by podziękować.",
     cta: "Weź Full Keel",

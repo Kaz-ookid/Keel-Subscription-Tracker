@@ -637,7 +637,6 @@ export const it: typeof en = {
     includeAi: "Tutti gli import e gli strumenti IA",
     includeFuture: "Ogni funzione premium che Keel avrà mai",
     includeFamily: "Condiviso con la tua famiglia Apple, fino a 5 persone",
-    familyNote: "Condivisione in famiglia inclusa: un solo acquisto copre fino a 5 persone.",
     honesty:
       "I tuoi dati, i grafici, il segnare pagato e gli export restano gratis per sempre, acquisto o no. Full Keel riporta gli strumenti, ed è anche il modo per dire grazie.",
     cta: "Prendi Full Keel",

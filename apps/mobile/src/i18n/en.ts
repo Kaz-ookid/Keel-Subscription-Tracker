@@ -633,7 +633,6 @@ export const en = {
     includeAi: "Every import and AI tool",
     includeFuture: "Every premium feature Keel ever adds",
     includeFamily: "Shared with your Apple Family, up to 5 people",
-    familyNote: "Family Sharing included: one purchase covers up to 5 people.",
     honesty:
       "Your data, your charts, marking paid and exports stay free forever, purchase or not. Full Keel brings the working tools, and it is also the way to say thanks.",
     cta: "Get Full Keel",
