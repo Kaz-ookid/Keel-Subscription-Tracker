@@ -88,10 +88,6 @@ export const en = {
       "That doesn't look like an AI answer in Keel's format. Paste the AI's reply, not your own list.",
     errEmpty:
       "The AI couldn't find any subscriptions in what it was given. Add a little more detail and try again.",
-    readsLeft_one: "{{count}} free AI read left",
-    readsLeft_other: "{{count}} free AI reads left",
-    readsHint: "one read can carry your whole list, make it count 😉",
-    readsOut: "Free reads used. Full Keel makes them unlimited.",
     privacyLink: "How this works & your data",
     privacyTitle: "How this works",
     privacyBody:

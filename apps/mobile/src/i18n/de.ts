@@ -90,10 +90,6 @@ export const de: typeof en = {
       "Das sieht nicht nach einer KI-Antwort im Keel-Format aus. Füge die Antwort der KI ein, nicht deine eigene Liste.",
     errEmpty:
       "Die KI hat darin keine Abos gefunden. Gib ein wenig mehr Details an und versuch es nochmal.",
-    readsLeft_one: "{{count}} gratis KI-Lesung übrig",
-    readsLeft_other: "{{count}} gratis KI-Lesungen übrig",
-    readsHint: "eine Lesung kann deine ganze Liste tragen, nutz sie gut 😉",
-    readsOut: "Gratis-Lesungen aufgebraucht. Mit Full Keel sind sie unbegrenzt.",
     privacyLink: "So funktioniert es & deine Daten",
     privacyTitle: "So funktioniert es",
     privacyBody:

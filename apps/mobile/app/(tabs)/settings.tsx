@@ -311,14 +311,14 @@ export default function SettingsScreen() {
         >
           {bannerWidth > 0 && <Sheen width={bannerWidth} color={colors.accent} opacity={0.12} />}
           <SymbolView
-            name={entitlement.full ? "checkmark.seal.fill" : "sailboat.fill"}
+            name={entitlement.owned ? "checkmark.seal.fill" : "sailboat.fill"}
             size={22}
             tintColor={colors.accent}
           />
           <View style={styles.fullkeelTexts}>
             <Text style={styles.fullkeelTitle}>{t("fullkeel.title")}</Text>
             <Text style={styles.fullkeelSub}>
-              {entitlement.full
+              {entitlement.owned
                 ? t("fullkeel.bannerOwned")
                 : `${t("fullkeel.bannerSub")} · ${FULL_KEEL_PRICE}`}
             </Text>
@@ -596,7 +596,7 @@ export default function SettingsScreen() {
                 divider
                 right={
                   <Switch
-                    value={entitlement.full}
+                    value={entitlement.owned}
                     onValueChange={(next) => void setFullKeel(next)}
                     trackColor={{ true: colors.accent }}
                   />

@@ -72,6 +72,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLOR_SWATCHES } from "../constants";
 import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
+import { markTrialStarted } from "../lib/entitlement";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import {
   chooseNewerState,
@@ -324,6 +325,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setPending(state.pending);
       setAiActivity(state.aiActivity);
       setLoading(false);
+      // Migration (§7.3 a-bis): data that predates the trial has commitments
+      // but no anchor anywhere — the "first commitment" trigger can never
+      // fire for it. Stamp now: the update that introduces the trial grants
+      // the full 45 days. Idempotent: an existing anchor always wins.
+      if (caughtUp.length > 0) void markTrialStarted();
     });
     // Surface the stashed snapshot's date (if any) on the restore button.
     void loadSnapshot().then((snapshot) => {
@@ -448,6 +454,10 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         : catchUp(created);
       setItems((prev) => [item, ...prev]);
       if (accrued.length > 0) setOccurrences((prev) => [...prev, ...accrued]);
+      // The FIRST commitment saved starts the 45-day clock (§7.3). Idempotent
+      // — an existing anchor always wins. Sample data and snapshot restores
+      // bypass these actions on purpose, so they can never start it.
+      void markTrialStarted();
     };
 
     const addInstallmentPlan = (input: NewInstallmentInput, options?: AddItemOptions) => {
@@ -458,6 +468,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       });
       const item = options?.settlePastPayments ? settleBacklog(created).item : created;
       setItems((prev) => [item, ...prev]);
+      void markTrialStarted();
     };
 
     const updateSubscription = (
@@ -667,6 +678,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setDisplayCurrency(state.displayCurrency);
       setPending(state.pending);
       setAiActivity(state.aiActivity);
+      // Restored real data implies real commitments — the clock runs (§7.3).
+      if (state.items.length > 0) void markTrialStarted();
       return { ok: true, dropped };
     };
 
@@ -791,6 +804,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setItems(nextItems);
       setOccurrences(nextOccurrences);
       if (createdAccounts.length > 0) setAccounts((prev) => [...prev, ...createdAccounts]);
+      // Assistant additions bypass addSubscription — hook the clock here too.
+      if (additions.length > 0) void markTrialStarted();
       const summary = { added: additions.length, updated, removed };
       logAiActivity({
         tool: "assistant",

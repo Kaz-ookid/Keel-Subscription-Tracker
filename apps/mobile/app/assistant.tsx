@@ -29,7 +29,6 @@ import {
   type OnDeviceAvailability,
 } from "../src/lib/apple-intelligence";
 import { confirmLocalFallback } from "../src/lib/ai-fallback";
-import { consumeAiRead, useEntitlement } from "../src/lib/entitlement";
 import { useAppData } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
@@ -48,25 +47,19 @@ export default function AssistantScreen() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<AssistError | null>(null);
-  // Same meter as the AI imports: two free reads, success-only.
-  const { loaded, full, readsLeft } = useEntitlement();
 
   useEffect(() => {
     void onDeviceAvailability().then(setAvailability);
   }, []);
 
   const run = async () => {
-    if (loaded && !full && readsLeft <= 0) {
-      router.push("/fullkeel");
-      return;
-    }
     // Same contract as the import: warn before a weaker engine answers.
     const chosen = await resolveEngine();
     if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
     try {
-      const { json: raw, ranOn } = await assistOnDevice(
+      const { json: raw } = await assistOnDevice(
         text.trim(),
         { items, accounts, today: today(), defaultCurrency: displayCurrency },
         chosen,
@@ -83,8 +76,6 @@ export default function AssistantScreen() {
         setError(plan.error);
         return;
       }
-      // Only the cloud engine spends a read; the on-device model is free.
-      if (ranOn === "cloud") void consumeAiRead();
       startPlan(plan);
       router.push("/assistant-review");
     } catch {
@@ -120,13 +111,6 @@ export default function AssistantScreen() {
 
           <View style={styles.card}>
             <Text style={styles.hint}>{t("assistant.hint")}</Text>
-            {loaded && !full && (
-              <Text style={styles.hint}>
-                {readsLeft > 0
-                  ? `${t("importAI.readsLeft", { count: readsLeft })} · ${t("importAI.readsHint")}`
-                  : t("importAI.readsOut")}
-              </Text>
-            )}
             <TextInput
               style={styles.input}
               value={text}

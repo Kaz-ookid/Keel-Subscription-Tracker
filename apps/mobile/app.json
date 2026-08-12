@@ -20,10 +20,19 @@
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.security.application-groups": ["group.ch.keelapp.keel"],
-        "com.apple.developer.icloud-container-identifiers": ["iCloud.ch.keelapp.keel"],
-        "com.apple.developer.icloud-services": ["CloudDocuments"],
-        "com.apple.developer.ubiquity-container-identifiers": ["iCloud.ch.keelapp.keel"]
+        "com.apple.security.application-groups": [
+          "group.ch.keelapp.keel"
+        ],
+        "com.apple.developer.icloud-container-identifiers": [
+          "iCloud.ch.keelapp.keel"
+        ],
+        "com.apple.developer.icloud-services": [
+          "CloudDocuments"
+        ],
+        "com.apple.developer.ubiquity-container-identifiers": [
+          "iCloud.ch.keelapp.keel"
+        ],
+        "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)"
       }
     },
     "android": {
@@ -34,7 +43,10 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": ["android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"]
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -50,7 +62,9 @@
         }
       ],
       "@bacons/apple-targets",
-      "react-native-cloud-storage"
+      "react-native-cloud-storage",
+      "expo-secure-store",
+      "expo-iap"
     ],
     "experiments": {
       "typedRoutes": true

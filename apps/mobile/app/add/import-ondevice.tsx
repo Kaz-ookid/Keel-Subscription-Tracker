@@ -25,14 +25,12 @@ import {
 import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
 import {
-  cloudStanding,
   onDeviceAvailability,
   parseOnDevice,
   resolveEngine,
   type OnDeviceAvailability,
 } from "../../src/lib/apple-intelligence";
 import { confirmLocalFallback } from "../../src/lib/ai-fallback";
-import { consumeAiRead, useEntitlement } from "../../src/lib/entitlement";
 import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import {
@@ -61,32 +59,20 @@ export default function OnDeviceImportScreen() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
-  // Same meter as the bring-your-own-AI path: two free reads, success-only.
-  // But only the CLOUD engine spends them, so the meter only shows where
-  // cloud can actually run — on-device reads are free and unlimited.
-  const { loaded, full, readsLeft } = useEntitlement();
-  const [cloudSupported, setCloudSupported] = useState(false);
 
   useEffect(() => {
     void onDeviceAvailability().then(setAvailability);
-    void cloudStanding().then((standing) => setCloudSupported(standing.supported));
   }, []);
 
   const read = async () => {
     // Which engine can actually run, and does the user accept a weaker
     // answer? Asked BEFORE anything is generated, never after.
     const chosen = await resolveEngine();
-    // Only the cloud engine spends a read (below), so only the cloud path
-    // closes when they run out. The on-device model stays free.
-    if (chosen.engine === "cloud" && loaded && !full && readsLeft <= 0) {
-      router.push("/fullkeel");
-      return;
-    }
     if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
     try {
-      const { json, ranOn } = await parseOnDevice(
+      const { json } = await parseOnDevice(
         text.trim(),
         { today: today(), defaultCurrency: displayCurrency },
         chosen,
@@ -102,9 +88,6 @@ export default function OnDeviceImportScreen() {
         setError(result.error ?? "empty");
         return;
       }
-      // Only the cloud engine spends a read: the on-device model is free and
-      // unlimited, so a weaker answer never costs the user anything.
-      if (ranOn === "cloud") void consumeAiRead();
       startSession(result.drafts, result.skipped, "ondevice_import");
       router.push("/add/import-review");
     } catch {
@@ -158,13 +141,6 @@ export default function OnDeviceImportScreen() {
 
           <View style={styles.card}>
             <Text style={styles.hint}>{t("onDevice.hint")}</Text>
-            {cloudSupported && loaded && !full && (
-              <Text style={styles.hint}>
-                {readsLeft > 0
-                  ? `${t("importAI.readsLeft", { count: readsLeft })} · ${t("importAI.readsHint")}`
-                  : t("importAI.readsOut")}
-              </Text>
-            )}
             <TextInput
               style={styles.input}
               value={text}

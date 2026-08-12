@@ -96,12 +96,6 @@ const translation = {
       "To nie wygląda na odpowiedź AI w formacie Keel. Wklej odpowiedź AI, nie własną listę.",
     errEmpty:
       "AI nie znalazła w tym żadnych subskrypcji. Dodaj trochę szczegółów i spróbuj ponownie.",
-    readsLeft_one: "Zostało {{count}} darmowe czytanie AI",
-    readsLeft_few: "Zostały {{count}} darmowe czytania AI",
-    readsLeft_many: "Zostało {{count}} darmowych czytań AI",
-    readsLeft_other: "Zostało {{count}} darmowych czytań AI",
-    readsHint: "jedno czytanie może unieść całą twoją listę, niech się liczy 😉",
-    readsOut: "Darmowe czytania zużyte. Full Keel robi z nich nielimitowane.",
     privacyLink: "Jak to działa i twoje dane",
     privacyTitle: "Jak to działa",
     privacyBody:

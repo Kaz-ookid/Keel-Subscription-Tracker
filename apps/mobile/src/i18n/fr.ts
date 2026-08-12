@@ -89,10 +89,6 @@ export const fr: typeof en = {
       "Ceci ne ressemble pas à une réponse d'IA au format Keel. Collez la réponse de l'IA, pas votre propre liste.",
     errEmpty:
       "L'IA n'a trouvé aucun abonnement dans ce qu'elle a reçu. Ajoutez un peu de détail et réessayez.",
-    readsLeft_one: "{{count}} lecture IA gratuite restante",
-    readsLeft_other: "{{count}} lectures IA gratuites restantes",
-    readsHint: "une lecture peut embarquer toute votre liste, faites-la compter 😉",
-    readsOut: "Lectures gratuites épuisées. Full Keel les rend illimitées.",
     privacyLink: "Fonctionnement & vos données",
     privacyTitle: "Comment ça marche",
     privacyBody:

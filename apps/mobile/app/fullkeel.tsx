@@ -21,7 +21,7 @@ export default function FullKeelScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { full } = useEntitlement();
+  const { owned: full } = useEntitlement();
   const [cardWidth, setCardWidth] = useState(0);
   const aiHidden = useAiHidden();
 
