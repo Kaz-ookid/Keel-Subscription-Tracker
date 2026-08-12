@@ -24,12 +24,16 @@ import { ModalClose } from "../../src/components/ModalClose";
 import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
 import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 const PLAN_TYPES: { value: PlanType; labelKey: string }[] = [
   { value: "subscription", labelKey: "add.subscription" },
   { value: "installment", labelKey: "add.installment" },
 ];
 
 export default function AddFormScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const { id, suggestionId, draftId, pick } = useLocalSearchParams<{
     id?: string;
     suggestionId?: string;
@@ -69,6 +73,7 @@ export default function AddFormScreen() {
     return () => parent?.setOptions({ gestureEnabled: true });
   }, [navigation, form.isDirty]);
 
+  if (locked) return null;
   return (
     <ScrollView
       style={styles.screen}

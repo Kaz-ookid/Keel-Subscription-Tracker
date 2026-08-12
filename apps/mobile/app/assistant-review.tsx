@@ -27,6 +27,7 @@ import { useAppActions } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
+import { useLockedRedirect } from "../src/lib/lock-gate";
 const OP_LABEL_KEYS: Record<AssistantOperation["kind"], string> = {
   pause: "assistant.opPause",
   resume: "assistant.opResume",
@@ -52,6 +53,9 @@ const UNRESOLVED_KEYS: Record<AssistantUnresolved["reason"], string> = {
 };
 
 export default function AssistantReviewScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -115,6 +119,7 @@ export default function AssistantReviewScreen() {
           count: draft.input.numberOfInstallments,
         });
 
+  if (locked) return null;
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ title: "" }} />

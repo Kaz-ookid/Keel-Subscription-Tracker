@@ -33,9 +33,13 @@ import { useAppData } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
+import { useLockedRedirect } from "../src/lib/lock-gate";
 type AssistError = "model-failed" | "no-json" | "empty";
 
 export default function AssistantScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -85,6 +89,7 @@ export default function AssistantScreen() {
     }
   };
 
+  if (locked) return null;
   return (
     <ScrollView
       style={styles.screen}

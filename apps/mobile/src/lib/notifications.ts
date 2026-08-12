@@ -20,6 +20,7 @@ import * as Notifications from "expo-notifications";
 import i18n from "../i18n";
 import { daysUntil } from "../i18n/dates";
 import { fromCalendarDate, toCalendarDate } from "./dates";
+import { entitlementSnapshot } from "./entitlement";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -251,6 +252,12 @@ function digestBody(digest: DigestOccurrence): string {
 /** Re-derive every scheduled reminder from the current items and settings. */
 export async function syncReminders(items: readonly PaymentItem[]): Promise<void> {
   try {
+    // Reminders are a paid surface (§7.3): a locked app cancels everything
+    // scheduled instead of letting notifications fire from a frozen state.
+    if (entitlementSnapshot().locked) {
+      await Notifications.cancelAllScheduledNotificationsAsync();
+      return;
+    }
     const settings = await loadNotificationSettings();
     const planned = settings.enabled ? plannedReminders(items, today()) : [];
     const digests = settings.enabled ? buildDigests(items, settings.digest) : [];

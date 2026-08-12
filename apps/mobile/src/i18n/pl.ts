@@ -670,6 +670,24 @@ const translation = {
     bannerSub: "Nielimitowana AI, każda przyszła funkcja",
     bannerOwned: "Dziękuję za wsparcie",
   },
+  trial: {
+    lockedTitle: "Okres próbny się skończył",
+    lockedBody:
+      "Keel jest teraz tylko do odczytu. Wszystko, co śledzisz, wciąż tu jest, a jeden zakup przywraca narzędzia. Nic się nie odnawia, nigdy.",
+    keepsTitle: "Twoje na zawsze, za darmo",
+    keeps1: "Widzisz wszystko: listę, kalendarz i historię",
+    keeps2: "Analizy i wykresy, zawsze aktualne",
+    keeps3: "Oznaczanie jako zapłacone i pomijanie, by dane były uczciwe",
+    keeps4: "Eksport i kopie zapasowe danych",
+    unlocksTitle: "Wraca z Full Keel",
+    unlocks1: "Dodawanie, edycja i usuwanie",
+    unlocks2: "Przypomnienia i widżety",
+    unlocks3: "Wszystkie importy i narzędzia AI",
+    lockedFootnote: "Jeden zakup, na zawsze. Udostępnianie rodzinne w zestawie.",
+  },
+  widgets: {
+    locked: "Keel jest zablokowany",
+  },
   about: {
     title: "O Keel",
     helloTitle: "Cześć, jestem Maxime 👋",

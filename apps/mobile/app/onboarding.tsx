@@ -9,7 +9,7 @@
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -36,6 +36,7 @@ import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { Button } from "../src/components/ui/Button";
 import { OptionWheel } from "../src/components/ui/OptionWheel";
 import { APP_LANGUAGES, LANGUAGE_LABELS, setLanguageMode, type AppLanguage } from "../src/i18n";
+import { useLocked } from "../src/lib/lock-gate";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { requestPaymentsView } from "../src/lib/tabReset";
 import { useAppActions, useAppData } from "../src/state/app-state";
@@ -65,7 +66,14 @@ export default function OnboardingScreen() {
 
   // "browse" (Settings, the pending list) jumps straight to the picker;
   // a plain open is the full first-launch run. (The empty-state Get started
-  // button opens the Add sheet directly and never lands here.)
+  // button opens the Add sheet directly and never lands here.) Browse ADDS
+  // pending commitments, which is a write: locked browse bounces to the
+  // locked sheet. First-launch onboarding itself can never be locked (a
+  // fresh install has no trial anchor).
+  const locked = useLocked();
+  useEffect(() => {
+    if (locked && mode === "browse") router.replace("/locked");
+  }, [locked, mode, router]);
   const [phase, setPhase] = useState<Phase>(mode === "browse" ? "pick" : "tour");
   const [pane, setPane] = useState(0);
   // The pager's live offset drives everything visual: pane parallax, the

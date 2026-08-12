@@ -47,6 +47,10 @@ struct WidgetSnapshot: Codable {
   let monthTotal: String
   /// The next charges (today through ~30 days), soonest first, capped.
   let payments: [WidgetPayment]
+  /// Present while the app is locked (trial over, no purchase): shown as the
+  /// empty line so the widget explains itself instead of looking stale.
+  /// Optional keeps old snapshots (without the field) decodable.
+  let lockedLine: String?
 }
 
 enum SharedStore {
@@ -217,6 +221,8 @@ extension WidgetSnapshot {
   }
 
   var emptyLine: String {
+    // A locked app explains itself; "all clear" would be a false calm.
+    if let locked = lockedLine, !locked.isEmpty { return locked }
     if isFrench { return "Rien à venir" }
     if isGerman { return "Nichts anstehend" }
     if isItalian { return "Tutto a posto" }
@@ -295,7 +301,8 @@ extension WidgetSnapshot {
         WidgetPayment(
           id: "sample-4", itemId: "sample-4", name: "Gym", amount: "24.90 CHF",
           dueDate: day(9), dateLabel: nil, color: "#E30613", overdue: false),
-      ]
+      ],
+      lockedLine: nil
     )
   }
 }

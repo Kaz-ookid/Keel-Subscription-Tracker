@@ -643,6 +643,24 @@ export const fr: typeof en = {
     bannerSub: "IA illimitée, toutes les futures fonctionnalités",
     bannerOwned: "Merci pour votre soutien",
   },
+  trial: {
+    lockedTitle: "Votre essai est terminé",
+    lockedBody:
+      "Keel est passé en lecture seule. Tout ce que vous suivez est toujours là, et un seul achat ramène les outils. Rien ne se renouvelle, jamais.",
+    keepsTitle: "À vous pour toujours, gratuit",
+    keeps1: "Tout voir : votre liste, le calendrier et l'historique",
+    keeps2: "Les analyses et graphiques, toujours à jour",
+    keeps3: "Marquer payé et passer un mois, pour des données justes",
+    keeps4: "Exporter et sauvegarder vos données",
+    unlocksTitle: "De retour avec Full Keel",
+    unlocks1: "Ajouter, modifier et supprimer des engagements",
+    unlocks2: "Rappels et widgets",
+    unlocks3: "Tous les imports et outils IA",
+    lockedFootnote: "Un seul achat, pour de bon. Partage familial inclus.",
+  },
+  widgets: {
+    locked: "Keel est verrouillé",
+  },
   about: {
     title: "À propos de Keel",
     helloTitle: "Salut, ici Maxime 👋",

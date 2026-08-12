@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useLockGuard } from "../../src/lib/lock-gate";
 import { bumpTabReset } from "../../src/lib/tabReset";
 import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
@@ -29,6 +30,8 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  // Adding is a write: once locked, the + presents the locked sheet (§7.3).
+  const guard = useLockGuard();
 
   return (
     <View
@@ -45,7 +48,7 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
             return (
               <Pressable
                 key={tab.name}
-                onPress={() => router.push("/add")}
+                onPress={guard(() => router.push("/add"))}
                 accessibilityLabel={t("tabs.addA11y")}
                 // Tinted, not solid (§9f): an accent wash in the glass.
                 style={[styles.plus, { backgroundColor: withAlpha(colors.accent, 0.28) }]}

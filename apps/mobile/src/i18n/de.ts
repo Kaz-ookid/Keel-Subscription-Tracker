@@ -643,6 +643,24 @@ export const de: typeof en = {
     bannerSub: "Unbegrenzte KI, jede künftige Funktion",
     bannerOwned: "Danke für die Unterstützung",
   },
+  trial: {
+    lockedTitle: "Deine Testzeit ist vorbei",
+    lockedBody:
+      "Keel ist jetzt schreibgeschützt. Alles bleibt erhalten, und ein einziger Kauf bringt die Werkzeuge zurück. Nichts verlängert sich, nie.",
+    keepsTitle: "Für immer deins, gratis",
+    keeps1: "Alles sehen: Liste, Kalender und Verlauf",
+    keeps2: "Analysen und Diagramme, immer aktuell",
+    keeps3: "Als bezahlt markieren und aussetzen, damit die Daten stimmen",
+    keeps4: "Daten exportieren und sichern",
+    unlocksTitle: "Zurück mit Full Keel",
+    unlocks1: "Hinzufügen, Bearbeiten und Löschen",
+    unlocks2: "Erinnerungen und Widgets",
+    unlocks3: "Alle Importe und KI-Werkzeuge",
+    lockedFootnote: "Ein Kauf, für immer. Familienfreigabe inklusive.",
+  },
+  widgets: {
+    locked: "Keel ist gesperrt",
+  },
   about: {
     title: "Über Keel",
     helloTitle: "Hi, ich bin Maxime 👋",

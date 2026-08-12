@@ -21,8 +21,10 @@ import {
   type PaymentItem,
 } from "@keel/core";
 
+import i18n from "../i18n";
 import { monthFull, monthShort } from "../i18n/dates";
 import { brandBleed } from "./brand";
+import { entitlementSnapshot } from "./entitlement";
 
 /** Must match SharedStore.appGroup in targets/widgets/Shared.swift. */
 export const WIDGET_APP_GROUP = "group.ch.keelapp.keel";
@@ -64,6 +66,10 @@ export interface WidgetSnapshot {
   monthLabel: string;
   monthTotal: string;
   payments: WidgetPayment[];
+  /** Set while the app is LOCKED (§7.3): the widget shows this instead of
+   *  its "all clear" line, and `payments` is empty — the home screen must
+   *  never show stale data pretending to be live. */
+  lockedLine?: string;
 }
 
 /** Everything the widgets show, pre-formatted. `accentFallback` colors the
@@ -76,6 +82,19 @@ export function buildWidgetSnapshot(
   accentFallback: string,
 ): WidgetSnapshot {
   const asOf = today();
+  // Widgets are a paid surface (§7.3): locked writes an EMPTY snapshot that
+  // says so, never a frozen list that looks alive.
+  if (entitlementSnapshot().locked) {
+    return {
+      version: 1,
+      locale,
+      generatedAt: new Date().toISOString(),
+      monthLabel: monthFull(Number(asOf.slice(5, 7)) - 1),
+      monthTotal: "",
+      payments: [],
+      lockedLine: i18n.t("widgets.locked"),
+    };
+  }
   const charges = projectCharges(items, addDays(asOf, HORIZON_DAYS));
   // An unpaid charge whose day has passed is the MOST urgent thing a widget
   // can show: overdue rides first, oldest debt leading, then the upcoming.

@@ -31,6 +31,7 @@ import {
 import { SwipeRow } from "./ui/SwipeRow";
 import { BrandBadge } from "./BrandBadge";
 
+import { useLockGuard } from "../lib/lock-gate";
 interface Props {
   item: PaymentItem;
   onPress: () => void;
@@ -131,7 +132,9 @@ export const SubscriptionRow = memo(function SubscriptionRow({ item, onPress, on
   }
 
   // Swipe left reveals the one destructive action (the mail idiom; long-press
-  // retired — one clear gesture). The confirm alert stays.
+  // retired — one clear gesture). The confirm alert stays. Deleting is a
+  // WRITE: locked swipes land on the locked sheet instead.
+  const guard = useLockGuard();
   const confirmDelete = () => {
     Alert.alert(t("row.deleteTitle"), t("row.deleteAsk", { name: item.name }), [
       { text: t("common.cancel"), style: "cancel" },
@@ -140,7 +143,7 @@ export const SubscriptionRow = memo(function SubscriptionRow({ item, onPress, on
   };
 
   return (
-    <SwipeRow rowId={item.id} onPress={onPress} onAction={confirmDelete}>
+    <SwipeRow rowId={item.id} onPress={onPress} onAction={guard(confirmDelete)}>
       <View style={[styles.row, (complete || item.status === "paused") && styles.rowComplete]}>
         {/* The brand's color bleeds softly from the badge side (§9c). */}
         <LinearGradient

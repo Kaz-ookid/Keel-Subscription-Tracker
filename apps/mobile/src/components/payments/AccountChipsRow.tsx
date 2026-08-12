@@ -13,6 +13,7 @@ import { AccountEditSheet } from "../AccountSheet";
 import { Chip } from "../ui/Chip";
 import { spacing } from "../../theme";
 
+import { useLockGuard } from "../../lib/lock-gate";
 interface Props {
   accounts: Account[];
   /** "all" | "none" (no account) | an account id. */
@@ -30,6 +31,8 @@ export function AccountChipsRow({ accounts, filter, onFilter }: Props) {
   // The long-press editor, self-contained: same remount-on-open idiom as the
   // Accounts screen so the form always starts from the pressed account.
   const [editing, setEditing] = useState<Account | undefined>();
+  // Editing an account is a write; filtering stays free.
+  const guard = useLockGuard();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [session, setSession] = useState(0);
   const openEditor = (account: Account) => {
@@ -57,7 +60,7 @@ export function AccountChipsRow({ accounts, filter, onFilter }: Props) {
               dot={account.color}
               selected={filter === account.id}
               onPress={() => onFilter(account.id)}
-              onLongPress={() => openEditor(account)}
+              onLongPress={guard(() => openEditor(account))}
             />
           ))}
           <Chip

@@ -637,6 +637,24 @@ export const en = {
     bannerSub: "Unlimited AI, every future feature",
     bannerOwned: "Thank you for the support",
   },
+  trial: {
+    lockedTitle: "Your trial has ended",
+    lockedBody:
+      "Keel went read-only. Everything you tracked is still here, and one purchase brings the tools back. Nothing renews, ever.",
+    keepsTitle: "Yours forever, free",
+    keeps1: "Seeing everything: your list, calendar and history",
+    keeps2: "Insights and charts, always current",
+    keeps3: "Marking paid and skipping, so your data stays honest",
+    keeps4: "Exporting and backing up your data",
+    unlocksTitle: "Back with Full Keel",
+    unlocks1: "Adding, editing and deleting commitments",
+    unlocks2: "Reminders and widgets",
+    unlocks3: "Every import and AI tool",
+    lockedFootnote: "One purchase, yours for good. Family Sharing included.",
+  },
+  widgets: {
+    locked: "Keel is locked",
+  },
   about: {
     title: "About Keel",
     helloTitle: "Hi, I'm Maxime 👋",

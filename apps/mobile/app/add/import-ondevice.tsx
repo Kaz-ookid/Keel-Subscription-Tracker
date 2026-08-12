@@ -42,9 +42,13 @@ import {
   type ThemeColors,
 } from "../../src/theme";
 
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 type ReadError = ImportParseError | "model-failed";
 
 export default function OnDeviceImportScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   // The AI tab opens this directly (?direct=1): it is then the sheet's first
   // screen and needs its own leave affordance, like the import hub.
@@ -97,6 +101,7 @@ export default function OnDeviceImportScreen() {
     }
   };
 
+  if (locked) return null;
   return (
     <ScrollView
       style={styles.screen}

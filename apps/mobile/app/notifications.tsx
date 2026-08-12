@@ -47,6 +47,7 @@ import {
 import { useAppActions, useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
+import { useLockedRedirect } from "../src/lib/lock-gate";
 const CHIP = {
   master: "#FF3B30",
   allow: "#FF9500",
@@ -65,6 +66,9 @@ const WEEKDAY_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
 type NotifWheel = "lead" | "hour" | "digest" | "digestDay";
 
 export default function NotificationsScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
@@ -196,6 +200,7 @@ export default function NotificationsScreen() {
 
   if (!settings) return <View style={styles.screen} />;
 
+  if (locked) return null;
   return (
     <ScrollView
       style={styles.screen}

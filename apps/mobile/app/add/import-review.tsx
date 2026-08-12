@@ -33,6 +33,7 @@ import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 /** Warnings that get their own line; account-unmatched is the account chip. */
 const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
   "currency-mismatch": "importAI.warnCurrencyMismatch",
@@ -58,6 +59,9 @@ const FIELD_KEYS: Record<ImportFieldName, string> = {
 };
 
 export default function ImportReviewScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   const navigation = useNavigation();
   const { colors } = useTheme();
@@ -263,6 +267,7 @@ export default function ImportReviewScreen() {
     );
   };
 
+  if (locked) return null;
   return (
     <View style={styles.screen}>
       {/* First AI review also shows brand logos: ask before any load. */}

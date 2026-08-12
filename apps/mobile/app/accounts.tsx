@@ -11,6 +11,7 @@ import { EmptyState } from "../src/components/ui/EmptyState";
 import { useAppActions, useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
 
+import { useLockGuard } from "../src/lib/lock-gate";
 export default function AccountsScreen() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -19,6 +20,8 @@ export default function AccountsScreen() {
   const { accounts } = useAppData();
   const { archiveAccount } = useAppActions();
   const [editing, setEditing] = useState<Account | undefined>();
+  // Account changes are writes; viewing the list stays free.
+  const guard = useLockGuard();
   const [sheetOpen, setSheetOpen] = useState(false);
   // Bumped on every open so the form remounts with fresh state.
   const [session, setSession] = useState(0);
@@ -48,7 +51,7 @@ export default function AccountsScreen() {
         options={{
           headerRight: () => (
             <Pressable
-              onPress={() => open()}
+              onPress={guard(() => open())}
               hitSlop={12}
               accessibilityLabel={t("accounts.addAccount")}
             >
@@ -68,7 +71,7 @@ export default function AccountsScreen() {
             hint={t("accounts.emptyHint")}
             cta={{
               label: t("accounts.addAccount"),
-              onPress: () => open(),
+              onPress: guard(() => open()),
               icon: "plus.circle.fill",
               variant: "quiet",
             }}
@@ -84,7 +87,7 @@ export default function AccountsScreen() {
           renderItem={({ item }) => (
             <Pressable
               style={styles.row}
-              onPress={() => open(item)}
+              onPress={guard(() => open(item))}
               onLongPress={() => confirmArchive(item)}
             >
               <BrandBadge icon={item.icon} color={item.color} />

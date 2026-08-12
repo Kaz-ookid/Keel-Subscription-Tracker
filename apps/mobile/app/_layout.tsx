@@ -121,6 +121,7 @@ function RootNavigator() {
                 <Stack.Screen name="guide" options={{ title: "" }} />
                 <Stack.Screen name="about" options={{ title: "" }} />
                 <Stack.Screen name="fullkeel" options={{ title: "" }} />
+                <Stack.Screen name="locked" options={{ title: "" }} />
                 <Stack.Screen name="assistant" options={{ title: "" }} />
                 <Stack.Screen name="assistant-review" options={{ title: "" }} />
                 <Stack.Screen name="ai-history" options={{ title: "" }} />

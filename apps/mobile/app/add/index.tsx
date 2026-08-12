@@ -19,7 +19,11 @@ import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useAppData } from "../../src/state/app-state";
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
 
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 export default function AddChooserScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
@@ -39,6 +43,7 @@ export default function AddChooserScreen() {
     return new Set(bank.filter((s) => taken.has(s.name.toLowerCase())).map((s) => s.id));
   }, [items, bank]);
 
+  if (locked) return null;
   return (
     <View style={[styles.screen, { paddingTop: headerHeight }]}>
       <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} />

@@ -72,7 +72,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLOR_SWATCHES } from "../constants";
 import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
-import { markTrialStarted } from "../lib/entitlement";
+import { entitlementSnapshot, markTrialStarted, onEntitlementChange } from "../lib/entitlement";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import {
   chooseNewerState,
@@ -347,10 +347,25 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   // Reschedule every reminder from current state after any change — a paid,
   // paused or edited commitment can never fire a stale notification. The
   // language is a dependency so scheduled texts follow a language switch.
+  // The LOCK flipping (expiry crossed, purchase, debug switch) is a change
+  // too: reminders cancel and the widget empties without any data edit, so
+  // the entitlement store bumps a nonce that both effects depend on.
   const { i18n } = useTranslation();
+  const [lockNonce, setLockNonce] = useState(0);
+  const lockedRef = useRef(entitlementSnapshot().locked);
+  useEffect(
+    () =>
+      onEntitlementChange(() => {
+        if (entitlementSnapshot().locked !== lockedRef.current) {
+          lockedRef.current = entitlementSnapshot().locked;
+          setLockNonce((n) => n + 1);
+        }
+      }),
+    [],
+  );
   useEffect(() => {
     if (!loading) void syncReminders(items);
-  }, [items, loading, i18n.language]);
+  }, [items, loading, i18n.language, lockNonce]);
 
   // Persist after the initial hydration completes. A failed write retries
   // once, then warns (once per session): silently losing financial data is
@@ -404,6 +419,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
     // i18n is the stable singleton; it only matters for the alert's language.
   }, [
+    lockNonce,
     items,
     occurrences,
     customCategories,

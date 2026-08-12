@@ -27,10 +27,14 @@ import {
   type ThemeColors,
 } from "../../src/theme";
 
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 type OpenPopup = "instructions" | "where" | "example" | "privacy" | null;
 type PasteError = ImportParseError | "clipboard-empty";
 
 export default function ImportScreen() {
+  // Write screen: a locked mount bounces to the locked sheet (deep links
+  // and stale stacks included).
+  const locked = useLockedRedirect();
   const router = useRouter();
   // Settings and onboarding open the import directly (?direct=1): it is then
   // the sheet's first screen and needs its own leave affordance. From the
@@ -97,6 +101,7 @@ export default function ImportScreen() {
     setManualEntry(false);
   };
 
+  if (locked) return null;
   return (
     <ScrollView
       style={styles.screen}

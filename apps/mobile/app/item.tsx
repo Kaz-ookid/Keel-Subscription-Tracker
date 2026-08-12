@@ -35,6 +35,7 @@ import { hapticMarkPaid } from "../src/lib/haptics";
 import { useAppActions, useAppData } from "../src/state/app-state";
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
+import { useLockGuard } from "../src/lib/lock-gate";
 function InfoRow({
   label,
   value,
@@ -77,6 +78,9 @@ export default function ItemScreen() {
     resumeSubscription,
     removeSubscription,
   } = useAppActions();
+  // Editing, deleting, skipping and pausing are WRITES (locked blocks
+  // them); mark paid and undo stay free so the data keeps its honesty.
+  const guard = useLockGuard();
 
   const item = items.find((i) => i.id === id);
   if (!item) {
@@ -168,7 +172,7 @@ export default function ItemScreen() {
           title: "",
           headerRight: () => (
             <Pressable
-              onPress={() => router.push({ pathname: "/add/form", params: { id: item.id } })}
+              onPress={guard(() => router.push({ pathname: "/add/form", params: { id: item.id } }))}
               hitSlop={12}
             >
               <Text style={styles.headerAction}>{t("common.edit")}</Text>
@@ -443,7 +447,7 @@ export default function ItemScreen() {
         <Button
           variant="secondary"
           label={t("item.skipCycle", { date: formatCalendarDate(recurring.nextChargeDate) })}
-          onPress={() => skipPayment(item.id)}
+          onPress={guard(() => skipPayment(item.id))}
         />
       )}
       {paidThisCycle && (
@@ -464,11 +468,11 @@ export default function ItemScreen() {
         <Button
           variant="secondary"
           label={paused ? t("item.resume") : t("item.pause")}
-          onPress={() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id))}
+          onPress={guard(() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id)))}
         />
       )}
 
-      <Button variant="destructive" label={t("common.delete")} onPress={confirmDelete} />
+      <Button variant="destructive" label={t("common.delete")} onPress={guard(confirmDelete)} />
     </ScrollView>
   );
 }
