@@ -40,3 +40,7 @@ export * from "./calculations/forecast";
 export * from "./calculations/insights";
 export * from "./calculations/ledger";
 export * from "./calculations/reminders";
+
+// The app-trial clock (PROJECT_BRIEF §7.3) — pure 45-day math over an
+// injected clock; storage and gating live in the app layer.
+export * from "./calculations/trial-clock";

@@ -137,6 +137,16 @@ export function addDays(date: CalendarDate, days: number): CalendarDate {
   );
 }
 
+/** Whole days from `a` to `b` (negative when `b` is earlier). UTC, so DST
+ *  can never make a day count fractional. */
+export function daysBetween(a: CalendarDate, b: CalendarDate): number {
+  const utc = (date: CalendarDate) => {
+    const [y, m, d] = date.split("-").map(Number);
+    return Date.UTC(y, m - 1, d);
+  };
+  return Math.round((utc(b) - utc(a)) / 86_400_000);
+}
+
 /** The last day of `date`'s month — e.g. 2026-02-10 → 2026-02-28. */
 export function endOfMonth(date: CalendarDate): CalendarDate {
   const [y, m] = date.split("-").map(Number);
