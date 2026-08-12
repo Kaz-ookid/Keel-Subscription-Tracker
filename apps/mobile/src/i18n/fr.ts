@@ -581,7 +581,7 @@ export const fr: typeof en = {
       "Choisissez parmi les services connus, ou laissez une IA lire une liste en vrac, des captures ou l'export de votre ancienne app. Tout arrive prérempli.",
     tour5Title: "Gratuit pendant 45 jours",
     tour5Body:
-      "Tout est débloqué, et le compteur ne démarre qu'à votre premier engagement ajouté. Après 45 jours, Keel continue de tout afficher : votre liste, vos graphiques, votre historique, et vos données restent exportables à tout moment. Ajouter, modifier, les rappels et les widgets demandent alors Full Keel. Un seul achat, rien ne se renouvelle.",
+      "Tout est débloqué, et le compteur ne démarre qu'à votre premier engagement ajouté. Après 45 jours, Keel continue de tout afficher : votre liste, vos graphiques, votre historique, et vos données restent exportables à tout moment. Ajouter, modifier, les rappels et les widgets demandent alors Full Keel. Un seul achat, rien ne se renouvelle. Et le partage familial couvre jusqu'à 5 personnes.",
     skip: "Passer",
     next: "Suivant",
     continue: "Continuer",
@@ -639,6 +639,7 @@ export const fr: typeof en = {
     includeAi: "Tous les imports et outils IA",
     includeFuture: "Toutes les fonctionnalités premium à venir",
     includeFamily: "Partagé avec votre famille Apple, jusqu'à 5 personnes",
+    familyNote: "Partage familial inclus : un seul achat couvre jusqu'à 5 personnes.",
     honesty:
       "Vos données, vos graphiques, le marquage payé et les exports restent gratuits pour toujours, achat ou non. Full Keel ramène les outils, et c'est aussi la façon de dire merci.",
     cta: "Obtenir Full Keel",

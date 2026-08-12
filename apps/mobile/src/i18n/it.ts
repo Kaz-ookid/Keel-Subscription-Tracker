@@ -579,7 +579,7 @@ export const it: typeof en = {
       "Scegli tra servizi noti, o lascia che l'IA legga una lista alla buona, screenshot o l'export del tuo vecchio tracker. Tutto arriva precompilato.",
     tour5Title: "Gratis per 45 giorni",
     tour5Body:
-      "Tutto è sbloccato, e il conteggio parte solo quando aggiungi il tuo primo impegno. Dopo 45 giorni Keel continua a mostrare tutto: la tua lista, i grafici, la cronologia, e i tuoi dati restano sempre esportabili. Aggiungere, modificare, promemoria e widget richiedono poi Full Keel. Un solo acquisto, niente si rinnova.",
+      "Tutto è sbloccato, e il conteggio parte solo quando aggiungi il tuo primo impegno. Dopo 45 giorni Keel continua a mostrare tutto: la tua lista, i grafici, la cronologia, e i tuoi dati restano sempre esportabili. Aggiungere, modificare, promemoria e widget richiedono poi Full Keel. Un solo acquisto, niente si rinnova. E la condivisione in famiglia copre fino a 5 persone.",
     skip: "Salta",
     next: "Avanti",
     continue: "Continua",
@@ -637,6 +637,7 @@ export const it: typeof en = {
     includeAi: "Tutti gli import e gli strumenti IA",
     includeFuture: "Ogni funzione premium che Keel avrà mai",
     includeFamily: "Condiviso con la tua famiglia Apple, fino a 5 persone",
+    familyNote: "Condivisione in famiglia inclusa: un solo acquisto copre fino a 5 persone.",
     honesty:
       "I tuoi dati, i grafici, il segnare pagato e gli export restano gratis per sempre, acquisto o no. Full Keel riporta gli strumenti, ed è anche il modo per dire grazie.",
     cta: "Prendi Full Keel",

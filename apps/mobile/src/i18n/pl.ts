@@ -606,7 +606,7 @@ const translation = {
       "Wybierz ze znanych usług, albo daj AI przeczytać listę z grubsza, zrzuty ekranu lub eksport starej aplikacji. Wszystko przyjdzie wypełnione.",
     tour5Title: "Za darmo przez 45 dni",
     tour5Body:
-      "Wszystko jest odblokowane, a zegar rusza dopiero przy pierwszym dodanym zobowiązaniu. Po 45 dniach Keel dalej pokazuje wszystko: listę, wykresy, historię, a dane zawsze można wyeksportować. Dodawanie, edycja, przypomnienia i widżety wymagają wtedy Full Keel. Jeden zakup, nic się nie odnawia.",
+      "Wszystko jest odblokowane, a zegar rusza dopiero przy pierwszym dodanym zobowiązaniu. Po 45 dniach Keel dalej pokazuje wszystko: listę, wykresy, historię, a dane zawsze można wyeksportować. Dodawanie, edycja, przypomnienia i widżety wymagają wtedy Full Keel. Jeden zakup, nic się nie odnawia. A udostępnianie rodzinne obejmuje do 5 osób.",
     skip: "Pomiń",
     next: "Dalej",
     continue: "Kontynuuj",
@@ -666,6 +666,7 @@ const translation = {
     includeAi: "Wszystkie importy i narzędzia AI",
     includeFuture: "Każda przyszła funkcja premium Keel",
     includeFamily: "Współdzielone z rodziną Apple, do 5 osób",
+    familyNote: "Udostępnianie rodzinne w zestawie: jeden zakup obejmuje do 5 osób.",
     honesty:
       "Twoje dane, wykresy, oznaczanie jako zapłacone i eksport pozostają darmowe na zawsze, z zakupem czy bez. Full Keel przywraca narzędzia i jest też sposobem, by podziękować.",
     cta: "Weź Full Keel",

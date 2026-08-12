@@ -575,7 +575,7 @@ export const en = {
       "Pick from known services, or let AI read a rough list, screenshots, or your old tracker's export. Everything arrives pre-filled.",
     tour5Title: "Free for 45 days",
     tour5Body:
-      "Everything is unlocked, and the clock only starts when you add your first commitment. After 45 days Keel keeps showing everything: your list, your charts, your history, and your data can always be exported. Adding, editing, reminders and widgets then need Full Keel. One purchase, nothing renews.",
+      "Everything is unlocked, and the clock only starts when you add your first commitment. After 45 days Keel keeps showing everything: your list, your charts, your history, and your data can always be exported. Adding, editing, reminders and widgets then need Full Keel. One purchase, nothing renews. And Family Sharing covers up to 5 people.",
     skip: "Skip",
     next: "Next",
     continue: "Continue",
@@ -633,6 +633,7 @@ export const en = {
     includeAi: "Every import and AI tool",
     includeFuture: "Every premium feature Keel ever adds",
     includeFamily: "Shared with your Apple Family, up to 5 people",
+    familyNote: "Family Sharing included: one purchase covers up to 5 people.",
     honesty:
       "Your data, your charts, marking paid and exports stay free forever, purchase or not. Full Keel brings the working tools, and it is also the way to say thanks.",
     cta: "Get Full Keel",

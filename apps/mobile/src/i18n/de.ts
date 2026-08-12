@@ -581,7 +581,7 @@ export const de: typeof en = {
       "Wähle aus bekannten Diensten, oder lass KI eine grobe Liste, Screenshots oder den Export deines alten Trackers lesen. Alles kommt vorausgefüllt an.",
     tour5Title: "45 Tage lang gratis",
     tour5Body:
-      "Alles ist freigeschaltet, und die Uhr startet erst mit deinem ersten Eintrag. Nach 45 Tagen zeigt Keel weiter alles: deine Liste, deine Diagramme, deinen Verlauf, und deine Daten bleiben jederzeit exportierbar. Hinzufügen, Bearbeiten, Erinnerungen und Widgets brauchen dann Full Keel. Ein Kauf, nichts verlängert sich.",
+      "Alles ist freigeschaltet, und die Uhr startet erst mit deinem ersten Eintrag. Nach 45 Tagen zeigt Keel weiter alles: deine Liste, deine Diagramme, deinen Verlauf, und deine Daten bleiben jederzeit exportierbar. Hinzufügen, Bearbeiten, Erinnerungen und Widgets brauchen dann Full Keel. Ein Kauf, nichts verlängert sich. Und die Familienfreigabe deckt bis zu 5 Personen ab.",
     skip: "Überspringen",
     next: "Weiter",
     continue: "Fortfahren",
@@ -639,6 +639,7 @@ export const de: typeof en = {
     includeAi: "Alle Importe und KI-Werkzeuge",
     includeFuture: "Jede Premium-Funktion, die Keel je bekommt",
     includeFamily: "Geteilt mit deiner Apple-Familie, bis zu 5 Personen",
+    familyNote: "Familienfreigabe inklusive: ein Kauf deckt bis zu 5 Personen ab.",
     honesty:
       "Deine Daten, deine Diagramme, Bezahlt-Markieren und Exporte bleiben für immer gratis, mit oder ohne Kauf. Full Keel bringt die Werkzeuge zurück, und es ist auch das Dankeschön.",
     cta: "Full Keel holen",

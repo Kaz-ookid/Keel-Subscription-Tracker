@@ -115,6 +115,9 @@ export default function FullKeelScreen() {
                 ? t("fullkeel.priceNote", { later: laterPrice })
                 : t("fullkeel.priceNoteLater")}
             </Text>
+            {/* Family Sharing deserves hero billing, not just a list row:
+                one purchase covering five people changes the price's story. */}
+            <Text style={styles.heroNote}>{t("fullkeel.familyNote")}</Text>
             {entitlement.state === "trial" && (
               <Text style={styles.countdown}>
                 {t("trial.daysLeft", { count: entitlement.daysLeft })}
