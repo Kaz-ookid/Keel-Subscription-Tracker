@@ -579,6 +579,9 @@ export const fr: typeof en = {
     tour4Title: "Prêt en quelques minutes",
     tour4Body:
       "Choisissez parmi les services connus, ou laissez une IA lire une liste en vrac, des captures ou l'export de votre ancienne app. Tout arrive prérempli.",
+    tour5Title: "Gratuit pendant 45 jours",
+    tour5Body:
+      "Tout est débloqué, et le compteur ne démarre qu'à votre premier engagement ajouté. Après 45 jours, Keel continue de tout afficher : votre liste, vos graphiques, votre historique, et vos données restent exportables à tout moment. Ajouter, modifier, les rappels et les widgets demandent alors Full Keel. Un seul achat, rien ne se renouvelle.",
     skip: "Passer",
     next: "Suivant",
     continue: "Continuer",
@@ -653,6 +656,9 @@ export const fr: typeof en = {
     bannerOwned: "Merci pour votre soutien",
   },
   trial: {
+    startedTitle: "Vos 45 jours commencent aujourd'hui",
+    startedBody:
+      "Keel est entièrement à vous jusqu'au {{date}}. Ensuite, vous verrez toujours tout, pourrez marquer payé et exporter vos données à tout moment. Ajouter et modifier demanderont Full Keel, un achat unique. Rien ne se renouvelle, rien à résilier.",
     daysLeft_one: "{{count}} jour d'essai restant",
     daysLeft_other: "{{count}} jours d'essai restants",
     disclosure:

@@ -324,9 +324,10 @@ export default function SettingsScreen() {
             <Text style={styles.fullkeelSub}>
               {entitlement.owned
                 ? t("fullkeel.bannerOwned")
-                : // Quiet countdown in the final stretch (§7.3: nothing before
-                  // day 30); before that the banner just names the deal.
-                  entitlement.state === "trial" && entitlement.daysLeft <= 30
+                : // The live clock, from day one (user decision 2026-08-12):
+                  // the hero card wears the countdown so the trial is never a
+                  // surprise, and the deal rides next to it.
+                  entitlement.state === "trial"
                   ? `${t("trial.daysLeft", { count: entitlement.daysLeft })} · ${FULL_KEEL_PRICE}`
                   : `${t("fullkeel.bannerSub")} · ${FULL_KEEL_PRICE}`}
             </Text>

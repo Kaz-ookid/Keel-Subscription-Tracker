@@ -604,6 +604,9 @@ const translation = {
     tour4Title: "Gotowe w kilka minut",
     tour4Body:
       "Wybierz ze znanych usług, albo daj AI przeczytać listę z grubsza, zrzuty ekranu lub eksport starej aplikacji. Wszystko przyjdzie wypełnione.",
+    tour5Title: "Za darmo przez 45 dni",
+    tour5Body:
+      "Wszystko jest odblokowane, a zegar rusza dopiero przy pierwszym dodanym zobowiązaniu. Po 45 dniach Keel dalej pokazuje wszystko: listę, wykresy, historię, a dane zawsze można wyeksportować. Dodawanie, edycja, przypomnienia i widżety wymagają wtedy Full Keel. Jeden zakup, nic się nie odnawia.",
     skip: "Pomiń",
     next: "Dalej",
     continue: "Kontynuuj",
@@ -680,6 +683,9 @@ const translation = {
     bannerOwned: "Dziękuję za wsparcie",
   },
   trial: {
+    startedTitle: "Twoje 45 dni zaczyna się dziś",
+    startedBody:
+      "Keel jest w pełni twój do {{date}}. Potem nadal wszystko widzisz, możesz oznaczać jako zapłacone i zawsze eksportować dane. Dodawanie i edycja będą wymagać Full Keel, jednorazowego zakupu. Nic się nie odnawia, nic do anulowania.",
     daysLeft_one: "Został {{count}} dzień próbny",
     daysLeft_few: "Zostały {{count}} dni próbne",
     daysLeft_many: "Zostało {{count}} dni próbnych",

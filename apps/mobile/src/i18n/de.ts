@@ -579,6 +579,9 @@ export const de: typeof en = {
     tour4Title: "In Minuten startklar",
     tour4Body:
       "Wähle aus bekannten Diensten, oder lass KI eine grobe Liste, Screenshots oder den Export deines alten Trackers lesen. Alles kommt vorausgefüllt an.",
+    tour5Title: "45 Tage lang gratis",
+    tour5Body:
+      "Alles ist freigeschaltet, und die Uhr startet erst mit deinem ersten Eintrag. Nach 45 Tagen zeigt Keel weiter alles: deine Liste, deine Diagramme, deinen Verlauf, und deine Daten bleiben jederzeit exportierbar. Hinzufügen, Bearbeiten, Erinnerungen und Widgets brauchen dann Full Keel. Ein Kauf, nichts verlängert sich.",
     skip: "Überspringen",
     next: "Weiter",
     continue: "Fortfahren",
@@ -653,6 +656,9 @@ export const de: typeof en = {
     bannerOwned: "Danke für die Unterstützung",
   },
   trial: {
+    startedTitle: "Deine 45 Tage starten heute",
+    startedBody:
+      "Keel gehört dir komplett bis zum {{date}}. Danach siehst du weiter alles, kannst als bezahlt markieren und deine Daten jederzeit exportieren. Hinzufügen und Bearbeiten brauchen dann Full Keel, einen einmaligen Kauf. Nichts verlängert sich, nichts zu kündigen.",
     daysLeft_one: "Noch {{count}} Testtag",
     daysLeft_other: "Noch {{count}} Testtage",
     disclosure:

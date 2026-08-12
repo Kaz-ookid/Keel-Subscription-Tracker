@@ -18,7 +18,7 @@ import { Button } from "../src/components/ui/Button";
 import { Sheen } from "../src/components/ui/Sheen";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
-import { buyFullKeel, fullKeelDisplayPrice, restoreFullKeel } from "../src/lib/purchases";
+import { buyFullKeel, fullKeelPrices, restoreFullKeel } from "../src/lib/purchases";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
 export default function FullKeelScreen() {
@@ -29,24 +29,28 @@ export default function FullKeelScreen() {
   const full = entitlement.owned;
   const [cardWidth, setCardWidth] = useState(0);
   const [busy, setBusy] = useState(false);
-  // The store's own localized price, when it can answer; fallback constants
-  // otherwise. Which product is on offer follows the buyer's trial state.
-  const [livePrice, setLivePrice] = useState<string | null>(null);
+  // The store's own localized prices, when it can answer; fallback constants
+  // otherwise. Both are fetched so the full price can sit struck-through
+  // next to the early one — the discount stays true in every country.
+  const [livePrices, setLivePrices] = useState<{ early: string | null; full: string | null }>({
+    early: null,
+    full: null,
+  });
   const aiHidden = useAiHidden();
 
   const earlyPrice = entitlement.state !== "expired";
-  const fallbackPrice = earlyPrice ? FULL_KEEL_PRICE : FULL_KEEL_PRICE_LATER;
-  const price = livePrice ?? fallbackPrice;
+  const laterPrice = livePrices.full ?? FULL_KEEL_PRICE_LATER;
+  const price = earlyPrice ? (livePrices.early ?? FULL_KEEL_PRICE) : laterPrice;
 
   useEffect(() => {
     let alive = true;
-    void fullKeelDisplayPrice(entitlement.state).then((resolved) => {
-      if (alive && resolved) setLivePrice(resolved);
+    void fullKeelPrices().then((resolved) => {
+      if (alive) setLivePrices(resolved);
     });
     return () => {
       alive = false;
     };
-  }, [entitlement.state]);
+  }, []);
 
   const buy = async () => {
     setBusy(true);
@@ -96,18 +100,22 @@ export default function FullKeelScreen() {
         ) : (
           <>
             <SymbolView name="sailboat.fill" size={34} tintColor={colors.accent} />
-            <Text style={styles.heroPrice}>{price}</Text>
-            {/* While the buyer's trial runs, the tag names the reward and the
-                note names the price after; expired flips to the plain read. */}
+            {/* While the buyer's trial runs, the FULL price sits struck
+                through next to the early one — the discount is visibly a
+                real sale, in the store's own currency. */}
+            <View style={styles.priceRow}>
+              <Text style={styles.heroPrice}>{price}</Text>
+              {earlyPrice && <Text style={styles.strikePrice}>{laterPrice}</Text>}
+            </View>
             <Text style={styles.heroTag}>
               {earlyPrice ? t("fullkeel.priceTag") : t("fullkeel.priceTagLater")}
             </Text>
             <Text style={styles.heroNote}>
               {earlyPrice
-                ? t("fullkeel.priceNote", { later: FULL_KEEL_PRICE_LATER })
+                ? t("fullkeel.priceNote", { later: laterPrice })
                 : t("fullkeel.priceNoteLater")}
             </Text>
-            {entitlement.state === "trial" && entitlement.daysLeft <= 30 && (
+            {entitlement.state === "trial" && (
               <Text style={styles.countdown}>
                 {t("trial.daysLeft", { count: entitlement.daysLeft })}
               </Text>
@@ -174,7 +182,18 @@ function createStyles(colors: ThemeColors) {
     heroOwned: {
       borderColor: withAlpha(colors.accent, 0.55),
     },
-    heroPrice: { ...typography.display, color: colors.text, marginTop: spacing.sm },
+    priceRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: spacing.sm,
+      marginTop: spacing.sm,
+    },
+    heroPrice: { ...typography.display, color: colors.text },
+    strikePrice: {
+      ...typography.label,
+      color: colors.mutedText,
+      textDecorationLine: "line-through",
+    },
     heroTag: {
       ...typography.caption,
       fontWeight: "600",

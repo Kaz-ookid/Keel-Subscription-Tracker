@@ -49,6 +49,10 @@ const TOUR_PANES = [
   { titleKey: "onboarding.tour2Title", bodyKey: "onboarding.tour2Body" },
   { titleKey: "onboarding.tour3Title", bodyKey: "onboarding.tour3Body" },
   { titleKey: "onboarding.tour4Title", bodyKey: "onboarding.tour4Body" },
+  // The honesty pane (§7.3, user decision 2026-08-12): the trial model is
+  // part of the TOUR, not buried at the exit — 45 free days from the first
+  // commitment, what read-only keeps, what the one purchase returns.
+  { titleKey: "onboarding.tour5Title", bodyKey: "onboarding.tour5Body" },
 ] as const;
 
 type Phase = "tour" | "method" | "pick" | "done";

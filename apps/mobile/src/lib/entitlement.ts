@@ -10,10 +10,19 @@
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSyncExternalStore } from "react";
-import { AppState } from "react-native";
+import { Alert, AppState } from "react-native";
 
-import { today, trialStatus, type CalendarDate, type TrialState } from "@keel/core";
+import {
+  addDays,
+  formatCalendarDate,
+  today,
+  TRIAL_DAYS,
+  trialStatus,
+  type CalendarDate,
+  type TrialState,
+} from "@keel/core";
 
+import i18n from "../i18n";
 import { clearTrialAnchor, loadTrialAnchor, saveTrialAnchor } from "./trial";
 
 const FULL_KEY = "keel.fullkeel.v1";
@@ -107,6 +116,17 @@ export async function markTrialStarted(): Promise<void> {
   state = derive(state.owned, anchor, true);
   emit();
   await saveTrialAnchor(anchor);
+  // Day-one honesty, at the exact moment it becomes true (user decision
+  // 2026-08-12): one clear popup when the clock actually starts — with the
+  // real end date — restating what read-only will and won't mean. This
+  // branch runs ONCE per trial ever (the anchor guard above), so it can
+  // never nag. Owners skip it: their clock is decorative.
+  if (!state.owned) {
+    const endsOn = formatCalendarDate(addDays(anchor, TRIAL_DAYS - 1));
+    Alert.alert(i18n.t("trial.startedTitle"), i18n.t("trial.startedBody", { date: endsOn }), [
+      { text: i18n.t("common.done") },
+    ]);
+  }
 }
 
 /** Flip ownership: the purchase/restore success handler, and the debug

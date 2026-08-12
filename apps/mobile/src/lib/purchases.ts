@@ -59,19 +59,29 @@ async function connected(): Promise<typeof import("expo-iap") | null> {
   }
 }
 
-/** The store's own localized price for the product `state` may buy
- *  ("CHF 12.00"), or null offline / before the products exist. The paywall
- *  prefers this over the hardcoded fallback strings. */
-export async function fullKeelDisplayPrice(state: TrialState): Promise<string | null> {
+/** BOTH localized store prices ("CHF 12.00" / "CHF 15.00"), or nulls
+ *  offline / before the products exist. The paywall prefers these over the
+ *  hardcoded fallbacks — and strikes the full price through next to the
+ *  early one, so the trial discount reads as real in every country. */
+export async function fullKeelPrices(): Promise<{
+  early: string | null;
+  full: string | null;
+}> {
   try {
     const iap = await connected();
-    if (!iap) return null;
-    const sku = fullKeelSku(state);
-    const products = await iap.fetchProducts({ skus: [sku], type: "in-app" });
-    const product = (products ?? []).find((p) => p.id === sku);
-    return product?.displayPrice ?? null;
+    if (!iap) return { early: null, full: null };
+    const products = await iap.fetchProducts({
+      skus: [FULL_KEEL_EARLY_PRODUCT_ID, FULL_KEEL_PRODUCT_ID],
+      type: "in-app",
+    });
+    const priceOf = (sku: string) =>
+      (products ?? []).find((p) => p.id === sku)?.displayPrice ?? null;
+    return {
+      early: priceOf(FULL_KEEL_EARLY_PRODUCT_ID),
+      full: priceOf(FULL_KEEL_PRODUCT_ID),
+    };
   } catch {
-    return null;
+    return { early: null, full: null };
   }
 }
 

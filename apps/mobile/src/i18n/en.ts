@@ -573,6 +573,9 @@ export const en = {
     tour4Title: "Ready in minutes",
     tour4Body:
       "Pick from known services, or let AI read a rough list, screenshots, or your old tracker's export. Everything arrives pre-filled.",
+    tour5Title: "Free for 45 days",
+    tour5Body:
+      "Everything is unlocked, and the clock only starts when you add your first commitment. After 45 days Keel keeps showing everything: your list, your charts, your history, and your data can always be exported. Adding, editing, reminders and widgets then need Full Keel. One purchase, nothing renews.",
     skip: "Skip",
     next: "Next",
     continue: "Continue",
@@ -647,6 +650,9 @@ export const en = {
     bannerOwned: "Thank you for the support",
   },
   trial: {
+    startedTitle: "Your 45 days start today",
+    startedBody:
+      "Keel is fully yours until {{date}}. After that you will still see everything, mark things paid and export your data anytime. Adding and editing will need Full Keel, a one-time purchase. Nothing renews, nothing to cancel.",
     daysLeft_one: "{{count}} trial day left",
     daysLeft_other: "{{count}} trial days left",
     disclosure:

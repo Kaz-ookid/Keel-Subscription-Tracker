@@ -577,6 +577,9 @@ export const it: typeof en = {
     tour4Title: "Pronto in pochi minuti",
     tour4Body:
       "Scegli tra servizi noti, o lascia che l'IA legga una lista alla buona, screenshot o l'export del tuo vecchio tracker. Tutto arriva precompilato.",
+    tour5Title: "Gratis per 45 giorni",
+    tour5Body:
+      "Tutto è sbloccato, e il conteggio parte solo quando aggiungi il tuo primo impegno. Dopo 45 giorni Keel continua a mostrare tutto: la tua lista, i grafici, la cronologia, e i tuoi dati restano sempre esportabili. Aggiungere, modificare, promemoria e widget richiedono poi Full Keel. Un solo acquisto, niente si rinnova.",
     skip: "Salta",
     next: "Avanti",
     continue: "Continua",
@@ -651,6 +654,9 @@ export const it: typeof en = {
     bannerOwned: "Grazie del sostegno",
   },
   trial: {
+    startedTitle: "I tuoi 45 giorni iniziano oggi",
+    startedBody:
+      "Keel è tutto tuo fino al {{date}}. Dopo vedrai comunque tutto, potrai segnare pagato ed esportare i tuoi dati quando vuoi. Aggiungere e modificare richiederanno Full Keel, un acquisto unico. Niente si rinnova, niente da disdire.",
     daysLeft_one: "{{count}} giorno di prova rimasto",
     daysLeft_other: "{{count}} giorni di prova rimasti",
     disclosure:
