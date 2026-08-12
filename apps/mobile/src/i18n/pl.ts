@@ -548,6 +548,9 @@ const translation = {
     groupBackup: "Kopie zapasowe",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (debug)",
+    debugTrial6: "Okres próbny: zostało 6 dni",
+    debugTrialExpire: "Okres próbny: zakończ teraz (tylko odczyt)",
+    debugTrialReset: "Okres próbny: zresetuj zegar",
     accounts: "Konta",
     displayCurrency: "Waluta wyświetlania",
     appearance: "Wygląd",
@@ -686,6 +689,8 @@ const translation = {
     startedTitle: "Twoje 45 dni zaczyna się dziś",
     startedBody:
       "Keel jest w pełni twój do {{date}}. Potem nadal wszystko widzisz, możesz oznaczać jako zapłacone i zawsze eksportować dane. Dodawanie i edycja będą wymagać Full Keel, jednorazowego zakupu. Nic się nie odnawia, nic do anulowania.",
+    warnBody:
+      "Potem Keel przejdzie w tryb tylko do odczytu. Jeden zakup zachowuje wszystkie narzędzia, w cenie próbnej, póki zegar jeszcze tyka.",
     daysLeft_one: "Został {{count}} dzień próbny",
     daysLeft_few: "Zostały {{count}} dni próbne",
     daysLeft_many: "Zostało {{count}} dni próbnych",

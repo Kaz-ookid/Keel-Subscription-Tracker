@@ -9,6 +9,7 @@
 // tested); the anchor's three-way storage lives in ./trial.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router } from "expo-router";
 import { useSyncExternalStore } from "react";
 import { Alert, AppState } from "react-native";
 
@@ -30,6 +31,14 @@ const FULL_KEY = "keel.fullkeel.v1";
 const LEGACY_READS_KEY = "keel.aiReadsUsed.v1";
 /** Set once the expiry sheet has been presented, so it never nags twice. */
 const LOCK_SHOWN_KEY = "keel.lockshown.v1";
+/** The lowest warning threshold already shown (see maybeWarnExpiry). */
+const WARN_KEY = "keel.trialwarn.v1";
+
+/** Warn when this few trial days remain. Buckets, not dates: whichever is
+ *  the lowest crossed threshold fires ONCE, with the real days-left number
+ *  — someone opening the app for the first time at day 6 gets exactly one
+ *  popup, not a queue of stale ones. */
+const WARN_THRESHOLDS = [15, 7];
 
 export interface Entitlement {
   hydrated: boolean;
@@ -96,10 +105,33 @@ export function hydrateEntitlement(): Promise<void> {
           state = rederived;
           emit();
         }
+        void maybeWarnExpiry();
       });
+      void maybeWarnExpiry();
     })();
   }
   return hydrating;
+}
+
+/** The final-stretch warnings (§7.3 no-surprises): once per threshold
+ *  bucket, always with the REAL days-left number, most urgent bucket wins.
+ *  Self-guarding via WARN_KEY, so calling it often is free. */
+async function maybeWarnExpiry(): Promise<void> {
+  if (state.owned || state.state !== "trial") return;
+  const crossed = WARN_THRESHOLDS.filter((d) => state.daysLeft <= d).pop();
+  if (crossed === undefined) return;
+  try {
+    const warnedRaw = await AsyncStorage.getItem(WARN_KEY);
+    const warned = warnedRaw === null ? Number.POSITIVE_INFINITY : Number(warnedRaw);
+    if (warned <= crossed) return;
+    await AsyncStorage.setItem(WARN_KEY, String(crossed));
+  } catch {
+    return; // Can't record it — better silent than nagging every launch.
+  }
+  Alert.alert(i18n.t("trial.daysLeft", { count: state.daysLeft }), i18n.t("trial.warnBody"), [
+    { text: i18n.t("common.done") },
+    { text: i18n.t("fullkeel.cta"), onPress: () => router.push("/fullkeel") },
+  ]);
 }
 
 /**
@@ -148,11 +180,41 @@ export async function resetEntitlement(): Promise<void> {
   state = derive(false, null, true);
   emit();
   try {
-    await AsyncStorage.multiRemove([FULL_KEY, LOCK_SHOWN_KEY]);
+    await AsyncStorage.multiRemove([FULL_KEY, LOCK_SHOWN_KEY, WARN_KEY]);
   } catch {
     // Best-effort.
   }
   await clearTrialAnchor();
+}
+
+// ---------------------------------------------------------------------------
+// Debug clock-benders (the gated drawer only). Earliest-anchor-wins means
+// only EARLIER stamps stick — which is exactly what these are; going back
+// to "fresh" is debugResetTrialClock's job.
+
+/** Re-stamp the anchor so exactly `daysLeft` trial days remain (0 = expired
+ *  now, read-only unless owned). Fires the expiry warning path too, so the
+ *  popups can be QA'd without waiting a month. */
+export async function debugSetTrialDaysLeft(daysLeft: number): Promise<void> {
+  await hydrateEntitlement();
+  const anchor = addDays(today(), -(TRIAL_DAYS - daysLeft));
+  state = derive(state.owned, anchor, true);
+  emit();
+  await saveTrialAnchor(anchor);
+  void maybeWarnExpiry();
+}
+
+/** Back to "fresh" (no anchor, warnings forgotten) WITHOUT touching data —
+ *  the QA loop's rewind lever. */
+export async function debugResetTrialClock(): Promise<void> {
+  await clearTrialAnchor();
+  try {
+    await AsyncStorage.multiRemove([WARN_KEY, LOCK_SHOWN_KEY]);
+  } catch {
+    // Best-effort.
+  }
+  state = derive(state.owned, null, true);
+  emit();
 }
 
 /** True EXACTLY ONCE when the app is locked and the expiry sheet hasn't been

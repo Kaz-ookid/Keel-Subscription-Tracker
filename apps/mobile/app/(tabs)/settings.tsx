@@ -62,7 +62,13 @@ import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
 import { TabFade } from "../../src/components/TabFade";
 import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
-import { resetEntitlement, setFullKeel, useEntitlement } from "../../src/lib/entitlement";
+import {
+  debugResetTrialClock,
+  debugSetTrialDaysLeft,
+  resetEntitlement,
+  setFullKeel,
+  useEntitlement,
+} from "../../src/lib/entitlement";
 import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -616,6 +622,30 @@ export default function SettingsScreen() {
                     trackColor={{ true: colors.accent }}
                   />
                 }
+              />
+              {/* Trial QA levers: bend the clock without waiting 45 days.
+                  Earliest-anchor-wins means these only move the clock
+                  FORWARD in urgency; the reset row is the rewind. */}
+              <SettingsRow
+                icon="clock.badge.exclamationmark"
+                chipColor={CHIP.debug}
+                label={t("settings.debugTrial6")}
+                divider
+                onPress={() => void debugSetTrialDaysLeft(6)}
+              />
+              <SettingsRow
+                icon="lock.fill"
+                chipColor={CHIP.debug}
+                label={t("settings.debugTrialExpire")}
+                divider
+                onPress={() => void debugSetTrialDaysLeft(0)}
+              />
+              <SettingsRow
+                icon="clock.arrow.circlepath"
+                chipColor={CHIP.debug}
+                label={t("settings.debugTrialReset")}
+                divider
+                onPress={() => void debugResetTrialClock()}
               />
             </Card>
           </Animated.View>

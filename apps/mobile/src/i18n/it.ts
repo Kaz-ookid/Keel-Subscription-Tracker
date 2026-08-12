@@ -519,6 +519,9 @@ export const it: typeof en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (debug)",
+    debugTrial6: "Prova: 6 giorni rimasti",
+    debugTrialExpire: "Prova: termina ora (sola lettura)",
+    debugTrialReset: "Prova: azzera il conteggio",
     accounts: "Conti",
     displayCurrency: "Valuta di visualizzazione",
     appearance: "Aspetto",
@@ -657,6 +660,8 @@ export const it: typeof en = {
     startedTitle: "I tuoi 45 giorni iniziano oggi",
     startedBody:
       "Keel è tutto tuo fino al {{date}}. Dopo vedrai comunque tutto, potrai segnare pagato ed esportare i tuoi dati quando vuoi. Aggiungere e modificare richiederanno Full Keel, un acquisto unico. Niente si rinnova, niente da disdire.",
+    warnBody:
+      "Dopo, Keel passa in sola lettura. Un solo acquisto tiene tutti gli strumenti, al prezzo di prova finché il conteggio corre.",
     daysLeft_one: "{{count}} giorno di prova rimasto",
     daysLeft_other: "{{count}} giorni di prova rimasti",
     disclosure:

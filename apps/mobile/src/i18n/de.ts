@@ -521,6 +521,9 @@ export const de: typeof en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (Debug)",
+    debugTrial6: "Test: noch 6 Tage",
+    debugTrialExpire: "Test: jetzt beenden (schreibgeschützt)",
+    debugTrialReset: "Test: Uhr zurücksetzen",
     accounts: "Konten",
     displayCurrency: "Anzeigewährung",
     appearance: "Aussehen",
@@ -659,6 +662,8 @@ export const de: typeof en = {
     startedTitle: "Deine 45 Tage starten heute",
     startedBody:
       "Keel gehört dir komplett bis zum {{date}}. Danach siehst du weiter alles, kannst als bezahlt markieren und deine Daten jederzeit exportieren. Hinzufügen und Bearbeiten brauchen dann Full Keel, einen einmaligen Kauf. Nichts verlängert sich, nichts zu kündigen.",
+    warnBody:
+      "Danach wird Keel schreibgeschützt. Ein Kauf behält alle Werkzeuge, zum Testpreis solange deine Uhr noch läuft.",
     daysLeft_one: "Noch {{count}} Testtag",
     daysLeft_other: "Noch {{count}} Testtage",
     disclosure:

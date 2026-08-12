@@ -516,6 +516,9 @@ export const en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (debug)",
+    debugTrial6: "Trial: 6 days left",
+    debugTrialExpire: "Trial: end now (read-only)",
+    debugTrialReset: "Trial: reset the clock",
     accounts: "Accounts",
     displayCurrency: "Display currency",
     appearance: "Appearance",
@@ -653,6 +656,8 @@ export const en = {
     startedTitle: "Your 45 days start today",
     startedBody:
       "Keel is fully yours until {{date}}. After that you will still see everything, mark things paid and export your data anytime. Adding and editing will need Full Keel, a one-time purchase. Nothing renews, nothing to cancel.",
+    warnBody:
+      "After that, Keel goes read-only. One purchase keeps every tool, at the trial price while your clock still runs.",
     daysLeft_one: "{{count}} trial day left",
     daysLeft_other: "{{count}} trial days left",
     disclosure:
