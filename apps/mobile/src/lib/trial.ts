@@ -23,6 +23,11 @@ const KEY = "keel.trialstart.v1";
 
 type SecureStoreModule = typeof import("expo-secure-store");
 async function secureStore(): Promise<SecureStoreModule | null> {
+  // Probe availability FIRST: importing the JS package on a binary without
+  // the native module logs a RED error even inside try/catch (its module
+  // scope calls requireNativeModule). The optional probe stays silent —
+  // the dominant-color lesson, applied here too.
+  if (!requireOptionalNativeModule("ExpoSecureStore")) return null;
   try {
     return await import("expo-secure-store");
   } catch {

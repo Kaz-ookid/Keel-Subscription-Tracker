@@ -16,6 +16,8 @@
 // enroll in the Small Business Program. Sandbox QA: buy, relaunch, delete +
 // reinstall + restore, second family account, airplane-mode failures.
 
+import { requireOptionalNativeModule } from "expo-modules-core";
+
 import type { TrialState } from "@keel/core";
 
 import { setFullKeel } from "./entitlement";
@@ -35,6 +37,10 @@ export function fullKeelSku(state: TrialState): string {
 
 /** The lazy native door: null in Expo Go / on builds without the module. */
 async function store(): Promise<typeof import("expo-iap") | null> {
+  // Probe availability FIRST — importing the JS package on a binary without
+  // the native module logs a RED error even inside try/catch (its module
+  // scope calls requireNativeModule). The optional probe stays silent.
+  if (!requireOptionalNativeModule("ExpoIap")) return null;
   try {
     return await import("expo-iap");
   } catch {
