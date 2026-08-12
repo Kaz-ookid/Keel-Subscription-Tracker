@@ -19,6 +19,8 @@ import { clearTrialAnchor, loadTrialAnchor, saveTrialAnchor } from "./trial";
 const FULL_KEY = "keel.fullkeel.v1";
 /** The retired read meter's key — removed on hydrate so no trace lingers. */
 const LEGACY_READS_KEY = "keel.aiReadsUsed.v1";
+/** Set once the expiry sheet has been presented, so it never nags twice. */
+const LOCK_SHOWN_KEY = "keel.lockshown.v1";
 
 export interface Entitlement {
   hydrated: boolean;
@@ -126,11 +128,25 @@ export async function resetEntitlement(): Promise<void> {
   state = derive(false, null, true);
   emit();
   try {
-    await AsyncStorage.removeItem(FULL_KEY);
+    await AsyncStorage.multiRemove([FULL_KEY, LOCK_SHOWN_KEY]);
   } catch {
     // Best-effort.
   }
   await clearTrialAnchor();
+}
+
+/** True EXACTLY ONCE when the app is locked and the expiry sheet hasn't been
+ *  presented yet — the "clear screen at expiry" without a nag loop. */
+export async function shouldPresentLockOnce(): Promise<boolean> {
+  await hydrateEntitlement();
+  if (!state.locked) return false;
+  try {
+    if ((await AsyncStorage.getItem(LOCK_SHOWN_KEY)) === "true") return false;
+    await AsyncStorage.setItem(LOCK_SHOWN_KEY, "true");
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** The current snapshot for non-React call sites (reminder sync, widgets). */

@@ -365,6 +365,10 @@ export default function OnboardingScreen() {
             style={styles.ctaSecondary}
           />
           <Button label={t("onboarding.startUsing")} onPress={finish} style={styles.cta} />
+          {/* Day-one honesty (§7.3): the trial and the price, said once,
+              calmly, on the pane every route exits through. Surprise is
+              what writes one-star reviews. */}
+          <Text style={styles.disclosure}>{t("trial.disclosure")}</Text>
           {/* The logo question is a REQUIRED first-run decision. The picker
               and the AI review ask it in context; this is the catch-all for
               the manual path, since every route exits through this pane. It
@@ -445,6 +449,14 @@ function createStyles(colors: ThemeColors) {
       color: colors.mutedText,
       textAlign: "center",
       lineHeight: 24,
+    },
+    // The one calm trial/price line on the done pane — a caption, not a nag.
+    disclosure: {
+      ...typography.caption,
+      color: colors.mutedText,
+      textAlign: "center",
+      lineHeight: 18,
+      paddingHorizontal: spacing.md,
     },
     methodPane: {
       flex: 1,

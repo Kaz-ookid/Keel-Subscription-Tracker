@@ -320,7 +320,11 @@ export default function SettingsScreen() {
             <Text style={styles.fullkeelSub}>
               {entitlement.owned
                 ? t("fullkeel.bannerOwned")
-                : `${t("fullkeel.bannerSub")} · ${FULL_KEEL_PRICE}`}
+                : // Quiet countdown in the final stretch (§7.3: nothing before
+                  // day 30); before that the banner just names the deal.
+                  entitlement.state === "trial" && entitlement.daysLeft <= 30
+                  ? `${t("trial.daysLeft", { count: entitlement.daysLeft })} · ${FULL_KEEL_PRICE}`
+                  : `${t("fullkeel.bannerSub")} · ${FULL_KEEL_PRICE}`}
             </Text>
           </View>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />

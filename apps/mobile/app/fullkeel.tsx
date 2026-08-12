@@ -1,32 +1,76 @@
-// Full Keel: the one-time supporter purchase. The pitch is honesty itself:
-// everything you already use stays free for everyone, this unlocks the fast
-// lane (unlimited AI reads + every future premium feature) and doubles as
-// the thank-you. Until StoreKit is wired (dev-build era), the CTA explains
-// that purchases arrive with the App Store release; the debug switch in
-// Settings flips ownership for testing.
+// Full Keel: the one-time purchase (PROJECT_BRIEF §7.3). The pitch is
+// honesty itself: your data and charts stay yours forever, this returns the
+// working tools once the 45-day trial ends, and nothing ever renews. TWO
+// prices, one mechanism: 12 CHF while YOUR trial still runs (deciding early
+// is rewarded), 15 CHF after. The live localized store price leads when
+// StoreKit can supply it; the constants are the offline fallback. On
+// binaries without StoreKit (Expo Go, old dev clients) buying explains
+// itself instead of failing; the Settings debug switch stays the tester
+// escape hatch.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FULL_KEEL_PRICE, FULL_KEEL_PRICE_LATER } from "../src/constants";
 import { Button } from "../src/components/ui/Button";
 import { Sheen } from "../src/components/ui/Sheen";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
+import { buyFullKeel, fullKeelDisplayPrice, restoreFullKeel } from "../src/lib/purchases";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
 export default function FullKeelScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { owned: full } = useEntitlement();
+  const entitlement = useEntitlement();
+  const full = entitlement.owned;
   const [cardWidth, setCardWidth] = useState(0);
+  const [busy, setBusy] = useState(false);
+  // The store's own localized price, when it can answer; fallback constants
+  // otherwise. Which product is on offer follows the buyer's trial state.
+  const [livePrice, setLivePrice] = useState<string | null>(null);
   const aiHidden = useAiHidden();
 
-  const buy = () =>
-    Alert.alert(t("fullkeel.soonTitle"), t("fullkeel.soonMsg"), [{ text: t("common.done") }]);
+  const earlyPrice = entitlement.state !== "expired";
+  const fallbackPrice = earlyPrice ? FULL_KEEL_PRICE : FULL_KEEL_PRICE_LATER;
+  const price = livePrice ?? fallbackPrice;
+
+  useEffect(() => {
+    let alive = true;
+    void fullKeelDisplayPrice(entitlement.state).then((resolved) => {
+      if (alive && resolved) setLivePrice(resolved);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [entitlement.state]);
+
+  const buy = async () => {
+    setBusy(true);
+    const outcome = await buyFullKeel(entitlement.state);
+    setBusy(false);
+    if (outcome === "failed") {
+      Alert.alert(t("fullkeel.buyFailTitle"), t("fullkeel.buyFailMsg"));
+    } else if (outcome === "unavailable") {
+      // Expo Go / a build without StoreKit: say so instead of a dead button.
+      Alert.alert(t("fullkeel.soonTitle"), t("fullkeel.soonMsg"), [{ text: t("common.done") }]);
+    }
+    // "purchased" needs no dialog: the owned hero takes over the screen.
+  };
+
+  const restore = async () => {
+    setBusy(true);
+    const outcome = await restoreFullKeel();
+    setBusy(false);
+    if (outcome === "none") {
+      Alert.alert(t("fullkeel.restoreNoneTitle"), t("fullkeel.restoreNoneMsg"));
+    } else if (outcome === "failed" || outcome === "unavailable") {
+      Alert.alert(t("fullkeel.buyFailTitle"), t("fullkeel.buyFailMsg"));
+    }
+  };
 
   return (
     <ScrollView
@@ -52,17 +96,28 @@ export default function FullKeelScreen() {
         ) : (
           <>
             <SymbolView name="sailboat.fill" size={34} tintColor={colors.accent} />
-            <Text style={styles.heroPrice}>{FULL_KEEL_PRICE}</Text>
-            <Text style={styles.heroTag}>{t("fullkeel.priceTag")}</Text>
-            <Text style={styles.heroNote}>
-              {t("fullkeel.priceNote", { later: FULL_KEEL_PRICE_LATER })}
+            <Text style={styles.heroPrice}>{price}</Text>
+            {/* While the buyer's trial runs, the tag names the reward and the
+                note names the price after; expired flips to the plain read. */}
+            <Text style={styles.heroTag}>
+              {earlyPrice ? t("fullkeel.priceTag") : t("fullkeel.priceTagLater")}
             </Text>
+            <Text style={styles.heroNote}>
+              {earlyPrice
+                ? t("fullkeel.priceNote", { later: FULL_KEEL_PRICE_LATER })
+                : t("fullkeel.priceNoteLater")}
+            </Text>
+            {entitlement.state === "trial" && entitlement.daysLeft <= 30 && (
+              <Text style={styles.countdown}>
+                {t("trial.daysLeft", { count: entitlement.daysLeft })}
+              </Text>
+            )}
           </>
         )}
       </View>
 
       <View style={styles.list}>
-        {(["includeAi", "includeFuture", "includeFamily"] as const)
+        {(["includeTools", "includeAi", "includeFuture", "includeFamily"] as const)
           .filter((key) => !(aiHidden && key === "includeAi"))
           .map((key) => (
             <View key={key} style={styles.listRow}>
@@ -74,12 +129,26 @@ export default function FullKeelScreen() {
 
       <Text style={styles.honesty}>{t("fullkeel.honesty")}</Text>
 
-      {!full && (
-        <Button
-          label={`${t("fullkeel.cta")} · ${FULL_KEEL_PRICE}`}
-          onPress={buy}
-          style={styles.cta}
-        />
+      {!full && busy && (
+        <View style={styles.busyRow}>
+          <ActivityIndicator color={colors.accent} />
+        </View>
+      )}
+      {!full && !busy && (
+        <>
+          <Button
+            label={`${t("fullkeel.cta")} · ${price}`}
+            onPress={() => void buy()}
+            style={styles.cta}
+          />
+          {/* App Review expects a restore affordance next to every paywall. */}
+          <Button
+            variant="secondary"
+            label={t("fullkeel.restore")}
+            onPress={() => void restore()}
+            style={styles.cta}
+          />
+        </>
       )}
     </ScrollView>
   );
@@ -119,6 +188,11 @@ function createStyles(colors: ThemeColors) {
       textAlign: "center",
       lineHeight: 18,
     },
+    countdown: {
+      ...typography.caption,
+      fontWeight: "600",
+      color: colors.tones.warning,
+    },
     list: { gap: spacing.sm, paddingHorizontal: spacing.xs },
     listRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     listText: { ...typography.body, color: colors.text, flex: 1 },
@@ -128,6 +202,7 @@ function createStyles(colors: ThemeColors) {
       lineHeight: 18,
       paddingHorizontal: spacing.xs,
     },
+    busyRow: { alignItems: "center", paddingVertical: spacing.md },
     cta: { alignSelf: "stretch" },
   });
 }
