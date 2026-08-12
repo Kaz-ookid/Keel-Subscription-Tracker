@@ -13,6 +13,12 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "beta": {
+      "extends": "production",
+      "env": {
+        "EXPO_PUBLIC_DEBUG_TOOLS": "1"
+      }
     }
   },
   "submit": {

@@ -92,6 +92,10 @@ const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
 
+/** The debug drawer's existence, decided at BUILD time: dev clients always,
+ *  TestFlight via the beta profile's env var, the App Store build never. */
+const DEBUG_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEBUG_TOOLS === "1";
+
 /** Which value wheel is up (§9d: values pick on the bottom wheel). */
 type SettingsWheel = "currency" | "theme" | "language" | "grace";
 
@@ -534,19 +538,25 @@ export default function SettingsScreen() {
 
         {/* Debug, for dogfooding and beta testers: collapsed by default so it
             never clutters the list, but one tap away when a tester needs to
-            seed data or replay onboarding. */}
-        <Pressable style={styles.debugHeader} onPress={() => setDebugOpen((open) => !open)}>
-          {/* groupLabel's negative bottom margin (the card tuck) would lift
+            seed data or replay onboarding. GATED out of production builds
+            (§7.3 launch blocker h): the Full Keel switch inside is a one-tap
+            paywall bypass. Dev clients get it via __DEV__; TestFlight builds
+            via the `beta` EAS profile's EXPO_PUBLIC_DEBUG_TOOLS=1; the App
+            Store build has neither, so the drawer does not exist there. */}
+        {DEBUG_TOOLS && (
+          <Pressable style={styles.debugHeader} onPress={() => setDebugOpen((open) => !open)}>
+            {/* groupLabel's negative bottom margin (the card tuck) would lift
               the text off the chevron's centerline inside this row; the row
               carries the tuck instead. */}
-          <Text style={[styles.groupLabel, styles.debugLabel]}>{t("settings.groupDebug")}</Text>
-          <SymbolView
-            name={debugOpen ? "chevron.down" : "chevron.right"}
-            size={12}
-            tintColor={colors.mutedText}
-          />
-        </Pressable>
-        {debugOpen && (
+            <Text style={[styles.groupLabel, styles.debugLabel]}>{t("settings.groupDebug")}</Text>
+            <SymbolView
+              name={debugOpen ? "chevron.down" : "chevron.right"}
+              size={12}
+              tintColor={colors.mutedText}
+            />
+          </Pressable>
+        )}
+        {DEBUG_TOOLS && debugOpen && (
           <Animated.View entering={foldIn} exiting={foldOut}>
             <Card>
               <SettingsRow
