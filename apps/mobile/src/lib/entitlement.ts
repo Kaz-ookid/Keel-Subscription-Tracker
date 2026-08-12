@@ -129,7 +129,9 @@ async function maybeWarnExpiry(): Promise<void> {
     return; // Can't record it — better silent than nagging every launch.
   }
   Alert.alert(i18n.t("trial.daysLeft", { count: state.daysLeft }), i18n.t("trial.warnBody"), [
-    { text: i18n.t("common.done") },
+    // Red "Close" (destructive style): dismissing reads as walking past the
+    // deal, not as completing something.
+    { text: i18n.t("common.close"), style: "destructive" },
     { text: i18n.t("fullkeel.cta"), onPress: () => router.push("/fullkeel") },
   ]);
 }
