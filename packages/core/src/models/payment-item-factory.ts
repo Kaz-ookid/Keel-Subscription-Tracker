@@ -43,6 +43,7 @@ export interface NewRecurringInput {
   categoryId?: string;
   color?: string;
   domain?: string;
+  icon?: string;
   reminder?: ReminderRule;
   reminders?: readonly ReminderRule[];
   weekendShift?: WeekendShift;
@@ -87,6 +88,7 @@ export function makeRecurringPaymentItem(input: NewRecurringInput, ctx: MakeCont
     categoryId: input.categoryId,
     color: input.color,
     domain: input.domain,
+    icon: input.icon,
     reminder: input.reminder,
     reminders: input.reminders,
     weekendShift: input.weekendShift,
@@ -112,6 +114,7 @@ export interface NewInstallmentInput {
   categoryId?: string;
   color?: string;
   domain?: string;
+  icon?: string;
   reminder?: ReminderRule;
   reminders?: readonly ReminderRule[];
   weekendShift?: WeekendShift;
@@ -171,6 +174,7 @@ export function makeInstallmentPaymentItem(
     categoryId: input.categoryId,
     color: input.color,
     domain: input.domain,
+    icon: input.icon,
     reminder: input.reminder,
     reminders: input.reminders,
     weekendShift: input.weekendShift,

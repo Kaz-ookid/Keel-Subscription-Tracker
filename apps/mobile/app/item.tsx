@@ -196,7 +196,7 @@ export default function ItemScreen() {
         />
         <BrandBadge
           domain={item.domain}
-          icon={category?.icon}
+          icon={item.icon ?? category?.icon}
           fallback={item.name.charAt(0).toUpperCase()}
           color={brandBleed(item, colors.accent)}
           size={64}

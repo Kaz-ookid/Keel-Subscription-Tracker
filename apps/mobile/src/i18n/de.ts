@@ -296,6 +296,10 @@ export const de: typeof en = {
     logoPlaceholder: "Website (z. B. netflix.com)",
     logoHint: "Gib die Adresse der Website ein, um ihr Logo zu verwenden.",
     orColour: "Oder wähle eine Farbe",
+    orMark:
+      "Oder wähle ein eigenes Zeichen für diesen Eintrag: ein Icon oder ein beliebiges Emoji.",
+    markAuto: "Icon der Kategorie verwenden",
+    markEmoji: "Ein Emoji als Zeichen eintippen",
     description: "Beschreibung",
     optional: "Optional",
     amountIs: "Betrag ist",

@@ -33,6 +33,9 @@ export interface ProjectedCharge {
   categoryId?: string;
   color?: string;
   domain?: string;
+  /** The item's own badge mark (SF Symbol token or a single emoji); absent =
+   *  the category's icon. */
+  icon?: string;
   settlementMode: SettlementMode;
   scheduleType: ScheduleType;
   /** For installments: "payment 3 of 4". */
@@ -61,6 +64,7 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
     categoryId: item.categoryId,
     color: item.color,
     domain: item.domain,
+    icon: item.icon,
     settlementMode: item.settlementMode,
     scheduleType: item.scheduleType,
   };

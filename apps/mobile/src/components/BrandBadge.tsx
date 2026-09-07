@@ -39,8 +39,14 @@ interface Props {
   size?: number;
 }
 
-/** The plain circle: colour + icon or letter. Owns the SF-Symbol name cast so
- *  call sites stay clean. */
+/** An `icon` value that is an emoji, not an SF Symbol token. Symbol names
+ *  are plain ASCII ("tv.fill"); anything beyond is a mark to draw as text. */
+export function isEmojiMark(icon: string): boolean {
+  return /[^\x20-\x7E]/.test(icon);
+}
+
+/** The plain circle: colour + icon, emoji or letter. Owns the SF-Symbol name
+ *  cast so call sites stay clean. */
 function FallbackBadge({ icon, fallback, color, size }: Omit<Props, "domain"> & { size: number }) {
   // The glyph must read on ANY brand/user color — forced white died on the
   // pale swatches (yellow, mint). contrastText picks per background.
@@ -56,7 +62,12 @@ function FallbackBadge({ icon, fallback, color, size }: Omit<Props, "domain"> & 
         justifyContent: "center",
       }}
     >
-      {icon ? (
+      {icon && isEmojiMark(icon) ? (
+        // An emoji carries its own colors — no tint, a touch larger.
+        <Text style={{ fontSize: Math.round(size * 0.55), lineHeight: Math.round(size * 0.7) }}>
+          {icon}
+        </Text>
+      ) : icon ? (
         <SymbolView
           name={icon as SymbolViewProps["name"]}
           size={Math.round(size / 2)}

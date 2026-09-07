@@ -89,7 +89,7 @@ export const UpcomingRow = memo(function UpcomingRow({
       <View style={settled && styles.dimmed}>
         <BrandBadge
           domain={charge.domain}
-          icon={category?.icon}
+          icon={charge.icon ?? category?.icon}
           fallback={charge.name.charAt(0).toUpperCase()}
           color={accent}
           size={36}

@@ -126,6 +126,7 @@ export default function ByAccountScreen() {
           name: e.name,
           domain: e.domain,
           color: e.color,
+          icon: e.icon,
           categoryId: e.categoryId,
           date: e.date,
           amount: e.amount,
@@ -138,6 +139,7 @@ export default function ByAccountScreen() {
             name: c.name,
             domain: c.domain,
             color: c.color,
+            icon: c.icon,
             categoryId: c.categoryId,
             date: c.dueDate,
             amount: c.amount,
@@ -219,7 +221,7 @@ export default function ByAccountScreen() {
                 >
                   <BrandBadge
                     domain={d.domain}
-                    icon={category?.icon}
+                    icon={d.icon ?? category?.icon}
                     fallback={d.name.charAt(0).toUpperCase()}
                     color={d.color ?? colors.accent}
                     size={28}
@@ -256,7 +258,7 @@ export default function ByAccountScreen() {
                 >
                   <BrandBadge
                     domain={item.domain}
-                    icon={category?.icon}
+                    icon={item.icon ?? category?.icon}
                     fallback={item.name.charAt(0).toUpperCase()}
                     color={item.color ?? colors.accent}
                     size={28}

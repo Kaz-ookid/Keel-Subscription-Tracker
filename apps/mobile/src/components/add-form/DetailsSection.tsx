@@ -37,7 +37,7 @@ export function IdentityHeader({ form }: { form: AddForm }) {
           >
             <BrandBadge
               domain={form.domain}
-              icon={form.selectedCategory?.icon}
+              icon={form.icon ?? form.selectedCategory?.icon}
               fallback={(form.name.trim().charAt(0) || "?").toUpperCase()}
               color={form.color ?? colors.accent}
               size={64}

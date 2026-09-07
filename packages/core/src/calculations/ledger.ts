@@ -16,6 +16,7 @@ export interface LedgerEntry {
   name: string;
   domain?: string;
   color?: string;
+  icon?: string;
   categoryId?: string;
   /** The account it was paid from (occurrence's, else the item's). */
   accountId?: string;
@@ -51,6 +52,7 @@ export function buildSpendLedger(
       name: item.name,
       domain: item.domain,
       color: item.color,
+      icon: item.icon,
       categoryId: item.categoryId,
       accountId: o.paidFromAccountId ?? item.accountId,
       date: o.dueDate,
@@ -69,6 +71,7 @@ export function buildSpendLedger(
         name: item.name,
         domain: item.domain,
         color: item.color,
+        icon: item.icon,
         categoryId: item.categoryId,
         accountId: inst.paidFromAccountId ?? item.accountId,
         date: inst.dueDate,

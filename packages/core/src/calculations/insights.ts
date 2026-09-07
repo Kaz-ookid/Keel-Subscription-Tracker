@@ -112,6 +112,7 @@ export interface CategorySpendingItem {
   name: string;
   color?: string;
   domain?: string;
+  icon?: string;
   /** This item's real money in the window, one total per currency. */
   totals: Money[];
 }
@@ -178,6 +179,7 @@ export function spendingByCategory(
       name: item.name,
       color: item.color,
       domain: item.domain,
+      icon: item.icon,
       totals: sumByCurrency(amounts),
     };
     const group = groups.get(key);
@@ -324,6 +326,7 @@ export interface PriceChangeSummary {
   categoryId?: string;
   color?: string;
   domain?: string;
+  icon?: string;
   /** When the commitment started billing (the first price's effective date). */
   since: CalendarDate;
   /** How many times the price changed. */
@@ -360,6 +363,7 @@ export function summarizePriceChanges(
         categoryId: item.categoryId,
         color: item.color,
         domain: item.domain,
+        icon: item.icon,
         since: history[0].effectiveFrom,
         changes: history.length - 1,
         original,

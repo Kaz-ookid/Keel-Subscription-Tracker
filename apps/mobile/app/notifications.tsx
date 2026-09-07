@@ -359,7 +359,7 @@ export default function NotificationsScreen() {
               >
                 <BrandBadge
                   domain={item.domain}
-                  icon={category?.icon}
+                  icon={item.icon ?? category?.icon}
                   fallback={item.name.charAt(0).toUpperCase()}
                   color={item.color ?? colors.accent}
                   size={32}

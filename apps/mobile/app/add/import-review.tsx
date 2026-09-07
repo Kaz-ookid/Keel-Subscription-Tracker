@@ -212,7 +212,7 @@ export default function ImportReviewScreen() {
       >
         <BrandBadge
           domain={input.domain}
-          icon={category?.icon}
+          icon={input.icon ?? category?.icon}
           fallback={input.name.charAt(0).toUpperCase()}
           color={input.color ?? colors.accent}
           size={36}

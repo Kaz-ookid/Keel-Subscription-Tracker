@@ -134,6 +134,10 @@ export interface PaymentItem {
   /** Optional brand website (e.g. "netflix.com") — platforms may fetch a
    *  logo from it at runtime; never required, plain text only. */
   domain?: string;
+  /** Optional badge mark of the item's own: an icon token the platform maps
+   *  to its icon set (like Category.icon), or a single emoji. Absent = the
+   *  category's icon. */
+  icon?: string;
   /** Optional per-subscription reminder; absent = never remind. Kept as the
    *  MIRROR of `reminders[0]` for blobs read by older builds — read through
    *  `reminderRules()`, never directly. */

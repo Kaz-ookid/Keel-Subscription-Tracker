@@ -195,7 +195,7 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
                 />
                 <BrandBadge
                   domain={c.domain}
-                  icon={category?.icon}
+                  icon={c.icon ?? category?.icon}
                   fallback={c.name.charAt(0).toUpperCase()}
                   color={c.color ?? colors.accent}
                   size={24}
@@ -299,7 +299,7 @@ const MonthGrid = memo(function MonthGrid({
                       <View key={c.key} style={c.paid && styles.paidBadge}>
                         <BrandBadge
                           domain={c.domain}
-                          icon={category?.icon}
+                          icon={c.icon ?? category?.icon}
                           fallback={c.name.charAt(0).toUpperCase()}
                           color={c.color ?? colors.accent}
                           size={18}

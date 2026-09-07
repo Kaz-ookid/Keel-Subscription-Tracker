@@ -131,5 +131,37 @@ function createFormStyles(colors: ThemeColors) {
       alignItems: "center",
       justifyContent: "center",
     },
+    // The mark grid (identity sheet): same cell language as the category
+    // sheet's icon choices — tinted when active, never a solid block (§9f).
+    markGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.lg,
+      justifyContent: "center",
+    },
+    markCell: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.md,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.material,
+      borderWidth: 1,
+      borderColor: colors.hairline,
+    },
+    markCellActive: {
+      backgroundColor: withAlpha(colors.accent, 0.18),
+      borderColor: withAlpha(colors.accent, 0.45),
+    },
+    markEmojiInput: {
+      ...typography.body,
+      fontSize: 22,
+      textAlign: "center",
+      width: 44,
+      height: 44,
+      padding: 0,
+    },
   });
 }

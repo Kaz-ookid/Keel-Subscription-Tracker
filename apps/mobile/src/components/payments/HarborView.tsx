@@ -523,7 +523,7 @@ export function HarborView() {
                   >
                     <BrandBadge
                       domain={item.domain}
-                      icon={category?.icon}
+                      icon={item.icon ?? category?.icon}
                       fallback={item.name.charAt(0).toUpperCase()}
                       color={item.color ?? colors.accent}
                       size={24}
@@ -557,7 +557,7 @@ export function HarborView() {
                 >
                   <BrandBadge
                     domain={c.charge.domain}
-                    icon={category?.icon}
+                    icon={c.charge.icon ?? category?.icon}
                     fallback={c.charge.name.charAt(0).toUpperCase()}
                     color={c.charge.color ?? colors.accent}
                     size={22}
@@ -627,7 +627,7 @@ export function HarborView() {
                         >
                           <BrandBadge
                             domain={c.charge.domain}
-                            icon={category?.icon}
+                            icon={c.charge.icon ?? category?.icon}
                             fallback={c.charge.name.charAt(0).toUpperCase()}
                             color={c.charge.color ?? colors.accent}
                             size={anchor.size}
@@ -687,7 +687,7 @@ export function HarborView() {
                     >
                       <BrandBadge
                         domain={c.charge.domain}
-                        icon={category?.icon}
+                        icon={c.charge.icon ?? category?.icon}
                         fallback={c.charge.name.charAt(0).toUpperCase()}
                         color={c.charge.color ?? colors.accent}
                         size={22}

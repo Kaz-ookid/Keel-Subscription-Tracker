@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { ICON_POOL } from "../constants";
 import { useAppActions, useAppData } from "../state/app-state";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../theme";
 import { Sheet } from "./Sheet";
@@ -10,24 +11,8 @@ import { Button } from "./ui/Button";
 
 type SymbolName = SymbolViewProps["name"];
 
-// SF Symbols offered when creating a custom category.
-const ICON_CHOICES = [
-  "star.fill",
-  "tag.fill",
-  "creditcard.fill",
-  "cart.fill",
-  "gift.fill",
-  "gamecontroller.fill",
-  "music.note",
-  "film.fill",
-  "book.fill",
-  "airplane",
-  "fork.knife",
-  "dumbbell.fill",
-  "pawprint.fill",
-  "wrench.and.screwdriver.fill",
-  "globe",
-];
+// The shared mark pool — same set the item form's icon override offers.
+const ICON_CHOICES = ICON_POOL;
 
 interface Props {
   visible: boolean;
@@ -45,7 +30,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
   const { addCategory } = useAppActions();
   const [adding, setAdding] = useState(false);
   const [name, setName] = useState("");
-  const [icon, setIcon] = useState(ICON_CHOICES[0]);
+  const [icon, setIcon] = useState<string>(ICON_CHOICES[0]);
 
   const pick = (id: string | undefined) => {
     onSelect(id);

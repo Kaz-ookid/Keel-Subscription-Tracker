@@ -199,6 +199,7 @@ export function isValidPaymentItem(value: unknown): value is PaymentItem {
     optional(value.categoryId, isNonEmptyString) &&
     optional(value.color, (v) => typeof v === "string") &&
     optional(value.domain, (v) => typeof v === "string") &&
+    optional(value.icon, (v) => typeof v === "string") &&
     optional(value.reminder, isValidReminder) &&
     optional(value.reminders, (v) => Array.isArray(v) && v.every(isValidReminder)) &&
     optional(value.weekendShift, (v) => v === "before" || v === "after") &&

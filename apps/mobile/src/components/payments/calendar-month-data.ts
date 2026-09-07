@@ -22,6 +22,7 @@ export interface DayCharge {
   amount: Money;
   domain?: string;
   color?: string;
+  icon?: string;
   categoryId?: string;
   paid: boolean;
   overdue: boolean;
@@ -55,6 +56,7 @@ export function monthCharges(
           amount: o.amount,
           domain: item.domain,
           color: item.color,
+          icon: item.icon,
           categoryId: item.categoryId,
           paid: true,
           overdue: false,
@@ -78,6 +80,7 @@ export function monthCharges(
           amount: inst.amount,
           domain: item.domain,
           color: item.color,
+          icon: item.icon,
           categoryId: item.categoryId,
           paid: true,
           overdue: false,
@@ -95,6 +98,7 @@ export function monthCharges(
         amount: c.amount,
         domain: c.domain,
         color: c.color,
+        icon: c.icon,
         categoryId: c.categoryId,
         paid: false,
         overdue: c.dueDate < asOf,

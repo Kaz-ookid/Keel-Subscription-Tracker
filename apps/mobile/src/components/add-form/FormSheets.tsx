@@ -13,13 +13,13 @@ import { type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
-import { SymbolView } from "expo-symbols";
+import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
-import { COLOR_SWATCHES } from "../../constants";
+import { COLOR_SWATCHES, ICON_POOL } from "../../constants";
 import { formatHour } from "../../lib/dates";
 import { contrastText, spacing, typography, useTheme } from "../../theme";
 import { AccountPickerSheet } from "../AccountSheet";
-import { BrandBadge } from "../BrandBadge";
+import { BrandBadge, isEmojiMark } from "../BrandBadge";
 import { CategorySheet } from "../CategorySheet";
 import { Sheet } from "../Sheet";
 import { OptionWheel } from "../ui/OptionWheel";
@@ -224,7 +224,7 @@ export function FormSheets({ form }: { form: AddForm }) {
         >
           <BrandBadge
             domain={form.domain}
-            icon={form.selectedCategory?.icon}
+            icon={form.icon ?? form.selectedCategory?.icon}
             fallback={(form.name.trim().charAt(0) || "?").toUpperCase()}
             color={form.color ?? colors.accent}
             size={56}
@@ -253,46 +253,110 @@ export function FormSheets({ form }: { form: AddForm }) {
         >
           {t("add.orColour")}
         </Text>
-        <ScrollView contentContainerStyle={styles.swatchGrid}>
-          {/* The ADAPTIVE swatch: the exact color of the latest logo (or a
+        <ScrollView>
+          <View style={styles.swatchGrid}>
+            {/* The ADAPTIVE swatch: the exact color of the latest logo (or a
               bank hex) leads the grid. It sticks around even after the logo
               is removed, so "that green" stays pickable as a plain colour. */}
-          {form.adaptiveColor && (
+            {form.adaptiveColor && (
+              <Pressable
+                onPress={() => {
+                  // Same grammar as any swatch: a colour, not a logo.
+                  form.setColor(form.adaptiveColor);
+                  form.setDomain(undefined);
+                  close();
+                }}
+                style={[styles.colorSwatch, { backgroundColor: form.adaptiveColor }]}
+              >
+                {form.color === form.adaptiveColor && (
+                  <SymbolView
+                    name="checkmark"
+                    size={18}
+                    tintColor={contrastText(form.adaptiveColor)}
+                  />
+                )}
+              </Pressable>
+            )}
+            {COLOR_SWATCHES.map((c) => (
+              <Pressable
+                key={c}
+                onPress={() => {
+                  // Choosing a colour means "use a colour, not a logo".
+                  form.setColor(c);
+                  form.setDomain(undefined);
+                  close();
+                }}
+                style={[styles.colorSwatch, { backgroundColor: c }]}
+              >
+                {/* A checkmark reads on any swatch — a dark ring didn't. */}
+                {form.color === c && (
+                  <SymbolView name="checkmark" size={18} tintColor={contrastText(c)} />
+                )}
+              </Pressable>
+            ))}
+          </View>
+
+          {/* The mark: the item's own icon (or emoji) on the plain badge.
+              Doesn't touch the logo — a rendered logo still wins; the mark
+              shows wherever the plain badge does. */}
+          <Text
+            style={{
+              ...typography.caption,
+              color: colors.mutedText,
+              marginBottom: spacing.sm,
+              paddingHorizontal: spacing.md,
+            }}
+          >
+            {t("add.orMark")}
+          </Text>
+          <View style={styles.markGrid}>
+            {/* Auto: back to the category's icon. */}
             <Pressable
-              onPress={() => {
-                // Same grammar as any swatch: a colour, not a logo.
-                form.setColor(form.adaptiveColor);
-                form.setDomain(undefined);
-                close();
-              }}
-              style={[styles.colorSwatch, { backgroundColor: form.adaptiveColor }]}
+              onPress={() => form.setIcon(undefined)}
+              style={[styles.markCell, form.icon === undefined && styles.markCellActive]}
+              accessibilityLabel={t("add.markAuto")}
             >
-              {form.color === form.adaptiveColor && (
+              <SymbolView
+                name={(form.selectedCategory?.icon ?? "sparkles") as SymbolViewProps["name"]}
+                size={22}
+                tintColor={form.icon === undefined ? colors.accent : colors.mutedText}
+              />
+            </Pressable>
+            {ICON_POOL.map((choice) => (
+              <Pressable
+                key={choice}
+                onPress={() => form.setIcon(choice)}
+                style={[styles.markCell, form.icon === choice && styles.markCellActive]}
+              >
                 <SymbolView
-                  name="checkmark"
-                  size={18}
-                  tintColor={contrastText(form.adaptiveColor)}
+                  name={choice as SymbolViewProps["name"]}
+                  size={22}
+                  tintColor={form.icon === choice ? colors.accent : colors.text}
                 />
-              )}
-            </Pressable>
-          )}
-          {COLOR_SWATCHES.map((c) => (
-            <Pressable
-              key={c}
-              onPress={() => {
-                // Choosing a colour means "use a colour, not a logo".
-                form.setColor(c);
-                form.setDomain(undefined);
-                close();
-              }}
-              style={[styles.colorSwatch, { backgroundColor: c }]}
+              </Pressable>
+            ))}
+            {/* Any Apple emoji, via the emoji keyboard: type one in the cell. */}
+            <View
+              style={[
+                styles.markCell,
+                form.icon !== undefined && isEmojiMark(form.icon) && styles.markCellActive,
+              ]}
             >
-              {/* A checkmark reads on any swatch — a dark ring didn't. */}
-              {form.color === c && (
-                <SymbolView name="checkmark" size={18} tintColor={contrastText(c)} />
-              )}
-            </Pressable>
-          ))}
+              <TextInput
+                style={styles.markEmojiInput}
+                value={form.icon && isEmojiMark(form.icon) ? form.icon : ""}
+                placeholder="😀"
+                placeholderTextColor={colors.mutedText}
+                onChangeText={(text) => {
+                  const mark = text.trim();
+                  if (!mark) return;
+                  // Only a real emoji counts; letters stay the fallback's job.
+                  if (isEmojiMark(mark)) form.setIcon(mark.slice(0, 8));
+                }}
+                accessibilityLabel={t("add.markEmoji")}
+              />
+            </View>
+          </View>
         </ScrollView>
       </Sheet>
     </>

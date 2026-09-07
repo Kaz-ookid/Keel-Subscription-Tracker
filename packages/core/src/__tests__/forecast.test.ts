@@ -41,6 +41,15 @@ const ids = (prefix: string) => {
 };
 
 describe("projectItemCharges — recurring", () => {
+  it("denormalises the identity fields (color, domain, icon) into each charge", () => {
+    const item = makeRecurringPaymentItem(
+      { ...netflix, color: "#E50914", domain: "netflix.com", icon: "tv.fill" },
+      { id: "r1", now: now() },
+    );
+    const [charge] = projectItemCharges(item, calendarDate("2026-06-30"));
+    expect(charge).toMatchObject({ color: "#E50914", domain: "netflix.com", icon: "tv.fill" });
+  });
+
   it("steps from the cursor through the window", () => {
     const item = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
     const charges = projectItemCharges(item, calendarDate("2026-08-31"));

@@ -94,7 +94,7 @@ export default function PriceChangesScreen() {
             <View style={styles.cardHeader}>
               <BrandBadge
                 domain={c.domain}
-                icon={category?.icon}
+                icon={c.icon ?? category?.icon}
                 fallback={c.name.charAt(0).toUpperCase()}
                 color={c.color ?? colors.accent}
                 size={32}

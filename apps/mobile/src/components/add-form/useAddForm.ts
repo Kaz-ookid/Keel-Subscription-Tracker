@@ -324,6 +324,9 @@ export function useAddForm(prefill?: SuggestionPrefill) {
       }),
     [domain],
   );
+  // The item's own badge mark (SF Symbol or emoji); undefined = the
+  // category's icon, which is what the badge falls back to everywhere.
+  const [icon, setIcon] = useState<string | undefined>(() => seedItem?.icon);
   const [notes, setNotes] = useState(() => seedItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
@@ -359,6 +362,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     accountId,
     color,
     domain,
+    icon,
   }));
   const guardBypass = useRef(false);
   const isDirty =
@@ -382,7 +386,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     categoryId !== initial.categoryId ||
     accountId !== initial.accountId ||
     color !== initial.color ||
-    domain !== initial.domain;
+    domain !== initial.domain ||
+    icon !== initial.icon;
 
   const isInstallment = planType === "installment";
   const amountValue = parseFloat(amountText.replace(",", "."));
@@ -547,6 +552,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         categoryId,
         color,
         domain,
+        icon,
         ...reminderFields,
         weekendShift: weekendShift === "none" ? undefined : weekendShift,
         notes: notes.trim() || undefined,
@@ -585,6 +591,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         categoryId,
         color,
         domain,
+        icon,
         ...reminderFields,
         weekendShift: weekendShift === "none" ? undefined : weekendShift,
         notes: notes.trim() || undefined,
@@ -714,6 +721,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     adaptiveColor,
     domain,
     setDomain,
+    icon,
+    setIcon,
     nameSuggestions,
     // Derived
     amountValue,

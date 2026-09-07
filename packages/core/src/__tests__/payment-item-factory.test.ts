@@ -50,13 +50,14 @@ describe("makeRecurringPaymentItem", () => {
     ]);
   });
 
-  it("passes the brand fields (color, domain) through to the item", () => {
+  it("passes the identity fields (color, domain, icon) through to the item", () => {
     const item = makeRecurringPaymentItem(
-      { ...input, color: "#E50914", domain: "netflix.com" },
+      { ...input, color: "#E50914", domain: "netflix.com", icon: "tv.fill" },
       { id: "item-1", now: now() },
     );
     expect(item.color).toBe("#E50914");
     expect(item.domain).toBe("netflix.com");
+    expect(item.icon).toBe("tv.fill");
   });
 
   it("snaps an off-grid end date down to the latest billing date", () => {
