@@ -278,6 +278,10 @@ const MonthGrid = memo(function MonthGrid({
               <Pressable
                 key={date}
                 style={[styles.dayCell, isSelected && styles.daySelected]}
+                // An empty day has nothing to show: not tappable — tapping
+                // it only moved the highlight onto a blank, which read as
+                // the calendar doing nothing.
+                disabled={dayCharges.length === 0}
                 onPress={() => onSelectDay(date)}
               >
                 {/* Today wears a ring; the overdue tint never overrides
