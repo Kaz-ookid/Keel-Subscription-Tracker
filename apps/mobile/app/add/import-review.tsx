@@ -42,7 +42,6 @@ const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
   "cadence-defaulted": "importAI.warnCadenceDefaulted",
   "date-defaulted": "importAI.warnDateDefaulted",
   "provider-unknown": "importAI.warnProviderUnknown",
-  "name-suspect": "importAI.warnNameSuspect",
   duplicate: "importAI.warnDuplicate",
 };
 
@@ -79,7 +78,6 @@ export default function ImportReviewScreen() {
     (d) =>
       d.warnings.length > 0 ||
       d.uncertainFields.length > 0 ||
-      d.assumedFields.includes("settlement") ||
       d.input.notes ||
       !d.settlePast ||
       d.accountName,
@@ -180,25 +178,22 @@ export default function ImportReviewScreen() {
         return key ? t(key, { detail: w.detail }) : null;
       })
       .filter((line): line is string => line !== null);
-    // The per-item report: everything the user should look at, in orange. An
-    // assumed settlement gets its own actionable line ("Assumed: x · y" read
-    // as noise); the other assumed fields already surface through warnings.
+    // The per-item report: everything the user should look at, in orange,
+    // plus ONE quiet line naming the fields the parser defaulted because the
+    // input didn't state them. (Format v2 computes assumptions in code, so
+    // the line is accurate and short; the old model self-reports were noise.)
     const uncertainLines = draft.uncertainFields.map((f) =>
       f === "name"
         ? t("importAI.uncertainName")
         : t("importAI.uncertainGeneric", { field: t(FIELD_KEYS[f]) }),
     );
-    const settlementAssumed =
-      draft.assumedFields.includes("settlement") && !draft.uncertainFields.includes("settlement");
-    if (settlementAssumed) {
-      uncertainLines.push(
-        t(
-          input.settlementMode === "manual"
-            ? "importAI.warnSettlementAssumedManual"
-            : "importAI.warnSettlementAssumedAuto",
-        ),
-      );
-    }
+    const assumedShown = draft.assumedFields.filter((f) => !draft.uncertainFields.includes(f));
+    const assumedLine =
+      assumedShown.length > 0
+        ? t("importAI.assumedLine", {
+            fields: assumedShown.map((f) => t(FIELD_KEYS[f])).join(" · "),
+          })
+        : null;
     const flagged =
       warningLines.length > 0 ||
       uncertainLines.length > 0 ||
@@ -252,6 +247,8 @@ export default function ImportReviewScreen() {
               ⚠ {line}
             </Text>
           ))}
+          {/* Quiet by design: defaults are fine, the user just gets to know. */}
+          {assumedLine && <Text style={styles.sub}>{assumedLine}</Text>}
         </View>
         <View style={styles.actions}>
           <Pressable

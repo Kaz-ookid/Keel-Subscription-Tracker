@@ -14,7 +14,7 @@ import type { NewInstallmentInput, NewRecurringInput } from "../models/payment-i
 import { fromMajor } from "../primitives/money";
 import type { MonthlyAnchor, RecurrenceRule, TimeUnit } from "../primitives/recurrence";
 import { RECURRENCE_PRESETS } from "../primitives/recurrence";
-import { isCalendarDate, type CalendarDate } from "../primitives/temporal";
+import { calendarDate, isCalendarDate, type CalendarDate } from "../primitives/temporal";
 import { extractImportDocument } from "./extract";
 import { IMPORT_FIELD_NAMES } from "./types";
 import type {
@@ -42,8 +42,9 @@ export interface ImportContext {
 
 // A name that reads like a description, not a name: starts with an article,
 // embeds an amount+currency, contains a placeholder word ("purchase",
-// "payment"), or is sentence-long. The AI is asked to declare invented names
-// itself (`uncertain: ["name"]`); this is the safety net when it forgets.
+// "payment"), or is sentence-long. Since format v2 this heuristic is the
+// ONLY source of the "name needs checking" flag (the model no longer
+// self-reports); a v1 reply's own declaration is still merged in.
 const NAME_AMOUNT = /\d+(?:[.,]\d+)?\s*(?:€|\$|£|chf|eur|usd|gbp|hkd|cad|aud|jpy)\b/i;
 const NAME_ARTICLE = /^(?:a|an|un|une)\s/i;
 const NAME_PLACEHOLDER = /\b(?:payment|purchase|paiement|achat|unknown|inconnu)\b/i;
@@ -80,15 +81,29 @@ const readBrandColor = (value: unknown): string | undefined => {
   return lum > 0.09 && lum < 0.91 ? hex : undefined;
 };
 
-/** The AI's `assumed`/`uncertain` lists, kept to the field names we know. */
+/** A v1 reply's `assumed`/`uncertain` lists, kept to the field names we know. */
 const asFieldList = (value: unknown): ImportFieldName[] =>
   Array.isArray(value)
     ? (IMPORT_FIELD_NAMES.filter((f) => value.includes(f)) as ImportFieldName[])
     : [];
 
-/** One draft in the making: collects warnings while fields resolve. */
+/** "The 26th" resolved against the calendar: that day of the current month,
+ *  clamped to the month's length (31 in February → the 28th/29th). */
+function resolveBillingDay(day: number, today: CalendarDate): CalendarDate {
+  const year = Number(today.slice(0, 4));
+  const month = Number(today.slice(5, 7));
+  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const clamped = Math.min(Math.max(1, Math.floor(day)), daysInMonth);
+  return calendarDate(`${today.slice(0, 7)}-${String(clamped).padStart(2, "0")}`);
+}
+
+/** One draft in the making: collects warnings (a STATED value recovered from
+ *  junk) and assumptions (an ABSENT value defaulted in code — the v2 posture:
+ *  omission is the model's confidence signal) while fields resolve. */
 class ItemReader {
   readonly warnings: ImportWarning[] = [];
+  /** Fields the input didn't state, filled by a code default. */
+  readonly assumed = new Set<ImportFieldName>();
 
   constructor(private readonly ctx: ImportContext) {}
 
@@ -100,15 +115,27 @@ class ItemReader {
     const raw = asTrimmedString(value)?.toUpperCase();
     if (raw && raw in CURRENCIES) return raw as CurrencyCode;
     if (raw) this.warn("currency-defaulted", raw);
+    else this.assumed.add("currency");
     return this.ctx.defaultCurrency;
   }
 
-  cadence(value: unknown): RecurrenceRule {
+  settlement(value: unknown): "automatic" | "manual" {
+    if (value === "manual" || value === "automatic") return value;
+    if (value === undefined) this.assumed.add("settlement");
+    return "automatic";
+  }
+
+  /** Absent → the brand's usual cycle when the bank knows it, else monthly. */
+  cadence(value: unknown, brandUnit?: "month" | "year"): RecurrenceRule {
     const record = asRecord(value);
     const unit = asTrimmedString(record?.unit) as TimeUnit | undefined;
     const interval = asFiniteNumber(record?.interval);
     if (record && unit && TIME_UNITS.includes(unit) && interval && interval >= 1) {
       return { unit, interval: Math.floor(interval) };
+    }
+    if (value === undefined) {
+      this.assumed.add("cadence");
+      return brandUnit ? { unit: brandUnit, interval: 1 } : RECURRENCE_PRESETS.MONTHLY;
     }
     this.warn("cadence-defaulted");
     return RECURRENCE_PRESETS.MONTHLY;
@@ -147,11 +174,22 @@ class ItemReader {
     return undefined;
   }
 
-  firstDate(value: unknown): CalendarDate {
+  /** A stated full date wins; a stated-but-broken one recovers to today
+   *  (warned); an extracted bare day resolves against the current month;
+   *  nothing at all → the 1st of the current month, reported as assumed. */
+  firstDate(value: unknown, billingDay: unknown): CalendarDate {
     const raw = asTrimmedString(value);
     if (raw && isCalendarDate(raw)) return raw;
-    this.warn("date-defaulted", raw ?? "firstDate");
-    return this.ctx.today;
+    if (value !== undefined) {
+      this.warn("date-defaulted", raw ?? "firstDate");
+      return this.ctx.today;
+    }
+    const day = asFiniteNumber(billingDay);
+    if (day !== undefined && day >= 1 && day <= 31) {
+      return resolveBillingDay(day, this.ctx.today);
+    }
+    this.assumed.add("firstDate");
+    return resolveBillingDay(1, this.ctx.today);
   }
 
   optionalDate(value: unknown, field: string): CalendarDate | undefined {
@@ -166,6 +204,7 @@ class ItemReader {
     const raw = asTrimmedString(value);
     if (raw && this.ctx.categories.some((c) => c.id === raw)) return raw;
     if (raw) this.warn("category-unknown", raw);
+    else this.assumed.add("category");
     return "other";
   }
 
@@ -221,19 +260,23 @@ function parseItem(
   const reader = new ItemReader(ctx);
   if (takenNames.has(name.toLowerCase())) reader.warn("duplicate", name);
   const currency = reader.currency(item.currency);
-  const settlementMode = item.settlement === "manual" ? "manual" : "automatic";
+  const settlementMode = reader.settlement(item.settlement);
   let categoryId = reader.category(item.category);
-  // A brand knows its own category better than a small model that punted to
-  // "other" (Amazon Prime is streaming, not other).
+  // A brand knows its own category better than a model that punted to (or
+  // never stated) "other" — Amazon Prime is streaming. A bank-resolved
+  // category is knowledge, not an assumption, so the flag lifts.
   if (
     categoryId === "other" &&
     brand?.categoryId &&
     ctx.categories.some((c) => c.id === brand.categoryId)
   ) {
     categoryId = brand.categoryId;
+    reader.assumed.delete("category");
   }
   const { accountId, accountName } = reader.account(item.account, currency);
   const domain = asTrimmedString(item.domain)?.toLowerCase() ?? brand?.domain;
+  // `item.color` is v1-era output; v2 stopped asking (brand color is bank +
+  // pixel-tint work now), but a stated one still passes the strict gate.
   const color =
     readBrandColor(item.color) ?? (brand?.color ? readBrandColor(brand.color) : undefined);
   const notes = asTrimmedString(item.notes);
@@ -242,14 +285,20 @@ function parseItem(
     reminderDays !== undefined && reminderDays >= 0
       ? { daysBefore: Math.floor(reminderDays) }
       : undefined;
-  const firstDate = reader.firstDate(item.firstDate);
+  const firstDate = reader.firstDate(item.firstDate, item.billingDay);
   // Assume the user paid what was due so far, unless the input said otherwise.
   const settlePast = item.backlogUnpaid !== true;
-  // What the AI declared it assumed or couldn't determine — the review
-  // screen's per-item report. A known brand name is real, so its spurious
-  // name flag (the small models over-report it) is dropped; otherwise a
-  // placeholder-looking name is flagged whether the AI said so or not.
-  const assumedFields = asFieldList(item.assumed);
+  // The review report. Assumptions are COMPUTED (each absent field the
+  // reader defaulted), merged with anything a v1 reply self-declared, in
+  // stable field order — assembled at RETURN time, after the branches have
+  // read their remaining fields (cadence lives there). Uncertainty is the
+  // suspect-name heuristic plus a v1 reply's own flags; a known brand name
+  // is real, so its spurious flag (small models over-report it) is dropped.
+  const v1Assumed = asFieldList(item.assumed);
+  const finishAssumed = (): ImportFieldName[] =>
+    IMPORT_FIELD_NAMES.filter(
+      (f) => reader.assumed.has(f) || v1Assumed.includes(f),
+    ) as ImportFieldName[];
   let uncertainFields = asFieldList(item.uncertain);
   if (brand) {
     uncertainFields = uncertainFields.filter((f) => f !== "name");
@@ -291,7 +340,7 @@ function parseItem(
       input,
       accountName,
       settlePast,
-      assumedFields,
+      assumedFields: finishAssumed(),
       uncertainFields,
       warnings: reader.warnings,
     };
@@ -300,7 +349,7 @@ function parseItem(
   const amount = asFiniteNumber(item.amount);
   if (amount === undefined || amount < 0) return null;
   const anchor = reader.anchor(item.anchor);
-  const baseCadence = reader.cadence(item.cadence);
+  const baseCadence = reader.cadence(item.cadence, brand?.unit);
   const recurrence: RecurrenceRule =
     anchor && baseCadence.unit === "month" ? { ...baseCadence, anchor } : baseCadence;
 
@@ -331,7 +380,7 @@ function parseItem(
     input,
     accountName,
     settlePast,
-    assumedFields,
+    assumedFields: finishAssumed(),
     uncertainFields,
     warnings: reader.warnings,
   };

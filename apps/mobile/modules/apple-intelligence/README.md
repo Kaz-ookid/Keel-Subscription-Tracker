@@ -6,7 +6,7 @@ probe answers "unavailable" and the screens explain themselves instead of
 working.
 
 Two jobs share this module:
-- **The reader** (`parseSubscriptions`): rough notes in, import-format v1
+- **The reader** (`parseSubscriptions`): rough notes in, import-format v2
   JSON out (`ios/ImportSchema.swift`).
 - **The assistant** (`assist`): a natural-language request against core's
   grounding snapshot (`buildAssistantPrompt`) in, plan JSON out
@@ -31,7 +31,7 @@ each of these as a distinct state and the screen explains them.
 
 - **Swift is a constrained executor, not a brain.**
   `ios/AppleIntelligenceModule.swift` runs the model;
-  `ios/ImportSchema.swift` mirrors import format v1 as `@Generable` types so
+  `ios/ImportSchema.swift` mirrors import format v2 as `@Generable` types so
   decoding physically cannot produce anything else. It returns raw JSON.
 - **Core keeps owning the format.** The instructions are core's
   `buildImportPrompt` (same as the bring-your-own-AI path), the output goes

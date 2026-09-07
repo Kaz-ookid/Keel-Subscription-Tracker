@@ -385,16 +385,15 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(messy.input.amount).toEqual(fromMajor(12, "EUR")); // default currency
     expect(messy.input.categoryId).toBe("other");
     expect(messy.input.recurrence).toEqual({ unit: "month", interval: 1 });
-    expect(messy.input.firstChargeDate).toBe("2026-06-15"); // today
+    expect(messy.input.firstChargeDate).toBe("2026-06-15"); // stated junk → today
     const codes = messy.warnings.map((w) => w.code);
     expect(codes).toEqual(
-      expect.arrayContaining([
-        "currency-defaulted",
-        "category-unknown",
-        "cadence-defaulted",
-        "date-defaulted",
-      ]),
+      expect.arrayContaining(["currency-defaulted", "category-unknown", "date-defaulted"]),
     );
+    // The ABSENT fields (settlement, cadence) default quietly as assumptions,
+    // not warnings — v2's omission-is-the-signal posture.
+    expect(codes).not.toContain("cadence-defaulted");
+    expect(messy.assumedFields).toEqual(expect.arrayContaining(["settlement", "cadence"]));
     const messySplit = split(result.drafts, "Messy split");
     expect(messySplit.input.provider).toBeUndefined();
     expect(messySplit.warnings).toContainEqual({ code: "provider-unknown", detail: "sofa4x" });
@@ -420,12 +419,16 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(byName("netflix")?.warnings.map((w) => w.code)).toContain("duplicate");
   });
 
-  it("keeps the AI's assumed/uncertain declarations, filtered to known fields", () => {
+  it("merges a v1 reply's assumed/uncertain declarations into the computed report", () => {
     const doc = {
       items: [
         {
           name: "Mystery",
           amount: 5,
+          currency: "EUR",
+          cadence: { unit: "month", interval: 1 },
+          settlement: "automatic",
+          category: "other",
           firstDate: "2026-06-20",
           assumed: ["settlement", "firstDate", "bogus-field"],
           uncertain: ["name"],
@@ -433,8 +436,41 @@ describe("parseImportDocument — tolerance and recovery", () => {
       ],
     };
     const draft = parseImportDocument(JSON.stringify(doc), ctx).drafts[0];
+    // Everything was stated, so the computed set is empty; the v1 self-report
+    // survives, filtered to known field names, in stable field order.
     expect(draft.assumedFields).toEqual(["settlement", "firstDate"]);
     expect(draft.uncertainFields).toEqual(["name"]);
+  });
+
+  it("computes assumptions for every omitted field, and resolves billingDay in code", () => {
+    const doc = {
+      items: [
+        { type: "subscription", name: "Sparse", amount: 9.9, billingDay: 26 },
+        { type: "subscription", name: "Bare", amount: 4 },
+        { type: "subscription", name: "Clamped", amount: 4, billingDay: 31 },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(doc), ctx);
+    const sparse = sub(result.drafts, "Sparse");
+    // billingDay counts as extracted: the 26th of the current month, and
+    // firstDate is NOT among the assumptions.
+    expect(sparse.input.firstChargeDate).toBe("2026-06-26");
+    expect(sparse.assumedFields).toEqual(["currency", "settlement", "category", "cadence"]);
+    expect(sparse.warnings).toEqual([]);
+    const bare = sub(result.drafts, "Bare");
+    expect(bare.input.firstChargeDate).toBe("2026-06-01"); // 1st of the month
+    expect(bare.assumedFields).toContain("firstDate");
+    // A day the current month doesn't have clamps to its last day.
+    expect(sub(result.drafts, "Clamped").input.firstChargeDate).toBe("2026-06-30");
+  });
+
+  it("defaults an omitted cadence to the brand's usual cycle when the bank knows it", () => {
+    const doc = {
+      items: [{ type: "subscription", name: "Amazon Prime", amount: 89, billingDay: 22 }],
+    };
+    const draft = sub(parseImportDocument(JSON.stringify(doc), ctx).drafts, "Amazon Prime");
+    expect(draft.input.recurrence).toEqual({ unit: "year", interval: 1 }); // Prime bills yearly
+    expect(draft.assumedFields).toContain("cadence");
   });
 
   it("assumes past payments were made unless backlogUnpaid says otherwise", () => {
@@ -488,19 +524,27 @@ describe("buildImportPrompt", () => {
     defaultCurrency: "CHF",
   });
 
-  it("embeds today and the default currency", () => {
+  it("embeds today (for reading stated dates) but no default currency", () => {
     expect(prompt).toContain("2026-06-15");
-    expect(prompt).toContain("default currency: CHF");
+    // v2: defaulting is the parser's job — the prompt never teaches it.
+    expect(prompt).not.toContain("default currency");
   });
 
   it("pins the output contract and format version", () => {
     expect(prompt).toContain('{"items":[ ... ]}');
-    expect(prompt).toContain("import format v1");
+    expect(prompt).toContain("import format v2");
     expect(prompt).toContain("screenshots");
     expect(prompt).toContain("code block"); // copy-at-once answer
-    expect(prompt).toContain("backlogUnpaid"); // paid-so-far default assumption
+    expect(prompt).toContain("backlogUnpaid"); // paid-so-far stays code-side default
+    expect(prompt).toContain("billingDay"); // bare days extracted, not resolved
     expect(prompt).not.toContain("{{"); // no unfilled template slots
     expect(prompt).not.toContain("—"); // banned in user-visible text
+  });
+
+  it("asks for extraction only: no self-reporting, no brand colors", () => {
+    expect(prompt).not.toContain('"assumed"');
+    expect(prompt).not.toContain('"uncertain"');
+    expect(prompt).not.toContain('"color"');
   });
 });
 
@@ -578,10 +622,10 @@ describe("buildOnDevicePrompt", () => {
   const prompt = buildOnDevicePrompt({ today: calendarDate("2026-07-20"), defaultCurrency: "EUR" });
 
   it("teaches the patterns the small model fails, with worked examples", () => {
-    expect(prompt).toContain("2026-07-20"); // today
     expect(prompt).toContain("priceChange"); // the one-item-with-a-change rule
     expect(prompt).toContain("Amazon Prime"); // a worked example
     expect(prompt).toContain("account"); // account in its own field
+    expect(prompt).toContain("billingDay"); // bare days extracted, not resolved
   });
 
   it("drops the self-reporting the small model over-uses", () => {

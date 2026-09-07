@@ -1,4 +1,4 @@
-// The guided-generation schema: a Swift mirror of Keel's import format v1
+// The guided-generation schema: a Swift mirror of Keel's import format v2
 // (ai-training/import-format.md). @Generable makes the on-device model's
 // decoding CONSTRAINED — it physically cannot emit anything but this shape —
 // which is the "grammar-constrained decoding" the import plan requires
@@ -6,6 +6,10 @@
 // the JSON encoded from these structs goes straight into the app's existing
 // parseImportDocument, which validates values and routes everything through
 // the review screen. Keep validation THERE (core), not here.
+//
+// v2 posture: extraction only. Every field beyond type/name is optional —
+// the model omits what the input doesn't state, and the parser defaults it
+// (and tells the user). No self-reporting, no brand colors, no date math.
 
 import Foundation
 
@@ -46,18 +50,33 @@ import Foundation
     var type: String
     @Guide(description: "What the payment is for, in the user's own words and language")
     var name: String
-    @Guide(description: "ISO code, one of EUR USD GBP CHF CAD AUD JPY")
-    var currency: String
-    @Guide(description: "automatic unless the user says they pay it themselves, then manual")
-    var settlement: String
+    @Guide(
+      description:
+        "The ISO currency code the input states or clearly implies (a euro sign means EUR); omit when the input names none"
+    )
+    var currency: String?
+    @Guide(
+      description:
+        "manual only when the user says they pay it themselves; automatic when they say it is debited; omit when the input does not say"
+    )
+    var settlement: String?
     @Guide(
       description:
         "Best-fit category id: streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other"
     )
-    var category: String
-    var cadence: ImportCadence
-    @Guide(description: "First charge or first instalment, YYYY-MM-DD")
-    var firstDate: String
+    var category: String?
+    @Guide(description: "Only when the input states the billing cycle; omit otherwise")
+    var cadence: ImportCadence?
+    @Guide(
+      description:
+        "A FULL stated date only, YYYY-MM-DD (first charge or first instalment); omit when the input gives no full date"
+    )
+    var firstDate: String?
+    @Guide(
+      description:
+        "A bare stated day of the month, 1 to 31 (the 22nd is 22), when no full date is given; omit when no day appears"
+    )
+    var billingDay: Int?
     @Guide(description: "The recurring price in main units; a free trial uses 0. Subscriptions only")
     var amount: Double?
     @Guide(description: "Known last charge date YYYY-MM-DD, subscriptions only")
@@ -80,19 +99,15 @@ import Foundation
     var domain: String?
     @Guide(
       description:
-        "The brand's primary identity color as #RRGGBB for surely known brands; never black, white or near-black or near-white; omit when unsure"
+        "Only the two words before or after, when the user says the bank never charges on weekends (before means the Friday before, after the Monday after); omit otherwise"
     )
-    var color: String?
+    var weekendShift: String?
     @Guide(description: "Anything that fits no field")
     var notes: String?
     @Guide(description: "Only when the user asks to be reminded: days before")
     var reminderDaysBefore: Int?
     @Guide(description: "Only true when the user says past payments were NOT made")
     var backlogUnpaid: Bool?
-    @Guide(description: "Field names filled by assumption instead of read from the input")
-    var assumed: [String]?
-    @Guide(description: "Field names the input truly does not provide; always includes name when no real name was given")
-    var uncertain: [String]?
   }
 
   @available(iOS 26.0, *)

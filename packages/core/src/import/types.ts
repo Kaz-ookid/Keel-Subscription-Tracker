@@ -1,13 +1,19 @@
 // AI-assisted import (PROJECT_BRIEF §6.1): the shapes shared by every delivery
 // path (bring-your-own-AI today; on-device / metered later). The AI produces an
-// "import document" (format v1 — see ai-training/import-format.md, the single
+// "import document" (format v2 — see ai-training/import-format.md, the single
 // source of truth); the tolerant parser turns it into ImportDrafts that the
 // review screen shows for the user to fix, trim and confirm. Nothing an AI
 // wrote is ever trusted blindly (edge case #11) — a draft is a proposal.
+//
+// v2 posture (2026-09-07): EXTRACTION ONLY. The model reports what the input
+// states; omission is the confidence signal. Every absent field is defaulted
+// in code (parse.ts) and marked in the draft's computed `assumedFields`. The
+// v1 self-reporting arrays (`assumed`/`uncertain`) and the brand `color`
+// field left the schema; the parser still ACCEPTS them from v1-era replies.
 
 import type { NewInstallmentInput, NewRecurringInput } from "../models/payment-item-factory";
 
-/** Import format v1 — raw item shapes as the AI is instructed to emit them.
+/** Import format v2 — raw item shapes as the AI is instructed to emit them.
  *  Reference only: real input is untrusted, so the parser validates field by
  *  field from `unknown` rather than casting to these. */
 export interface ImportCadence {
@@ -28,30 +34,32 @@ export interface ImportPriceChange {
 
 interface ImportItemCommon {
   name: string;
-  currency: string;
-  settlement: "automatic" | "manual";
-  category: string;
-  cadence: ImportCadence;
-  firstDate: string;
+  /** Every field below `name` is EXTRACTION: included only when the input
+   *  states it. An omitted field is defaulted in code and reported to the
+   *  user as assumed. */
+  currency?: string;
+  settlement?: "automatic" | "manual";
+  /** The one inference the model is asked to make. */
+  category?: string;
+  cadence?: ImportCadence;
+  /** A full stated date ("started 15 March 2026"). */
+  firstDate?: string;
+  /** A bare day of the month the input states ("the 26th") — the app
+   *  resolves it against the calendar; the model never does date math. */
+  billingDay?: number;
   account?: string;
+  /** The brand's main website ("netflix.com") — the one piece of brand
+   *  knowledge kept in the schema (logos for brands the app doesn't know). */
   domain?: string;
-  /** The brand's primary identity color ("#RRGGBB"), never black or white —
-   *  brand knowledge the AI carries, not something read from the input. */
-  color?: string;
   notes?: string;
   reminderDaysBefore?: number;
-  /** Set by the AI ONLY when the user says past payments were NOT made.
-   *  Default assumption: everything due before today was paid on time. */
+  /** Set ONLY when the user says past payments were NOT made.
+   *  Default assumption (applied in code): everything due before today
+   *  was paid on time. */
   backlogUnpaid?: boolean;
-  /** Field names the AI filled by a default assumption rather than from the
-   *  input — the review screen shows them as light "assumed" hints. */
-  assumed?: string[];
-  /** Field names the input truly does not provide and the user must set —
-   *  strong review flags. "name" here means a placeholder was invented. */
-  uncertain?: string[];
 }
 
-/** The field names the AI may declare in `assumed` / `uncertain`. */
+/** The field names a draft's assumed/uncertain report may carry. */
 export const IMPORT_FIELD_NAMES = [
   "name",
   "amount",
@@ -105,14 +113,12 @@ export type ImportWarningCode =
   | "category-unknown"
   /** Unknown split-payment provider string — left unset. */
   | "provider-unknown"
-  /** Missing/invalid cadence — assumed monthly. */
+  /** A STATED but invalid cadence — assumed monthly. (A simply absent
+   *  cadence is quietly defaulted and reported as assumed instead.) */
   | "cadence-defaulted"
-  /** An invalid or missing date was recovered (first date → today) or a
+  /** An invalid STATED date was recovered (first date → today) or a
    *  date-bearing field (endDate, priceChange, anchor) was dropped. */
   | "date-defaulted"
-  /** The name reads like a description or placeholder ("a 1200 HKD payment",
-   *  "Purchase") rather than a real name — worth renaming on review. */
-  | "name-suspect"
   /** An item with the same name is already tracked — confirming would create
    *  a duplicate (e.g. the same import pasted twice). */
   | "duplicate";
@@ -131,9 +137,11 @@ interface ImportDraftCommon {
   /** Mark every occurrence due before today as paid when the item lands
    *  (the default; false only when the input said payments are behind). */
   settlePast: boolean;
-  /** Fields the AI declared as assumption-filled — light review hints. */
+  /** Fields the PARSER filled by default because the input didn't state
+   *  them (plus any a v1 reply self-declared) — light review hints. */
   assumedFields: ImportFieldName[];
-  /** Fields the AI declared as missing/unclear — must-check review flags. */
+  /** Fields the user must check — computed (suspect-name heuristic), plus
+   *  any a v1 reply self-declared. */
   uncertainFields: ImportFieldName[];
   warnings: ImportWarning[];
 }
