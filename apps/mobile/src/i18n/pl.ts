@@ -623,7 +623,7 @@ const translation = {
     dark: "Ciemny",
     language: "Język",
     translationNote:
-      "Angielski i francuski powstają ręcznie; pozostałe języki to automatyczne tłumaczenia AI.",
+      "Angielski i francuski powstają ręcznie; pozostałe języki to na razie automatyczne tłumaczenia AI.",
     reminders: "Przypomnienia",
     remindersOn: "Włączone",
     remindersOff: "Wyłączone w Ustawieniach iOS",
@@ -795,7 +795,7 @@ const translation = {
     ideaSubject: "Keel: pomysł",
     writeFooter: "Oba otwierają e-mail do {{email}}. Czytam wszystko.",
     translationsNote:
-      "Tylko angielski i francuski powstają ręcznie; niemiecki, włoski i polski to automatyczne tłumaczenia AI. Jeśli coś brzmi nie tak, szczerze docenię każdą uwagę: każda poprawka czyni Keel lepszym dla wszystkich.",
+      "Tylko angielski i francuski powstają ręcznie; niemiecki, włoski i polski to na razie automatyczne tłumaczenia AI. Jeśli coś brzmi nie tak, szczerze docenię każdą uwagę: każda poprawka czyni Keel lepszym dla wszystkich.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Wesprzyj Keel",
     rate: "Oceń Keel w App Store",

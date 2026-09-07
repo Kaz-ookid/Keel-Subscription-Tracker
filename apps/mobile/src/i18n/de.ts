@@ -595,7 +595,7 @@ export const de: typeof en = {
     dark: "Dunkel",
     language: "Sprache",
     translationNote:
-      "Englisch und Französisch sind von Hand geschrieben; die anderen Sprachen sind automatische KI-Übersetzungen.",
+      "Englisch und Französisch sind von Hand geschrieben; die anderen Sprachen sind vorerst automatische KI-Übersetzungen.",
     reminders: "Erinnerungen",
     remindersOn: "An",
     remindersOff: "In den iOS-Einstellungen aus",
@@ -765,7 +765,7 @@ export const de: typeof en = {
     ideaSubject: "Keel: Idee",
     writeFooter: "Beides öffnet eine E-Mail an {{email}}. Ich lese alles.",
     translationsNote:
-      "Nur Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind automatische KI-Übersetzungen. Wenn etwas schief klingt, freue ich mich ehrlich über jeden Hinweis: jede Korrektur macht Keel für alle besser.",
+      "Nur Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind vorerst automatische KI-Übersetzungen. Wenn etwas schief klingt, freue ich mich ehrlich über jeden Hinweis: jede Korrektur macht Keel für alle besser.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Keel unterstützen",
     rate: "Keel im App Store bewerten",

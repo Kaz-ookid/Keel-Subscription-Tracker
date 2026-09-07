@@ -145,7 +145,12 @@ export function FormSheets({ form }: { form: AddForm }) {
                   ))}
                 </Picker>
               </View>
-              <View style={{ flex: 1 }}>
+              {/* "On the day" (0) makes the unit meaningless: the wheel greys
+                  out and stops responding until a number returns. */}
+              <View
+                style={{ flex: 1, opacity: leadN === 0 ? 0.35 : 1 }}
+                pointerEvents={leadN === 0 ? "none" : "auto"}
+              >
                 <Picker
                   selectedValue={leadUnit}
                   onValueChange={(v) =>

@@ -593,7 +593,7 @@ export const it: typeof en = {
     dark: "Scuro",
     language: "Lingua",
     translationNote:
-      "Inglese e francese sono scritti a mano; le altre lingue sono traduzioni automatiche con IA.",
+      "Inglese e francese sono scritti a mano; le altre lingue sono per ora traduzioni automatiche con IA.",
     reminders: "Promemoria",
     remindersOn: "Attivi",
     remindersOff: "Disattivati nelle Impostazioni iOS",
@@ -763,7 +763,7 @@ export const it: typeof en = {
     ideaSubject: "Keel: idea",
     writeFooter: "Entrambi aprono un'email a {{email}}. Leggo tutto.",
     translationsNote:
-      "Solo inglese e francese sono scritti a mano; tedesco, italiano e polacco sono traduzioni automatiche con IA. Se una frase suona storta, il tuo aiuto è sinceramente benvenuto: ogni correzione rende Keel migliore per tutti.",
+      "Solo inglese e francese sono scritti a mano; tedesco, italiano e polacco sono per ora traduzioni automatiche con IA. Se una frase ti sembra sbagliata, il tuo aiuto è sinceramente benvenuto: ogni correzione rende Keel migliore per tutti.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Sostieni Keel",
     rate: "Valuta Keel sull'App Store",

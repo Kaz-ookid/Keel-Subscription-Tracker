@@ -41,6 +41,14 @@ function closeOthers(except: string): void {
   });
 }
 
+/** Close every open swipe row. Wired to everything that moves attention
+ *  elsewhere — the pager swiping, the list scrolling, the screen blurring —
+ *  so a revealed trash button never survives a context change (an open row
+ *  used to sit "stuck" through an edit round-trip). */
+export function closeAllSwipeRows(): void {
+  closers.forEach((close) => close());
+}
+
 interface Props {
   /** Stable identity for the single-open coordination. */
   rowId: string;
@@ -95,6 +103,8 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
       close();
       return;
     }
+    // Tapping a DIFFERENT row is also "attention moved": tidy the open one.
+    closeOthers(rowId);
     onPress();
   };
   // The gesture is memoised per row; the tap reads the CURRENT handler

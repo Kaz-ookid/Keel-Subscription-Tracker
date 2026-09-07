@@ -590,7 +590,7 @@ export const en = {
     dark: "Dark",
     language: "Language",
     translationNote:
-      "English and French are written by hand; the other languages are automatic AI translations.",
+      "English and French are written by hand; the other languages are automatic AI translations for now.",
     reminders: "Reminders",
     remindersOn: "On",
     remindersOff: "Off in iOS Settings",
@@ -759,7 +759,7 @@ export const en = {
     ideaSubject: "Keel: idea",
     writeFooter: "Both open an email to {{email}}. I read everything.",
     translationsNote:
-      "Only English and French are written by hand; German, Italian and Polish are automatic AI translations. If a wording feels off, I'd honestly appreciate hearing it: every correction makes Keel better for everyone.",
+      "Only English and French are written by hand; German, Italian and Polish are automatic AI translations for now. If a wording feels off, I'd honestly appreciate hearing it: every correction makes Keel better for everyone.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Support Keel",
     rate: "Rate Keel on the App Store",

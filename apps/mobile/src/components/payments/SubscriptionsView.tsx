@@ -40,6 +40,7 @@ import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
 import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
+import { closeAllSwipeRows } from "../ui/SwipeRow";
 import { EmptyState } from "../ui/EmptyState";
 import { WheelSheet } from "../WheelSheet";
 
@@ -203,6 +204,8 @@ export function SubscriptionsView() {
       style={styles.list}
       data={sorted}
       keyExtractor={(item) => item.id}
+      // Scrolling moves attention: any open swipe row folds back shut.
+      onScrollBeginDrag={closeAllSwipeRows}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
         <View style={styles.headerStack}>

@@ -19,6 +19,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
+import { closeAllSwipeRows } from "../../src/components/ui/SwipeRow";
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
@@ -78,9 +79,19 @@ export default function PaymentsScreen() {
   const { width: pageWidth } = useWindowDimensions();
   const scrolledPage = useRef(view === "all" ? 1 : 0);
   const goToPage = (page: number, animated: boolean) => {
+    closeAllSwipeRows();
     scrolledPage.current = page;
     pagerRef.current?.scrollTo({ x: page * pageWidth, animated });
   };
+  // ANY page movement (finger or programmatic) folds open swipe rows shut,
+  // and so does leaving the screen — a revealed trash button must never
+  // survive a context change.
+  const onPagerBeginDrag = () => closeAllSwipeRows();
+  useFocusEffect(
+    useCallback(() => {
+      return () => closeAllSwipeRows();
+    }, []),
+  );
   const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     // Clamped for safety, though bounces={false} already pins the offset.
     const progress = Math.min(1, Math.max(0, e.nativeEvent.contentOffset.x / pageWidth));
@@ -202,6 +213,7 @@ export default function PaymentsScreen() {
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
           contentOffset={{ x: view === "all" ? pageWidth : 0, y: 0 }}
+          onScrollBeginDrag={onPagerBeginDrag}
           onScroll={onPagerScroll}
           // Paging always settles through one of these; both are idempotent.
           onMomentumScrollEnd={onPagerSettled}
