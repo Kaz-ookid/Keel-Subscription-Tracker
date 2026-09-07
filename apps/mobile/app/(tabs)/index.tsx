@@ -6,13 +6,18 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import PagerView from "react-native-pager-view";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
-
-type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
-type PagerStateEvent = { nativeEvent: { pageScrollState: "idle" | "dragging" | "settling" } };
 
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
@@ -65,32 +70,30 @@ export default function PaymentsScreen() {
   const highlightX = useSharedValue(0);
   const highlightOpacity = useSharedValue(1);
   const pillWidth = trackWidth > 0 ? (trackWidth - 2 - 6 - 3) / 2 : 0; // border+padding+gap
-  // Upcoming ↔ All live in a native pager: the swipe is interactive (hold it
-  // mid-way, pull it back) and the selection wash tracks the finger 1:1.
-  const pagerRef = useRef<PagerView>(null);
-  // The scroll stream is the ground truth of where the pager REALLY is:
-  // aggressive interrupted swipes (a second finger mid-settle) can make the
-  // native pager swallow or mis-emit its final onPageSelected, leaving the
-  // label on one page and the pager on the other — and refusing further
-  // swipes. The last rounded scroll position heals that on settle.
-  const scrolledPage = useRef(0);
-  const onPageScroll = (e: PagerScrollEvent) => {
-    // Clamped: overscroll bounces past the edges must not fling the wash
-    // off the track (there is no page beyond All to wrap to).
-    const progress = Math.min(1, Math.max(0, e.nativeEvent.position + e.nativeEvent.offset));
+  // Upcoming ↔ All live in a plain PAGING SCROLLVIEW, not a PagerView: with
+  // bounces off, a UIScrollView is physically clamped to its two pages, so
+  // the wrap-around PagerView produced under aggressive two-finger swipes
+  // cannot exist — there is no state to heal, the edges ARE the track.
+  const pagerRef = useRef<ScrollView>(null);
+  const { width: pageWidth } = useWindowDimensions();
+  const scrolledPage = useRef(view === "all" ? 1 : 0);
+  const goToPage = (page: number, animated: boolean) => {
+    scrolledPage.current = page;
+    pagerRef.current?.scrollTo({ x: page * pageWidth, animated });
+  };
+  const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    // Clamped for safety, though bounces={false} already pins the offset.
+    const progress = Math.min(1, Math.max(0, e.nativeEvent.contentOffset.x / pageWidth));
     scrolledPage.current = Math.round(progress);
     // Reanimated shared values are driven by assigning `.value`; here the
     // pager's native scroll IS the animation, so no withTiming on top of it.
     highlightX.value = progress * (pillWidth + 3);
   };
-  const onPageScrollStateChanged = (e: PagerStateEvent) => {
-    if (e.nativeEvent.pageScrollState !== "idle") return;
-    // Settled: re-assert the truth everywhere — wash, label, and the native
-    // pager's own internal position (the re-assert is what un-sticks it).
+  const onPagerSettled = () => {
+    // Settled: re-assert the truth on the wash and the label.
     const page = scrolledPage.current;
     highlightX.value = page * (pillWidth + 3);
     setView(page === 1 ? "all" : "upcoming");
-    pagerRef.current?.setPageWithoutAnimation(page);
   };
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
@@ -122,7 +125,8 @@ export default function PaymentsScreen() {
       if (!requested) return;
       setView(requested);
       setScheduleLens("grid");
-      pagerRef.current?.setPage(requested === "all" ? 1 : 0);
+      goToPage(requested === "all" ? 1 : 0, true);
+      // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
 
@@ -133,12 +137,12 @@ export default function PaymentsScreen() {
       onTabReset("index", () => {
         setView("upcoming");
         setScheduleLens("grid");
-        // Animated setPage: the page SWIPES back and its scroll events carry
-        // the pill wash along (setPageWithoutAnimation emits none). From the
-        // calendar the pager remounts at page 0 and the [view] effect fades
-        // the wash back in.
-        pagerRef.current?.setPage(0);
+        // Animated: the page SWIPES back and its scroll events carry the
+        // pill wash along. From the calendar the pager remounts at page 0
+        // and the [view] effect fades the wash back in.
+        goToPage(0, true);
       }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
 
@@ -157,7 +161,7 @@ export default function PaymentsScreen() {
               <Pressable
                 key={v.value}
                 onPress={() => {
-                  if (onPills) pagerRef.current?.setPage(index);
+                  if (onPills) goToPage(index, true);
                   setView(v.value);
                 }}
                 style={styles.pill}
@@ -188,25 +192,28 @@ export default function PaymentsScreen() {
       </View>
 
       {onPills ? (
-        <PagerView
+        <ScrollView
           ref={pagerRef}
           style={styles.pager}
-          initialPage={view === "all" ? 1 : 0}
-          onPageScroll={onPageScroll}
-          onPageScrollStateChanged={onPageScrollStateChanged}
-          onPageSelected={(e) => {
-            const page = Math.min(1, Math.max(0, e.nativeEvent.position));
-            scrolledPage.current = page;
-            setView(page === 1 ? "all" : "upcoming");
-          }}
+          horizontal
+          pagingEnabled
+          // THE lock: no bounce = no overscroll = nothing to wrap to.
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+          contentOffset={{ x: view === "all" ? pageWidth : 0, y: 0 }}
+          onScroll={onPagerScroll}
+          // Paging always settles through one of these; both are idempotent.
+          onMomentumScrollEnd={onPagerSettled}
+          onScrollEndDrag={onPagerSettled}
         >
-          <View key="upcoming" style={styles.page} collapsable={false}>
+          <View key="upcoming" style={[styles.page, { width: pageWidth }]} collapsable={false}>
             <UpcomingView resetSignal={resetSignal} />
           </View>
-          <View key="all" style={styles.page} collapsable={false}>
+          <View key="all" style={[styles.page, { width: pageWidth }]} collapsable={false}>
             <SubscriptionsView />
           </View>
-        </PagerView>
+        </ScrollView>
       ) : (
         <ScheduleView lens={scheduleLens} onLens={setScheduleLens} />
       )}
@@ -221,7 +228,9 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: "transparent",
     },
     pager: { flex: 1 },
-    page: { flex: 1 },
+    // Width comes inline (the window width); flex here would zero the
+    // flex-basis and collapse the horizontal content run.
+    page: { height: "100%" },
     // The large title (DESIGN.md §9b): the screen names itself.
     largeTitle: {
       fontSize: 34,
