@@ -135,6 +135,15 @@ export type ThemeMode = "system" | "light" | "dark";
 
 const THEME_KEY = "keel.theme-mode.v1";
 
+// Module mirror of the live preference, for non-React consumers (the widget
+// snapshot writer): the provider keeps it current from hydrate and setMode.
+let currentMode: ThemeMode = "dark";
+
+/** The appearance preference as of now (non-React; widgets ride it). */
+export function themeModeSnapshot(): ThemeMode {
+  return currentMode;
+}
+
 // Dark is the DEFAULT (decided 2026-07-11): the sea-glass aura is designed
 // dark-first; "match device" and light remain explicit choices.
 const ThemeModeContext = createContext<{ mode: ThemeMode; setMode: (mode: ThemeMode) => void }>({
@@ -154,13 +163,17 @@ export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void AsyncStorage.getItem(THEME_KEY)
       .then((stored) => {
-        if (stored === "light" || stored === "dark" || stored === "system") setModeState(stored);
+        if (stored === "light" || stored === "dark" || stored === "system") {
+          setModeState(stored);
+          currentMode = stored;
+        }
       })
       .finally(() => setHydrated(true));
   }, []);
 
   const setMode = (next: ThemeMode) => {
     setModeState(next);
+    currentMode = next;
     void AsyncStorage.setItem(THEME_KEY, next);
   };
 

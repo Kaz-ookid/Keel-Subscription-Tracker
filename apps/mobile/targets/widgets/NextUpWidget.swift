@@ -1,6 +1,8 @@
 // "Next payment": the single next charge. One widget, four shapes — the
-// home-screen small tile plus all three lock-screen accessories. Tapping any
-// of them deep-links straight to that charge's detail screen.
+// home-screen small tile plus all three lock-screen accessories. Long names
+// wrap to two lines, and the tile's spare space teases what comes after.
+// Tapping ANY shape opens the Upcoming timeline (the tile is a glance, the
+// timeline is the place to act). Follows the app's theme preference.
 
 import SwiftUI
 import WidgetKit
@@ -20,9 +22,13 @@ struct NextUpWidget: Widget {
 
 struct NextUpView: View {
   @Environment(\.widgetFamily) private var family
+  @Environment(\.colorScheme) private var colorScheme
   let entry: KeelEntry
 
   private var snapshot: WidgetSnapshot? { entry.snapshot }
+  private var palette: KeelPalette {
+    KeelPalette.resolve(theme: snapshot?.theme, systemDark: colorScheme == .dark)
+  }
   /// The single most urgent thing: the oldest overdue charge if any exists
   /// (the app pins them first), else the nearest upcoming one.
   private var next: WidgetPayment? { snapshot?.upcoming(from: entry.date).first }
@@ -42,11 +48,11 @@ struct NextUpView: View {
 
   // MARK: Home screen (small)
 
-  /// The payment after `next`: the small tile teases it so "in 5 days" can't
-  /// hide something landing the day after.
-  private var following: WidgetPayment? {
-    guard let list = snapshot?.upcoming(from: entry.date), list.count > 1 else { return nil }
-    return list[1]
+  /// What comes after `next`: the tile teases up to two more so "in 5 days"
+  /// can't hide something landing the day after.
+  private func following(_ index: Int) -> WidgetPayment? {
+    guard let list = snapshot?.upcoming(from: entry.date), list.count > index else { return nil }
+    return list[index]
   }
 
   private var small: some View {
@@ -64,7 +70,7 @@ struct NextUpView: View {
               : "\(snapshot.dueLabel(next, from: entry.date)) · \(next.shortDate)"
           )
           .font(.caption.weight(nextIsLate ? .semibold : .regular))
-          .foregroundStyle(nextIsLate ? Color.keelWarning : Color.keelSeaGlass)
+          .foregroundStyle(nextIsLate ? palette.warning : palette.accent)
           .lineLimit(1)
           .minimumScaleFactor(0.8)
           Spacer(minLength: 0)
@@ -72,37 +78,52 @@ struct NextUpView: View {
             let lateCount = snapshot.overdueCount(from: entry.date)
             Text(lateCount > 1 ? "⚠\(lateCount)" : "⚠")
               .font(.caption2.weight(.bold))
-              .foregroundStyle(Color.keelWarning)
+              .foregroundStyle(palette.warning)
           }
         }
         Spacer(minLength: 0)
-        Text(next.name)
-          .font(.headline)
-          .foregroundStyle(.white)
-          .lineLimit(1)
+        HStack(alignment: .firstTextBaseline, spacing: 4) {
+          // Long names wrap instead of vanishing behind an ellipsis.
+          Text(next.name)
+            .font(.headline)
+            .foregroundStyle(palette.ink)
+            .lineLimit(2)
+            .minimumScaleFactor(0.85)
+          if next.isManual {
+            Image(systemName: "hand.raised.fill")
+              .font(.caption2)
+              .foregroundStyle(nextIsLate ? palette.warning : palette.muted)
+          }
+        }
         Text(next.amount)
           .font(.title2.weight(.bold))
-          .foregroundStyle(.white)
+          .foregroundStyle(palette.ink)
           .minimumScaleFactor(0.6)
           .lineLimit(1)
-        // What comes right after, so the single hero never hides a same-week
-        // charge: "→ Disney+ · 5d".
-        if let following {
-          Text("→ \(following.name) · \(snapshot.dueShort(following, from: entry.date))")
+        // The spare space works: up to two follow-ups in light text, so the
+        // hero never hides a same-week charge.
+        if let second = following(1) {
+          Text("→ \(second.name) · \(snapshot.dueShort(second, from: entry.date))")
             .font(.caption2)
-            .foregroundStyle(Color.keelMuted)
+            .foregroundStyle(palette.muted)
+            .lineLimit(1)
+        }
+        if let third = following(2) {
+          Text("→ \(third.name) · \(snapshot.dueShort(third, from: entry.date))")
+            .font(.caption2)
+            .foregroundStyle(palette.muted.opacity(0.7))
             .lineLimit(1)
         }
       } else {
         Spacer(minLength: 0)
         Text(snapshot?.emptyLine ?? "All clear")
           .font(.headline)
-          .foregroundStyle(.white)
+          .foregroundStyle(palette.ink)
         Spacer(minLength: 0)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-    .containerBackground(for: .widget) { KeelWidgetBackground() }
+    .containerBackground(for: .widget) { KeelWidgetBackground(palette: palette) }
     .widgetURL(deepLink)
   }
 
@@ -176,9 +197,7 @@ struct NextUpView: View {
     .widgetURL(deepLink)
   }
 
-  /// expo-router deep link into the charge's own screen.
-  private var deepLink: URL? {
-    guard let next else { return URL(string: "keel://") }
-    return URL(string: "keel://item?id=\(next.linkId)")
-  }
+  /// Every shape opens the Upcoming timeline — the glance leads to the place
+  /// where marking paid and acting actually live.
+  private var deepLink: URL? { URL(string: "keel://upcoming") }
 }

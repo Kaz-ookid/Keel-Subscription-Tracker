@@ -23,6 +23,7 @@ import {
 
 import i18n from "../i18n";
 import { monthFull, monthShort } from "../i18n/dates";
+import { themeModeSnapshot } from "../theme";
 import { brandBleed } from "./brand";
 import { entitlementSnapshot } from "./entitlement";
 
@@ -35,7 +36,8 @@ export const WIDGET_SNAPSHOT_KEY = "keel.widget.snapshot.v1";
 // months out: "All clear" must mean "nothing ahead at all", never "nothing
 // in the next 30 days".
 const HORIZON_DAYS = 365;
-const MAX_PAYMENTS = 12;
+// Large shows up to 12 rows; a few beyond that keep the "+N more" honest.
+const MAX_PAYMENTS = 16;
 
 /** Mirror of WidgetPayment in Shared.swift. */
 export interface WidgetPayment {
@@ -56,6 +58,9 @@ export interface WidgetPayment {
   /** True for a charge whose day has passed unpaid — pinned first, shown in
    *  the warning tone. Optional so older Swift decoders keep working. */
   overdue?: boolean;
+  /** True when the user settles this one by hand — the widget marks it,
+   *  since it will not pay itself. */
+  manual?: boolean;
 }
 
 /** Mirror of WidgetSnapshot in Shared.swift. */
@@ -70,6 +75,9 @@ export interface WidgetSnapshot {
    *  its "all clear" line, and `payments` is empty — the home screen must
    *  never show stale data pretending to be live. */
   lockedLine?: string;
+  /** The app's appearance preference; the widget follows it ("system" =
+   *  the device scheme). Absent = the historical always-dark look. */
+  theme?: "system" | "light" | "dark";
 }
 
 /** Everything the widgets show, pre-formatted. `accentFallback` colors the
@@ -98,6 +106,7 @@ export function buildWidgetSnapshot(
       monthTotal: "",
       payments: [],
       lockedLine: i18n.t("widgets.locked"),
+      theme: themeModeSnapshot(),
     };
   }
   const charges = projectCharges(items, addDays(asOf, HORIZON_DAYS));
@@ -119,6 +128,7 @@ export function buildWidgetSnapshot(
       displayCurrency,
       rates,
     ),
+    theme: themeModeSnapshot(),
     payments: [
       ...overdue.map((charge) => ({ charge, overdue: true })),
       ...upcoming.map((charge) => ({ charge, overdue: false })),
@@ -137,6 +147,7 @@ export function buildWidgetSnapshot(
         dateLabel: shortDate(charge.dueDate, locale),
         color: brandBleed(charge, accentFallback),
         overdue: isOverdue,
+        manual: charge.settlementMode === "manual",
       })),
   };
 }

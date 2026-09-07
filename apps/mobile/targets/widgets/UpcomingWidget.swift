@@ -1,6 +1,7 @@
 // "Upcoming payments": the next charges as a list, with the month's committed
-// total in the header. Medium shows three rows; large shows seven. Every row
-// deep-links to its charge.
+// total in the header. Medium shows four rows; large shows twelve. Each ROW
+// deep-links to its charge; everywhere else on the widget opens the Upcoming
+// timeline. Follows the app's theme preference (system scheme otherwise).
 
 import SwiftUI
 import WidgetKit
@@ -18,9 +19,13 @@ struct UpcomingWidget: Widget {
 
 struct UpcomingView: View {
   @Environment(\.widgetFamily) private var family
+  @Environment(\.colorScheme) private var colorScheme
   let entry: KeelEntry
 
-  private var rowCount: Int { family == .systemLarge ? 7 : 3 }
+  private var rowCount: Int { family == .systemLarge ? 12 : 4 }
+  private var palette: KeelPalette {
+    KeelPalette.resolve(theme: entry.snapshot?.theme, systemDark: colorScheme == .dark)
+  }
 
   var body: some View {
     Group {
@@ -30,10 +35,12 @@ struct UpcomingView: View {
         // No snapshot yet: the app has never written one (fresh install).
         Text("Open Keel")
           .font(.headline)
-          .foregroundStyle(.white)
+          .foregroundStyle(palette.ink)
       }
     }
-    .containerBackground(for: .widget) { KeelWidgetBackground() }
+    .containerBackground(for: .widget) { KeelWidgetBackground(palette: palette) }
+    // Anywhere that is not a specific row opens the Upcoming timeline.
+    .widgetURL(URL(string: "keel://upcoming"))
   }
 
   private func content(_ snapshot: WidgetSnapshot) -> some View {
@@ -43,23 +50,23 @@ struct UpcomingView: View {
       HStack(alignment: .firstTextBaseline) {
         Text(snapshot.upcomingTitle)
           .font(.headline)
-          .foregroundStyle(.white)
+          .foregroundStyle(palette.ink)
         // Anything overdue outranks the month total in the header.
         if lateCount > 0 {
           Text(snapshot.lateLine(lateCount))
             .font(.caption.weight(.semibold))
-            .foregroundStyle(Color.keelWarning)
+            .foregroundStyle(palette.warning)
         }
         Spacer()
         Text("\(snapshot.monthLabel) · \(snapshot.monthTotal)")
           .font(.caption)
-          .foregroundStyle(Color.keelSeaGlass)
+          .foregroundStyle(palette.accent)
       }
       if upcoming.isEmpty {
         Spacer(minLength: 0)
         Text(snapshot.emptyLine)
           .font(.body)
-          .foregroundStyle(Color.keelMuted)
+          .foregroundStyle(palette.muted)
         Spacer(minLength: 0)
       } else {
         ForEach(upcoming) { payment in
@@ -73,12 +80,18 @@ struct UpcomingView: View {
                 .frame(width: 8, height: 8)
               Text(payment.name)
                 .font(.subheadline)
-                .foregroundStyle(.white)
+                .foregroundStyle(palette.ink)
                 .lineLimit(1)
+              // Settle-by-hand rows say so: this one will NOT pay itself.
+              if payment.isManual {
+                Image(systemName: "hand.raised.fill")
+                  .font(.caption2)
+                  .foregroundStyle(late ? palette.warning : palette.muted)
+              }
               if late {
                 Image(systemName: "exclamationmark.triangle.fill")
                   .font(.caption2)
-                  .foregroundStyle(Color.keelWarning)
+                  .foregroundStyle(palette.warning)
               }
               Spacer(minLength: 8)
               // The trigger date, then the relative read: "25 Jul · 5d".
@@ -90,11 +103,11 @@ struct UpcomingView: View {
                   : "\(payment.shortDate) · \(snapshot.dueShort(payment, from: entry.date))"
               )
               .font(late ? .caption.weight(.semibold) : .caption)
-              .foregroundStyle(late ? Color.keelWarning : Color.keelMuted)
+              .foregroundStyle(late ? palette.warning : palette.muted)
               .lineLimit(1)
               Text(payment.amount)
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.white)
+                .foregroundStyle(palette.ink)
                 .lineLimit(1)
             }
           }
@@ -104,7 +117,7 @@ struct UpcomingView: View {
         if snapshot.payments.count > upcoming.count {
           Text(snapshot.moreLine(snapshot.payments.count - upcoming.count))
             .font(.caption)
-            .foregroundStyle(Color.keelMuted)
+            .foregroundStyle(palette.muted)
         }
         Spacer(minLength: 0)
       }

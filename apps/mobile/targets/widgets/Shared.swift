@@ -30,8 +30,12 @@ struct WidgetPayment: Codable, Identifiable {
   /// True for a charge whose day passed unpaid (optional: older snapshots
   /// don't carry it).
   let overdue: Bool?
+  /// True when the user settles this one BY HAND (it will not pay itself).
+  /// Optional keeps old snapshots decodable.
+  let manual: Bool?
 
   var isOverdue: Bool { overdue ?? false }
+  var isManual: Bool { manual ?? false }
   var linkId: String { itemId ?? id }
   var shortDate: String { dateLabel ?? "" }
 }
@@ -51,6 +55,9 @@ struct WidgetSnapshot: Codable {
   /// empty line so the widget explains itself instead of looking stale.
   /// Optional keeps old snapshots (without the field) decodable.
   let lockedLine: String?
+  /// The APP's appearance preference: "light" | "dark" | "system" (nil =
+  /// old snapshot = the historical always-dark look).
+  let theme: String?
 }
 
 enum SharedStore {
@@ -260,11 +267,50 @@ extension Color {
   static let keelWarning = Color(keelHex: "#F0B35C")
 }
 
+/// The widget's theme-resolved palette, mirroring src/theme.tsx. The app's
+/// explicit preference (carried in the snapshot) wins; "system" (or an old
+/// snapshot) follows the device scheme.
+struct KeelPalette {
+  let ink: Color
+  let muted: Color
+  let accent: Color
+  let warning: Color
+  let bgTop: Color
+  let bgBottom: Color
+
+  /// Night-at-sea (the historical widget look).
+  static let dark = KeelPalette(
+    ink: .white,
+    muted: .keelMuted,
+    accent: .keelSeaGlass,
+    warning: .keelWarning,
+    bgTop: .keelNavy,
+    bgBottom: .keelNavyDeep
+  )
+
+  /// Morning-at-sea, from the light theme's stage and inks.
+  static let light = KeelPalette(
+    ink: Color(keelHex: "#0F1720"),
+    muted: Color(keelHex: "#5C6B7A"),
+    accent: Color(keelHex: "#3E8578"),
+    warning: Color(keelHex: "#C07C00"),
+    bgTop: Color(keelHex: "#DCEAE8"),
+    bgBottom: Color(keelHex: "#F1F5F6")
+  )
+
+  static func resolve(theme: String?, systemDark: Bool) -> KeelPalette {
+    if theme == "dark" { return .dark }
+    if theme == "light" { return .light }
+    return systemDark ? .dark : .light
+  }
+}
+
 /// The stage every home-screen widget stands on.
 struct KeelWidgetBackground: View {
+  let palette: KeelPalette
   var body: some View {
     LinearGradient(
-      colors: [.keelNavy, .keelNavyDeep],
+      colors: [palette.bgTop, palette.bgBottom],
       startPoint: .top,
       endPoint: .bottom
     )
@@ -291,18 +337,19 @@ extension WidgetSnapshot {
       payments: [
         WidgetPayment(
           id: "sample-1", itemId: "sample-1", name: "Netflix", amount: "12.90 CHF",
-          dueDate: day(1), dateLabel: nil, color: "#E50914", overdue: false),
+          dueDate: day(1), dateLabel: nil, color: "#E50914", overdue: false, manual: false),
         WidgetPayment(
           id: "sample-2", itemId: "sample-2", name: "Spotify", amount: "11.99 CHF",
-          dueDate: day(3), dateLabel: nil, color: "#1DB954", overdue: false),
+          dueDate: day(3), dateLabel: nil, color: "#1DB954", overdue: false, manual: false),
         WidgetPayment(
           id: "sample-3", itemId: "sample-3", name: "iCloud+", amount: "2.99 CHF",
-          dueDate: day(6), dateLabel: nil, color: "#3693F3", overdue: false),
+          dueDate: day(6), dateLabel: nil, color: "#3693F3", overdue: false, manual: false),
         WidgetPayment(
           id: "sample-4", itemId: "sample-4", name: "Gym", amount: "24.90 CHF",
-          dueDate: day(9), dateLabel: nil, color: "#E30613", overdue: false),
+          dueDate: day(9), dateLabel: nil, color: "#E30613", overdue: false, manual: true),
       ],
-      lockedLine: nil
+      lockedLine: nil,
+      theme: nil
     )
   }
 }
