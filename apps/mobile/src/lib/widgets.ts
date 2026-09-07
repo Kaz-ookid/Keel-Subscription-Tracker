@@ -83,8 +83,13 @@ export function buildWidgetSnapshot(
 ): WidgetSnapshot {
   const asOf = today();
   // Widgets are a paid surface (§7.3): locked writes an EMPTY snapshot that
-  // says so, never a frozen list that looks alive.
-  if (entitlementSnapshot().locked) {
+  // says so, never a frozen list that looks alive. HYDRATED is part of the
+  // gate: at launch the persist effect can run before the entitlement store
+  // has read the anchor, and a pre-hydration guess must never write "locked"
+  // onto the home screen (the post-hydration rewrite corrects the rare
+  // opposite miss within a beat).
+  const entitlement = entitlementSnapshot();
+  if (entitlement.hydrated && entitlement.locked) {
     return {
       version: 1,
       locale,

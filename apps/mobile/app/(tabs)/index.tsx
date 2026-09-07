@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
 
 type PagerScrollEvent = { nativeEvent: { position: number; offset: number } };
+type PagerStateEvent = { nativeEvent: { pageScrollState: "idle" | "dragging" | "settling" } };
 
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
@@ -67,10 +68,29 @@ export default function PaymentsScreen() {
   // Upcoming ↔ All live in a native pager: the swipe is interactive (hold it
   // mid-way, pull it back) and the selection wash tracks the finger 1:1.
   const pagerRef = useRef<PagerView>(null);
+  // The scroll stream is the ground truth of where the pager REALLY is:
+  // aggressive interrupted swipes (a second finger mid-settle) can make the
+  // native pager swallow or mis-emit its final onPageSelected, leaving the
+  // label on one page and the pager on the other — and refusing further
+  // swipes. The last rounded scroll position heals that on settle.
+  const scrolledPage = useRef(0);
   const onPageScroll = (e: PagerScrollEvent) => {
+    // Clamped: overscroll bounces past the edges must not fling the wash
+    // off the track (there is no page beyond All to wrap to).
+    const progress = Math.min(1, Math.max(0, e.nativeEvent.position + e.nativeEvent.offset));
+    scrolledPage.current = Math.round(progress);
     // Reanimated shared values are driven by assigning `.value`; here the
     // pager's native scroll IS the animation, so no withTiming on top of it.
-    highlightX.value = (e.nativeEvent.position + e.nativeEvent.offset) * (pillWidth + 3);
+    highlightX.value = progress * (pillWidth + 3);
+  };
+  const onPageScrollStateChanged = (e: PagerStateEvent) => {
+    if (e.nativeEvent.pageScrollState !== "idle") return;
+    // Settled: re-assert the truth everywhere — wash, label, and the native
+    // pager's own internal position (the re-assert is what un-sticks it).
+    const page = scrolledPage.current;
+    highlightX.value = page * (pillWidth + 3);
+    setView(page === 1 ? "all" : "upcoming");
+    pagerRef.current?.setPageWithoutAnimation(page);
   };
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
@@ -173,7 +193,12 @@ export default function PaymentsScreen() {
           style={styles.pager}
           initialPage={view === "all" ? 1 : 0}
           onPageScroll={onPageScroll}
-          onPageSelected={(e) => setView(e.nativeEvent.position === 1 ? "all" : "upcoming")}
+          onPageScrollStateChanged={onPageScrollStateChanged}
+          onPageSelected={(e) => {
+            const page = Math.min(1, Math.max(0, e.nativeEvent.position));
+            scrolledPage.current = page;
+            setView(page === 1 ? "all" : "upcoming");
+          }}
         >
           <View key="upcoming" style={styles.page} collapsable={false}>
             <UpcomingView resetSignal={resetSignal} />
@@ -222,6 +247,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.hairline,
       padding: 3,
       gap: 3,
+      // The wash must never escape the capsule, even mid-overscroll.
+      overflow: "hidden",
     },
     calendarToggle: {
       width: 40,

@@ -353,11 +353,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const { i18n } = useTranslation();
   const [lockNonce, setLockNonce] = useState(0);
   const lockedRef = useRef(entitlementSnapshot().locked);
+  const entHydratedRef = useRef(entitlementSnapshot().hydrated);
   useEffect(
     () =>
       onEntitlementChange(() => {
-        if (entitlementSnapshot().locked !== lockedRef.current) {
-          lockedRef.current = entitlementSnapshot().locked;
+        const snapshot = entitlementSnapshot();
+        // Re-derive reminders + widgets when the LOCK flips, and once when
+        // the entitlement store finishes hydrating — a snapshot written
+        // before hydration guessed at the lock and must be corrected.
+        if (snapshot.locked !== lockedRef.current || snapshot.hydrated !== entHydratedRef.current) {
+          lockedRef.current = snapshot.locked;
+          entHydratedRef.current = snapshot.hydrated;
           setLockNonce((n) => n + 1);
         }
       }),
