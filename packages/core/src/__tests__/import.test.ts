@@ -546,6 +546,12 @@ describe("buildImportPrompt", () => {
     expect(prompt).not.toContain('"uncertain"');
     expect(prompt).not.toContain('"color"');
   });
+
+  it("teaches the gather-then-emit conversation and bank-statement judgment", () => {
+    expect(prompt).toContain("Do NOT reply with the JSON right away");
+    expect(prompt).toContain("statement"); // bank/card summaries are expected input
+    expect(prompt).toContain("One-time spending does not belong");
+  });
 });
 
 // ---------------------------------------------------------------------------

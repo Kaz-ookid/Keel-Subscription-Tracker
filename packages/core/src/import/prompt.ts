@@ -24,12 +24,22 @@ export interface ImportPromptContext {
   defaultCurrency: CurrencyCode;
 }
 
-/** Build the copy-paste instructions header for the user's own AI. (The
- *  default currency left the prompt in v2 — the parser defaults it.) */
+/** Build the copy-paste instructions header for the user's own AI. Runs on
+ *  big models, so it spends words freely where they buy accuracy: how to
+ *  read messy sources (bank statements especially), and a gather-then-emit
+ *  conversation instead of a one-shot answer. (The default currency left
+ *  the prompt in v2 — the parser defaults it.) */
 export function buildImportPrompt({ today }: ImportPromptContext): string {
-  return `You are helping someone import their recurring payments into the Keel app (import format v${IMPORT_FORMAT_VERSION}). After these instructions they will provide rough notes: typed text, and/or screenshots of confirmation emails, receipts or a banking app. Read everything they provide and convert it into Keel's JSON import document.
+  return `You are helping someone import their recurring payments into the Keel app (import format v${IMPORT_FORMAT_VERSION}). After these instructions they will provide material in any mix and over several messages: rough typed notes, screenshots of confirmation emails, receipts, app subscription pages, their banking app, monthly bank or card statements, or an export from another tracker. Read everything and build Keel's JSON import document from it.
 
-Reply with ONLY a JSON object of the form {"items":[ ... ]}, and present it inside a single code block so it is easy to view and copy at once. No prose or explanation around it. If you cannot parse anything, output {"items":[]}.
+HOW THE CONVERSATION GOES (important):
+- Do NOT reply with the JSON right away. First, briefly list what you found so far (name and price per item, one line each), mention anything you were unsure about, and ask whether they want to add more before you produce the import file. People often have several screenshots to send one by one; keep collecting across messages and update your running list.
+- Only when they say they are done (any wording: "done", "that's all", "give me the file"...), reply with ONLY the JSON object of the form {"items":[ ... ]}, presented inside a single code block so it is easy to copy at once - no prose around it in that final message. If in the end nothing was parseable, output {"items":[]}.
+
+WHAT COUNTS AS AN ITEM - reason about it, especially in bank statements:
+- Keel tracks RECURRING commitments (subscriptions, bills, rent, insurance) and fixed instalment plans (pay in 4, BNPL). One-time spending does not belong: groceries, restaurants, shops, a single transfer.
+- A monthly bank or card statement mixes both. Take what recurs: a known subscription brand (Netflix, a gym, an insurer, a telecom), the same merchant with the same amount at a steady rhythm, anything labelled as a direct debit or standing order. Leave out the one-offs.
+- When you genuinely cannot tell whether a line recurs, either leave it out or include it with a short "notes" saying you are unsure - never present a guess as certain.
 
 You are a READER, not a guesser: report what the input states and OMIT any field it does not state. The app fills sensible defaults for omitted fields and tells the user exactly what it defaulted, so an omission is more useful than a guess.
 
@@ -55,13 +65,13 @@ Optional fields, to include ONLY when the input supports them:
 - subscription "priceChange": {"newAmount":N,"on":"YYYY-MM-DD"} for a future price change. Use it for trials (amount 0 now → newAmount on the date) AND plain increases/decreases ("goes up to 170 on 26.12.2027"). Today is ${today}, only for reading such stated dates.
 - split_payment "installments": N (how many payments); "provider": one of paypal_pay_in_x, klarna, afterpay, alma, oney, cb_nx, other ("PayPal"→paypal_pay_in_x, generic card plan→cb_nx).
 
-Rules:
+Rules for the final answer:
 - Output valid JSON only, with the exact field names above.
 - Never use the em dash character in any text value; use a comma, colon or parentheses instead.
-- One input can contain many items across several accounts; emit one item per payment.
+- The input can contain many items across several accounts; emit one item per payment.
 - A price that changes over time is ONE item with a priceChange, never two items with the same name.
 
-The user's notes and/or screenshots follow.`;
+The user's material follows; remember to gather first and only produce the file when they say they are done.`;
 }
 
 /**
