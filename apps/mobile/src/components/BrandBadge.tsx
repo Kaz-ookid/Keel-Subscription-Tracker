@@ -15,7 +15,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
-import { noteBrandLogo } from "../lib/dominant-color";
+import { monoPolarity, noteBrandLogo, useBrandTints } from "../lib/dominant-color";
 import { useLogosEnabled } from "../lib/logo-consent";
 import {
   hostOf,
@@ -74,6 +74,8 @@ function FallbackBadge({ icon, fallback, color, size }: Omit<Props, "domain"> & 
 export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) {
   const { colors } = useTheme();
   const logosEnabled = useLogosEnabled();
+  // Repaint when a tint or mono verdict lands for this domain.
+  useBrandTints();
   const [loaded, setLoaded] = useState(false);
   const [failed, setFailed] = useState(false);
   // When web logos are OFF, the local URI of an already-cached logo (null =
@@ -140,6 +142,13 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
   // remount (the calendar's many small badges) flash brand color first.
   const expectInstant = logosEnabled ? knownCachedLogo(domain) != null : cachedUri != null;
 
+  // The plate under a loaded logo. Colored logos are designed for light
+  // plates → white, always. A KNOWN mono logo gets the contrasting plate
+  // (light mark → navy, dark mark → white). Unknown stays white: most
+  // unextracted logos are colored, and navy would look off under them.
+  const polarity = monoPolarity(domain);
+  const plateColor = polarity === "light" ? colors.navy : colors.white;
+
   return (
     <View style={{ width: size, height: size }}>
       {/* The fallback badge sits underneath until the logo has actually
@@ -178,7 +187,7 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: loaded ? colors.white : "transparent",
+          backgroundColor: loaded ? plateColor : "transparent",
         }}
         contentFit="cover"
       />

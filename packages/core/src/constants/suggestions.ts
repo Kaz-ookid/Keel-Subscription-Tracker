@@ -98,6 +98,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "hbo-max",
+    color: "#991EEB",
     name: "HBO Max",
     categoryId: "streaming",
     unit: "month",
@@ -106,13 +107,21 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "paramount-plus",
+    color: "#0064FF",
     name: "Paramount+",
     categoryId: "streaming",
     unit: "month",
     domain: "paramountplus.com",
     aliases: ["Paramount Plus"],
   },
-  { id: "dazn", name: "DAZN", categoryId: "streaming", unit: "month", domain: "dazn.com" },
+  {
+    id: "dazn",
+    color: "#EAFF04",
+    name: "DAZN",
+    categoryId: "streaming",
+    unit: "month",
+    domain: "dazn.com",
+  },
   {
     id: "crunchyroll",
     name: "Crunchyroll",
@@ -121,9 +130,17 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     color: "#F47521",
     domain: "crunchyroll.com",
   },
-  { id: "mubi", name: "MUBI", categoryId: "streaming", unit: "month", domain: "mubi.com" },
+  {
+    id: "mubi",
+    color: "#2434E0",
+    name: "MUBI",
+    categoryId: "streaming",
+    unit: "month",
+    domain: "mubi.com",
+  },
   {
     id: "sky",
+    color: "#0072C9",
     name: "Sky",
     categoryId: "streaming",
     unit: "month",
@@ -132,6 +149,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "wow",
+    color: "#EA1EC8",
     name: "WOW",
     categoryId: "streaming",
     unit: "month",
@@ -140,6 +158,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "now-tv",
+    color: "#00C88C",
     name: "NOW",
     categoryId: "streaming",
     unit: "month",
@@ -149,6 +168,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "canal-plus",
+    color: "#009FE3",
     name: "Canal+",
     categoryId: "streaming",
     unit: "month",
@@ -158,6 +178,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "rtl-plus",
+    color: "#7C3AED",
     name: "RTL+",
     categoryId: "streaming",
     unit: "month",
@@ -166,6 +187,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "joyn",
+    color: "#6E3AFF",
     name: "Joyn",
     categoryId: "streaming",
     unit: "month",
@@ -174,6 +196,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "zattoo",
+    color: "#E4005D",
     name: "Zattoo",
     categoryId: "streaming",
     unit: "month",
@@ -182,6 +205,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "viaplay",
+    color: "#F03A55",
     name: "Viaplay",
     categoryId: "streaming",
     unit: "month",
@@ -190,6 +214,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "videoland",
+    color: "#FF6600",
     name: "Videoland",
     categoryId: "streaming",
     unit: "month",
@@ -198,6 +223,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "skyshowtime",
+    color: "#4231C8",
     name: "SkyShowtime",
     categoryId: "streaming",
     unit: "month",
@@ -206,6 +232,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "movistar-plus",
+    color: "#019DF4",
     name: "Movistar Plus+",
     categoryId: "streaming",
     unit: "month",
@@ -214,6 +241,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "filmin",
+    color: "#7ED321",
     name: "Filmin",
     categoryId: "streaming",
     unit: "month",
@@ -222,6 +250,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "molotov",
+    color: "#FF5A2D",
     name: "Molotov",
     categoryId: "streaming",
     unit: "month",
@@ -230,6 +259,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "britbox",
+    color: "#2264DC",
     name: "BritBox",
     categoryId: "streaming",
     unit: "month",
@@ -239,6 +269,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "blue-plus",
+    color: "#1781E3",
     name: "blue+ (Swisscom)",
     categoryId: "streaming",
     unit: "month",
@@ -247,6 +278,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "bein-sports",
+    color: "#6E2B90",
     name: "beIN SPORTS",
     categoryId: "streaming",
     unit: "month",
@@ -281,12 +313,20 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "amazon-music",
+    color: "#25D1DA",
     name: "Amazon Music Unlimited",
     categoryId: "music",
     unit: "month",
     domain: "music.amazon.com",
   },
-  { id: "deezer", name: "Deezer", categoryId: "music", unit: "month", domain: "deezer.com" },
+  {
+    id: "deezer",
+    color: "#A238FF",
+    name: "Deezer",
+    categoryId: "music",
+    unit: "month",
+    domain: "deezer.com",
+  },
   {
     id: "tidal",
     name: "TIDAL",
@@ -314,6 +354,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "podimo",
+    color: "#FF5478",
     name: "Podimo",
     categoryId: "music",
     unit: "month",
@@ -323,6 +364,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "qobuz",
+    color: "#2E4BE5",
     name: "Qobuz",
     categoryId: "music",
     unit: "month",
@@ -331,6 +373,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "bookbeat",
+    color: "#E63462",
     name: "BookBeat",
     categoryId: "music",
     unit: "month",
@@ -339,6 +382,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "storytel",
+    color: "#FA6432",
     name: "Storytel",
     categoryId: "music",
     unit: "month",
@@ -349,6 +393,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   // ── Communications ────────────────────────────────────────────────────
   {
     id: "mobile-plan",
+    color: "#4C7FD0",
     name: "Mobile plan",
     categoryId: "communications",
     unit: "month",
@@ -356,6 +401,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "internet",
+    color: "#6366F1",
     name: "Home internet",
     categoryId: "communications",
     unit: "month",
@@ -372,6 +418,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "sunrise",
+    color: "#E2001A",
     name: "Sunrise",
     categoryId: "communications",
     unit: "month",
@@ -380,6 +427,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "salt-mobile",
+    color: "#7AB800",
     name: "Salt",
     categoryId: "communications",
     unit: "month",
@@ -388,6 +436,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "yallo",
+    color: "#F05A22",
     name: "yallo",
     categoryId: "communications",
     unit: "month",
@@ -396,6 +445,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "wingo",
+    color: "#EB4B98",
     name: "Wingo",
     categoryId: "communications",
     unit: "month",
@@ -432,6 +482,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "one-and-one",
+    color: "#003D8F",
     name: "1&1",
     categoryId: "communications",
     unit: "month",
@@ -440,6 +491,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "congstar",
+    color: "#F59C00",
     name: "congstar",
     categoryId: "communications",
     unit: "month",
@@ -448,6 +500,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "aldi-talk",
+    color: "#009EE0",
     name: "ALDI TALK",
     categoryId: "communications",
     unit: "month",
@@ -465,6 +518,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "sfr",
+    color: "#E40012",
     name: "SFR",
     categoryId: "communications",
     unit: "month",
@@ -473,6 +527,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "free-mobile",
+    color: "#CC0000",
     name: "Free",
     categoryId: "communications",
     unit: "month",
@@ -481,6 +536,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "bouygues",
+    color: "#009BCE",
     name: "Bouygues Telecom",
     categoryId: "communications",
     unit: "month",
@@ -489,6 +545,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "ee",
+    color: "#007B85",
     name: "EE",
     categoryId: "communications",
     unit: "month",
@@ -497,6 +554,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "three",
+    color: "#6D2077",
     name: "Three",
     categoryId: "communications",
     unit: "month",
@@ -505,6 +563,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "giffgaff",
+    color: "#FFE100",
     name: "giffgaff",
     categoryId: "communications",
     unit: "month",
@@ -513,6 +572,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "kpn",
+    color: "#00C300",
     name: "KPN",
     categoryId: "communications",
     unit: "month",
@@ -521,6 +581,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "ziggo",
+    color: "#F48C00",
     name: "Ziggo",
     categoryId: "communications",
     unit: "month",
@@ -529,6 +590,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "a1",
+    color: "#DA291C",
     name: "A1",
     categoryId: "communications",
     unit: "month",
@@ -537,6 +599,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "lycamobile",
+    color: "#00A9E0",
     name: "Lycamobile",
     categoryId: "communications",
     unit: "month",
@@ -545,6 +608,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "sosh",
+    color: "#FF7900",
     name: "Sosh",
     categoryId: "communications",
     unit: "month",
@@ -553,6 +617,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "red-by-sfr",
+    color: "#B00010",
     name: "RED by SFR",
     categoryId: "communications",
     unit: "month",
@@ -561,6 +626,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "swype",
+    color: "#FF2E88",
     name: "swype",
     categoryId: "communications",
     unit: "month",
@@ -569,6 +635,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "m-budget-mobile",
+    color: "#79B51D",
     name: "M-Budget Mobile",
     categoryId: "communications",
     unit: "month",
@@ -630,7 +697,14 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     color: "#00C4CC",
     domain: "canva.com",
   },
-  { id: "figma", name: "Figma", categoryId: "software", unit: "month", domain: "figma.com" },
+  {
+    id: "figma",
+    color: "#A259FF",
+    name: "Figma",
+    categoryId: "software",
+    unit: "month",
+    domain: "figma.com",
+  },
   {
     id: "notion",
     name: "Notion",
@@ -675,6 +749,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "midjourney",
+    color: "#5865F2",
     name: "Midjourney",
     categoryId: "software",
     unit: "month",
@@ -682,14 +757,22 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "perplexity",
+    color: "#20808D",
     name: "Perplexity",
     categoryId: "software",
     unit: "month",
     domain: "perplexity.ai",
   },
-  { id: "password-manager", name: "Password manager", categoryId: "software", unit: "year" },
+  {
+    id: "password-manager",
+    color: "#4C6EF5",
+    name: "Password manager",
+    categoryId: "software",
+    unit: "year",
+  },
   {
     id: "1password",
+    color: "#0572EC",
     name: "1Password",
     categoryId: "software",
     unit: "year",
@@ -713,13 +796,21 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "dashlane",
+    color: "#099F76",
     name: "Dashlane",
     categoryId: "software",
     unit: "year",
     domain: "dashlane.com",
   },
-  { id: "vpn", name: "VPN", categoryId: "software", unit: "year" },
-  { id: "nordvpn", name: "NordVPN", categoryId: "software", unit: "year", domain: "nordvpn.com" },
+  { id: "vpn", color: "#5468FF", name: "VPN", categoryId: "software", unit: "year" },
+  {
+    id: "nordvpn",
+    color: "#4687FF",
+    name: "NordVPN",
+    categoryId: "software",
+    unit: "year",
+    domain: "nordvpn.com",
+  },
   {
     id: "expressvpn",
     name: "ExpressVPN",
@@ -730,6 +821,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "surfshark",
+    color: "#17B0BF",
     name: "Surfshark",
     categoryId: "software",
     unit: "year",
@@ -786,14 +878,23 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "cyberghost",
+    color: "#FFCC00",
     name: "CyberGhost",
     categoryId: "software",
     unit: "year",
     domain: "cyberghostvpn.com",
   },
-  { id: "mullvad", name: "Mullvad", categoryId: "software", unit: "month", domain: "mullvad.net" },
+  {
+    id: "mullvad",
+    color: "#294D73",
+    name: "Mullvad",
+    categoryId: "software",
+    unit: "month",
+    domain: "mullvad.net",
+  },
   {
     id: "domain-hosting",
+    color: "#7048E8",
     name: "Domain / hosting",
     categoryId: "software",
     unit: "year",
@@ -801,6 +902,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "infomaniak",
+    color: "#0098FF",
     name: "Infomaniak",
     categoryId: "software",
     unit: "year",
@@ -809,6 +911,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "ovh",
+    color: "#2153B0",
     name: "OVHcloud",
     categoryId: "software",
     unit: "year",
@@ -854,9 +957,17 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     domain: "nintendo.com",
     aliases: ["NSO"],
   },
-  { id: "ea-play", name: "EA Play", categoryId: "gaming", unit: "month", domain: "ea.com" },
+  {
+    id: "ea-play",
+    color: "#E0161E",
+    name: "EA Play",
+    categoryId: "gaming",
+    unit: "month",
+    domain: "ea.com",
+  },
   {
     id: "ubisoft-plus",
+    color: "#1E7CF0",
     name: "Ubisoft+",
     categoryId: "gaming",
     unit: "month",
@@ -890,6 +1001,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "wow-sub",
+    color: "#F0B232",
     name: "World of Warcraft",
     categoryId: "gaming",
     unit: "month",
@@ -898,6 +1010,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "fortnite-crew",
+    color: "#9D4DBB",
     name: "Fortnite Crew",
     categoryId: "gaming",
     unit: "month",
@@ -906,6 +1019,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "roblox-premium",
+    color: "#E2231A",
     name: "Roblox Premium",
     categoryId: "gaming",
     unit: "month",
@@ -913,6 +1027,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "minecraft-realms",
+    color: "#52A535",
     name: "Minecraft Realms",
     categoryId: "gaming",
     unit: "month",
@@ -929,29 +1044,74 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
 
   // ── Insurance ─────────────────────────────────────────────────────────
-  { id: "health-insurance", name: "Health insurance", categoryId: "insurance", unit: "month" },
-  { id: "car-insurance", name: "Car insurance", categoryId: "insurance", unit: "year" },
+  {
+    id: "health-insurance",
+    color: "#3B6FD1",
+    name: "Health insurance",
+    categoryId: "insurance",
+    unit: "month",
+  },
+  {
+    id: "car-insurance",
+    color: "#C75B39",
+    name: "Car insurance",
+    categoryId: "insurance",
+    unit: "year",
+  },
   {
     id: "home-insurance",
+    color: "#3A8F6B",
     name: "Household insurance",
     categoryId: "insurance",
     unit: "year",
     aliases: ["contents insurance"],
   },
-  { id: "liability-insurance", name: "Liability insurance", categoryId: "insurance", unit: "year" },
+  {
+    id: "liability-insurance",
+    color: "#6C7ACF",
+    name: "Liability insurance",
+    categoryId: "insurance",
+    unit: "year",
+  },
   {
     id: "legal-insurance",
+    color: "#5E548E",
     name: "Legal protection insurance",
     categoryId: "insurance",
     unit: "year",
     regions: ["CH", "DE", "AT"],
   },
-  { id: "life-insurance", name: "Life insurance", categoryId: "insurance", unit: "year" },
-  { id: "dental-insurance", name: "Dental insurance", categoryId: "insurance", unit: "year" },
-  { id: "pet-insurance", name: "Pet insurance", categoryId: "insurance", unit: "month" },
-  { id: "travel-insurance", name: "Travel insurance", categoryId: "insurance", unit: "year" },
+  {
+    id: "life-insurance",
+    color: "#4E79A7",
+    name: "Life insurance",
+    categoryId: "insurance",
+    unit: "year",
+  },
+  {
+    id: "dental-insurance",
+    color: "#4FB0C6",
+    name: "Dental insurance",
+    categoryId: "insurance",
+    unit: "year",
+  },
+  {
+    id: "pet-insurance",
+    color: "#C98A3B",
+    name: "Pet insurance",
+    categoryId: "insurance",
+    unit: "month",
+  },
+  {
+    id: "travel-insurance",
+    color: "#3FA7D6",
+    name: "Travel insurance",
+    categoryId: "insurance",
+    unit: "year",
+  },
   {
     id: "css",
+    color: "#D50C2D",
     name: "CSS",
     categoryId: "insurance",
     unit: "month",
@@ -960,6 +1120,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "helsana",
+    color: "#DB0812",
     name: "Helsana",
     categoryId: "insurance",
     unit: "month",
@@ -968,6 +1129,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "swica",
+    color: "#00963F",
     name: "SWICA",
     categoryId: "insurance",
     unit: "month",
@@ -976,6 +1138,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "sanitas",
+    color: "#0098DB",
     name: "Sanitas",
     categoryId: "insurance",
     unit: "month",
@@ -984,6 +1147,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "assura",
+    color: "#26358C",
     name: "Assura",
     categoryId: "insurance",
     unit: "month",
@@ -992,6 +1156,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "concordia",
+    color: "#00805F",
     name: "CONCORDIA",
     categoryId: "insurance",
     unit: "month",
@@ -1000,6 +1165,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "visana",
+    color: "#E2007A",
     name: "Visana",
     categoryId: "insurance",
     unit: "month",
@@ -1008,6 +1174,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "groupe-mutuel",
+    color: "#EB5B25",
     name: "Groupe Mutuel",
     categoryId: "insurance",
     unit: "month",
@@ -1032,6 +1199,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "zurich-insurance",
+    color: "#2167AE",
     name: "Zurich Insurance",
     categoryId: "insurance",
     unit: "year",
@@ -1039,6 +1207,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "generali",
+    color: "#C21B17",
     name: "Generali",
     categoryId: "insurance",
     unit: "year",
@@ -1046,6 +1215,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "mobiliar",
+    color: "#DA291C",
     name: "Die Mobiliar",
     categoryId: "insurance",
     unit: "year",
@@ -1054,6 +1224,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "baloise",
+    color: "#006E5A",
     name: "Baloise",
     categoryId: "insurance",
     unit: "year",
@@ -1063,6 +1234,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "maif",
+    color: "#E1001A",
     name: "MAIF",
     categoryId: "insurance",
     unit: "year",
@@ -1071,6 +1243,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "macif",
+    color: "#0064AC",
     name: "MACIF",
     categoryId: "insurance",
     unit: "year",
@@ -1079,6 +1252,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "matmut",
+    color: "#0090D4",
     name: "Matmut",
     categoryId: "insurance",
     unit: "year",
@@ -1087,6 +1261,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "groupama",
+    color: "#00A551",
     name: "Groupama",
     categoryId: "insurance",
     unit: "year",
@@ -1095,17 +1270,42 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
 
   // ── Housing ───────────────────────────────────────────────────────────
-  { id: "rent", name: "Rent", categoryId: "housing", unit: "month" },
-  { id: "mortgage", name: "Mortgage", categoryId: "housing", unit: "month" },
-  { id: "cleaning-service", name: "Cleaning service", categoryId: "housing", unit: "month" },
-  { id: "storage-unit", name: "Storage unit", categoryId: "housing", unit: "month" },
+  { id: "rent", color: "#A0713C", name: "Rent", categoryId: "housing", unit: "month" },
+  { id: "mortgage", color: "#705A99", name: "Mortgage", categoryId: "housing", unit: "month" },
+  {
+    id: "cleaning-service",
+    color: "#52B7A6",
+    name: "Cleaning service",
+    categoryId: "housing",
+    unit: "month",
+  },
+  {
+    id: "storage-unit",
+    color: "#8A7B5C",
+    name: "Storage unit",
+    categoryId: "housing",
+    unit: "month",
+  },
 
   // ── Utilities ─────────────────────────────────────────────────────────
-  { id: "electricity", name: "Electricity", categoryId: "utilities", unit: "month" },
-  { id: "gas", name: "Gas", categoryId: "utilities", unit: "month" },
-  { id: "water-heating", name: "Water / heating", categoryId: "utilities", unit: "month" },
+  {
+    id: "electricity",
+    color: "#F2A007",
+    name: "Electricity",
+    categoryId: "utilities",
+    unit: "month",
+  },
+  { id: "gas", color: "#3D85E0", name: "Gas", categoryId: "utilities", unit: "month" },
+  {
+    id: "water-heating",
+    color: "#2D8FD6",
+    name: "Water / heating",
+    categoryId: "utilities",
+    unit: "month",
+  },
   {
     id: "serafe",
+    color: "#C42B2B",
     name: "TV & radio fee (Serafe)",
     categoryId: "utilities",
     unit: "year",
@@ -1117,6 +1317,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "rundfunkbeitrag",
+    color: "#004A99",
     name: "Rundfunkbeitrag",
     categoryId: "utilities",
     unit: "month",
@@ -1125,15 +1326,24 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "tv-licence",
+    color: "#5C2D91",
     name: "TV licence",
     categoryId: "utilities",
     unit: "year",
     regions: ["GB", "IE"],
   },
-  { id: "gis", name: "GIS / ORF-Beitrag", categoryId: "utilities", unit: "month", regions: ["AT"] },
+  {
+    id: "gis",
+    color: "#C8102E",
+    name: "GIS / ORF-Beitrag",
+    categoryId: "utilities",
+    unit: "month",
+    regions: ["AT"],
+  },
 
   {
     id: "edf",
+    color: "#FF5A0F",
     name: "EDF",
     categoryId: "utilities",
     unit: "month",
@@ -1142,6 +1352,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "engie",
+    color: "#00AAFF",
     name: "ENGIE",
     categoryId: "utilities",
     unit: "month",
@@ -1150,7 +1361,13 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
 
   // ── Transport ─────────────────────────────────────────────────────────
-  { id: "transit-pass", name: "Public transport pass", categoryId: "transport", unit: "year" },
+  {
+    id: "transit-pass",
+    color: "#2F7FA3",
+    name: "Public transport pass",
+    categoryId: "transport",
+    unit: "year",
+  },
   {
     id: "sbb-ga",
     name: "GA Travelcard (SBB)",
@@ -1173,6 +1390,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "deutschlandticket",
+    color: "#EC0016",
     name: "Deutschlandticket",
     categoryId: "transport",
     unit: "month",
@@ -1188,17 +1406,26 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     domain: "bahn.de",
     regions: ["DE"],
   },
-  { id: "navigo", name: "Navigo", categoryId: "transport", unit: "month", regions: ["FR"] },
+  {
+    id: "navigo",
+    color: "#1D3F94",
+    name: "Navigo",
+    categoryId: "transport",
+    unit: "month",
+    regions: ["FR"],
+  },
   {
     id: "klimaticket",
+    color: "#E03A4E",
     name: "KlimaTicket",
     categoryId: "transport",
     unit: "year",
     regions: ["AT"],
   },
-  { id: "parking", name: "Parking spot", categoryId: "transport", unit: "month" },
+  { id: "parking", color: "#46648C", name: "Parking spot", categoryId: "transport", unit: "month" },
   {
     id: "car-lease",
+    color: "#4A6FA5",
     name: "Car lease",
     categoryId: "transport",
     unit: "month",
@@ -1206,6 +1433,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "mobility",
+    color: "#E2001A",
     name: "Mobility car sharing",
     categoryId: "transport",
     unit: "year",
@@ -1214,6 +1442,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "swapfiets",
+    color: "#0F57FF",
     name: "Swapfiets",
     categoryId: "transport",
     unit: "month",
@@ -1223,6 +1452,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "carte-avantage",
+    color: "#CE0037",
     name: "Carte Avantage (SNCF)",
     categoryId: "transport",
     unit: "year",
@@ -1232,6 +1462,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "velib",
+    color: "#79B928",
     name: "Vélib' Métropole",
     categoryId: "transport",
     unit: "year",
@@ -1250,6 +1481,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "publibike",
+    color: "#E8501E",
     name: "PubliBike",
     categoryId: "transport",
     unit: "year",
@@ -1258,7 +1490,14 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
 
   // ── Health & fitness ──────────────────────────────────────────────────
-  { id: "gym", name: "Gym membership", categoryId: "health", unit: "month", aliases: ["fitness"] },
+  {
+    id: "gym",
+    color: "#E85D75",
+    name: "Gym membership",
+    categoryId: "health",
+    unit: "month",
+    aliases: ["fitness"],
+  },
   {
     id: "basic-fit",
     name: "Basic-Fit",
@@ -1270,6 +1509,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "mcfit",
+    color: "#FFED00",
     name: "McFIT",
     categoryId: "health",
     unit: "month",
@@ -1278,6 +1518,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "fitx",
+    color: "#FF4E00",
     name: "FitX",
     categoryId: "health",
     unit: "month",
@@ -1286,6 +1527,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "puregym",
+    color: "#E1005D",
     name: "PureGym",
     categoryId: "health",
     unit: "month",
@@ -1303,6 +1545,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "urban-sports-club",
+    color: "#0E4A52",
     name: "Urban Sports Club",
     categoryId: "health",
     unit: "month",
@@ -1311,6 +1554,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "classpass",
+    color: "#2E4FFF",
     name: "ClassPass",
     categoryId: "health",
     unit: "month",
@@ -1324,7 +1568,14 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     color: "#F47D31",
     domain: "headspace.com",
   },
-  { id: "calm", name: "Calm", categoryId: "health", unit: "year", domain: "calm.com" },
+  {
+    id: "calm",
+    color: "#4A90D9",
+    name: "Calm",
+    categoryId: "health",
+    unit: "year",
+    domain: "calm.com",
+  },
   {
     id: "strava",
     name: "Strava",
@@ -1351,6 +1602,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "myfitnesspal",
+    color: "#0066EE",
     name: "MyFitnessPal",
     categoryId: "health",
     unit: "year",
@@ -1367,6 +1619,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "fitness-park",
+    color: "#F8D200",
     name: "Fitness Park",
     categoryId: "health",
     unit: "month",
@@ -1375,6 +1628,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "fitnesspark-migros",
+    color: "#FF6600",
     name: "Fitnesspark (Migros)",
     categoryId: "health",
     unit: "month",
@@ -1383,6 +1637,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "nonstop-gym",
+    color: "#E2001A",
     name: "NonStop Gym",
     categoryId: "health",
     unit: "month",
@@ -1391,6 +1646,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "lets-go-fitness",
+    color: "#D82430",
     name: "Let's Go Fitness",
     categoryId: "health",
     unit: "month",
@@ -1399,6 +1655,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "update-fitness",
+    color: "#95C11F",
     name: "update Fitness",
     categoryId: "health",
     unit: "month",
@@ -1407,8 +1664,20 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
 
   // ── Finance & banking ─────────────────────────────────────────────────
-  { id: "bank-fees", name: "Bank account fees", categoryId: "finance", unit: "month" },
-  { id: "credit-card-fee", name: "Credit card annual fee", categoryId: "finance", unit: "year" },
+  {
+    id: "bank-fees",
+    color: "#607B99",
+    name: "Bank account fees",
+    categoryId: "finance",
+    unit: "month",
+  },
+  {
+    id: "credit-card-fee",
+    color: "#7A6FB0",
+    name: "Credit card annual fee",
+    categoryId: "finance",
+    unit: "year",
+  },
   {
     id: "revolut",
     name: "Revolut Premium",
@@ -1420,6 +1689,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "n26",
+    color: "#36A18B",
     name: "N26",
     categoryId: "finance",
     unit: "month",
@@ -1428,6 +1698,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "yuh",
+    color: "#B5EB4D",
     name: "Yuh",
     categoryId: "finance",
     unit: "month",
@@ -1436,6 +1707,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "neon",
+    color: "#35E0A1",
     name: "neon",
     categoryId: "finance",
     unit: "month",
@@ -1444,6 +1716,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "bunq",
+    color: "#14C6A4",
     name: "bunq",
     categoryId: "finance",
     unit: "month",
@@ -1452,6 +1725,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "monzo",
+    color: "#FF4F40",
     name: "Monzo",
     categoryId: "finance",
     unit: "month",
@@ -1462,14 +1736,24 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   // ── News & learning ───────────────────────────────────────────────────
   {
     id: "news",
+    color: "#506B84",
     name: "News subscription",
     categoryId: "news",
     unit: "month",
     aliases: ["newspaper", "magazine"],
   },
-  { id: "nzz", name: "NZZ", categoryId: "news", unit: "month", domain: "nzz.ch", regions: ["CH"] },
+  {
+    id: "nzz",
+    color: "#1C5D99",
+    name: "NZZ",
+    categoryId: "news",
+    unit: "month",
+    domain: "nzz.ch",
+    regions: ["CH"],
+  },
   {
     id: "le-monde",
+    color: "#37536D",
     name: "Le Monde",
     categoryId: "news",
     unit: "month",
@@ -1504,6 +1788,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "financial-times",
+    color: "#D89E76",
     name: "Financial Times",
     categoryId: "news",
     unit: "month",
@@ -1513,6 +1798,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "der-spiegel",
+    color: "#E64415",
     name: "DER SPIEGEL",
     categoryId: "news",
     unit: "month",
@@ -1521,6 +1807,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "die-zeit",
+    color: "#3E5468",
     name: "DIE ZEIT",
     categoryId: "news",
     unit: "month",
@@ -1552,8 +1839,22 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     domain: "duolingo.com",
     aliases: ["Super Duolingo"],
   },
-  { id: "babbel", name: "Babbel", categoryId: "news", unit: "year", domain: "babbel.com" },
-  { id: "blinkist", name: "Blinkist", categoryId: "news", unit: "year", domain: "blinkist.com" },
+  {
+    id: "babbel",
+    color: "#FF7B29",
+    name: "Babbel",
+    categoryId: "news",
+    unit: "year",
+    domain: "babbel.com",
+  },
+  {
+    id: "blinkist",
+    color: "#1FC76F",
+    name: "Blinkist",
+    categoryId: "news",
+    unit: "year",
+    domain: "blinkist.com",
+  },
   {
     id: "linkedin-premium",
     name: "LinkedIn Premium",
@@ -1580,6 +1881,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "skillshare",
+    color: "#00C468",
     name: "Skillshare",
     categoryId: "news",
     unit: "year",
@@ -1588,6 +1890,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
 
   {
     id: "mediapart",
+    color: "#E5342A",
     name: "Mediapart",
     categoryId: "news",
     unit: "month",
@@ -1596,6 +1899,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "le-figaro",
+    color: "#2A5DA8",
     name: "Le Figaro",
     categoryId: "news",
     unit: "month",
@@ -1604,6 +1908,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "le-temps",
+    color: "#C22026",
     name: "Le Temps",
     categoryId: "news",
     unit: "month",
@@ -1612,6 +1917,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "kindle-unlimited",
+    color: "#FF9900",
     name: "Kindle Unlimited",
     categoryId: "news",
     unit: "month",
@@ -1648,6 +1954,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "wolt-plus",
+    color: "#00C2E8",
     name: "Wolt+",
     categoryId: "food",
     unit: "month",
@@ -1656,17 +1963,25 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "gousto",
+    color: "#F0503C",
     name: "Gousto",
     categoryId: "food",
     unit: "month",
     domain: "gousto.co.uk",
     regions: ["GB"],
   },
-  { id: "coffee-subscription", name: "Coffee subscription", categoryId: "food", unit: "month" },
+  {
+    id: "coffee-subscription",
+    color: "#8B5A33",
+    name: "Coffee subscription",
+    categoryId: "food",
+    unit: "month",
+  },
 
   // ── Social & dating ───────────────────────────────────────────────────
   {
     id: "tinder",
+    color: "#FE3C72",
     name: "Tinder",
     categoryId: "social",
     unit: "month",
@@ -1681,7 +1996,14 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     color: "#FFC629",
     domain: "bumble.com",
   },
-  { id: "hinge", name: "Hinge", categoryId: "social", unit: "month", domain: "hinge.co" },
+  {
+    id: "hinge",
+    color: "#7A5AF8",
+    name: "Hinge",
+    categoryId: "social",
+    unit: "month",
+    domain: "hinge.co",
+  },
   {
     id: "telegram-premium",
     name: "Telegram Premium",
@@ -1707,10 +2029,18 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
     domain: "x.com",
     aliases: ["Twitter Blue"],
   },
-  { id: "onlyfans", name: "OnlyFans", categoryId: "social", unit: "month", domain: "onlyfans.com" },
+  {
+    id: "onlyfans",
+    color: "#00AFF0",
+    name: "OnlyFans",
+    categoryId: "social",
+    unit: "month",
+    domain: "onlyfans.com",
+  },
 
   {
     id: "fruitz",
+    color: "#9146FF",
     name: "Fruitz",
     categoryId: "social",
     unit: "month",
@@ -1719,6 +2049,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "happn",
+    color: "#2A8CFF",
     name: "happn",
     categoryId: "social",
     unit: "month",
@@ -1727,18 +2058,33 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "meetic",
+    color: "#FF5A3C",
     name: "Meetic",
     categoryId: "social",
     unit: "month",
     domain: "meetic.fr",
     regions: ["FR", "BE"],
   },
-  { id: "grindr", name: "Grindr", categoryId: "social", unit: "month", domain: "grindr.com" },
+  {
+    id: "grindr",
+    color: "#F5B800",
+    name: "Grindr",
+    categoryId: "social",
+    unit: "month",
+    domain: "grindr.com",
+  },
 
   // ── Memberships & charity ─────────────────────────────────────────────
-  { id: "charity", name: "Charity donation", categoryId: "memberships", unit: "month" },
+  {
+    id: "charity",
+    color: "#C25B4E",
+    name: "Charity donation",
+    categoryId: "memberships",
+    unit: "month",
+  },
   {
     id: "patreon",
+    color: "#FF424D",
     name: "Patreon",
     categoryId: "memberships",
     unit: "month",
@@ -1754,6 +2100,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "greenpeace",
+    color: "#00A651",
     name: "Greenpeace",
     categoryId: "memberships",
     unit: "year",
@@ -1761,6 +2108,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "amnesty",
+    color: "#E8D000",
     name: "Amnesty International",
     categoryId: "memberships",
     unit: "year",
@@ -1768,15 +2116,24 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "msf",
+    color: "#EE1B24",
     name: "Médecins Sans Frontières",
     categoryId: "memberships",
     unit: "year",
     domain: "msf.org",
     aliases: ["Doctors Without Borders"],
   },
-  { id: "unicef", name: "UNICEF", categoryId: "memberships", unit: "year", domain: "unicef.org" },
+  {
+    id: "unicef",
+    color: "#1CABE2",
+    name: "UNICEF",
+    categoryId: "memberships",
+    unit: "year",
+    domain: "unicef.org",
+  },
   {
     id: "rega",
+    color: "#E30613",
     name: "Rega",
     categoryId: "memberships",
     unit: "year",
@@ -1785,6 +2142,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "tcs",
+    color: "#FBBE00",
     name: "TCS",
     categoryId: "memberships",
     unit: "year",
@@ -1802,6 +2160,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "anwb",
+    color: "#0053A0",
     name: "ANWB",
     categoryId: "memberships",
     unit: "year",
@@ -1810,6 +2169,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "costco",
+    color: "#E31837",
     name: "Costco membership",
     categoryId: "memberships",
     unit: "year",
@@ -1818,6 +2178,7 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
   {
     id: "sports-club",
+    color: "#4C8C4A",
     name: "Sports club fees",
     categoryId: "memberships",
     unit: "year",
@@ -1825,15 +2186,28 @@ export const SUGGESTED_COMMITMENTS: readonly SuggestedCommitment[] = [
   },
 
   // ── Education & family ────────────────────────────────────────────────
-  { id: "school-fees", name: "School / tuition fees", categoryId: "education", unit: "year" },
+  {
+    id: "school-fees",
+    color: "#5C7AAE",
+    name: "School / tuition fees",
+    categoryId: "education",
+    unit: "year",
+  },
   {
     id: "daycare",
+    color: "#E8A04C",
     name: "Daycare / crèche",
     categoryId: "education",
     unit: "month",
     aliases: ["Kita", "nursery"],
   },
-  { id: "music-lessons", name: "Music / sports lessons", categoryId: "education", unit: "month" },
+  {
+    id: "music-lessons",
+    color: "#9C6ADE",
+    name: "Music / sports lessons",
+    categoryId: "education",
+    unit: "month",
+  },
 ] as const;
 
 /** Find a brand in the bank by exact (normalized) name or alias. Backfills the

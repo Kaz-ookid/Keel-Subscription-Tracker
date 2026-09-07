@@ -22,6 +22,9 @@ import { hostOf } from "./logos";
 // often washed out; the orphaned v1 blob is swept on hydrate.
 const KEY = "keel.brandtints.v2";
 const OLD_KEY = "keel.brandtints.v1";
+/** Mono logos (every candidate near-black/white): which SIDE they fell on,
+ *  so the badge can pick a CONTRASTING plate instead of guessing. */
+const MONO_KEY = "keel.brandmono.v1";
 
 // Extraction stays SILENT for users by design — but that made "no tint, no
 // idea why" undebuggable on a device. In dev, Metro states each verdict.
@@ -30,6 +33,7 @@ function trace(message: string): void {
 }
 
 let tints: Record<string, string> = {};
+let monos: Record<string, "dark" | "light"> = {};
 /** Domains already tried this session (hit or miss) — no retry loops. */
 const attempted = new Set<string>();
 let version = 0;
@@ -65,6 +69,12 @@ export function dominantColor(domain: string): string | undefined {
   return tints[domain];
 }
 
+/** For a MONO logo (no usable tint): whether its mark is dark or light —
+ *  the badge plate contrasts it (dark mark on white, light mark on navy). */
+export function monoPolarity(domain: string): "dark" | "light" | undefined {
+  return monos[domain];
+}
+
 /** Read the stored map once, at startup (root layout, with the others). */
 let hydrating: Promise<void> | null = null;
 export function hydrateBrandTints(): Promise<void> {
@@ -72,16 +82,28 @@ export function hydrateBrandTints(): Promise<void> {
     void AsyncStorage.removeItem(OLD_KEY).catch(() => {
       // Best-effort sweep of the raw v1 tints.
     });
-    hydrating = AsyncStorage.getItem(KEY)
-      .then((raw) => {
-        if (!raw) return;
-        const parsed: unknown = JSON.parse(raw);
-        if (typeof parsed !== "object" || parsed === null) return;
-        const clean: Record<string, string> = {};
-        for (const [domain, hex] of Object.entries(parsed)) {
-          if (typeof hex === "string" && usableBrandColor(hex)) clean[domain] = hex;
+    hydrating = AsyncStorage.multiGet([KEY, MONO_KEY])
+      .then(([tintRow, monoRow]) => {
+        if (tintRow[1]) {
+          const parsed: unknown = JSON.parse(tintRow[1]);
+          if (typeof parsed === "object" && parsed !== null) {
+            const clean: Record<string, string> = {};
+            for (const [domain, hex] of Object.entries(parsed)) {
+              if (typeof hex === "string" && usableBrandColor(hex)) clean[domain] = hex;
+            }
+            tints = clean;
+          }
         }
-        tints = clean;
+        if (monoRow[1]) {
+          const parsed: unknown = JSON.parse(monoRow[1]);
+          if (typeof parsed === "object" && parsed !== null) {
+            const clean: Record<string, "dark" | "light"> = {};
+            for (const [domain, side] of Object.entries(parsed)) {
+              if (side === "dark" || side === "light") clean[domain] = side;
+            }
+            monos = clean;
+          }
+        }
         emit();
       })
       .catch(() => {
@@ -134,11 +156,24 @@ export function noteBrandLogo(domain: string, uri: string): void {
       const candidates = [result.primary, result.secondary, result.background, result.detail];
       const hex = refineBrandColor(candidates);
       if (!hex) {
-        trace(
-          `${domain}: every candidate rejected as near-mono (${candidates
-            .filter((c): c is string => typeof c === "string")
-            .join(", ")})`,
-        );
+        // A MONO logo. Remember which side its ink falls on, so the badge
+        // plate can contrast it (a white mark on a white plate is invisible).
+        const values = candidates.filter((c): c is string => typeof c === "string");
+        const luminances = values
+          .filter((c) => /^#[0-9a-fA-F]{6}$/.test(c))
+          .map((c) => {
+            const n = parseInt(c.slice(1), 16);
+            return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
+          });
+        if (luminances.length > 0) {
+          const mean = luminances.reduce((a, b) => a + b, 0) / luminances.length;
+          monos = { ...monos, [domain]: mean < 0.5 ? "dark" : "light" };
+          emit();
+          void AsyncStorage.setItem(MONO_KEY, JSON.stringify(monos)).catch(() => {
+            // In-memory already took effect.
+          });
+        }
+        trace(`${domain}: mono logo (${values.join(", ")})`);
         return;
       }
       tints = { ...tints, [domain]: hex };
