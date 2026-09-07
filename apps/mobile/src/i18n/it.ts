@@ -44,14 +44,15 @@ export const it: typeof en = {
   },
   importAI: {
     methodOwn: "Usa un'IA di cui ti fidi",
-    methodOwnSub: "Consigliato. ChatGPT, Claude, Gemini: quella di cui ti fidi già.",
+    methodOwnSub: "ChatGPT, Claude, Gemini: quella di cui ti fidi già.",
     methodKeel: "Keel legge per te",
     methodKeelSub:
       "Per ora limitato. Usa il piccolo modello sul dispositivo; va bene per poche righe semplici.",
     step1: "Copia le istruzioni.",
     step2:
       "Incollale alla tua IA e aggiungi i tuoi abbonamenti: scritti alla buona, screenshot di email di conferma e dell'app della banca, o l'export del tuo vecchio tracker.",
-    step3: "Incolla la sua risposta qui sotto.",
+    step3:
+      "Quando c'è tutto, di' alla tua IA che hai finito: risponde con il file. Incollalo qui sotto.",
     handFirstHint:
       "Prima volta? Aggiungi prima una voce a mano: vedrai ogni campo che Keel conosce, e saprai quali dettagli vale la pena dare all'IA.",
     copy: "Copia le istruzioni",
@@ -293,9 +294,8 @@ export const it: typeof en = {
     logoPlaceholder: "Sito web (es. netflix.com)",
     logoHint: "Inserisci l'indirizzo del sito per usare il suo logo.",
     orColour: "Oppure scegli un colore",
-    orMark: "Oppure scegli il segno di questo elemento: un'icona, o qualsiasi emoji.",
+    orMark: "L'icona, mostrata quando non c'è un logo.",
     markAuto: "Usa l'icona della categoria",
-    markEmoji: "Digita un'emoji da usare come segno",
     description: "Descrizione",
     optional: "Facoltativo",
     amountIs: "L'importo è",
@@ -321,6 +321,54 @@ export const it: typeof en = {
     infoWeekendsTitle: "Addebiti nel weekend",
     infoWeekendsBody:
       "Alcune banche non addebitano mai di sabato o domenica. Se questo pagamento funziona così, scegli se anticiparlo al venerdì o spostarlo al lunedì. Keel mostra il vero giorno di addebito, senza spostare il ciclo.",
+    infoIdentityTitle: "Nome e aspetto",
+    infoIdentityBody:
+      "Il nome è libero. Tocca il cerchio per impostare un logo (dal sito web), un colore o un'icona; tocca il chip per la categoria.",
+    infoAmountTitle: "Importo e valuta",
+    infoAmountBody:
+      "Il prezzo come lo addebita il servizio, nella sua valuta (tocca il chip per cambiarla); i totali si convertono automaticamente nella tua valuta. Durante una prova è il prezzo della prova, 0 se gratuita.",
+    infoAccountTitle: "Conto",
+    infoAccountBody:
+      "La banca o la carta da cui parte il pagamento. I pagamenti automatici la addebitano; i manuali vi restano solo associati, così le viste per conto restano complete.",
+    infoInstallmentsTitle: "Numero di pagamenti",
+    infoInstallmentsBody:
+      "In quante rate si divide l'acquisto (paga in 4 = 4). Keel calcola l'importo per rata e ogni scadenza.",
+    infoTrialTitle: "Prova o cambio di prezzo",
+    infoTrialBody:
+      "Attiva quando il prezzo cambia in seguito: una prova gratuita o scontata che si converte, o un aumento annunciato. Keel avvisa prima del nuovo prezzo.",
+    infoNewPriceTitle: "Il prezzo successivo",
+    infoNewPriceBody:
+      "Quanto costerà dopo la data del cambio; fino ad allora vale l'importo attuale.",
+    infoConvertsTitle: "Quando cambia",
+    infoConvertsBody:
+      "Il giorno in cui subentra il nuovo prezzo. L'avviso si aggancia a questa data.",
+    infoCycleTitle: "Ciclo di fatturazione",
+    infoCycleBody:
+      "Ogni quanto addebita: ogni 1 mese, ogni 2 settimane, ogni 1 anno... Il numero moltiplica l'unità.",
+    infoFirstBillingTitle: "Primo addebito",
+    infoFirstBillingBody:
+      "Il giorno del primo addebito; i successivi ne derivano, e fissa il giorno del mese. Un inizio nel passato va bene, il calendario conta da lì.",
+    infoProviderTitle: "Fornitore",
+    infoProviderBody:
+      "Chi gestisce il piano a rate (Klarna, PayPal...). Puramente informativo, per il badge e i tuoi archivi.",
+    infoEndsTitle: "Ultimo addebito",
+    infoEndsBody:
+      "Un'ultima scadenza nota: dopo quella data l'impegno si completa da solo. Mai = senza fine prevista.",
+    infoDescriptionTitle: "Descrizione",
+    infoDescriptionBody:
+      "Una nota libera per il te futuro: dettagli del piano, condizioni di disdetta, tutto ciò che vale la pena ricordare.",
+    infoReminderTitle: "Promemoria",
+    infoReminderBody:
+      "Una notifica prima del pagamento. Aggiungine fino a tre, ognuno coi suoi tempi.",
+    infoReminderWhenTitle: "Quando",
+    infoReminderWhenBody:
+      "Quanto prima della scadenza scatta questo promemoria: quanti giorni, settimane o mesi vuoi.",
+    infoReminderTimeTitle: "Ora",
+    infoReminderTimeBody:
+      "L'ora del promemoria. Di default, l'ora globale di Impostazioni, Notifiche.",
+    infoReminderRepeatTitle: "Ripeti",
+    infoReminderRepeatBody:
+      "Continua a ricordare ogni giorno o ogni settimana, dal primo avviso fino alla scadenza. Disponibile quando l'anticipo è abbastanza lungo.",
     freeTrial: "Prova / cambio prezzo",
     regularPrice: "Prezzo pieno dopo",
     trialEnds: "Fine prova / primo addebito",
@@ -345,6 +393,13 @@ export const it: typeof en = {
     reminderDayBefore_other: "{{count}} giorni prima",
     reminderWeekBefore: "1 settimana prima",
     reminderMonthBefore: "1 mese prima",
+    reminderWeeksBefore_one: "{{count}} settimana prima",
+    reminderWeeksBefore_other: "{{count}} settimane prima",
+    reminderMonthsBefore_one: "{{count}} mese prima",
+    reminderMonthsBefore_other: "{{count}} mesi prima",
+    leadUnitDays: "giorni prima",
+    leadUnitWeeks: "settimane prima",
+    leadUnitMonths: "mesi prima",
     reminderRepeat: "Ripeti",
     repeatOff: "Una volta",
     repeatDaily: "Ogni giorno fino alla scadenza",
@@ -538,7 +593,7 @@ export const it: typeof en = {
     dark: "Scuro",
     language: "Lingua",
     translationNote:
-      "Inglese e francese sono scritti a mano; tedesco, italiano e polacco sono traduzioni curate. Qualcosa suona storto? Scrivi a {{email}}.",
+      "Inglese e francese sono scritti a mano; le altre lingue sono traduzioni automatiche con IA.",
     reminders: "Promemoria",
     remindersOn: "Attivi",
     remindersOff: "Disattivati nelle Impostazioni iOS",
@@ -707,6 +762,8 @@ export const it: typeof en = {
     idea: "Suggerisci una funzione",
     ideaSubject: "Keel: idea",
     writeFooter: "Entrambi aprono un'email a {{email}}. Leggo tutto.",
+    translationsNote:
+      "Solo inglese e francese sono scritti a mano; tedesco, italiano e polacco sono traduzioni automatiche con IA. Se una frase suona storta, il tuo aiuto è sinceramente benvenuto: ogni correzione rende Keel migliore per tutti.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Sostieni Keel",
     rate: "Valuta Keel sull'App Store",
@@ -716,7 +773,6 @@ export const it: typeof en = {
     groupLegal: "Note legali",
     privacy: "Informativa sulla privacy",
     terms: "Condizioni d'uso",
-    legalNote: "Si apre su {{host}}, sempre nella versione aggiornata.",
     trademark:
       "Tutti i nomi di prodotti, loghi e marchi citati in Keel appartengono ai rispettivi proprietari. Keel è indipendente e non è affiliata, approvata o sponsorizzata da nessuno di loro.",
     thanks: "Grazie per usare software indipendente.",
@@ -917,6 +973,7 @@ export const it: typeof en = {
     previewFailMsg: "Consenti prima le notifiche.",
     digestGroup: "Riepilogo ritardi",
     digestRow: "Ricordamelo",
+    digestDaily: "Ogni giorno",
     digestWeekly: "Ogni settimana",
     digestMonthly: "Ogni mese",
     digestDay: "Giorno",

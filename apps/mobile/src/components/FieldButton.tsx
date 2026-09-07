@@ -2,6 +2,7 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { InfoDot } from "./InfoDot";
 import { spacing, typography, useTheme, type ThemeColors } from "../theme";
 
 interface Props {
@@ -14,17 +15,23 @@ interface Props {
   hint?: boolean;
   /** The group's first row carries no divider (dividers sit on TOP). */
   first?: boolean;
+  /** An (i) beside the label — every form entry carries one (completeness
+   *  decision, 2026-09-08 retex). */
+  info?: { title: string; body: string };
   onPress: () => void;
 }
 
 /** A tappable form row: label · value/accessory · chevron — the iOS "drill in"
  *  affordance used by currency, category, colour, reminder and date. */
-export function FieldButton({ label, value, accessory, hint, first, onPress }: Props) {
+export function FieldButton({ label, value, accessory, hint, first, info, onPress }: Props) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   return (
     <Pressable onPress={onPress} style={[styles.row, first && styles.rowFirst]}>
-      <Text style={styles.label}>{label}</Text>
+      <View style={styles.labelWrap}>
+        <Text style={styles.label}>{label}</Text>
+        {info && <InfoDot title={info.title} body={info.body} />}
+      </View>
       <View style={styles.right}>
         {value ? (
           <Text style={[styles.value, hint && { color: colors.tones.warning }]}>{value}</Text>
@@ -49,6 +56,11 @@ function createStyles(colors: ThemeColors) {
     },
     rowFirst: {
       borderTopWidth: 0,
+    },
+    labelWrap: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
     },
     label: {
       ...typography.label,

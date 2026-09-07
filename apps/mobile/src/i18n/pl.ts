@@ -50,14 +50,14 @@ const translation = {
   },
   importAI: {
     methodOwn: "Użyj AI, której ufasz",
-    methodOwnSub: "Zalecane. ChatGPT, Claude, Gemini: ta, której już ufasz.",
+    methodOwnSub: "ChatGPT, Claude, Gemini: ta, której już ufasz.",
     methodKeel: "Keel przeczyta za ciebie",
     methodKeelSub:
       "Na razie ograniczone. Używa małego modelu na urządzeniu; nadaje się do kilku prostych linijek.",
     step1: "Skopiuj instrukcje.",
     step2:
       "Wklej je swojej AI i dorzuć subskrypcje: wpisane z grubsza, zrzuty ekranu z maili potwierdzających i aplikacji banku, albo eksport ze starej aplikacji.",
-    step3: "Wklej jej odpowiedź poniżej.",
+    step3: "Gdy wszystko jest, napisz swojej AI, że to koniec: odpowie plikiem. Wklej go poniżej.",
     handFirstHint:
       "Pierwszy raz? Najpierw dodaj jedną pozycję ręcznie: zobaczysz każde pole, które zna Keel, i będziesz wiedzieć, które szczegóły warto podać AI.",
     copy: "Skopiuj instrukcje",
@@ -314,9 +314,8 @@ const translation = {
     logoPlaceholder: "Strona (np. netflix.com)",
     logoHint: "Podaj adres strony, aby użyć jej logo.",
     orColour: "Albo wybierz kolor",
-    orMark: "Albo wybierz własny znak tego elementu: ikonę lub dowolne emoji.",
+    orMark: "Ikona, pokazywana gdy nie ma logo.",
     markAuto: "Użyj ikony kategorii",
-    markEmoji: "Wpisz emoji jako znak",
     description: "Opis",
     optional: "Opcjonalnie",
     amountIs: "Kwota to",
@@ -342,6 +341,53 @@ const translation = {
     infoWeekendsTitle: "Obciążenia w weekend",
     infoWeekendsBody:
       "Niektóre banki nigdy nie pobierają opłat w sobotę ani niedzielę. Jeśli ta płatność tak działa, wybierz, czy przesunąć ją na piątek przed, czy na poniedziałek po. Keel pokaże prawdziwy dzień obciążenia, a sam cykl się nie zmieni.",
+    infoIdentityTitle: "Nazwa i wygląd",
+    infoIdentityBody:
+      "Nazwa jest dowolna. Stuknij kółko, by ustawić logo (przez stronę), kolor lub ikonę; stuknij plakietkę, by wybrać kategorię.",
+    infoAmountTitle: "Kwota i waluta",
+    infoAmountBody:
+      "Cena tak, jak nalicza ją serwis, w jego walucie (stuknij plakietkę, by zmienić); sumy przeliczają się automatycznie na Twoją walutę. W okresie próbnym to cena próbna, 0 jeśli darmowa.",
+    infoAccountTitle: "Konto",
+    infoAccountBody:
+      "Bank lub karta, z której wychodzi płatność. Automatyczne ją obciążają; ręczne są tylko powiązane, by widoki według kont były kompletne.",
+    infoInstallmentsTitle: "Liczba płatności",
+    infoInstallmentsBody:
+      "Na ile rat dzieli się zakup (zapłać w 4 = 4). Keel liczy kwotę raty i każdy termin.",
+    infoTrialTitle: "Okres próbny lub zmiana ceny",
+    infoTrialBody:
+      "Włącz, gdy cena zmieni się później: kończący się darmowy lub zniżkowy okres próbny albo zapowiedziana podwyżka. Keel ostrzeże przed nową ceną.",
+    infoNewPriceTitle: "Późniejsza cena",
+    infoNewPriceBody:
+      "Ile płatność będzie kosztować po dacie zmiany; do tego czasu obowiązuje obecna kwota.",
+    infoConvertsTitle: "Kiedy się zmienia",
+    infoConvertsBody: "Dzień, w którym wchodzi nowa cena. Ostrzeżenie zaczepia się o tę datę.",
+    infoCycleTitle: "Cykl rozliczeń",
+    infoCycleBody:
+      "Jak często nalicza: co 1 miesiąc, co 2 tygodnie, co 1 rok... Liczba mnoży jednostkę.",
+    infoFirstBillingTitle: "Pierwsze naliczenie",
+    infoFirstBillingBody:
+      "Dzień pierwszej płatności; kolejne idą od niego i wyznacza dzień miesiąca. Start w przeszłości jest w porządku, harmonogram liczy od tamtąd.",
+    infoProviderTitle: "Operator",
+    infoProviderBody:
+      "Kto prowadzi plan ratalny (Klarna, PayPal...). Czysto informacyjne, dla plakietki i Twoich zapisków.",
+    infoEndsTitle: "Ostatnie naliczenie",
+    infoEndsBody:
+      "Znana ostatnia płatność: po tej dacie zobowiązanie samo się domyka. Nigdy = bezterminowo.",
+    infoDescriptionTitle: "Opis",
+    infoDescriptionBody:
+      "Wolna notatka dla przyszłego siebie: szczegóły planu, warunki rezygnacji, wszystko warte zapamiętania.",
+    infoReminderTitle: "Przypomnienie",
+    infoReminderBody:
+      "Powiadomienie przed płatnością. Dodaj do trzech, każde z własnym ustawieniem.",
+    infoReminderWhenTitle: "Kiedy",
+    infoReminderWhenBody:
+      "Na ile przed terminem ma przyjść to przypomnienie: dowolna liczba dni, tygodni lub miesięcy.",
+    infoReminderTimeTitle: "Godzina",
+    infoReminderTimeBody:
+      "Godzina przypomnienia. Domyślnie globalna godzina z Ustawień, Powiadomień.",
+    infoReminderRepeatTitle: "Powtarzaj",
+    infoReminderRepeatBody:
+      "Przypomina dalej codziennie lub co tydzień, od pierwszego razu aż do terminu. Dostępne, gdy wyprzedzenie jest dość długie.",
     freeTrial: "Okres próbny / zmiana ceny",
     regularPrice: "Cena regularna potem",
     trialEnds: "Koniec okresu próbnego / pierwsze obciążenie",
@@ -370,6 +416,17 @@ const translation = {
     reminderDayBefore_other: "{{count}} dni wcześniej",
     reminderWeekBefore: "1 tydzień wcześniej",
     reminderMonthBefore: "1 miesiąc wcześniej",
+    reminderWeeksBefore_one: "{{count}} tydzień wcześniej",
+    reminderWeeksBefore_few: "{{count}} tygodnie wcześniej",
+    reminderWeeksBefore_many: "{{count}} tygodni wcześniej",
+    reminderWeeksBefore_other: "{{count}} tygodnia wcześniej",
+    reminderMonthsBefore_one: "{{count}} miesiąc wcześniej",
+    reminderMonthsBefore_few: "{{count}} miesiące wcześniej",
+    reminderMonthsBefore_many: "{{count}} miesięcy wcześniej",
+    reminderMonthsBefore_other: "{{count}} miesiąca wcześniej",
+    leadUnitDays: "dni wcześniej",
+    leadUnitWeeks: "tygodni wcześniej",
+    leadUnitMonths: "miesięcy wcześniej",
     reminderRepeat: "Powtarzaj",
     repeatOff: "Raz",
     repeatDaily: "Codziennie aż do terminu",
@@ -566,7 +623,7 @@ const translation = {
     dark: "Ciemny",
     language: "Język",
     translationNote:
-      "Angielski i francuski powstają ręcznie; niemiecki, włoski i polski to staranne tłumaczenia. Coś brzmi nie tak? Napisz na {{email}}.",
+      "Angielski i francuski powstają ręcznie; pozostałe języki to automatyczne tłumaczenia AI.",
     reminders: "Przypomnienia",
     remindersOn: "Włączone",
     remindersOff: "Wyłączone w Ustawieniach iOS",
@@ -737,6 +794,8 @@ const translation = {
     idea: "Zaproponuj funkcję",
     ideaSubject: "Keel: pomysł",
     writeFooter: "Oba otwierają e-mail do {{email}}. Czytam wszystko.",
+    translationsNote:
+      "Tylko angielski i francuski powstają ręcznie; niemiecki, włoski i polski to automatyczne tłumaczenia AI. Jeśli coś brzmi nie tak, szczerze docenię każdą uwagę: każda poprawka czyni Keel lepszym dla wszystkich.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Wesprzyj Keel",
     rate: "Oceń Keel w App Store",
@@ -746,7 +805,6 @@ const translation = {
     groupLegal: "Informacje prawne",
     privacy: "Polityka prywatności",
     terms: "Warunki korzystania",
-    legalNote: "Otwiera się na {{host}}, zawsze w aktualnej wersji.",
     trademark:
       "Wszystkie nazwy produktów, loga i marki wymienione w Keel należą do ich właścicieli. Keel jest niezależny i nie jest z nimi powiązany ani przez nich wspierany czy sponsorowany.",
     thanks: "Dziękuję, że używasz niezależnego oprogramowania.",
@@ -964,6 +1022,7 @@ const translation = {
     previewFailMsg: "Najpierw zezwól na powiadomienia.",
     digestGroup: "Podsumowanie zaległości",
     digestRow: "Przypominaj",
+    digestDaily: "Codziennie",
     digestWeekly: "Co tydzień",
     digestMonthly: "Co miesiąc",
     digestDay: "Dzień",

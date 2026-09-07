@@ -48,13 +48,16 @@ export function IdentityHeader({ form }: { form: AddForm }) {
           </Pressable>
 
           <View style={header.right}>
-            <TextInput
-              style={[header.nameInput, !form.name.trim() && header.nameInputMissing]}
-              value={form.name}
-              onChangeText={form.setName}
-              placeholder={t("add.namePlaceholder")}
-              placeholderTextColor={colors.mutedText}
-            />
+            <View style={header.nameRow}>
+              <TextInput
+                style={[header.nameInput, !form.name.trim() && header.nameInputMissing]}
+                value={form.name}
+                onChangeText={form.setName}
+                placeholder={t("add.namePlaceholder")}
+                placeholderTextColor={colors.mutedText}
+              />
+              <InfoDot title={t("add.infoIdentityTitle")} body={t("add.infoIdentityBody")} />
+            </View>
             <Pressable style={header.categoryChip} onPress={() => form.setSheet("category")}>
               {form.selectedCategory?.icon && (
                 <SymbolView
@@ -120,9 +123,15 @@ function createHeaderStyles(colors: ThemeColors) {
       flex: 1,
       gap: spacing.sm,
     },
+    nameRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.xs,
+    },
     // Inline name field: an underline instead of a box (it lights up warning
     // while the required name is missing).
     nameInput: {
+      flex: 1,
       ...typography.body,
       color: colors.text,
       paddingVertical: spacing.xs,
@@ -199,7 +208,10 @@ export function DetailsSection({ form }: { form: AddForm }) {
   return (
     <Card variant="list" style={styles.group}>
       <View style={[styles.rowField, styles.fieldFirst]}>
-        <Text style={styles.label}>{t("add.description")}</Text>
+        <View style={styles.labelWithInfo}>
+          <Text style={styles.label}>{t("add.description")}</Text>
+          <InfoDot title={t("add.infoDescriptionTitle")} body={t("add.infoDescriptionBody")} />
+        </View>
         <View style={styles.rowControl}>
           <TextInput
             style={styles.input}
@@ -248,7 +260,10 @@ export function MetaSection({ form }: { form: AddForm }) {
         {/* A switch, not a picker: ON applies the default from Settings and
             folds in the advanced row for the rare adjustment. */}
         <View style={styles.rowField}>
-          <Text style={styles.label}>{t("add.reminder")}</Text>
+          <View style={styles.labelWithInfo}>
+            <Text style={styles.label}>{t("add.reminder")}</Text>
+            <InfoDot title={t("add.infoReminderTitle")} body={t("add.infoReminderBody")} />
+          </View>
           <Switch
             value={reminderOn}
             onValueChange={form.setReminderEnabled}
@@ -275,16 +290,28 @@ export function MetaSection({ form }: { form: AddForm }) {
                 )}
                 <FieldButton
                   label={t("add.reminderWhen")}
+                  info={{
+                    title: t("add.infoReminderWhenTitle"),
+                    body: t("add.infoReminderWhenBody"),
+                  }}
                   value={row.label}
                   onPress={() => form.openReminderSheet(i, "reminder")}
                 />
                 <FieldButton
                   label={t("add.reminderTime")}
+                  info={{
+                    title: t("add.infoReminderTimeTitle"),
+                    body: t("add.infoReminderTimeBody"),
+                  }}
                   value={row.hourLabel}
                   onPress={() => form.openReminderSheet(i, "reminderHour")}
                 />
                 <FieldButton
                   label={t("add.reminderRepeat")}
+                  info={{
+                    title: t("add.infoReminderRepeatTitle"),
+                    body: t("add.infoReminderRepeatBody"),
+                  }}
                   value={row.repeatLabel}
                   onPress={() => form.openReminderSheet(i, "reminderRepeat")}
                 />

@@ -43,13 +43,14 @@ export const en = {
   },
   importAI: {
     methodOwn: "Use an AI you trust",
-    methodOwnSub: "Recommended. ChatGPT, Claude, Gemini: whichever you already trust.",
+    methodOwnSub: "ChatGPT, Claude, Gemini: whichever you already trust.",
     methodKeel: "Keel reads it for you",
     methodKeelSub: "Limited for now. Uses the small on-device model; best for a few simple lines.",
     step1: "Copy the instructions.",
     step2:
       "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
-    step3: "Paste its answer below.",
+    step3:
+      "When everything's in, tell your AI you're done: it answers with the file. Paste it below.",
     handFirstHint:
       "First time? Add one commitment by hand first: you'll see every field Keel tracks, and know which details are worth spelling out for the AI.",
     copy: "Copy instructions",
@@ -291,9 +292,8 @@ export const en = {
     logoPlaceholder: "Website (e.g. netflix.com)",
     logoHint: "Enter the site's address to use its logo.",
     orColour: "Or pick a colour",
-    orMark: "Or pick this item's own mark: an icon, or any emoji.",
+    orMark: "The icon, shown whenever there is no logo.",
     markAuto: "Use the category's icon",
-    markEmoji: "Type an emoji to use as the mark",
     description: "Description",
     optional: "Optional",
     amountIs: "Amount is",
@@ -319,6 +319,54 @@ export const en = {
     infoWeekendsTitle: "Charges on weekends",
     infoWeekendsBody:
       "Some banks never take money on a Saturday or Sunday. If this payment works that way, choose whether it moves to the Friday before or the Monday after. Keel then shows and counts the real debit day, while the billing cycle itself stays anchored.",
+    infoIdentityTitle: "Name & look",
+    infoIdentityBody:
+      "The name is yours to word freely. Tap the circle to set a logo (by website), a color or an icon; tap the chip to pick a category.",
+    infoAmountTitle: "Amount & currency",
+    infoAmountBody:
+      "The price as the service bills it, in its own currency (tap the chip to change it); totals convert to your display currency automatically. During a trial this is the trial price, 0 if free.",
+    infoAccountTitle: "Account",
+    infoAccountBody:
+      "The bank or card this payment leaves from. Automatic payments debit it; manual ones are just associated with it, so the per-account views stay complete.",
+    infoInstallmentsTitle: "Number of payments",
+    infoInstallmentsBody:
+      "How many installments the purchase splits into (pay in 4 is 4). Keel computes the per-payment amount and every due date.",
+    infoTrialTitle: "Trial or price change",
+    infoTrialBody:
+      "Turn on when the price changes later: a free or discounted trial converting, or an announced increase. Keel warns you before the new price starts.",
+    infoNewPriceTitle: "The later price",
+    infoNewPriceBody:
+      "What the payment becomes after the change date; it bills at the current amount until then.",
+    infoConvertsTitle: "When it changes",
+    infoConvertsBody:
+      "The day the new price takes over. The heads-up reminder anchors to this date.",
+    infoCycleTitle: "Billing cycle",
+    infoCycleBody:
+      "How often it bills: every 1 month, every 2 weeks, every 1 year... The number multiplies the unit.",
+    infoFirstBillingTitle: "First billing",
+    infoFirstBillingBody:
+      "The day of the first charge; every later one steps from it, and it sets the day of the month payments land on. A start in the past is fine, the schedule counts from there.",
+    infoProviderTitle: "Provider",
+    infoProviderBody:
+      "Who runs the installment plan (Klarna, PayPal...). Purely informative, for the badge and your records.",
+    infoEndsTitle: "Last billing",
+    infoEndsBody:
+      "A known final charge: the commitment completes itself after that date. Never means open-ended.",
+    infoDescriptionTitle: "Description",
+    infoDescriptionBody:
+      "A free note to future you: plan details, cancellation terms, anything worth remembering.",
+    infoReminderTitle: "Reminder",
+    infoReminderBody:
+      "A notification before the payment lands. Add up to three, each with its own timing.",
+    infoReminderWhenTitle: "When",
+    infoReminderWhenBody:
+      "How long before the due date this reminder fires: any number of days, weeks or months.",
+    infoReminderTimeTitle: "Time",
+    infoReminderTimeBody:
+      "The hour it fires. By default, the app-wide hour from Settings, Notifications.",
+    infoReminderRepeatTitle: "Repeat",
+    infoReminderRepeatBody:
+      "Keeps nudging every day or every week from the first fire until the due day. Offered once the lead is long enough to repeat in.",
     freeTrial: "Trial / price change",
     regularPrice: "Regular price after",
     trialEnds: "Trial ends / first charge",
@@ -343,6 +391,13 @@ export const en = {
     reminderDayBefore_other: "{{count}} days before",
     reminderWeekBefore: "1 week before",
     reminderMonthBefore: "1 month before",
+    reminderWeeksBefore_one: "{{count}} week before",
+    reminderWeeksBefore_other: "{{count}} weeks before",
+    reminderMonthsBefore_one: "{{count}} month before",
+    reminderMonthsBefore_other: "{{count}} months before",
+    leadUnitDays: "days before",
+    leadUnitWeeks: "weeks before",
+    leadUnitMonths: "months before",
     reminderRepeat: "Repeat",
     repeatOff: "Once",
     repeatDaily: "Every day until due",
@@ -535,7 +590,7 @@ export const en = {
     dark: "Dark",
     language: "Language",
     translationNote:
-      "English and French are written by hand; German, Italian and Polish are careful translations. Spotted something off? Write to {{email}}.",
+      "English and French are written by hand; the other languages are automatic AI translations.",
     reminders: "Reminders",
     remindersOn: "On",
     remindersOff: "Off in iOS Settings",
@@ -703,6 +758,8 @@ export const en = {
     idea: "Suggest a feature",
     ideaSubject: "Keel: idea",
     writeFooter: "Both open an email to {{email}}. I read everything.",
+    translationsNote:
+      "Only English and French are written by hand; German, Italian and Polish are automatic AI translations. If a wording feels off, I'd honestly appreciate hearing it: every correction makes Keel better for everyone.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Support Keel",
     rate: "Rate Keel on the App Store",
@@ -712,7 +769,6 @@ export const en = {
     groupLegal: "Legal",
     privacy: "Privacy policy",
     terms: "Terms of use",
-    legalNote: "Opens on {{host}}, always the current version.",
     trademark:
       "All product names, logos and brands referenced in Keel belong to their respective owners. Keel is independent and is not affiliated with, endorsed or sponsored by any of them.",
     thanks: "Thanks for using independent software.",
@@ -911,6 +967,7 @@ export const en = {
     previewFailMsg: "Allow notifications first.",
     digestGroup: "Overdue summary",
     digestRow: "Remind me",
+    digestDaily: "Every day",
     digestWeekly: "Every week",
     digestMonthly: "Every month",
     digestDay: "Day",

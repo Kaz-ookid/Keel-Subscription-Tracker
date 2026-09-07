@@ -130,9 +130,11 @@ export default function NotificationsScreen() {
   const digestModeLabel = (rule: DigestRule) =>
     rule.mode === "off"
       ? t("common.none")
-      : rule.mode === "weekly"
-        ? t("notifCenter.digestWeekly")
-        : t("notifCenter.digestMonthly");
+      : rule.mode === "daily"
+        ? t("notifCenter.digestDaily")
+        : rule.mode === "weekly"
+          ? t("notifCenter.digestWeekly")
+          : t("notifCenter.digestMonthly");
 
   const digestDayLabel = (rule: DigestRule) =>
     rule.mode === "weekly"
@@ -145,6 +147,7 @@ export default function NotificationsScreen() {
   const setDigestMode = (mode: string) => {
     const { digest } = settings ?? {};
     if (mode === "off") update({ digest: { mode: "off" } });
+    else if (mode === "daily") update({ digest: { mode: "daily" } });
     else if (mode === "weekly") {
       update({
         digest: { mode: "weekly", weekday: digest?.mode === "weekly" ? digest.weekday : 1 },
@@ -176,8 +179,10 @@ export default function NotificationsScreen() {
   };
 
   const openPlanned = (paymentItemId: string, name: string) => {
+    // EVERY listed entry is removable: a rule-less row can only be the trial
+    // safety net, and removing it writes the explicit opt-out (empty list).
     const item = items.find((i) => i.id === paymentItemId);
-    const removable = !!item && reminderRules(item).length > 0;
+    const removable = !!item;
     const options = removable
       ? [t("notifCenter.openItem"), t("notifCenter.removeReminder"), t("common.cancel")]
       : [t("notifCenter.openItem"), t("common.cancel")];
@@ -269,7 +274,7 @@ export default function NotificationsScreen() {
               </Text>
               <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
             </Pressable>
-            {settings.digest.mode !== "off" && (
+            {(settings.digest.mode === "weekly" || settings.digest.mode === "monthly") && (
               <Animated.View entering={foldIn} exiting={foldOut}>
                 <Pressable
                   style={[styles.row, styles.rowDivider]}
@@ -400,6 +405,7 @@ export default function NotificationsScreen() {
         onClose={() => setWheel(null)}
         options={[
           { value: "off", label: t("common.none") },
+          { value: "daily", label: t("notifCenter.digestDaily") },
           { value: "weekly", label: t("notifCenter.digestWeekly") },
           { value: "monthly", label: t("notifCenter.digestMonthly") },
         ]}

@@ -103,6 +103,28 @@ describe("plannedReminders", () => {
     expect(new Set(planned.map((p) => p.id)).size).toBe(2);
   });
 
+  it("an explicit empty rules list mutes even the trial safety net", () => {
+    const trial = (reminders?: readonly { daysBefore: number }[]) =>
+      makeRecurringPaymentItem(
+        {
+          ...base,
+          amount: fromMajor(0, "EUR"),
+          reminder: undefined,
+          reminders,
+          introOffer: {
+            regularAmount: fromMajor(12.9, "EUR"),
+            convertsOn: calendarDate("2026-07-20"),
+          },
+          firstChargeDate: calendarDate("2026-07-20"),
+        },
+        { id: "r1", now: now() },
+      );
+    // Untouched (undefined): the trial-end reminder fires without any rule.
+    expect(plannedReminders([trial(undefined)], calendarDate("2026-07-01"))).toHaveLength(1);
+    // Explicit []: the user removed the reminder — full silence.
+    expect(plannedReminders([trial([])], calendarDate("2026-07-01"))).toEqual([]);
+  });
+
   it("the reminders list wins over the legacy single slot", () => {
     const item = makeRecurringPaymentItem(
       { ...base, reminder: { daysBefore: 2 }, reminders: [{ daysBefore: 5 }] },

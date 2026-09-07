@@ -54,7 +54,7 @@ import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
-import { APP_NAME, FULL_KEEL_PRICE, SUPPORT_EMAIL } from "../../src/constants";
+import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
 import { InfoDot } from "../../src/components/InfoDot";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
@@ -380,6 +380,9 @@ export default function SettingsScreen() {
             divider
             onPress={() => setWheel("language")}
           />
+          {/* Light and short, right under the choice it describes; the warm
+              full version (with the mailbox) lives in About Keel. */}
+          <Text style={styles.cardFooter}>{t("settings.translationNote")}</Text>
           {/* The notification center: master switch, defaults, scheduled list. */}
           <SettingsRow
             icon="bell.fill"
@@ -424,11 +427,6 @@ export default function SettingsScreen() {
             divider
             onPress={() => router.push("/guide")}
           />
-          {/* EN and FR are written by hand; DE/IT/PL are best-effort. Say so
-              where the language is chosen, with the mailbox for corrections. */}
-          <Text style={styles.cardFooter}>
-            {t("settings.translationNote", { email: SUPPORT_EMAIL })}
-          </Text>
         </Card>
 
         {/* Privacy: brand-logo loading + the app lock. Both are local flags;

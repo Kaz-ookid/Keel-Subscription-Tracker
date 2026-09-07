@@ -15,17 +15,17 @@ import { Pressable, ScrollView, Text, TextInput, View } from "react-native";
 
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 
-import { COLOR_SWATCHES, ICON_POOL } from "../../constants";
+import { COLOR_SWATCHES, EMOJI_MARKS, ICON_POOL } from "../../constants";
 import { formatHour } from "../../lib/dates";
 import { contrastText, spacing, typography, useTheme } from "../../theme";
 import { AccountPickerSheet } from "../AccountSheet";
-import { BrandBadge, isEmojiMark } from "../BrandBadge";
+import { BrandBadge } from "../BrandBadge";
 import { CategorySheet } from "../CategorySheet";
 import { Sheet } from "../Sheet";
 import { OptionWheel } from "../ui/OptionWheel";
 import { WheelSheet } from "../WheelSheet";
 import { useFormStyles } from "./styles";
-import { REMINDER_OPTIONS, type AddForm, type RepeatKey } from "./useAddForm";
+import { LEAD_MAX, type AddForm, type LeadUnit, type RepeatKey } from "./useAddForm";
 
 // @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
 // JSX types; alias to a children-accepting component (runtime is unaffected).
@@ -118,21 +118,48 @@ export function FormSheets({ form }: { form: AddForm }) {
       </WheelSheet>
 
       {/* The reminder sheets edit the rule whose row opened them
-          (form.reminderIndex) — rule 1 for the simple case. */}
-      <WheelSheet visible={form.sheet === "reminder"} title={t("add.reminder")} onClose={close}>
-        <Picker
-          selectedValue={form.reminderRows[form.reminderIndex]?.key ?? "1"}
-          onValueChange={(v) => form.patchReminderDraft(form.reminderIndex, { key: String(v) })}
-        >
-          {REMINDER_OPTIONS.map((o) => (
-            <Picker.Item
-              key={o.value}
-              label={t(o.labelKey, { count: o.count })}
-              value={o.value}
-              color={colors.text}
-            />
-          ))}
-        </Picker>
+          (form.reminderIndex) — rule 1 for the simple case. The lead picks
+          on a TWO-PART wheel: any number on the left, its unit on the right
+          (0 = on the day, whatever the unit says). */}
+      <WheelSheet visible={form.sheet === "reminder"} title={t("add.reminderWhen")} onClose={close}>
+        {(() => {
+          const row = form.reminderRows[form.reminderIndex];
+          const leadN = row?.leadN ?? 1;
+          const leadUnit = row?.leadUnit ?? "day";
+          return (
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ flex: 1 }}>
+                <Picker
+                  selectedValue={String(leadN)}
+                  onValueChange={(v) =>
+                    form.setReminderLead(form.reminderIndex, Number(v), leadUnit)
+                  }
+                >
+                  {Array.from({ length: LEAD_MAX[leadUnit] + 1 }, (_, n) => (
+                    <Picker.Item
+                      key={n}
+                      label={n === 0 ? t("add.reminderOnDay") : String(n)}
+                      value={String(n)}
+                      color={colors.text}
+                    />
+                  ))}
+                </Picker>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Picker
+                  selectedValue={leadUnit}
+                  onValueChange={(v) =>
+                    form.setReminderLead(form.reminderIndex, Math.max(1, leadN), v as LeadUnit)
+                  }
+                >
+                  <Picker.Item label={t("add.leadUnitDays")} value="day" color={colors.text} />
+                  <Picker.Item label={t("add.leadUnitWeeks")} value="week" color={colors.text} />
+                  <Picker.Item label={t("add.leadUnitMonths")} value="month" color={colors.text} />
+                </Picker>
+              </View>
+            </View>
+          );
+        })()}
       </WheelSheet>
 
       <WheelSheet
@@ -159,11 +186,14 @@ export function FormSheets({ form }: { form: AddForm }) {
         visible={form.sheet === "reminderRepeat"}
         title={t("add.reminderRepeat")}
         onClose={close}
-        options={[
-          { value: "off", label: t("add.repeatOff") },
-          { value: "daily", label: t("add.repeatDaily") },
-          { value: "weekly", label: t("add.repeatWeekly") },
-        ]}
+        // Only the repeats this rule's lead has room for: a 1-day lead
+        // can't nudge "every week", so the option simply isn't there.
+        options={(form.reminderRows[form.reminderIndex]?.repeatOptions ?? ["off"]).map((r) => ({
+          value: r,
+          label: t(
+            r === "off" ? "add.repeatOff" : r === "daily" ? "add.repeatDaily" : "add.repeatWeekly",
+          ),
+        }))}
         value={form.reminderRows[form.reminderIndex]?.repeatKey ?? "off"}
         onChange={(v) => form.patchReminderDraft(form.reminderIndex, { repeatKey: v as RepeatKey })}
       />
@@ -335,27 +365,18 @@ export function FormSheets({ form }: { form: AddForm }) {
                 />
               </Pressable>
             ))}
-            {/* Any Apple emoji, via the emoji keyboard: type one in the cell. */}
-            <View
-              style={[
-                styles.markCell,
-                form.icon !== undefined && isEmojiMark(form.icon) && styles.markCellActive,
-              ]}
-            >
-              <TextInput
-                style={styles.markEmojiInput}
-                value={form.icon && isEmojiMark(form.icon) ? form.icon : ""}
-                placeholder="😀"
-                placeholderTextColor={colors.mutedText}
-                onChangeText={(text) => {
-                  const mark = text.trim();
-                  if (!mark) return;
-                  // Only a real emoji counts; letters stay the fallback's job.
-                  if (isEmojiMark(mark)) form.setIcon(mark.slice(0, 8));
-                }}
-                accessibilityLabel={t("add.markEmoji")}
-              />
-            </View>
+            {/* Emoji marks: a curated palette, same grammar as the symbols —
+                tap one, done. (A free text field confused everyone: wrong
+                keyboard, multi-character overflow.) */}
+            {EMOJI_MARKS.map((mark) => (
+              <Pressable
+                key={mark}
+                onPress={() => form.setIcon(mark)}
+                style={[styles.markCell, form.icon === mark && styles.markCellActive]}
+              >
+                <Text style={styles.markEmoji}>{mark}</Text>
+              </Pressable>
+            ))}
           </View>
         </ScrollView>
       </Sheet>

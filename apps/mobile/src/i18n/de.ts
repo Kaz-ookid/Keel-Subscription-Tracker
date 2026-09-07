@@ -44,14 +44,15 @@ export const de: typeof en = {
   },
   importAI: {
     methodOwn: "Nutze eine KI, der du vertraust",
-    methodOwnSub: "Empfohlen. ChatGPT, Claude, Gemini: die, der du ohnehin vertraust.",
+    methodOwnSub: "ChatGPT, Claude, Gemini: die, der du ohnehin vertraust.",
     methodKeel: "Keel liest es für dich",
     methodKeelSub:
       "Vorerst begrenzt. Nutzt das kleine Modell auf dem Gerät; gut für ein paar einfache Zeilen.",
     step1: "Kopiere die Anweisungen.",
     step2:
       "Füge sie deiner KI ein und gib deine Abos dazu: grob getippt, als Screenshots von Bestätigungs-Mails und deiner Banking-App, oder als Export deines alten Trackers.",
-    step3: "Füge ihre Antwort unten ein.",
+    step3:
+      "Wenn alles drin ist, sag deiner KI, dass du fertig bist: sie antwortet mit der Datei. Füge sie unten ein.",
     handFirstHint:
       "Zum ersten Mal hier? Leg zuerst einen Posten von Hand an: Du siehst jedes Feld, das Keel kennt, und weißt, welche Details sich für die KI lohnen.",
     copy: "Anweisungen kopieren",
@@ -294,10 +295,8 @@ export const de: typeof en = {
     logoPlaceholder: "Website (z. B. netflix.com)",
     logoHint: "Gib die Adresse der Website ein, um ihr Logo zu verwenden.",
     orColour: "Oder wähle eine Farbe",
-    orMark:
-      "Oder wähle ein eigenes Zeichen für diesen Eintrag: ein Icon oder ein beliebiges Emoji.",
+    orMark: "Das Icon, gezeigt wenn kein Logo da ist.",
     markAuto: "Icon der Kategorie verwenden",
-    markEmoji: "Ein Emoji als Zeichen eintippen",
     description: "Beschreibung",
     optional: "Optional",
     amountIs: "Betrag ist",
@@ -323,6 +322,54 @@ export const de: typeof en = {
     infoWeekendsTitle: "Abbuchung am Wochenende",
     infoWeekendsBody:
       "Manche Banken buchen nie an einem Samstag oder Sonntag ab. Wenn diese Zahlung so funktioniert, wähle, ob sie auf den Freitag davor oder den Montag danach rutscht. Keel zeigt dann den echten Abbuchungstag, der Rhythmus selbst bleibt unverändert.",
+    infoIdentityTitle: "Name & Aussehen",
+    infoIdentityBody:
+      "Der Name ist frei wählbar. Tippe auf den Kreis für Logo (per Website), Farbe oder Icon; tippe auf den Chip für die Kategorie.",
+    infoAmountTitle: "Betrag & Währung",
+    infoAmountBody:
+      "Der Preis, wie der Dienst ihn abrechnet, in seiner eigenen Währung (Chip antippen zum Wechseln); Summen werden automatisch in deine Anzeigewährung umgerechnet. Während eines Probeabos ist es der Probepreis, 0 wenn gratis.",
+    infoAccountTitle: "Konto",
+    infoAccountBody:
+      "Die Bank oder Karte, von der die Zahlung abgeht. Automatische Zahlungen belasten sie; manuelle werden nur zugeordnet, damit die Konto-Ansichten vollständig bleiben.",
+    infoInstallmentsTitle: "Anzahl Zahlungen",
+    infoInstallmentsBody:
+      "In wie viele Raten sich der Kauf teilt (pay in 4 = 4). Keel berechnet den Betrag pro Rate und jede Fälligkeit.",
+    infoTrialTitle: "Probeabo oder Preisänderung",
+    infoTrialBody:
+      "Einschalten, wenn sich der Preis später ändert: ein endendes Gratis- oder Rabattabo, oder eine angekündigte Erhöhung. Keel warnt vor dem neuen Preis.",
+    infoNewPriceTitle: "Der spätere Preis",
+    infoNewPriceBody:
+      "Was die Zahlung nach dem Stichtag kostet; bis dahin gilt der aktuelle Betrag.",
+    infoConvertsTitle: "Wann es sich ändert",
+    infoConvertsBody:
+      "Der Tag, an dem der neue Preis übernimmt. Die Vorwarnung hängt an diesem Datum.",
+    infoCycleTitle: "Abrechnungszyklus",
+    infoCycleBody:
+      "Wie oft abgerechnet wird: alle 1 Monat, alle 2 Wochen, alle 1 Jahr... Die Zahl multipliziert die Einheit.",
+    infoFirstBillingTitle: "Erste Abbuchung",
+    infoFirstBillingBody:
+      "Der Tag der ersten Abbuchung; alle weiteren folgen daraus, und er bestimmt den Monatstag. Ein Start in der Vergangenheit ist okay, der Plan zählt von dort.",
+    infoProviderTitle: "Anbieter",
+    infoProviderBody:
+      "Wer den Ratenplan betreibt (Klarna, PayPal...). Rein informativ, fürs Badge und deine Unterlagen.",
+    infoEndsTitle: "Letzte Abbuchung",
+    infoEndsBody:
+      "Eine bekannte letzte Zahlung: danach schließt sich der Eintrag von selbst. Nie = unbefristet.",
+    infoDescriptionTitle: "Beschreibung",
+    infoDescriptionBody:
+      "Eine freie Notiz an dein späteres Ich: Tarifdetails, Kündigungsfristen, alles Merkenswerte.",
+    infoReminderTitle: "Erinnerung",
+    infoReminderBody:
+      "Eine Mitteilung, bevor die Zahlung ansteht. Bis zu drei, jede mit eigenem Timing.",
+    infoReminderWhenTitle: "Wann",
+    infoReminderWhenBody:
+      "Wie lange vor der Fälligkeit diese Erinnerung kommt: beliebig viele Tage, Wochen oder Monate.",
+    infoReminderTimeTitle: "Uhrzeit",
+    infoReminderTimeBody:
+      "Die Uhrzeit der Erinnerung. Standard ist die globale Stunde aus Einstellungen, Mitteilungen.",
+    infoReminderRepeatTitle: "Wiederholen",
+    infoReminderRepeatBody:
+      "Erinnert täglich oder wöchentlich weiter, vom ersten Mal bis zum Fälligkeitstag. Verfügbar, sobald der Vorlauf genug Raum lässt.",
     freeTrial: "Probephase / Preisänderung",
     regularPrice: "Regulärer Preis danach",
     trialEnds: "Probephase endet / erste Abbuchung",
@@ -347,6 +394,13 @@ export const de: typeof en = {
     reminderDayBefore_other: "{{count}} Tage vorher",
     reminderWeekBefore: "1 Woche vorher",
     reminderMonthBefore: "1 Monat vorher",
+    reminderWeeksBefore_one: "{{count}} Woche vorher",
+    reminderWeeksBefore_other: "{{count}} Wochen vorher",
+    reminderMonthsBefore_one: "{{count}} Monat vorher",
+    reminderMonthsBefore_other: "{{count}} Monate vorher",
+    leadUnitDays: "Tage vorher",
+    leadUnitWeeks: "Wochen vorher",
+    leadUnitMonths: "Monate vorher",
     reminderRepeat: "Wiederholen",
     repeatOff: "Einmal",
     repeatDaily: "Täglich bis zur Fälligkeit",
@@ -541,7 +595,7 @@ export const de: typeof en = {
     dark: "Dunkel",
     language: "Sprache",
     translationNote:
-      "Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind sorgfältige Übersetzungen. Klingt etwas schief? Schreib an {{email}}.",
+      "Englisch und Französisch sind von Hand geschrieben; die anderen Sprachen sind automatische KI-Übersetzungen.",
     reminders: "Erinnerungen",
     remindersOn: "An",
     remindersOff: "In den iOS-Einstellungen aus",
@@ -710,6 +764,8 @@ export const de: typeof en = {
     idea: "Funktion vorschlagen",
     ideaSubject: "Keel: Idee",
     writeFooter: "Beides öffnet eine E-Mail an {{email}}. Ich lese alles.",
+    translationsNote:
+      "Nur Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind automatische KI-Übersetzungen. Wenn etwas schief klingt, freue ich mich ehrlich über jeden Hinweis: jede Korrektur macht Keel für alle besser.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Keel unterstützen",
     rate: "Keel im App Store bewerten",
@@ -719,7 +775,6 @@ export const de: typeof en = {
     groupLegal: "Rechtliches",
     privacy: "Datenschutzerklärung",
     terms: "Nutzungsbedingungen",
-    legalNote: "Öffnet sich auf {{host}}, immer in der aktuellen Fassung.",
     trademark:
       "Alle in Keel genannten Produktnamen, Logos und Marken gehören ihren jeweiligen Inhabern. Keel ist unabhängig und wird von keinem davon unterstützt oder gesponsert.",
     thanks: "Danke, dass du unabhängige Software nutzt.",
@@ -921,6 +976,7 @@ export const de: typeof en = {
     previewFailMsg: "Erlaube zuerst Mitteilungen.",
     digestGroup: "Überfällig-Überblick",
     digestRow: "Erinnern",
+    digestDaily: "Jeden Tag",
     digestWeekly: "Jede Woche",
     digestMonthly: "Jeden Monat",
     digestDay: "Tag",

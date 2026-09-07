@@ -39,11 +39,12 @@ Notifications.setNotificationHandler({
 /** Lead choices for the DEFAULT reminder (no "never": the switch covers off). */
 export const DEFAULT_LEAD_OPTIONS = ["0", "1", "2", "7"] as const;
 
-/** The recurring overdue summary: off, or a weekly/monthly rhythm the user
- *  picks. Weekday follows the JS convention (0 = Sunday); the monthly day is
- *  capped at 28 so every month has it. */
+/** The recurring overdue summary: off, or a daily/weekly/monthly rhythm the
+ *  user picks. Weekday follows the JS convention (0 = Sunday); the monthly
+ *  day is capped at 28 so every month has it. */
 export type DigestRule =
   | { mode: "off" }
+  | { mode: "daily" }
   | { mode: "weekly"; weekday: number }
   | { mode: "monthly"; day: number };
 
@@ -82,6 +83,7 @@ function parseDigestRule(raw: string | null): DigestRule {
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== "object" || parsed === null) return DEFAULTS.digest;
     const rule = parsed as { mode?: unknown; weekday?: unknown; day?: unknown };
+    if (rule.mode === "daily") return { mode: "daily" };
     if (
       rule.mode === "weekly" &&
       typeof rule.weekday === "number" &&
@@ -190,6 +192,16 @@ export function nextDigestDates(
 ): CalendarDate[] {
   if (rule.mode === "off") return [];
   const dates: CalendarDate[] = [];
+  if (rule.mode === "daily") {
+    // From today on: a today-fire whose hour already passed is dropped by
+    // the scheduler's past-instant guard, so no off-by-one dance here.
+    const cursor = fromCalendarDate(asOf);
+    for (let i = 0; i < count; i++) {
+      dates.push(toCalendarDate(cursor));
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return dates;
+  }
   if (rule.mode === "weekly") {
     const cursor = fromCalendarDate(asOf);
     while (cursor.getDay() !== rule.weekday) cursor.setDate(cursor.getDate() + 1);

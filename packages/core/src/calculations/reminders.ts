@@ -77,10 +77,15 @@ export function plannedReminders(
     const primary: ReminderRule | undefined = rules[0];
     const reminders: PlannedReminder[] = [];
 
+    // An EXPLICIT empty rules list is the user's opt-out ("remove reminder"
+    // in the notification center): it silences even the trial warning.
+    // An ABSENT list (never touched) keeps the trial safety net below.
+    const muted = item.reminders !== undefined && item.reminders.length === 0;
+
     // A scheduled price change, anchored to the conversion date and announcing
     // the new price. A free trial (intro price 0) reads as a trial ending; a
     // paid intro reads as a price change — the wording differs per kind.
-    if (isRecurringSchedule(item.schedule) && item.schedule.introOffer) {
+    if (isRecurringSchedule(item.schedule) && item.schedule.introOffer && !muted) {
       const { convertsOn, regularAmount } = item.schedule.introOffer;
       if (convertsOn >= asOf) {
         const lead = primary?.daysBefore ?? DEFAULT_TRIAL_LEAD_DAYS;

@@ -522,13 +522,15 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 
     // Reminder is standalone metadata on the item — patched in place, so the
     // schedule, price history and cursors stay untouched. null clears every
-    // rule; a number appends one (keeping any the item already has), with the
-    // legacy single slot mirrored to the first rule for older readers.
+    // rule AND mutes the trial safety-net reminder (the explicit empty list
+    // is the opt-out the planner honors); a number appends one rule (keeping
+    // any the item already has), with the legacy single slot mirrored to the
+    // first rule for older readers.
     const setItemReminder = (id: string, daysBefore: number | null) => {
       setItems((prev) =>
         prev.map((i) => {
           if (i.id !== id) return i;
-          if (daysBefore === null) return { ...i, reminder: undefined, reminders: undefined };
+          if (daysBefore === null) return { ...i, reminder: undefined, reminders: [] };
           const existing = reminderRules(i);
           const rules = existing.some((r) => r.daysBefore === daysBefore)
             ? existing

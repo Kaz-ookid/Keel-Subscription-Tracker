@@ -74,6 +74,33 @@ export const REMINDER_OPTIONS: { value: string; labelKey: string; count?: number
 
 export type RepeatKey = "off" | "daily" | "weekly";
 
+// The free-range lead: any number of days, weeks or months before. Stored
+// flat as daysBefore (a month is 30 days); the wheel shows number × unit.
+export type LeadUnit = "day" | "week" | "month";
+export const LEAD_FACTOR: Record<LeadUnit, number> = { day: 1, week: 7, month: 30 };
+export const LEAD_MAX: Record<LeadUnit, number> = { day: 31, week: 12, month: 12 };
+
+/** daysBefore → the wheel's (number, unit): the largest unit that divides
+ *  it cleanly ("14" reads as 2 weeks, "30" as 1 month, "10" as 10 days). */
+export function leadParts(daysBefore: number): { leadN: number; leadUnit: LeadUnit } {
+  if (daysBefore > 0 && daysBefore % 30 === 0 && daysBefore / 30 <= LEAD_MAX.month) {
+    return { leadN: daysBefore / 30, leadUnit: "month" };
+  }
+  if (daysBefore > 0 && daysBefore % 7 === 0 && daysBefore / 7 <= LEAD_MAX.week) {
+    return { leadN: daysBefore / 7, leadUnit: "week" };
+  }
+  return { leadN: daysBefore, leadUnit: "day" };
+}
+
+/** Which repeats make sense for a lead: a series needs room to repeat in —
+ *  weekly wants at least a week of lead, daily at least a day. */
+export function availableRepeats(daysBefore: number): RepeatKey[] {
+  const repeats: RepeatKey[] = ["off"];
+  if (daysBefore >= 1) repeats.push("daily");
+  if (daysBefore >= 7) repeats.push("weekly");
+  return repeats;
+}
+
 /** One reminder rule as the form holds it: everything a string key, so the
  *  wheels and the dirty-signature stay trivial. */
 export interface ReminderDraft {
@@ -247,6 +274,23 @@ export function useAddForm(prefill?: SuggestionPrefill) {
 
   const patchReminderDraft = (index: number, patch: Partial<ReminderDraft>) =>
     setReminderDrafts((prev) => prev.map((d, i) => (i === index ? { ...d, ...patch } : d)));
+  /** The two-part lead wheel writes through here: number × unit → daysBefore,
+   *  and a repeat the new lead can't hold heals itself back to "off". */
+  const setReminderLead = (index: number, leadN: number, leadUnit: LeadUnit) => {
+    const n = Math.min(Math.max(0, Math.floor(leadN)), LEAD_MAX[leadUnit]);
+    const daysBefore = n * LEAD_FACTOR[leadUnit];
+    setReminderDrafts((prev) =>
+      prev.map((d, i) =>
+        i === index
+          ? {
+              ...d,
+              key: String(daysBefore),
+              repeatKey: availableRepeats(daysBefore).includes(d.repeatKey) ? d.repeatKey : "off",
+            }
+          : d,
+      ),
+    );
+  };
   const addReminderDraft = () =>
     setReminderDrafts((prev) =>
       prev.length >= MAX_REMINDER_RULES
@@ -424,15 +468,26 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const selectedCategory = categories.find((c) => c.id === categoryId);
   // Per-rule display rows: everything the reminder UI prints, precomputed.
   const reminderRows = reminderDrafts.map((d) => {
-    const option = REMINDER_OPTIONS.find((o) => o.value === d.key);
+    const daysBefore = Number(d.key);
+    const { leadN, leadUnit } = leadParts(daysBefore);
     const hourValue = d.hourKey === "default" ? String(defaultFireHour) : d.hourKey;
     return {
       ...d,
-      label: option
-        ? t(option.labelKey, { count: option.count })
-        : t("add.reminderDayBefore", { count: Number(d.key) }),
+      leadN,
+      leadUnit,
+      label:
+        daysBefore === 0
+          ? t("add.reminderOnDay")
+          : leadUnit === "month"
+            ? t("add.reminderMonthsBefore", { count: leadN })
+            : leadUnit === "week"
+              ? t("add.reminderWeeksBefore", { count: leadN })
+              : t("add.reminderDayBefore", { count: leadN }),
       hourValue,
       hourLabel: formatHour(Number(hourValue)),
+      // The repeats this lead has room for — the wheel offers only these,
+      // and setReminderLead resets a repeat that stops fitting.
+      repeatOptions: availableRepeats(daysBefore),
       repeatLabel: t(
         d.repeatKey === "off"
           ? "add.repeatOff"
@@ -711,6 +766,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     openReminderSheet,
     setReminderEnabled,
     patchReminderDraft,
+    setReminderLead,
     addReminderDraft,
     removeReminderDraft,
     categoryId,

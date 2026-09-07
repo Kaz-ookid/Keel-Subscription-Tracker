@@ -42,6 +42,7 @@ export function AmountSection({ form }: { form: AddForm }) {
           placeholderTextColor={colors.mutedText}
           keyboardType="decimal-pad"
         />
+        <InfoDot title={t("add.infoAmountTitle")} body={t("add.infoAmountBody")} />
       </View>
       {form.showTrial ? <Text style={styles.preview}>{t("add.trialPriceHint")}</Text> : null}
 
@@ -51,6 +52,7 @@ export function AmountSection({ form }: { form: AddForm }) {
         <FieldButton
           first
           label={t("add.account")}
+          info={{ title: t("add.infoAccountTitle"), body: t("add.infoAccountBody") }}
           value={
             form.selectedAccount?.name ??
             (form.accountId ? t("add.archivedAccount") : t("add.choose"))
@@ -82,7 +84,13 @@ export function AmountSection({ form }: { form: AddForm }) {
             {/* The count lives with the amount: together they are what the
                 per-payment preview below is computed from. */}
             <View style={styles.rowField}>
-              <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
+              <View style={styles.labelWithInfo}>
+                <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
+                <InfoDot
+                  title={t("add.infoInstallmentsTitle")}
+                  body={t("add.infoInstallmentsBody")}
+                />
+              </View>
               <TextInput
                 style={[styles.input, styles.intervalInput]}
                 value={form.installmentsText}

@@ -155,13 +155,9 @@ function createFormStyles(colors: ThemeColors) {
       backgroundColor: withAlpha(colors.accent, 0.18),
       borderColor: withAlpha(colors.accent, 0.45),
     },
-    markEmojiInput: {
-      ...typography.body,
+    markEmoji: {
       fontSize: 22,
-      textAlign: "center",
-      width: 44,
-      height: 44,
-      padding: 0,
+      lineHeight: 28,
     },
   });
 }

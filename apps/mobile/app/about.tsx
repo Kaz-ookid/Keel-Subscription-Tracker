@@ -108,6 +108,9 @@ export default function AboutScreen() {
           <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
         <Text style={styles.footnote}>{t("about.writeFooter", { email: SUPPORT_EMAIL })}</Text>
+        {/* The translation honesty note, warm on purpose: EN/FR are written
+            by hand, the rest is AI — and help is genuinely welcome. */}
+        <Text style={styles.footnote}>{t("about.translationsNote")}</Text>
       </Card>
 
       {/* Only once the listing exists: never a dead or fake link. */}
@@ -149,7 +152,6 @@ export default function AboutScreen() {
           <Text style={styles.rowText}>{t("about.terms")}</Text>
           <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        <Text style={styles.footnote}>{t("about.legalNote", { host: websiteHost })}</Text>
       </Card>
 
       <Text style={styles.trademark}>{t("about.trademark")}</Text>

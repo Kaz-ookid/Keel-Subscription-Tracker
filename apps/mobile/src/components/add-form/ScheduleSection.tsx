@@ -87,7 +87,10 @@ function TrialRow({ form, freeTrial }: { form: AddForm; freeTrial: boolean }) {
   return (
     <>
       <View style={styles.rowField}>
-        <Text style={styles.label}>{t("add.freeTrial")}</Text>
+        <View style={styles.labelWithInfo}>
+          <Text style={styles.label}>{t("add.freeTrial")}</Text>
+          <InfoDot title={t("add.infoTrialTitle")} body={t("add.infoTrialBody")} />
+        </View>
         <View style={styles.rowControl}>
           <Segmented
             options={[
@@ -103,9 +106,12 @@ function TrialRow({ form, freeTrial }: { form: AddForm; freeTrial: boolean }) {
       {form.showTrial && (
         <>
           <View style={styles.rowField}>
-            <Text style={styles.label}>
-              {freeTrial ? t("add.regularPrice") : t("item.newPrice")}
-            </Text>
+            <View style={styles.labelWithInfo}>
+              <Text style={styles.label}>
+                {freeTrial ? t("add.regularPrice") : t("item.newPrice")}
+              </Text>
+              <InfoDot title={t("add.infoNewPriceTitle")} body={t("add.infoNewPriceBody")} />
+            </View>
             <View style={styles.rowControl}>
               <TextInput
                 style={styles.input}
@@ -119,6 +125,7 @@ function TrialRow({ form, freeTrial }: { form: AddForm; freeTrial: boolean }) {
 
           <FieldButton
             label={freeTrial ? t("add.trialEnds") : t("item.changesOn")}
+            info={{ title: t("add.infoConvertsTitle"), body: t("add.infoConvertsBody") }}
             value={formatCalendarDate(form.convertsCal)}
             onPress={() => form.setSheet("convertsDate")}
           />
@@ -142,7 +149,10 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         {/* The payment count moved up next to Amount, where the per-payment
             preview explains it; here the plan starts at its rhythm. */}
         <View style={[styles.field, styles.fieldFirst]}>
-          <Text style={styles.label}>{t("add.cycleEvery")}</Text>
+          <View style={styles.labelWithInfo}>
+            <Text style={styles.label}>{t("add.cycleEvery")}</Text>
+            <InfoDot title={t("add.infoCycleTitle")} body={t("add.infoCycleBody")} />
+          </View>
           <View style={styles.cycleRow}>
             <TextInput
               style={[styles.input, styles.intervalInput]}
@@ -156,6 +166,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
 
         <FieldButton
           label={t("add.firstPayment")}
+          info={{ title: t("add.infoFirstBillingTitle"), body: t("add.infoFirstBillingBody") }}
           value={formatCalendarDate(form.firstDateCal)}
           onPress={() => form.setSheet("date")}
         />
@@ -166,6 +177,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
 
         <FieldButton
           label={t("add.provider")}
+          info={{ title: t("add.infoProviderTitle"), body: t("add.infoProviderBody") }}
           value={t(`providers.${form.provider}`, {
             defaultValue: BNPL_PROVIDERS[form.provider].label,
           })}
@@ -186,7 +198,10 @@ export function ScheduleSection({ form }: { form: AddForm }) {
     <>
       <Card variant="list" style={styles.group}>
         <View style={[styles.field, styles.fieldFirst]}>
-          <Text style={styles.label}>{t("add.cycleEvery")}</Text>
+          <View style={styles.labelWithInfo}>
+            <Text style={styles.label}>{t("add.cycleEvery")}</Text>
+            <InfoDot title={t("add.infoCycleTitle")} body={t("add.infoCycleBody")} />
+          </View>
           <View style={styles.cycleRow}>
             <TextInput
               style={[styles.input, styles.intervalInput]}
@@ -201,6 +216,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         {!freeTrial && (
           <FieldButton
             label={t("add.firstBilling")}
+            info={{ title: t("add.infoFirstBillingTitle"), body: t("add.infoFirstBillingBody") }}
             value={formatCalendarDate(form.firstDateCal)}
             onPress={() => form.setSheet("date")}
           />
@@ -215,6 +231,7 @@ export function ScheduleSection({ form }: { form: AddForm }) {
         {!freeTrial && (
           <FieldButton
             label={t("add.lastBilling")}
+            info={{ title: t("add.infoEndsTitle"), body: t("add.infoEndsBody") }}
             value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
             onPress={() => form.setSheet("endDate")}
           />
