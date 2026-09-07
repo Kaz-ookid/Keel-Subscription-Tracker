@@ -5,6 +5,8 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
+// FIRST: caps Dynamic Type before anything renders text (see the file).
+import "../src/lib/font-scale";
 import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";

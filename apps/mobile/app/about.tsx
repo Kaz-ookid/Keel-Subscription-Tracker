@@ -2,17 +2,17 @@
 // of the four-tab sprawl the category norm is (support / participate /
 // roadmap / about, each hiding the same email). Hello from the maker, two
 // ways to write in, rate & share (only once the App Store listing exists),
-// and the real legal texts. Everything else is deliberately absent: no
-// roadmap, no beta, no translation program until they exist.
+// and links to the legal texts where they actually live (the website).
+// Everything else is deliberately absent: no roadmap, no beta, no
+// translation program until they exist.
 
 import Constants from "expo-constants";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text } from "react-native";
 
 import { APP_STORE_ID, SUPPORT_EMAIL, WEBSITE_URL } from "../src/constants";
-import { InfoPopup } from "../src/components/InfoPopup";
 import { IconChip } from "../src/components/ui/IconChip";
 import { Card } from "../src/components/ui/Card";
 import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
@@ -33,7 +33,6 @@ export default function AboutScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const [popup, setPopup] = useState<"privacy" | "terms" | null>(null);
 
   const version = Constants.expoConfig?.version ?? "";
   // The bare host reads as the link itself, kept in sync with the constant.
@@ -130,18 +129,27 @@ export default function AboutScreen() {
         </>
       )}
 
+      {/* The REAL texts live on the website — one source of truth, always
+          current, instead of a copy in five locales going stale in the app. */}
       <Text style={styles.groupLabel}>{t("about.groupLegal")}</Text>
       <Card>
-        <Pressable style={styles.row} onPress={() => setPopup("privacy")}>
+        <Pressable
+          style={styles.row}
+          onPress={() => void Linking.openURL(`${WEBSITE_URL}/privacy.html`)}
+        >
           <IconChip icon="hand.raised.fill" color={CHIP.privacy} />
           <Text style={styles.rowText}>{t("about.privacy")}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => setPopup("terms")}>
+        <Pressable
+          style={[styles.row, styles.rowDivider]}
+          onPress={() => void Linking.openURL(`${WEBSITE_URL}/terms.html`)}
+        >
           <IconChip icon="doc.text.fill" color={CHIP.terms} />
           <Text style={styles.rowText}>{t("about.terms")}</Text>
-          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+          <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
+        <Text style={styles.footnote}>{t("about.legalNote", { host: websiteHost })}</Text>
       </Card>
 
       <Text style={styles.trademark}>{t("about.trademark")}</Text>
@@ -150,23 +158,6 @@ export default function AboutScreen() {
         {"\n"}
         {version ? `${t("about.version")} ${version}` : ""}
       </Text>
-
-      <InfoPopup
-        visible={popup === "privacy"}
-        title={t("about.privacy")}
-        onClose={() => setPopup(null)}
-        tall
-      >
-        <Text style={styles.legalText}>{t("about.privacyBody", { email: SUPPORT_EMAIL })}</Text>
-      </InfoPopup>
-      <InfoPopup
-        visible={popup === "terms"}
-        title={t("about.terms")}
-        onClose={() => setPopup(null)}
-        tall
-      >
-        <Text style={styles.legalText}>{t("about.termsBody", { email: SUPPORT_EMAIL })}</Text>
-      </InfoPopup>
     </ScrollView>
   );
 }
@@ -217,6 +208,5 @@ function createStyles(colors: ThemeColors) {
       textAlign: "center",
       lineHeight: 18,
     },
-    legalText: { ...typography.body, color: colors.text, lineHeight: 23 },
   });
 }

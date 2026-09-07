@@ -526,6 +526,8 @@ export const en = {
     light: "Light",
     dark: "Dark",
     language: "Language",
+    translationNote:
+      "English and French are written by hand; German, Italian and Polish are careful translations. Spotted something off? Write to {{email}}.",
     reminders: "Reminders",
     remindersOn: "On",
     remindersOff: "Off in iOS Settings",
@@ -702,14 +704,11 @@ export const en = {
     groupLegal: "Legal",
     privacy: "Privacy policy",
     terms: "Terms of use",
+    legalNote: "Opens on {{host}}, always the current version.",
     trademark:
       "All product names, logos and brands referenced in Keel belong to their respective owners. Keel is independent and is not affiliated with, endorsed or sponsored by any of them.",
     thanks: "Thanks for using independent software.",
     version: "Version",
-    privacyBody:
-      "Last updated: 19 July 2026.\n\nWho is responsible. Keel is made and run by one person: Maxime Teuber, based in Switzerland (the 'I' below and, in legal terms, the data controller). Contact: {{email}}.\n\nYour data stays on your device. Commitments, accounts, payment history and settings live in the app's local storage and in the local backups you create. Keel has no server, no account system, no analytics and no advertising. I cannot see your data.\n\nNetwork requests. Keel makes two kinds of request, and only these. Exchange rates are fetched from the public Frankfurter API (European Central Bank reference rates); the request is identical for every user and carries no personal data. Brand logos are off until you choose to turn them on: with the choice enabled, a commitment that has a brand website loads its logo through Google's public favicon service, and that request contains the brand's domain (netflix.com, for example) and, like any web request, your IP address. Google may process such requests on servers outside Switzerland and the EU, including in the United States. The switch in Settings turns logo loading off again at any time; logos already on your device keep showing without any further request. Items without a website never trigger a logo request. None of this reaches me: the requests go from your device to those services, and I store nothing about them.\n\nAI import. With 'Use your own AI', you share your list with the assistant you choose, under that provider's terms; Keel only reads the answer you paste back, on your phone. Where Keel reads a list itself, that runs on Apple Intelligence's on-device model, processing Apple documents as on-device and offline. Apple has announced a more capable model for apps running on its Private Cloud Compute; if Keel offers it in a future version it will be an option you turn on, it will require a network connection, and its handling of your data will be described in Apple's own published terms rather than as a promise of mine. AI features are entirely optional: they can be switched off completely in Settings, and if you never use them no model ever reads your data.\n\nReminders are scheduled locally by iOS. The app lock uses Face ID, Touch ID or your passcode through iOS; Keel only receives whether it succeeded.\n\nBackups and exports are files you control. Sharing one sends it wherever you choose; treat exported files like the financial data they contain.\n\nRetention and deletion. Because everything lives on your device, deletion is in your hands: remove entries in the app, or delete the app to erase all of its data (backup files you exported somewhere else are yours to delete there). There is no account to close and no server copy to request. If you email me, I keep the correspondence so I can follow up if you write again. Ask me to delete it, in plain words, and I will: no formal request or legal citation needed, deletion is guaranteed.\n\nYour rights. Swiss data protection law (FADP) and, where it applies, the EU GDPR give you rights over your personal data: access, correction, deletion and objection, and the right to complain to a supervisory authority (in Switzerland the FDPIC, in the EU your national authority). In practice, the only personal data I ever hold is our email correspondence, so exercising these rights usually means asking me to delete a thread, which I will.\n\nChanges. If this policy changes in a way that matters, the date above moves and the change is visible at keel-app.ch.",
-    termsBody:
-      "Last updated: 19 July 2026.\n\nKeel is a personal tracking tool. It records what you enter and projects dates and totals from those entries. It does not connect to your bank, move money, or verify anything with your providers. Always check important amounts and dates against the actual bank or service.\n\nNot advice. Nothing in Keel is financial, legal or tax advice.\n\nYour device, your data. Keep your device and backup files safe. Anyone with access to your unlocked phone, or to an exported backup file, can read the data inside unless the app lock protects it.\n\nAs is. Keel is provided as is, without warranty of any kind. To the fullest extent permitted by law, the developer is not liable for damages arising from use of the app, including losses caused by relying on reminders, forecasts or totals (a missed payment fee, for example). Where the law does not allow such limitations, they apply to the extent permitted.\n\nTrademarks. Product names, logos and brands shown in Keel belong to their respective owners; Keel is independent of them.\n\nPurchases. Keel is free. The optional one-time Full Keel purchase (when available) is processed by Apple through your App Store account: the price is shown before you buy, nothing renews, and refunds follow Apple's App Store rules.\n\nApp Store. Your use of Keel is also governed by Apple's standard Licensed Application End User License Agreement.\n\nGoverning law. These terms are governed by Swiss law.\n\nContact: {{email}}.",
   },
   guide: {
     title: "What Keel can do",
@@ -742,6 +741,12 @@ export const en = {
     remindersTitle: "Reminders, your way",
     remindersBody:
       "Set a default lead and hour in Settings, Notifications; any commitment can carry its own timing.",
+    weekendTitle: "Weekend-aware due dates",
+    weekendBody:
+      "If a bank never debits on weekends, set a payment to shift to the Friday before or the Monday after. Keel counts the real debit day.",
+    digestTitle: "Overdue summary",
+    digestBody:
+      "A weekly or monthly reminder listing everything still unpaid, so nothing quietly piles up. Turn it on under Notifications.",
     groupUnderstand: "Understand",
     viewsTitle: "Three views of the same money",
     viewsBody:
@@ -765,6 +770,9 @@ export const en = {
     lockTitle: "Lock it",
     lockBody:
       "Face ID, Touch ID or your passcode, with a grace period you choose: in Settings, under Privacy.",
+    widgetsTitle: "Home screen widgets",
+    widgetsBody:
+      "Two widgets show what lands next and the days ahead, right on your home screen. Long-press the home screen, tap +, search for Keel.",
   },
   assistant: {
     title: "Assistant",

@@ -531,6 +531,8 @@ export const de: typeof en = {
     light: "Hell",
     dark: "Dunkel",
     language: "Sprache",
+    translationNote:
+      "Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind sorgfältige Übersetzungen. Klingt etwas schief? Schreib an {{email}}.",
     reminders: "Erinnerungen",
     remindersOn: "An",
     remindersOff: "In den iOS-Einstellungen aus",
@@ -708,14 +710,11 @@ export const de: typeof en = {
     groupLegal: "Rechtliches",
     privacy: "Datenschutzerklärung",
     terms: "Nutzungsbedingungen",
+    legalNote: "Öffnet sich auf {{host}}, immer in der aktuellen Fassung.",
     trademark:
       "Alle in Keel genannten Produktnamen, Logos und Marken gehören ihren jeweiligen Inhabern. Keel ist unabhängig und wird von keinem davon unterstützt oder gesponsert.",
     thanks: "Danke, dass du unabhängige Software nutzt.",
     version: "Version",
-    privacyBody:
-      "Stand: 19. Juli 2026.\n\nWer verantwortlich ist. Keel wird von einer Person gemacht und betrieben: Maxime Teuber, ansässig in der Schweiz (das „ich“ unten und, rechtlich gesprochen, der Verantwortliche). Kontakt: {{email}}.\n\nDeine Daten bleiben auf deinem Gerät. Posten, Konten, Zahlungsverlauf und Einstellungen liegen im lokalen Speicher der App und in den lokalen Backups, die du erstellst. Keel hat keinen Server, kein Kontosystem, keine Analytik und keine Werbung. Ich kann deine Daten nicht sehen.\n\nNetzwerkanfragen. Keel stellt zwei Arten von Anfragen, und nur diese. Wechselkurse kommen von der öffentlichen Frankfurter-API (Referenzkurse der Europäischen Zentralbank); die Anfrage ist für alle identisch und enthält keine persönlichen Daten. Marken-Logos sind aus, bis du sie einschaltest: Ist die Wahl getroffen, lädt ein Posten mit hinterlegter Website sein Logo über Googles öffentlichen Favicon-Dienst, und diese Anfrage enthält die Domain der Marke (zum Beispiel netflix.com) und, wie jede Web-Anfrage, deine IP-Adresse. Google kann solche Anfragen auf Servern außerhalb der Schweiz und der EU verarbeiten, auch in den USA. Der Schalter in den Einstellungen beendet das Laden jederzeit; bereits geladene Logos werden ohne weitere Anfrage weiter angezeigt. Einträge ohne Website lösen nie eine Logo-Anfrage aus. Nichts davon erreicht mich: Die Anfragen gehen von deinem Gerät an diese Dienste, und ich speichere nichts darüber.\n\nKI-Import. Mit „deiner eigenen KI“ teilst du deine Liste mit dem Assistenten deiner Wahl, zu dessen Bedingungen; Keel liest nur die Antwort, die du zurück einfügst, auf deinem iPhone. Wo Keel eine Liste selbst liest, läuft das auf dem On-Device-Modell von Apple Intelligence, eine Verarbeitung, die Apple als lokal und offline dokumentiert. Apple hat ein leistungsfähigeres Modell für Apps auf seinem Private Cloud Compute angekündigt; falls Keel es in einer künftigen Version anbietet, wird es eine Option sein, die du einschaltest, sie wird eine Verbindung brauchen, und der Umgang mit deinen Daten wird in Apples eigenen veröffentlichten Worten beschrieben statt als mein Versprechen. Die KI-Funktionen sind komplett optional: Sie lassen sich in den Einstellungen ganz abschalten, und nutzt du sie nicht, liest kein Modell je deine Daten.\n\nErinnerungen werden lokal von iOS geplant. Die Sperre nutzt Face ID, Touch ID oder deinen Code über iOS; Keel erfährt nur das Ergebnis.\n\nBackups und Exporte sind Dateien unter deiner Kontrolle. Teilst du eine, geht sie dorthin, wohin du sie schickst; behandle sie wie die Finanzdaten, die sie enthält.\n\nAufbewahrung und Löschung. Weil alles auf deinem Gerät lebt, liegt das Löschen in deiner Hand: Entferne Einträge in der App, oder lösche die App, um alle ihre Daten zu entfernen (anderswo exportierte Backup-Dateien löschst du dort). Es gibt kein Konto zu schließen und keine Serverkopie anzufordern. Schreibst du mir, behalte ich den Verlauf, um später daran anknüpfen zu können. Bitte mich einfach, ihn zu löschen, und ich tue es: kein formelles Gesuch, keine Paragrafen nötig, die Löschung ist garantiert.\n\nDeine Rechte. Das Schweizer Datenschutzgesetz (DSG) und, wo anwendbar, die europäische DSGVO geben dir Rechte an deinen persönlichen Daten: Auskunft, Berichtigung, Löschung und Widerspruch, dazu das Recht auf Beschwerde bei einer Aufsichtsbehörde (in der Schweiz der EDÖB, in der EU deine nationale Behörde). Praktisch sind die einzigen persönlichen Daten, die ich je halte, unsere E-Mails: Diese Rechte auszuüben heißt meist, mich zu bitten, einen Verlauf zu löschen, was ich tue.\n\nÄnderungen. Ändert sich diese Erklärung wesentlich, ändert sich das Datum oben, und die Änderung ist auf keel-app.ch sichtbar.",
-    termsBody:
-      "Stand: 19. Juli 2026.\n\nKeel ist ein persönliches Verwaltungswerkzeug. Es erfasst, was du eingibst, und berechnet Termine und Summen aus diesen Eingaben. Es verbindet sich nicht mit deiner Bank, bewegt kein Geld und prüft nichts bei deinen Anbietern nach. Kontrolliere wichtige Beträge und Termine immer bei der Bank oder dem Dienst selbst.\n\nKeine Beratung. Nichts in Keel ist Finanz-, Rechts- oder Steuerberatung.\n\nDein Gerät, deine Daten. Schütze dein Gerät und deine Backup-Dateien. Wer Zugriff auf dein entsperrtes iPhone oder eine exportierte Backup-Datei hat, kann die Daten darin lesen, sofern die App-Sperre sie nicht schützt.\n\nWie besehen. Keel wird ohne Gewähr bereitgestellt, ohne Garantie jeder Art. Soweit gesetzlich zulässig, haftet der Entwickler nicht für Schäden aus der Nutzung der App, einschließlich Verlusten durch Vertrauen auf Erinnerungen, Prognosen oder Summen (etwa eine Mahngebühr). Wo das Gesetz solche Beschränkungen nicht erlaubt, gelten sie im zulässigen Umfang.\n\nMarken. In Keel gezeigte Produktnamen, Logos und Marken gehören ihren jeweiligen Inhabern; Keel ist von ihnen unabhängig.\n\nKäufe. Keel ist gratis. Der optionale Einmalkauf Full Keel (sobald verfügbar) wird von Apple über dein App-Store-Konto abgewickelt: Der Preis steht vor dem Kauf fest, nichts verlängert sich, und Rückerstattungen folgen den App-Store-Regeln von Apple.\n\nApp Store. Für deine Nutzung von Keel gilt außerdem Apples Standard-Lizenzvereinbarung für Apps (EULA).\n\nAnwendbares Recht. Diese Bedingungen unterliegen Schweizer Recht.\n\nKontakt: {{email}}.",
   },
   guide: {
     title: "Was Keel kann",
@@ -749,6 +748,12 @@ export const de: typeof en = {
     remindersTitle: "Erinnerungen nach deinem Takt",
     remindersBody:
       "Setz Vorlauf und Uhrzeit als Standard in Einstellungen, Mitteilungen; jeder Posten kann sein eigenes Timing haben.",
+    weekendTitle: "Fälligkeit am Wochenende",
+    weekendBody:
+      "Bucht eine Bank nie am Wochenende ab, kann eine Zahlung auf den Freitag davor oder den Montag danach rutschen. Keel zählt den echten Abbuchungstag.",
+    digestTitle: "Überfällig-Zusammenfassung",
+    digestBody:
+      "Eine wöchentliche oder monatliche Erinnerung mit allem, was noch offen ist, damit sich nichts still ansammelt. Zu finden unter Mitteilungen.",
     groupUnderstand: "Verstehen",
     viewsTitle: "Drei Ansichten desselben Geldes",
     viewsBody:
@@ -772,6 +777,9 @@ export const de: typeof en = {
     lockTitle: "Absperren",
     lockBody:
       "Face ID, Touch ID oder dein Code, mit wählbarer Karenzzeit: in den Einstellungen unter Privatsphäre.",
+    widgetsTitle: "Widgets für den Homescreen",
+    widgetsBody:
+      "Zwei Widgets zeigen die nächste Zahlung und die kommenden Tage direkt auf dem Homescreen. Halte den Homescreen gedrückt, tippe auf +, suche nach Keel.",
   },
   assistant: {
     title: "Assistent",

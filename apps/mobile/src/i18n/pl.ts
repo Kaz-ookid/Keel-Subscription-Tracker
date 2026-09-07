@@ -558,6 +558,8 @@ const translation = {
     light: "Jasny",
     dark: "Ciemny",
     language: "Język",
+    translationNote:
+      "Angielski i francuski powstają ręcznie; niemiecki, włoski i polski to staranne tłumaczenia. Coś brzmi nie tak? Napisz na {{email}}.",
     reminders: "Przypomnienia",
     remindersOn: "Włączone",
     remindersOff: "Wyłączone w Ustawieniach iOS",
@@ -737,14 +739,11 @@ const translation = {
     groupLegal: "Informacje prawne",
     privacy: "Polityka prywatności",
     terms: "Warunki korzystania",
+    legalNote: "Otwiera się na {{host}}, zawsze w aktualnej wersji.",
     trademark:
       "Wszystkie nazwy produktów, loga i marki wymienione w Keel należą do ich właścicieli. Keel jest niezależny i nie jest z nimi powiązany ani przez nich wspierany czy sponsorowany.",
     thanks: "Dziękuję, że używasz niezależnego oprogramowania.",
     version: "Wersja",
-    privacyBody:
-      "Ostatnia aktualizacja: 19 lipca 2026.\n\nKto odpowiada. Keel tworzy i prowadzi jedna osoba: Maxime Teuber, mieszkający w Szwajcarii („ja” poniżej, a w języku prawnym administrator danych). Kontakt: {{email}}.\n\nTwoje dane zostają na twoim urządzeniu. Pozycje, konta, historia płatności i ustawienia żyją w lokalnej pamięci aplikacji i w lokalnych kopiach zapasowych, które tworzysz. Keel nie ma serwera, kont, analityki ani reklam. Nie mogę zobaczyć twoich danych.\n\nZapytania sieciowe. Keel wykonuje dwa rodzaje zapytań, i tylko te. Kursy walut pochodzą z publicznego API Frankfurter (kursy referencyjne Europejskiego Banku Centralnego); zapytanie jest identyczne dla każdego i nie zawiera danych osobowych. Loga marek są wyłączone, dopóki sam ich nie włączysz: po włączeniu pozycja z przypisaną stroną pobiera logo przez publiczny serwis favicon Google, a to zapytanie zawiera domenę marki (na przykład netflix.com) i, jak każde zapytanie w sieci, twój adres IP. Google może przetwarzać takie zapytania na serwerach poza Szwajcarią i UE, w tym w USA. Przełącznik w Ustawieniach wyłącza pobieranie w każdej chwili; loga już obecne na urządzeniu pokazują się dalej bez żadnych zapytań. Pozycje bez strony nigdy nie generują zapytań. Nic z tego do mnie nie dociera: zapytania idą z twojego urządzenia do tych serwisów, a ja niczego o nich nie przechowuję.\n\nImport z AI. Przy „własnej AI” dzielisz się listą z wybranym przez siebie asystentem, na jego warunkach; Keel czyta tylko odpowiedź, którą wklejasz, na twoim telefonie. Tam, gdzie Keel sam czyta listę, działa to na modelu Apple Intelligence na urządzeniu; Apple dokumentuje to przetwarzanie jako lokalne i offline. Apple zapowiedziało mocniejszy model dla aplikacji, działający na jego Private Cloud Compute; jeśli Keel udostępni go w przyszłej wersji, będzie to opcja do włączenia, będzie wymagać połączenia, a sposób przetwarzania twoich danych opiszemy słowami opublikowanymi przez Apple, a nie jako moją obietnicę. Funkcje AI są całkowicie opcjonalne: można je całkiem wyłączyć w Ustawieniach, a jeśli z nich nie korzystasz, żaden model nigdy nie czyta twoich danych.\n\nPrzypomnienia planuje lokalnie iOS. Blokada używa Face ID, Touch ID lub kodu przez iOS; Keel dostaje tylko wynik.\n\nKopie zapasowe i eksporty to pliki pod twoją kontrolą. Udostępnienie wysyła je tam, gdzie zdecydujesz; traktuj je jak dane finansowe, które zawierają.\n\nPrzechowywanie i usuwanie. Ponieważ wszystko żyje na twoim urządzeniu, usuwanie jest w twoich rękach: usuwaj pozycje w aplikacji albo usuń aplikację, aby wymazać wszystkie jej dane (pliki kopii wyeksportowane gdzie indziej usuwasz tam, gdzie są). Nie ma konta do zamknięcia ani kopii na serwerze do zażądania. Jeśli do mnie napiszesz, zachowuję korespondencję, aby móc odpowiedzieć w przyszłości. Poproś zwykłymi słowami o jej usunięcie, a to zrobię: bez formalnych wniosków i cytowania przepisów, usunięcie jest gwarantowane.\n\nTwoje prawa. Szwajcarska ustawa o ochronie danych (FADP) i, tam gdzie ma zastosowanie, unijne RODO dają ci prawa do twoich danych osobowych: dostępu, sprostowania, usunięcia i sprzeciwu, a także prawo skargi do organu nadzorczego (w Szwajcarii FDPIC, w UE twój organ krajowy). W praktyce jedyne dane osobowe, jakie posiadam, to nasze e-maile: skorzystanie z tych praw to najczęściej prośba o usunięcie wątku, którą spełnię.\n\nZmiany. Jeśli ta polityka zmieni się w istotny sposób, zmieni się data powyżej, a zmiana będzie widoczna na keel-app.ch.",
-    termsBody:
-      "Ostatnia aktualizacja: 19 lipca 2026.\n\nKeel to osobiste narzędzie do śledzenia. Zapisuje to, co wprowadzasz, i wylicza daty oraz sumy z tych wpisów. Nie łączy się z twoim bankiem, nie przenosi pieniędzy i niczego nie weryfikuje u dostawców. Ważne kwoty i daty zawsze sprawdzaj w banku lub u samej usługi.\n\nTo nie porada. Nic w Keel nie jest poradą finansową, prawną ani podatkową.\n\nTwoje urządzenie, twoje dane. Chroń urządzenie i pliki kopii zapasowych. Każdy z dostępem do odblokowanego telefonu lub wyeksportowanego pliku kopii może odczytać dane, chyba że chroni je blokada aplikacji.\n\nTak jak jest. Keel jest dostarczany w stanie, w jakim jest, bez jakichkolwiek gwarancji. W najszerszym zakresie dozwolonym prawem twórca nie odpowiada za szkody wynikłe z użycia aplikacji, w tym straty spowodowane poleganiem na przypomnieniach, prognozach lub sumach (na przykład opłata za spóźnienie). Tam, gdzie prawo nie pozwala na takie ograniczenia, obowiązują one w dozwolonym zakresie.\n\nZnaki towarowe. Nazwy produktów, loga i marki pokazywane w Keel należą do ich właścicieli; Keel jest od nich niezależny.\n\nZakupy. Keel jest darmowy. Opcjonalny, jednorazowy zakup Full Keel (gdy będzie dostępny) obsługuje Apple przez twoje konto App Store: cena jest widoczna przed zakupem, nic się nie odnawia, a zwroty podlegają zasadom App Store Apple.\n\nApp Store. Korzystanie z Keel podlega też standardowej umowie licencyjnej Apple dla aplikacji (EULA).\n\nPrawo właściwe. Te warunki podlegają prawu szwajcarskiemu.\n\nKontakt: {{email}}.",
   },
   guide: {
     title: "Co potrafi Keel",
@@ -778,6 +777,12 @@ const translation = {
     remindersTitle: "Przypomnienia po twojemu",
     remindersBody:
       "Ustaw domyślne wyprzedzenie i godzinę w Ustawieniach, Powiadomieniach; każda pozycja może mieć własny rytm.",
+    weekendTitle: "Terminy a weekendy",
+    weekendBody:
+      "Jeśli bank nigdy nie pobiera opłat w weekend, ustaw płatność tak, by przesuwała się na piątek przed albo poniedziałek po. Keel liczy prawdziwy dzień obciążenia.",
+    digestTitle: "Podsumowanie zaległości",
+    digestBody:
+      "Cotygodniowe lub comiesięczne przypomnienie ze wszystkim, co wciąż niezapłacone, żeby nic się po cichu nie piętrzyło. Włączysz je w Powiadomieniach.",
     groupUnderstand: "Zrozumienie",
     viewsTitle: "Trzy widoki tych samych pieniędzy",
     viewsBody:
@@ -801,6 +806,9 @@ const translation = {
     lockTitle: "Zamknij na klucz",
     lockBody:
       "Face ID, Touch ID albo twój kod, z wybranym okresem karencji: w Ustawieniach, w sekcji Prywatność.",
+    widgetsTitle: "Widżety na ekranie głównym",
+    widgetsBody:
+      "Dwa widżety pokazują najbliższą płatność i nadchodzące dni prosto na ekranie głównym. Przytrzymaj ekran główny, stuknij +, wyszukaj Keel.",
   },
   assistant: {
     title: "Asystent",

@@ -54,7 +54,7 @@ import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
-import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
+import { APP_NAME, FULL_KEEL_PRICE, SUPPORT_EMAIL } from "../../src/constants";
 import { InfoDot } from "../../src/components/InfoDot";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
@@ -424,6 +424,11 @@ export default function SettingsScreen() {
             divider
             onPress={() => router.push("/guide")}
           />
+          {/* EN and FR are written by hand; DE/IT/PL are best-effort. Say so
+              where the language is chosen, with the mailbox for corrections. */}
+          <Text style={styles.cardFooter}>
+            {t("settings.translationNote", { email: SUPPORT_EMAIL })}
+          </Text>
         </Card>
 
         {/* Privacy: brand-logo loading + the app lock. Both are local flags;
@@ -457,7 +462,7 @@ export default function SettingsScreen() {
               />
             }
           />
-          {aiHidden && <Text style={styles.privacyFooter}>{t("settings.aiFeaturesFooter")}</Text>}
+          {aiHidden && <Text style={styles.cardFooter}>{t("settings.aiFeaturesFooter")}</Text>}
           {/* Which engine answers. Cloud is the default because the on-device
               model can't carry the feature honestly; the (i) explains the
               trade both ways without talking anyone out of either. */}
@@ -480,7 +485,7 @@ export default function SettingsScreen() {
             />
           )}
           {!aiHidden && cloudSupported && (
-            <Text style={styles.privacyFooter}>
+            <Text style={styles.cardFooter}>
               {t(aiEngine === "cloud" ? "settings.aiCloudOn" : "settings.aiCloudOff")}
             </Text>
           )}
@@ -514,7 +519,7 @@ export default function SettingsScreen() {
               />
             </Animated.View>
           )}
-          <Text style={styles.privacyFooter}>{t("applock.footer")}</Text>
+          <Text style={styles.cardFooter}>{t("applock.footer")}</Text>
         </Card>
 
         {/* Where the data lives: iCloud preference, local backups, export. */}
@@ -753,7 +758,7 @@ function createStyles(colors: ThemeColors) {
     fullkeelTexts: { flex: 1, gap: 1 },
     fullkeelTitle: { ...typography.label, fontSize: 17, color: colors.text },
     fullkeelSub: { ...typography.caption, color: colors.mutedText },
-    privacyFooter: {
+    cardFooter: {
       ...typography.caption,
       color: colors.mutedText,
       paddingBottom: spacing.md,

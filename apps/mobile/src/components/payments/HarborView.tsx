@@ -59,8 +59,13 @@ import {
 } from "./HarborVessels";
 
 // Tall on purpose: ~8px per day so the fleet has open water between billing
-// days instead of hulls rafting up against each other.
-const CANVAS_HEIGHT = 3120;
+// days instead of hulls rafting up against each other. This is the FLOOR —
+// a crowded harbor stretches taller (see the memo) so hulls keep that water.
+const BASE_CANVAS_HEIGHT = 3120;
+// Fleets past this size earn extra water per vessel; below it the base
+// height already gives every hull room.
+const COMFORT_FLEET = 24;
+const EXTRA_PER_VESSEL = 36;
 // The quay is an elevated structure now: a seawall the water laps against,
 // a hazard-striped lip, then the walk surface with the yard on it.
 const QUAY_HEIGHT = 64;
@@ -125,10 +130,7 @@ export function HarborView() {
   // Everything in display-currency terms so sizes compare honestly.
   const numeric = (value: Money) => amountInDisplay(value, displayCurrency, rates);
 
-  const quayTop = CANVAS_HEIGHT - QUAY_HEIGHT;
-  const surfaceTop = quayTop + WALL_H + HAZARD_H;
-
-  const { vessels, paused, overdue } = useMemo(() => {
+  const { vessels, paused, overdue, canvasHeight } = useMemo(() => {
     const pausedItems = items.filter((i) => i.status === "paused");
 
     // The same projection engine as the Upcoming list, a year deep: EVERY
@@ -163,6 +165,11 @@ export function HarborView() {
     // The nearest days matter most if the cap ever bites.
     groups.sort((a, b) => a.daysUntil - b.daysUntil);
     const kept = groups.slice(0, MAX_VESSELS);
+    // A crowded harbor gets taller water: the base height is the minimum
+    // spacing, and every vessel past a comfortable fleet adds open sea, so
+    // forty billing days never raft up the way they would in a fixed canvas.
+    const height = BASE_CANVAS_HEIGHT + Math.max(0, kept.length - COMFORT_FLEET) * EXTRA_PER_VESSEL;
+    const quayTop = height - QUAY_HEIGHT;
     const maxDay = Math.max(1, ...kept.map((g) => g.total));
     const maxCharge = Math.max(1, ...kept.flatMap((g) => g.cargo.map((c) => c.value)));
 
@@ -229,9 +236,12 @@ export function HarborView() {
     // Oldest debt first: the crate that has waited longest leads the row.
     landed.sort((a, b) => (a.charge.dueDate < b.charge.dueDate ? -1 : 1));
 
-    return { vessels: placed, paused: pausedItems, overdue: landed };
+    return { vessels: placed, paused: pausedItems, overdue: landed, canvasHeight: height };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, asOf, width, displayCurrency, rates]);
+
+  const quayTop = canvasHeight - QUAY_HEIGHT;
+  const surfaceTop = quayTop + WALL_H + HAZARD_H;
 
   if (vessels.length === 0 && paused.length === 0 && overdue.length === 0) {
     return (
@@ -262,7 +272,7 @@ export function HarborView() {
       : [];
 
   const craneX = width * 0.68;
-  const craneBase = CANVAS_HEIGHT - 12;
+  const craneBase = canvasHeight - 12;
   // How many overdue crates fit along the quay edge before the +N chip.
   const overdueShown = width > 0 ? Math.min(8, Math.max(1, Math.floor((width - 70) / 40))) : 0;
   const selected = selectedKey ? (vessels.find((v) => v.key === selectedKey) ?? null) : null;
@@ -291,12 +301,12 @@ export function HarborView() {
       <ScrollView
         style={styles.screen}
         contentContainerStyle={styles.content}
-        contentOffset={{ x: 0, y: CANVAS_HEIGHT }}
+        contentOffset={{ x: 0, y: canvasHeight }}
       >
         {/* The scene assembles organically: water first, then the fleet fades
           in from the quay outward, the crane joining last — no single pop. */}
         <Animated.View
-          style={styles.canvas}
+          style={[styles.canvas, { height: canvasHeight }]}
           entering={FadeIn.duration(200)}
           onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
         >
@@ -308,14 +318,14 @@ export function HarborView() {
             <>
               <Tide
                 width={width}
-                height={CANVAS_HEIGHT}
+                height={canvasHeight}
                 ripples={ripples.filter((_, i) => i % 2 === 0)}
                 color={sea.ripple}
                 phase={0}
               />
               <Tide
                 width={width}
-                height={CANVAS_HEIGHT}
+                height={canvasHeight}
                 ripples={ripples.filter((_, i) => i % 2 === 1)}
                 color={sea.ripple}
                 phase={0.5}
@@ -332,7 +342,7 @@ export function HarborView() {
           )}
 
           {width > 0 && (
-            <Svg width={width} height={CANVAS_HEIGHT} style={StyleSheet.absoluteFill}>
+            <Svg width={width} height={canvasHeight} style={StyleSheet.absoluteFill}>
               {/* Gulls over the far water. */}
               <Path
                 d={`M ${width * 0.32} 46 q 4 -5 8 0 q 4 -5 8 0`}
@@ -390,7 +400,7 @@ export function HarborView() {
                 x={0}
                 y={surfaceTop}
                 width={width}
-                height={CANVAS_HEIGHT - surfaceTop}
+                height={canvasHeight - surfaceTop}
                 fill={sea.concrete}
               />
               <Line
@@ -407,7 +417,7 @@ export function HarborView() {
                   x1={(i + 1) * 56}
                   x2={(i + 1) * 56}
                   y1={surfaceTop + 3}
-                  y2={CANVAS_HEIGHT}
+                  y2={canvasHeight}
                   stroke={sea.joint}
                   strokeWidth={1}
                 />
@@ -439,13 +449,13 @@ export function HarborView() {
                 cheap isometry as the fleet: front face + lit top + dark side). */}
               {(
                 [
-                  { x: 10, y: CANVAS_HEIGHT - 16, c: 0 },
-                  { x: 10, y: CANVAS_HEIGHT - 30, c: 1 },
-                  { x: 12, y: CANVAS_HEIGHT - 44, c: 2 },
-                  { x: 52, y: CANVAS_HEIGHT - 16, c: 3 },
-                  { x: 52, y: CANVAS_HEIGHT - 30, c: 4 },
-                  { x: width - 48, y: CANVAS_HEIGHT - 16, c: 5 },
-                  { x: width - 48, y: CANVAS_HEIGHT - 30, c: 6 },
+                  { x: 10, y: canvasHeight - 16, c: 0 },
+                  { x: 10, y: canvasHeight - 30, c: 1 },
+                  { x: 12, y: canvasHeight - 44, c: 2 },
+                  { x: 52, y: canvasHeight - 16, c: 3 },
+                  { x: 52, y: canvasHeight - 30, c: 4 },
+                  { x: width - 48, y: canvasHeight - 16, c: 5 },
+                  { x: width - 48, y: canvasHeight - 30, c: 6 },
                 ] as const
               ).map((s, i) => {
                 const color = colors.chart[s.c % colors.chart.length];
@@ -742,7 +752,7 @@ function createStyles(colors: ThemeColors, scheme: "light" | "dark") {
       backgroundColor: colors.background,
     },
     canvas: {
-      height: CANVAS_HEIGHT,
+      // Height comes inline: it grows with the fleet (base is the minimum).
       borderRadius: radius.lg,
       overflow: "hidden",
     },

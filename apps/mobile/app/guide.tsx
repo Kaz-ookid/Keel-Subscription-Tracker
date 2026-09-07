@@ -35,6 +35,8 @@ const GROUPS: {
       { key: "trial", icon: "hourglass", color: "#FF9500" },
       { key: "priceChange", icon: "chart.line.uptrend.xyaxis", color: "#FF3B30" },
       { key: "reminders", icon: "bell.fill", color: "#AF52DE" },
+      { key: "weekend", icon: "calendar.circle.fill", color: "#34C759" },
+      { key: "digest", icon: "tray.full.fill", color: "#007AFF" },
     ],
   },
   {
@@ -52,6 +54,7 @@ const GROUPS: {
       { key: "todo", icon: "rectangle.stack.fill", color: "#FF9500" },
       { key: "backup", icon: "externaldrive.fill", color: "#007AFF" },
       { key: "lock", icon: "faceid", color: "#32ADE6" },
+      { key: "widgets", icon: "apps.iphone", color: "#FF2D55" },
     ],
   },
 ];
