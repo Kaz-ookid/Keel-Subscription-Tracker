@@ -17,11 +17,12 @@ import { requireOptionalNativeModule } from "expo-modules-core";
 import { refineBrandColor, usableBrandColor } from "./brand-color";
 import { hostOf } from "./logos";
 
-// v2: tints are stored REFINED (saturation recovered, lightness settled).
-// Bumping the key re-extracts every v1 tint, which was stored raw and
-// often washed out; the orphaned v1 blob is swept on hydrate.
-const KEY = "keel.brandtints.v2";
-const OLD_KEY = "keel.brandtints.v1";
+// v3: extraction got a stricter colorless gate (near-black/white/grey
+// candidates now read as MONO instead of a muddy tint). Bumping the key
+// re-extracts every stored tint under the new rule; orphaned older blobs
+// are swept on hydrate.
+const KEY = "keel.brandtints.v3";
+const OLD_KEYS = ["keel.brandtints.v1", "keel.brandtints.v2"];
 /** Mono logos (every candidate near-black/white): which SIDE they fell on,
  *  so the badge can pick a CONTRASTING plate instead of guessing. */
 const MONO_KEY = "keel.brandmono.v1";
@@ -79,8 +80,8 @@ export function monoPolarity(domain: string): "dark" | "light" | undefined {
 let hydrating: Promise<void> | null = null;
 export function hydrateBrandTints(): Promise<void> {
   if (!hydrating) {
-    void AsyncStorage.removeItem(OLD_KEY).catch(() => {
-      // Best-effort sweep of the raw v1 tints.
+    void AsyncStorage.multiRemove(OLD_KEYS).catch(() => {
+      // Best-effort sweep of the older tint blobs.
     });
     hydrating = AsyncStorage.multiGet([KEY, MONO_KEY])
       .then(([tintRow, monoRow]) => {

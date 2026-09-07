@@ -91,13 +91,34 @@ function saturationOf(hex: string): number {
   return rgbToHsl(r, g, b)[1];
 }
 
+// Extraction is held to a STRICTER bar than stored/bank colors: a real
+// brand color survives it easily, but a black-and-white logo's compression
+// noise or blue-tinted near-black must NOT — those logos should read as
+// MONO (undefined here) so the surfaces pick a scheme-appropriate ink
+// instead of a muddy "almost black". Tolerance, not exactness: anything
+// this close to black/white/grey counts as colorless.
+const EXTRACT_LUMINANCE_MIN = 0.12;
+const EXTRACT_LUMINANCE_MAX = 0.88;
+const EXTRACT_SATURATION_MIN = 0.2;
+
+function luminanceOf(hex: string): number {
+  const [r, g, b] = hexToRgb(hex);
+  return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+}
+
 /** The best USABLE color among an extraction's candidates, un-washed: the
  *  most saturated candidate wins (the purer color often hides in a
  *  secondary slot), then saturation and lightness are normalised back into
- *  the confident band. Returns undefined when nothing usable survives. */
+ *  the confident band. Returns undefined when nothing usable survives —
+ *  which is exactly what a black-and-white logo should do. */
 export function refineBrandColor(candidates: readonly unknown[]): string | undefined {
   const usable = candidates.filter(
-    (c): c is string => typeof c === "string" && usableBrandColor(c),
+    (c): c is string =>
+      typeof c === "string" &&
+      usableBrandColor(c) &&
+      saturationOf(c) >= EXTRACT_SATURATION_MIN &&
+      luminanceOf(c) > EXTRACT_LUMINANCE_MIN &&
+      luminanceOf(c) < EXTRACT_LUMINANCE_MAX,
   );
   if (usable.length === 0) return undefined;
   const best = usable.reduce((a, b) => (saturationOf(b) > saturationOf(a) ? b : a));

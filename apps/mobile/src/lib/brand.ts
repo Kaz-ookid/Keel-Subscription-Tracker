@@ -2,10 +2,12 @@
 // service's TRUE color, never black or white.
 //
 // Resolution order:
-//   1. the logo's pixel-derived dominant color — FIRST, always (user
-//      decision, post round 2): what the badge shows is what the surface
-//      wears; the stored color is its durable backup, auto-adopted by the
-//      form as the grid's ADAPTIVE swatch (the exact hex, never snapped),
+//   1. the logo's pixel verdict — FIRST, always (user decision, post
+//      round 2): what the badge shows is what the surface wears. A COLORED
+//      logo hands over its dominant color; a MONO (black-and-white) logo
+//      hands over the SCHEME'S ink instead — white in dark mode, near-black
+//      in light — because "the Apple logo's dominant color" is not a color,
+//      and painting black-on-black helps nobody (2026-09-08 retex).
 //   2. the item's own stored color,
 //   3. the brand bank's color for a matching name or domain,
 //   4. the caller's fallback (the theme accent),
@@ -15,7 +17,13 @@
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
 
 import { usableBrandColor } from "./brand-color";
-import { dominantColor } from "./dominant-color";
+import { dominantColor, monoPolarity } from "./dominant-color";
+import { resolvedSchemeSnapshot } from "../theme";
+
+/** What a mono logo's surfaces wear: the scheme's ink. Not pure black on
+ *  light — a #000 wash dies on the light material; near-black reads right. */
+const MONO_INK_DARK_SCHEME = "#FFFFFF";
+const MONO_INK_LIGHT_SCHEME = "#1C2733";
 
 export { usableBrandColor };
 
@@ -37,6 +45,11 @@ for (const s of SUGGESTED_COMMITMENTS) {
 export function brandBleed(item: Branded, fallback: string): string {
   const extracted = item.domain ? dominantColor(item.domain) : undefined;
   if (usableBrandColor(extracted)) return extracted;
+  // A logo KNOWN to be black-and-white: the scheme's ink, always — the
+  // pixel verdict leads, and its verdict here is "no color".
+  if (item.domain && monoPolarity(item.domain)) {
+    return resolvedSchemeSnapshot() === "dark" ? MONO_INK_DARK_SCHEME : MONO_INK_LIGHT_SCHEME;
+  }
   if (usableBrandColor(item.color)) return item.color;
   const banked =
     byName.get(item.name.trim().toLowerCase()) ??

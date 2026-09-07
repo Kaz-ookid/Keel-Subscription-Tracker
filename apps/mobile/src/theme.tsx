@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SemanticTone } from "@keel/core";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import { useColorScheme } from "react-native";
+import { Appearance, useColorScheme } from "react-native";
 
 // Keel's palette (DESIGN.md §3.1): navy is the hull, sea glass the waterline.
 // Light mode uses cool blue-greys (not iOS defaults); dark mode is "night at
@@ -141,6 +141,14 @@ let currentMode: ThemeMode = "dark";
 
 /** The appearance preference as of now (non-React; widgets ride it). */
 export function themeModeSnapshot(): ThemeMode {
+  return currentMode;
+}
+
+/** The RESOLVED scheme, outside React (for module-level color resolution
+ *  like brand.ts): the user's explicit choice, or the device's under
+ *  "system". Snapshot semantics — callers re-run per render anyway. */
+export function resolvedSchemeSnapshot(): ColorScheme {
+  if (currentMode === "system") return Appearance.getColorScheme() === "dark" ? "dark" : "light";
   return currentMode;
 }
 
