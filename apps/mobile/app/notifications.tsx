@@ -6,7 +6,13 @@
 // change already rebuilds the whole schedule from scratch (see
 // lib/notifications.ts).
 
-import { formatCalendarDate, plannedReminders, today, formatMoney } from "@keel/core";
+import {
+  formatCalendarDate,
+  plannedReminders,
+  reminderRules,
+  today,
+  formatMoney,
+} from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState } from "react";
@@ -157,9 +163,9 @@ export default function NotificationsScreen() {
     [items, settings?.enabled],
   );
 
-  // Quick-add candidates: active commitments without a reminder rule.
+  // Quick-add candidates: active commitments without any reminder rule.
   const candidates = useMemo(
-    () => items.filter((i) => i.status === "active" && !i.reminder),
+    () => items.filter((i) => i.status === "active" && reminderRules(i).length === 0),
     [items],
   );
 
@@ -171,7 +177,7 @@ export default function NotificationsScreen() {
 
   const openPlanned = (paymentItemId: string, name: string) => {
     const item = items.find((i) => i.id === paymentItemId);
-    const removable = !!item?.reminder;
+    const removable = !!item && reminderRules(item).length > 0;
     const options = removable
       ? [t("notifCenter.openItem"), t("notifCenter.removeReminder"), t("common.cancel")]
       : [t("notifCenter.openItem"), t("common.cancel")];
@@ -288,7 +294,7 @@ export default function NotificationsScreen() {
             ) : (
               planned.map((reminder, i) => (
                 <Pressable
-                  key={`${reminder.paymentItemId}-${reminder.kind}`}
+                  key={reminder.id}
                   style={[styles.row, i > 0 && styles.rowDivider]}
                   onPress={() => openPlanned(reminder.paymentItemId, reminder.name)}
                 >

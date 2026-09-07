@@ -159,11 +159,13 @@ describe("trial-end reminder", () => {
     const reminders = plannedReminders([item], calendarDate("2026-07-01"));
     expect(reminders).toEqual([
       {
+        id: "r1:trialEnd:2026-07-18",
         paymentItemId: "r1",
         name: "Disney+",
         amount: eur(12.9),
         dueDate: "2026-07-20",
         fireDate: "2026-07-18", // default 2-day lead
+        hour: undefined,
         kind: "trialEnd",
       },
     ]);

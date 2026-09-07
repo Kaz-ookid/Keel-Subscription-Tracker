@@ -266,6 +266,8 @@ function parseItem(
     color,
     notes,
     reminder,
+    // The list mirrors the single slot (writers keep both in step).
+    reminders: reminder ? ([reminder] as const) : undefined,
   } as const;
 
   if (isSplit) {

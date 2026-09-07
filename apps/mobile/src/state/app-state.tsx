@@ -43,6 +43,7 @@ import {
   now,
   pausePaymentItem,
   recordRecurringPayment,
+  reminderRules,
   removePriceChange,
   resumePaymentItem,
   rewindRecurringPayment,
@@ -520,12 +521,20 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     // Reminder is standalone metadata on the item — patched in place, so the
-    // schedule, price history and cursors stay untouched.
+    // schedule, price history and cursors stay untouched. null clears every
+    // rule; a number appends one (keeping any the item already has), with the
+    // legacy single slot mirrored to the first rule for older readers.
     const setItemReminder = (id: string, daysBefore: number | null) => {
       setItems((prev) =>
-        prev.map((i) =>
-          i.id === id ? { ...i, reminder: daysBefore === null ? undefined : { daysBefore } } : i,
-        ),
+        prev.map((i) => {
+          if (i.id !== id) return i;
+          if (daysBefore === null) return { ...i, reminder: undefined, reminders: undefined };
+          const existing = reminderRules(i);
+          const rules = existing.some((r) => r.daysBefore === daysBefore)
+            ? existing
+            : [...existing, { daysBefore }];
+          return { ...i, reminder: rules[0], reminders: rules };
+        }),
       );
     };
 

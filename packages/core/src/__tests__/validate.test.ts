@@ -139,6 +139,23 @@ describe("isValidPaymentItem", () => {
     expect(isValidPaymentItem({ ...recurring(), reminder: { daysBefore: "two" } })).toBe(false);
     expect(isValidPaymentItem({ ...recurring(), reminder: undefined })).toBe(true);
   });
+
+  it("accepts a reminders list (with repeat) and rejects a malformed one", () => {
+    expect(
+      isValidPaymentItem({
+        ...recurring(),
+        reminders: [
+          { daysBefore: 7, repeat: "daily" },
+          { daysBefore: 1, hour: 20 },
+        ],
+      }),
+    ).toBe(true);
+    expect(isValidPaymentItem({ ...recurring(), reminders: [] })).toBe(true);
+    expect(
+      isValidPaymentItem({ ...recurring(), reminders: [{ daysBefore: 7, repeat: "hourly" }] }),
+    ).toBe(false);
+    expect(isValidPaymentItem({ ...recurring(), reminders: { daysBefore: 7 } })).toBe(false);
+  });
 });
 
 describe("isValidPaymentOccurrence", () => {

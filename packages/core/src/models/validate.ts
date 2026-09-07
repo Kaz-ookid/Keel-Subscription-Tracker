@@ -93,7 +93,11 @@ function isValidReminder(value: unknown): value is ReminderRule {
     typeof value.daysBefore === "number" &&
     Number.isInteger(value.daysBefore) &&
     value.daysBefore >= 0 &&
-    optional(value.hour, (h) => typeof h === "number" && Number.isInteger(h) && h >= 0 && h <= 23)
+    optional(
+      value.hour,
+      (h) => typeof h === "number" && Number.isInteger(h) && h >= 0 && h <= 23,
+    ) &&
+    optional(value.repeat, (r) => r === "daily" || r === "weekly")
   );
 }
 
@@ -196,6 +200,7 @@ export function isValidPaymentItem(value: unknown): value is PaymentItem {
     optional(value.color, (v) => typeof v === "string") &&
     optional(value.domain, (v) => typeof v === "string") &&
     optional(value.reminder, isValidReminder) &&
+    optional(value.reminders, (v) => Array.isArray(v) && v.every(isValidReminder)) &&
     optional(value.weekendShift, (v) => v === "before" || v === "after") &&
     isValidSchedule(value.schedule) &&
     value.scheduleType === (value.schedule as Schedule).kind &&

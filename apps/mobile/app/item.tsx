@@ -12,6 +12,7 @@ import {
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
+  reminderRules,
   shiftOffWeekend,
   summarizeInstallmentPlan,
   sumByCurrency,
@@ -314,9 +315,17 @@ export default function ItemScreen() {
         <InfoRow
           label={t("add.reminder")}
           value={
-            item.reminder
-              ? t("add.reminderDayBefore", { count: item.reminder.daysBefore }) +
-                (item.reminder.hour !== undefined ? ` · ${formatHour(item.reminder.hour)}` : "")
+            reminderRules(item).length > 0
+              ? reminderRules(item)
+                  .map(
+                    (rule) =>
+                      t("add.reminderDayBefore", { count: rule.daysBefore }) +
+                      (rule.repeat !== undefined
+                        ? ` (${t(rule.repeat === "daily" ? "add.repeatDaily" : "add.repeatWeekly").toLowerCase()})`
+                        : "") +
+                      (rule.hour !== undefined ? ` · ${formatHour(rule.hour)}` : ""),
+                  )
+                  .join(", ")
               : t("common.never")
           }
           styles={styles}

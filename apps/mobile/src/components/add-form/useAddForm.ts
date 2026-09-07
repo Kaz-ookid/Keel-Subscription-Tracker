@@ -12,6 +12,7 @@ import {
   isInstallmentSchedule,
   isRecurringSchedule,
   listOccurrenceDates,
+  reminderRules,
   splitMoney,
   toMajor,
   type BnplProviderId,
@@ -52,6 +53,7 @@ export type OpenSheet =
   | "convertsDate"
   | "reminder"
   | "reminderHour"
+  | "reminderRepeat"
   | "category"
   | "account"
   | "color"
@@ -59,20 +61,45 @@ export type OpenSheet =
   | "weekend"
   | null;
 
+// The lead wheel. "Never" is not an option here: the switch owns off, and
+// an extra rule is removed by its own affordance.
 export const REMINDER_OPTIONS: { value: string; labelKey: string; count?: number }[] = [
-  { value: "never", labelKey: "add.reminderNever" },
   { value: "0", labelKey: "add.reminderOnDay" },
   { value: "1", labelKey: "add.reminderDayBefore", count: 1 },
   { value: "2", labelKey: "add.reminderDayBefore", count: 2 },
   { value: "7", labelKey: "add.reminderWeekBefore" },
+  { value: "14", labelKey: "add.reminderDayBefore", count: 14 },
+  { value: "30", labelKey: "add.reminderMonthBefore" },
 ];
 
-function reminderFromKey(key: string, hourKey: string): ReminderRule | undefined {
-  if (key === "never") return undefined;
-  return {
-    daysBefore: Number(key),
-    ...(hourKey === "default" ? {} : { hour: Number(hourKey) }),
-  };
+export type RepeatKey = "off" | "daily" | "weekly";
+
+/** One reminder rule as the form holds it: everything a string key, so the
+ *  wheels and the dirty-signature stay trivial. */
+export interface ReminderDraft {
+  /** daysBefore as a string ("2"). */
+  key: string;
+  /** "default" = the app-wide fire hour; otherwise the hour ("20"). */
+  hourKey: string;
+  repeatKey: RepeatKey;
+}
+
+const MAX_REMINDER_RULES = 3;
+
+function draftsFromRules(rules: readonly ReminderRule[]): ReminderDraft[] {
+  return rules.map((r) => ({
+    key: String(r.daysBefore),
+    hourKey: r.hour !== undefined ? String(r.hour) : "default",
+    repeatKey: r.repeat ?? "off",
+  }));
+}
+
+function rulesFromDrafts(drafts: readonly ReminderDraft[]): ReminderRule[] {
+  return drafts.map((d) => ({
+    daysBefore: Number(d.key),
+    ...(d.hourKey === "default" ? {} : { hour: Number(d.hourKey) }),
+    ...(d.repeatKey === "off" ? {} : { repeat: d.repeatKey }),
+  }));
 }
 
 export type AddForm = ReturnType<typeof useAddForm>;
@@ -199,40 +226,55 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [settlementMode, setSettlementMode] = useState<SettlementMode>(
     () => seedItem?.settlementMode ?? "automatic",
   );
-  const [reminderKey, setReminderKey] = useState(() =>
-    seedItem?.reminder ? String(seedItem.reminder.daysBefore) : "never",
+  // The item's reminder rules as editable drafts (empty = never remind).
+  // Rule 1 is the simple case; extra rules and repeats are the disclosed depth.
+  const [reminderDrafts, setReminderDrafts] = useState<ReminderDraft[]>(() =>
+    draftsFromRules(seedItem ? reminderRules(seedItem) : []),
   );
+  // Which draft the reminder sheets edit (set when a row opens a sheet).
+  const [reminderIndex, setReminderIndex] = useState(0);
   // Weekend shift: "none" | "before" | "after" (none is not persisted).
   const [weekendShift, setWeekendShift] = useState<"none" | "before" | "after">(
     () => seedItem?.weekendShift ?? "none",
   );
-  // "default" follows the app-wide fire hour; a number is this item's own.
-  // The UI shows the RESOLVED hour either way (no "default" entry to decode),
-  // so the app-wide hour is loaded to fill the label and preselect the wheel.
-  const [reminderHourKey, setReminderHourKey] = useState(() =>
-    seedItem?.reminder?.hour !== undefined ? String(seedItem.reminder.hour) : "default",
-  );
+  // "default" follows the app-wide fire hour; a number is a rule's own. The
+  // UI shows the RESOLVED hour either way (no "default" entry to decode), so
+  // the app-wide hour is loaded to fill the label and preselect the wheel.
   const [defaultFireHour, setDefaultFireHour] = useState(9);
   useEffect(() => {
     void loadNotificationSettings().then((s) => setDefaultFireHour(s.fireHour));
   }, []);
 
+  const patchReminderDraft = (index: number, patch: Partial<ReminderDraft>) =>
+    setReminderDrafts((prev) => prev.map((d, i) => (i === index ? { ...d, ...patch } : d)));
+  const addReminderDraft = () =>
+    setReminderDrafts((prev) =>
+      prev.length >= MAX_REMINDER_RULES
+        ? prev
+        : [...prev, { key: "1", hourKey: "default", repeatKey: "off" }],
+    );
+  const removeReminderDraft = (index: number) =>
+    setReminderDrafts((prev) => prev.filter((_, i) => i !== index));
+
   // Turning a trial on lights up a heads-up reminder by default — the whole
   // point is not to be surprised by the conversion.
   const setIsTrial = (next: boolean) => {
     setIsTrialState(next);
-    if (next && reminderKey === "never") setReminderKey("2");
+    if (next && reminderDrafts.length === 0) {
+      setReminderDrafts([{ key: "2", hourKey: "default", repeatKey: "off" }]);
+    }
   };
 
   // The reminder switch: ON picks up the default lead from the notification
-  // settings (the advanced row below it stays adjustable), OFF is "never".
+  // settings (the advanced rows below it stay adjustable), OFF clears all.
   const setReminderEnabled = (next: boolean) => {
     if (!next) {
-      setReminderKey("never");
-      setReminderHourKey("default");
+      setReminderDrafts([]);
       return;
     }
-    void loadNotificationSettings().then((s) => setReminderKey(s.defaultLeadKey));
+    void loadNotificationSettings().then((s) =>
+      setReminderDrafts([{ key: s.defaultLeadKey, hourKey: "default", repeatKey: "off" }]),
+    );
   };
   const [categoryId, setCategoryId] = useState<string | undefined>(
     () => seedItem?.categoryId ?? suggestion?.categoryId,
@@ -285,6 +327,12 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [notes, setNotes] = useState(() => seedItem?.notes ?? "");
   const [sheet, setSheet] = useState<OpenSheet>(null);
 
+  /** A reminder row tapped a sheet open: remember WHICH rule it edits. */
+  const openReminderSheet = (index: number, which: OpenSheet) => {
+    setReminderIndex(index);
+    setSheet(which);
+  };
+
   // Unsaved-changes guard: the first render's values ARE the baseline (lazy
   // initializers already folded in edit/draft/suggestion seeds). Leaving with
   // edits asks first; a successful save flips `guardBypass` so its own
@@ -305,8 +353,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     isTrial,
     trialRegularText,
     convertsTime: convertsDate.getTime(),
-    reminderKey,
-    reminderHourKey,
+    remindersSig: JSON.stringify(reminderDrafts),
     settlementMode,
     categoryId,
     accountId,
@@ -330,8 +377,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     isTrial !== initial.isTrial ||
     trialRegularText !== initial.trialRegularText ||
     convertsDate.getTime() !== initial.convertsTime ||
-    reminderKey !== initial.reminderKey ||
-    reminderHourKey !== initial.reminderHourKey ||
+    JSON.stringify(reminderDrafts) !== initial.remindersSig ||
     settlementMode !== initial.settlementMode ||
     categoryId !== initial.categoryId ||
     accountId !== initial.accountId ||
@@ -371,13 +417,26 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     return dates;
   })();
   const selectedCategory = categories.find((c) => c.id === categoryId);
-  const reminderOption = REMINDER_OPTIONS.find((o) => o.value === reminderKey);
-  const reminderLabel = reminderOption
-    ? t(reminderOption.labelKey, { count: reminderOption.count })
-    : t("common.never");
-  const reminderHourValue =
-    reminderHourKey === "default" ? String(defaultFireHour) : reminderHourKey;
-  const reminderHourLabel = formatHour(Number(reminderHourValue));
+  // Per-rule display rows: everything the reminder UI prints, precomputed.
+  const reminderRows = reminderDrafts.map((d) => {
+    const option = REMINDER_OPTIONS.find((o) => o.value === d.key);
+    const hourValue = d.hourKey === "default" ? String(defaultFireHour) : d.hourKey;
+    return {
+      ...d,
+      label: option
+        ? t(option.labelKey, { count: option.count })
+        : t("add.reminderDayBefore", { count: Number(d.key) }),
+      hourValue,
+      hourLabel: formatHour(Number(hourValue)),
+      repeatLabel: t(
+        d.repeatKey === "off"
+          ? "add.repeatOff"
+          : d.repeatKey === "daily"
+            ? "add.repeatDaily"
+            : "add.repeatWeekly",
+      ),
+    };
+  });
 
   // Live trial summary: "Free until 20 Jun · then CHF 12.90" (or the intro
   // price when it isn't free). Shown under the toggle once a regular price set.
@@ -468,6 +527,13 @@ export function useAddForm(prefill?: SuggestionPrefill) {
 
   const submit = () => {
     if (!canSubmit) return;
+    // The full rule list, with the legacy single slot mirrored to the first
+    // rule so blobs read by older builds still show one reminder.
+    const reminderList = rulesFromDrafts(reminderDrafts);
+    const reminderFields = {
+      reminder: reminderList[0],
+      reminders: reminderList.length > 0 ? reminderList : undefined,
+    };
     if (isInstallment) {
       const input: NewInstallmentInput = {
         name: name.trim(),
@@ -481,7 +547,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         categoryId,
         color,
         domain,
-        reminder: reminderFromKey(reminderKey, reminderHourKey),
+        ...reminderFields,
         weekendShift: weekendShift === "none" ? undefined : weekendShift,
         notes: notes.trim() || undefined,
       };
@@ -519,7 +585,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
         categoryId,
         color,
         domain,
-        reminder: reminderFromKey(reminderKey, reminderHourKey),
+        ...reminderFields,
         weekendShift: weekendShift === "none" ? undefined : weekendShift,
         notes: notes.trim() || undefined,
         introOffer,
@@ -630,13 +696,16 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     trialPreview,
     settlementMode,
     setSettlementMode,
-    reminderKey,
-    setReminderKey,
     weekendShift,
     setWeekendShift,
+    // Reminders
+    reminderRows,
+    reminderIndex,
+    openReminderSheet,
     setReminderEnabled,
-    reminderHourKey,
-    setReminderHourKey,
+    patchReminderDraft,
+    addReminderDraft,
+    removeReminderDraft,
     categoryId,
     setCategoryId,
     accountId,
@@ -655,9 +724,6 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     selectedCategory,
     selectedAccount,
     effectiveCurrency,
-    reminderLabel,
-    reminderHourLabel,
-    reminderHourValue,
     installmentPreview,
     // Unsaved-changes guard
     isDirty,

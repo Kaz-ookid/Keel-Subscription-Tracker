@@ -226,7 +226,7 @@ export function MetaSection({ form }: { form: AddForm }) {
     { value: "manual", label: t("row.manual") },
   ];
 
-  const reminderOn = form.reminderKey !== "never";
+  const reminderOn = form.reminderRows.length > 0;
 
   return (
     <>
@@ -257,16 +257,44 @@ export function MetaSection({ form }: { form: AddForm }) {
         </View>
         {reminderOn && (
           <Animated.View entering={foldIn} exiting={foldOut}>
-            <FieldButton
-              label={t("add.reminderWhen")}
-              value={form.reminderLabel}
-              onPress={() => form.setSheet("reminder")}
-            />
-            <FieldButton
-              label={t("add.reminderTime")}
-              value={form.reminderHourLabel}
-              onPress={() => form.setSheet("reminderHour")}
-            />
+            {form.reminderRows.map((row, i) => (
+              <View key={i}>
+                {/* Extra rules introduce themselves with a quiet header that
+                    also removes them — rule 1 needs neither. */}
+                {i > 0 && (
+                  <View style={styles.rowField}>
+                    <Text style={styles.label}>{t("add.reminderNth", { count: i + 1 })}</Text>
+                    <Pressable
+                      onPress={() => form.removeReminderDraft(i)}
+                      hitSlop={10}
+                      accessibilityLabel={t("add.reminderRemove")}
+                    >
+                      <SymbolView name="minus.circle.fill" size={20} tintColor={colors.mutedText} />
+                    </Pressable>
+                  </View>
+                )}
+                <FieldButton
+                  label={t("add.reminderWhen")}
+                  value={row.label}
+                  onPress={() => form.openReminderSheet(i, "reminder")}
+                />
+                <FieldButton
+                  label={t("add.reminderTime")}
+                  value={row.hourLabel}
+                  onPress={() => form.openReminderSheet(i, "reminderHour")}
+                />
+                <FieldButton
+                  label={t("add.reminderRepeat")}
+                  value={row.repeatLabel}
+                  onPress={() => form.openReminderSheet(i, "reminderRepeat")}
+                />
+              </View>
+            ))}
+            {form.reminderRows.length < 3 && (
+              <Pressable style={styles.rowField} onPress={form.addReminderDraft}>
+                <Text style={[styles.label, { color: colors.accent }]}>{t("add.reminderAdd")}</Text>
+              </Pressable>
+            )}
           </Animated.View>
         )}
       </Card>

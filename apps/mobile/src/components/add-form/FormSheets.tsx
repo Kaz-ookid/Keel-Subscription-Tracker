@@ -25,7 +25,7 @@ import { Sheet } from "../Sheet";
 import { OptionWheel } from "../ui/OptionWheel";
 import { WheelSheet } from "../WheelSheet";
 import { useFormStyles } from "./styles";
-import { REMINDER_OPTIONS, type AddForm } from "./useAddForm";
+import { REMINDER_OPTIONS, type AddForm, type RepeatKey } from "./useAddForm";
 
 // @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
 // JSX types; alias to a children-accepting component (runtime is unaffected).
@@ -117,10 +117,12 @@ export function FormSheets({ form }: { form: AddForm }) {
         </Picker>
       </WheelSheet>
 
+      {/* The reminder sheets edit the rule whose row opened them
+          (form.reminderIndex) — rule 1 for the simple case. */}
       <WheelSheet visible={form.sheet === "reminder"} title={t("add.reminder")} onClose={close}>
         <Picker
-          selectedValue={form.reminderKey}
-          onValueChange={(v) => form.setReminderKey(String(v))}
+          selectedValue={form.reminderRows[form.reminderIndex]?.key ?? "1"}
+          onValueChange={(v) => form.patchReminderDraft(form.reminderIndex, { key: String(v) })}
         >
           {REMINDER_OPTIONS.map((o) => (
             <Picker.Item
@@ -139,8 +141,8 @@ export function FormSheets({ form }: { form: AddForm }) {
         onClose={close}
       >
         <Picker
-          selectedValue={form.reminderHourValue}
-          onValueChange={(v) => form.setReminderHourKey(String(v))}
+          selectedValue={form.reminderRows[form.reminderIndex]?.hourValue ?? "9"}
+          onValueChange={(v) => form.patchReminderDraft(form.reminderIndex, { hourKey: String(v) })}
         >
           {Array.from({ length: 24 }, (_, hour) => (
             <Picker.Item
@@ -152,6 +154,19 @@ export function FormSheets({ form }: { form: AddForm }) {
           ))}
         </Picker>
       </WheelSheet>
+
+      <OptionWheel
+        visible={form.sheet === "reminderRepeat"}
+        title={t("add.reminderRepeat")}
+        onClose={close}
+        options={[
+          { value: "off", label: t("add.repeatOff") },
+          { value: "daily", label: t("add.repeatDaily") },
+          { value: "weekly", label: t("add.repeatWeekly") },
+        ]}
+        value={form.reminderRows[form.reminderIndex]?.repeatKey ?? "off"}
+        onChange={(v) => form.patchReminderDraft(form.reminderIndex, { repeatKey: v as RepeatKey })}
+      />
 
       <OptionWheel
         visible={form.sheet === "weekend"}

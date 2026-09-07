@@ -283,12 +283,19 @@ export async function syncReminders(items: readonly PaymentItem[]): Promise<void
       });
     }
     const cutoff = Date.now();
+    // iOS silently drops everything past 64 pending requests, arbitrarily.
+    // `planned` arrives chronological (core sorts it), so scheduling from the
+    // front and stopping under the ceiling keeps the NEAREST reminders —
+    // digests (few, already scheduled) count against the same budget.
+    let budget = 60 - digests.length;
     for (const reminder of planned) {
+      if (budget <= 0) break;
       // A rule's own hour wins; the app-wide default hour covers the rest.
       const date = fireInstant(reminder.fireDate, reminder.hour ?? settings.fireHour);
       // A fire instant already behind us (e.g. it's past the fire hour on the
       // fire day) would fire immediately — the in-app overdue views cover it.
       if (date.getTime() <= cutoff) continue;
+      budget -= 1;
       await Notifications.scheduleNotificationAsync({
         content: {
           title: reminder.name,
