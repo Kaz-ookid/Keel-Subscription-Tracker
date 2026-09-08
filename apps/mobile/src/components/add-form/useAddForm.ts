@@ -307,6 +307,14 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     if (next && reminderDrafts.length === 0) {
       setReminderDrafts([{ key: "2", hourKey: "default", repeatKey: "off" }]);
     }
+    // A trial that ends TODAY is never what anyone means: an untouched
+    // conversion date defaults a month out (a date the user already picked,
+    // or an edited item's real date, stays put).
+    if (next && toCalendarDate(convertsDate) === toCalendarDate(new Date())) {
+      setConvertsDate(
+        fromCalendarDate(addRecurrence(toCalendarDate(new Date()), { unit: "month", interval: 1 })),
+      );
+    }
   };
 
   // The reminder switch: ON picks up the default lead from the notification
