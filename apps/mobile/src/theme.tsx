@@ -137,7 +137,7 @@ const THEME_KEY = "keel.theme-mode.v1";
 
 // Module mirror of the live preference, for non-React consumers (the widget
 // snapshot writer): the provider keeps it current from hydrate and setMode.
-let currentMode: ThemeMode = "dark";
+let currentMode: ThemeMode = "system";
 
 /** The appearance preference as of now (non-React; widgets ride it). */
 export function themeModeSnapshot(): ThemeMode {
@@ -152,19 +152,20 @@ export function resolvedSchemeSnapshot(): ColorScheme {
   return currentMode;
 }
 
-// Dark is the DEFAULT (decided 2026-07-11): the sea-glass aura is designed
-// dark-first; "match device" and light remain explicit choices.
+// "Match device" is the DEFAULT (2026-09-08, superseding the 2026-07-11
+// dark-first default): the app follows the system scheme until the user
+// explicitly picks light or dark. A stored choice from before is honored.
 const ThemeModeContext = createContext<{ mode: ThemeMode; setMode: (mode: ThemeMode) => void }>({
-  mode: "dark",
+  mode: "system",
   setMode: () => {},
 });
 
 /** Mounted at the very root (above everything that calls useTheme); persists
  *  the preference independently of the data blob. */
 export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
-  const [mode, setModeState] = useState<ThemeMode>("dark");
+  const [mode, setModeState] = useState<ThemeMode>("system");
   // Nothing renders until the stored preference is read: the one frame of
-  // default-dark used to flash wrong-scheme tints (teal glass circles, a
+  // wrong-default used to flash wrong-scheme tints (teal glass circles, a
   // dark blink for light users) on every cold start. The read is a few ms.
   const [hydrated, setHydrated] = useState(false);
 
