@@ -13,6 +13,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useLockGuard } from "../../src/lib/lock-gate";
+import { useScreenshotMode } from "../../src/lib/screenshot-mode";
 import { bumpTabReset } from "../../src/lib/tabReset";
 import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
@@ -32,6 +33,11 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   // Adding is a write: once locked, the + presents the locked sheet (§7.3).
   const guard = useLockGuard();
+  // Quadruple-tap screenshot mode (debug builds): the dock steps out of
+  // the frame so store captures get the full screen.
+  const captureMode = useScreenshotMode();
+
+  if (captureMode) return null;
 
   return (
     <View

@@ -22,6 +22,7 @@ import {
   shouldPresentLockOnce,
 } from "../src/lib/entitlement";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
+import { noteScreenshotTap } from "../src/lib/screenshot-mode";
 import { AppStateProvider } from "../src/state/app-state";
 import { AssistantSessionProvider } from "../src/state/assistant-session";
 import { ImportSessionProvider } from "../src/state/import-session";
@@ -92,7 +93,12 @@ function RootNavigator() {
   };
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      // Screenshot mode's quad-tap counter: fires for touches anywhere in
+      // the app without claiming them (a no-op outside debug builds).
+      onTouchStart={noteScreenshotTap}
+    >
       {/* The Ambient stage lives BEHIND the navigator; screens with a
           transparent contentStyle float their materials over it. */}
       <Ambient />
