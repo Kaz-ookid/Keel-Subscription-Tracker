@@ -56,7 +56,11 @@ export interface ThemeColors {
 
 const NAVY = "#0B1E3F";
 const NAVY_DEEP = "#071429";
-const SEA_GLASS = "#7FB8B0";
+// The interactive brand color went BLUE (2026-09-08, from the icon): a
+// friendly open-sea blue instead of the old teal sea glass (#7FB8B0). The
+// harbor scenery keeps its own quarantined palette; the teal survives only
+// as a chart category color.
+const SEA_BLUE = "#6FA8E8";
 
 // "Morning at sea" (reworked 2026-07-22): the earlier light palette sat
 // white-on-near-white with no atmosphere, which is why dark became the
@@ -78,14 +82,14 @@ const light: ThemeColors = {
   mutedText: "#5C6B7A",
   action: NAVY,
   actionText: "#FFFFFF",
-  accent: "#3E8578",
-  accentSoft: "#DCEBE8",
-  accentStrong: SEA_GLASS,
-  selection: "#DCEBE8",
+  accent: "#2F6FB8",
+  accentSoft: "#DBE7F7",
+  accentStrong: SEA_BLUE,
+  selection: "#DBE7F7",
   scrim: "rgba(7,20,41,0.45)",
-  stage: ["#DCEAE8", "#F1F5F6", "#E8EDF0"],
-  hero: ["#3E8578", "#28564D"],
-  chart: ["#3E8578", "#4E79A7", "#E8A87C", "#B56576", "#6C8EBF", "#8FBC94", "#C9A66B", "#7A6C9E"],
+  stage: ["#DCE7F5", "#F1F5F6", "#E8EDF3"],
+  hero: ["#3D7AC7", "#2A5CA8"],
+  chart: ["#2F6FB8", "#3E8578", "#E8A87C", "#B56576", "#6C8EBF", "#8FBC94", "#C9A66B", "#7A6C9E"],
   tones: {
     neutral: "#6E7B8A",
     info: "#2E6BD6",
@@ -100,25 +104,26 @@ export const darkColors: ThemeColors = {
   navy: NAVY,
   navyDeep: NAVY_DEEP,
   white: "#FFFFFF",
-  background: "#0A1020",
-  surface: "#131B2E",
-  surface2: "#1C2740",
-  material: "rgba(19,27,46,0.62)",
-  materialStrong: "rgba(19,27,46,0.92)",
+  background: "#0B1A33",
+  surface: "#152743",
+  surface2: "#1E3354",
+  material: "rgba(21,39,67,0.62)",
+  materialStrong: "rgba(21,39,67,0.92)",
   hairline: "rgba(237,241,245,0.08)",
-  border: "#26314A",
+  border: "#2A3A5C",
   text: "#EDF1F5",
   mutedText: "#93A0B4",
-  action: SEA_GLASS,
+  action: SEA_BLUE,
   actionText: NAVY_DEEP,
-  accent: "#8FC7BF",
-  accentSoft: "#1E3A38",
-  accentStrong: SEA_GLASS,
-  selection: "#1E3A38",
+  accent: "#82B4EF",
+  accentSoft: "#172E52",
+  accentStrong: SEA_BLUE,
+  selection: "#172E52",
   scrim: "rgba(0,0,0,0.55)",
-  stage: ["#0C1830", "#0A1020", "#070C18"],
-  hero: [NAVY, NAVY_DEEP],
-  chart: ["#8FC7BF", "#7FA6D9", "#E8B48C", "#C97C8C", "#8BA7D9", "#A3CCA8", "#D9BC85", "#9C8FC7"],
+  // The icon's fade: brighter open blue up top, deep sea at the bottom.
+  stage: ["#123156", "#0B1A33", "#071022"],
+  hero: ["#1B3E6E", "#0D2144"],
+  chart: ["#82B4EF", "#8FC7BF", "#E8B48C", "#C97C8C", "#8BA7D9", "#A3CCA8", "#D9BC85", "#9C8FC7"],
   tones: {
     neutral: "#8E9BAD",
     info: "#7CA9EF",

@@ -261,7 +261,8 @@ extension Color {
 
   static let keelNavy = Color(keelHex: "#0B1E3F")
   static let keelNavyDeep = Color(keelHex: "#071429")
-  static let keelSeaGlass = Color(keelHex: "#7FB8B0")
+  /// The 2026-09-08 blue shift: sea blue replaced the old teal sea glass.
+  static let keelSeaGlass = Color(keelHex: "#6FA8E8")
   static let keelMuted = Color(keelHex: "#93A0B4")
   /// The dark theme's warning tone (src/theme.tsx): overdue everywhere.
   static let keelWarning = Color(keelHex: "#F0B35C")
@@ -284,17 +285,17 @@ struct KeelPalette {
     muted: .keelMuted,
     accent: .keelSeaGlass,
     warning: .keelWarning,
-    bgTop: .keelNavy,
-    bgBottom: .keelNavyDeep
+    bgTop: Color(keelHex: "#123156"),
+    bgBottom: Color(keelHex: "#0B1A33")
   )
 
   /// Morning-at-sea, from the light theme's stage and inks.
   static let light = KeelPalette(
     ink: Color(keelHex: "#0F1720"),
     muted: Color(keelHex: "#5C6B7A"),
-    accent: Color(keelHex: "#3E8578"),
+    accent: Color(keelHex: "#2F6FB8"),
     warning: Color(keelHex: "#C07C00"),
-    bgTop: Color(keelHex: "#DCEAE8"),
+    bgTop: Color(keelHex: "#DCE7F5"),
     bgBottom: Color(keelHex: "#F1F5F6")
   )
 

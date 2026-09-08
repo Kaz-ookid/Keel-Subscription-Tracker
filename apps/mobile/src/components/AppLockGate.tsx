@@ -136,7 +136,7 @@ export function AppLockGate() {
       <View style={[styles.cover, { backgroundColor: coverTop }]}>
         <LinearGradient colors={[coverTop, coverBottom]} style={StyleSheet.absoluteFill} />
         {/* The brand's water, calm at the foot of the lock (§3.7 D). */}
-        <Waterline height={36} width={Dimensions.get("window").width} color="#7FB8B0" />
+        <Waterline height={36} width={Dimensions.get("window").width} color="#6FA8E8" />
         <View style={[styles.badge, { backgroundColor: plate }]}>
           <SymbolView name={locked ? "lock.fill" : "shield.fill"} size={30} tintColor={plateInk} />
         </View>
