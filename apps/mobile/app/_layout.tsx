@@ -135,7 +135,10 @@ function RootNavigator() {
                 <Stack.Screen name="add" options={{ presentation: "modal", headerShown: false }} />
                 {/* Titles live IN the content as large headings; the bar only
                   carries back and actions. */}
-                <Stack.Screen name="item" options={{ title: "" }} />
+                {/* ONE item screen ever: a constant getId makes any navigation
+                  to /item (widget deep links included) reuse the mounted
+                  instance with new params instead of stacking another copy. */}
+                <Stack.Screen name="item" options={{ title: "" }} getId={() => "item"} />
                 <Stack.Screen name="accounts" options={{ title: "" }} />
                 <Stack.Screen name="price-changes" options={{ title: "" }} />
                 <Stack.Screen name="by-account" options={{ title: "" }} />

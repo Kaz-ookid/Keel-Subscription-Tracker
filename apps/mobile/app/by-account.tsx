@@ -148,6 +148,19 @@ export default function ByAccountScreen() {
       })()
     : [];
 
+  // No month tapped → the account's commitments by PRICE, heaviest first
+  // (the displayed amount, converted so currencies compare honestly). A
+  // tapped month keeps its date order — there the timeline is the point.
+  const priceOf = (item: (typeof scoped)[number]): number => {
+    if (isRecurringSchedule(item.schedule)) return amountIn([item.schedule.amount]);
+    if (!isInstallmentSchedule(item.schedule)) return 0;
+    const plan = summarizeInstallmentPlan(item.schedule);
+    return amountIn([
+      plan.isComplete ? plan.totalAmount : (plan.nextDue?.amount ?? plan.totalAmount),
+    ]);
+  };
+  const scopedByPrice = [...scoped].sort((a, b) => priceOf(b) - priceOf(a));
+
   return (
     <ScrollView
       style={styles.screen}
@@ -244,7 +257,7 @@ export default function ByAccountScreen() {
       ) : (
         scoped.length > 0 && (
           <Card>
-            {scoped.map((item, i) => {
+            {scopedByPrice.map((item, i) => {
               const category = categories.find((c) => c.id === item.categoryId);
               const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
               const plan = isInstallmentSchedule(item.schedule)
