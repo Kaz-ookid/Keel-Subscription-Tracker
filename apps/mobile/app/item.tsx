@@ -214,149 +214,112 @@ export default function ItemScreen() {
         {trialBanner && <Text style={[styles.subtitle, styles.trialBanner]}>{trialBanner}</Text>}
       </View>
 
-      {/* Facts */}
-      <Card>
-        {recurring && (
-          <>
-            <InfoRow
-              label={t("item.amount")}
-              value={formatMoney(recurring.amount)}
-              styles={styles}
-              first
-            />
-            {trial && inTrial && (
-              <>
-                <InfoRow
-                  label={isFreeTrial ? t("item.regularPrice") : t("item.newPrice")}
-                  value={formatMoney(trial.regularAmount)}
-                  styles={styles}
-                />
-                <InfoRow
-                  label={isFreeTrial ? t("item.convertsOn") : t("item.changesOn")}
-                  value={formatCalendarDate(trial.convertsOn)}
-                  styles={styles}
-                />
-              </>
-            )}
-            <InfoRow
-              label={t("item.cycle")}
-              value={localizedRecurrence(recurring.recurrence)}
-              styles={styles}
-            />
-            <InfoRow
-              label={t("add.firstBilling")}
-              value={formatCalendarDate(recurring.firstChargeDate)}
-              styles={styles}
-            />
-            {!complete && (
-              <InfoRow
-                label={t("item.nextBilling")}
-                value={formatCalendarDate(
-                  shiftOffWeekend(recurring.nextChargeDate, item.weekendShift),
-                )}
-                styles={styles}
+      {/* HERO: the few numbers that matter, shown instead of listed. The
+          long facts table moved to the Details card at the bottom
+          (2026-09-08 retex: "a long table of informations"). */}
+      {recurring && (
+        <Card>
+          <View style={styles.heroTop}>
+            <Text style={styles.heroLabel}>{t("item.amount")}</Text>
+            <Text style={styles.heroAmount}>{formatMoney(recurring.amount)}</Text>
+            <Text style={styles.heroCaption}>{localizedRecurrence(recurring.recurrence)}</Text>
+          </View>
+          {trial && inTrial && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>
+                {isFreeTrial ? t("item.regularPrice") : t("item.newPrice")}
+              </Text>
+              <Text style={styles.infoValue}>
+                {formatMoney(trial.regularAmount)} · {formatCalendarDate(trial.convertsOn)}
+              </Text>
+            </View>
+          )}
+          {!complete && !paused && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t("item.nextBilling")}</Text>
+              <Text style={styles.heroNext}>
+                {formatCalendarDate(shiftOffWeekend(recurring.nextChargeDate, item.weekendShift))}
+              </Text>
+            </View>
+          )}
+        </Card>
+      )}
+      {plan && installment && (
+        <Card>
+          <View style={styles.heroTop}>
+            <Text style={styles.heroLabel}>{t("add.total")}</Text>
+            <Text style={styles.heroAmount}>{formatMoney(plan.totalAmount)}</Text>
+            {/* The trackbar: paid share of the total, by amount. */}
+            <View style={styles.progressTrack}>
+              <View
+                style={[
+                  styles.progressFill,
+                  {
+                    width: `${Math.min(100, Math.round((plan.paidAmount.amount / Math.max(1, plan.totalAmount.amount)) * 100))}%`,
+                  },
+                ]}
               />
-            )}
-            <InfoRow
-              label={t("add.lastBilling")}
-              value={recurring.endDate ? formatCalendarDate(recurring.endDate) : t("common.never")}
-              styles={styles}
-            />
-          </>
-        )}
-        {plan && installment && (
-          <>
-            <InfoRow
-              label={t("add.total")}
-              value={formatMoney(plan.totalAmount)}
-              styles={styles}
-              first
-            />
-            <InfoRow
-              label={t("item.progress")}
-              value={t("item.progressValue", {
+            </View>
+            <Text style={styles.heroCaption}>
+              {t("item.progressValue", {
                 paid: plan.paidCount,
                 total: plan.totalCount,
                 left: formatMoney(plan.remainingAmount),
               })}
-              styles={styles}
-            />
-            <InfoRow
-              label={t("item.cycle")}
-              value={localizedRecurrence(installment.recurrence)}
-              styles={styles}
-            />
-            {installment.provider && (
-              <InfoRow label={t("add.provider")} value={installment.provider} styles={styles} />
-            )}
-          </>
-        )}
-        {paidToDate.length > 0 && (
-          <InfoRow
-            label={t("item.paidToDate")}
-            value={formatMoneyList(paidToDate)}
-            styles={styles}
-          />
-        )}
-        <InfoRow
-          label={t("add.account")}
-          value={account?.name ?? t("common.none")}
-          styles={styles}
-        />
-        <InfoRow
-          label={t("add.category")}
-          value={
-            category
-              ? t(`categories.${category.id}`, { defaultValue: category.name })
-              : t("common.none")
-          }
-          styles={styles}
-        />
-        <InfoRow
-          label={t("add.reminder")}
-          value={
-            reminderRules(item).length > 0
-              ? reminderRules(item)
-                  .map(
-                    (rule) =>
-                      t("add.reminderDayBefore", { count: rule.daysBefore }) +
-                      (rule.repeat !== undefined
-                        ? ` (${t(rule.repeat === "daily" ? "add.repeatDaily" : "add.repeatWeekly").toLowerCase()})`
-                        : "") +
-                      (rule.hour !== undefined ? ` · ${formatHour(rule.hour)}` : ""),
-                  )
-                  .join(", ")
-              : t("common.never")
-          }
-          styles={styles}
-        />
-        {item.notes ? (
-          <InfoRow label={t("add.description")} value={item.notes} styles={styles} />
-        ) : null}
-      </Card>
+            </Text>
+          </View>
+          {plan.nextDue && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>{t("item.nextInstallment")}</Text>
+              <Text style={styles.heroNext}>
+                {formatCalendarDate(plan.nextDue.dueDate)} · {formatMoney(plan.nextDue.amount)}
+              </Text>
+            </View>
+          )}
+        </Card>
+      )}
 
-      {/* The explicit list is the point of Pay-in-X — show every payment. */}
+      {/* The payments, straight after the hero and HANDS-ON: installments
+          settle in order, so the first open row takes the tap that marks it
+          paid and the most recent tick takes the tap that undoes it. No
+          global Mark-paid button for splits (2026-09-08 retex). */}
       {installment && plan && (
         <Card>
           <View style={styles.cardTitleRow}>
             <Text style={styles.cardTitle}>{t("item.payments")}</Text>
-            {plan.paidCount > 0 && (
-              <Button
-                size="sm"
-                label={t("common.undoLast")}
-                onPress={() => {
-                  // Same light note as the tick it reverts.
-                  hapticMarkPaid();
-                  undoInstallmentPaid(item.id);
-                }}
-              />
-            )}
           </View>
-          {installment.installments.map((inst) => {
+          {installment.installments.map((inst, idx) => {
             const covered = COVERED_INSTALLMENT_STATUSES.includes(inst.status);
             const late = !covered && inst.dueDate < asOf;
+            const isNextOpen =
+              idx ===
+              installment.installments.findIndex(
+                (i) => !COVERED_INSTALLMENT_STATUSES.includes(i.status),
+              );
+            const lastCovered = installment.installments.reduce(
+              (acc, i, j) => (COVERED_INSTALLMENT_STATUSES.includes(i.status) ? j : acc),
+              -1,
+            );
+            const tappable = isNextOpen || idx === lastCovered;
+            const onTap = () => {
+              hapticMarkPaid();
+              if (isNextOpen) markInstallmentPaid(item.id);
+              else undoInstallmentPaid(item.id);
+            };
             return (
-              <View key={inst.id} style={styles.infoRow}>
+              <Pressable
+                key={inst.id}
+                style={styles.infoRow}
+                disabled={!tappable}
+                onPress={onTap}
+                accessibilityLabel={
+                  isNextOpen
+                    ? t("common.markPaid")
+                    : idx === lastCovered
+                      ? t("common.undoLast")
+                      : undefined
+                }
+              >
                 <Text style={styles.infoLabel}>
                   #{inst.index} · {formatCalendarDate(inst.dueDate)}
                 </Text>
@@ -364,21 +327,32 @@ export default function ItemScreen() {
                   <Text style={styles.infoValue}>{formatMoney(inst.amount)}</Text>
                   <SymbolView
                     name={
-                      covered ? "checkmark.circle.fill" : late ? "exclamationmark.circle" : "clock"
+                      covered
+                        ? "checkmark.circle.fill"
+                        : isNextOpen
+                          ? "circle"
+                          : late
+                            ? "exclamationmark.circle"
+                            : "clock"
                     }
-                    size={16}
+                    size={isNextOpen || covered ? 20 : 16}
                     tintColor={
                       covered
                         ? colors.tones.success
-                        : late
-                          ? colors.tones.warning
-                          : colors.mutedText
+                        : isNextOpen
+                          ? late
+                            ? colors.tones.warning
+                            : colors.accent
+                          : late
+                            ? colors.tones.warning
+                            : colors.mutedText
                     }
                   />
                 </View>
-              </View>
+              </Pressable>
             );
           })}
+          <Text style={styles.tapHint}>{t("item.tapHint")}</Text>
         </Card>
       )}
 
@@ -440,13 +414,90 @@ export default function ItemScreen() {
         </Card>
       )}
 
-      {markable && (
+      {/* The rest of the facts, out of the way at the bottom. */}
+      <Card>
+        <View style={styles.cardTitleRow}>
+          <Text style={styles.cardTitle}>{t("item.details")}</Text>
+        </View>
+        {recurring && (
+          <>
+            <InfoRow
+              label={t("add.firstBilling")}
+              value={formatCalendarDate(recurring.firstChargeDate)}
+              styles={styles}
+            />
+            <InfoRow
+              label={t("add.lastBilling")}
+              value={recurring.endDate ? formatCalendarDate(recurring.endDate) : t("common.never")}
+              styles={styles}
+            />
+          </>
+        )}
+        {installment && (
+          <>
+            <InfoRow
+              label={t("item.cycle")}
+              value={localizedRecurrence(installment.recurrence)}
+              styles={styles}
+            />
+            {installment.provider && (
+              <InfoRow label={t("add.provider")} value={installment.provider} styles={styles} />
+            )}
+          </>
+        )}
+        {paidToDate.length > 0 && (
+          <InfoRow
+            label={t("item.paidToDate")}
+            value={formatMoneyList(paidToDate)}
+            styles={styles}
+          />
+        )}
+        <InfoRow
+          label={t("add.account")}
+          value={account?.name ?? t("common.none")}
+          styles={styles}
+        />
+        <InfoRow
+          label={t("add.category")}
+          value={
+            category
+              ? t(`categories.${category.id}`, { defaultValue: category.name })
+              : t("common.none")
+          }
+          styles={styles}
+        />
+        <InfoRow
+          label={t("add.reminder")}
+          value={
+            reminderRules(item).length > 0
+              ? reminderRules(item)
+                  .map(
+                    (rule) =>
+                      t("add.reminderDayBefore", { count: rule.daysBefore }) +
+                      (rule.repeat !== undefined
+                        ? ` (${t(rule.repeat === "daily" ? "add.repeatDaily" : "add.repeatWeekly").toLowerCase()})`
+                        : "") +
+                      (rule.hour !== undefined ? ` · ${formatHour(rule.hour)}` : ""),
+                  )
+                  .join(", ")
+              : t("common.never")
+          }
+          styles={styles}
+        />
+        {item.notes ? (
+          <InfoRow label={t("add.description")} value={item.notes} styles={styles} />
+        ) : null}
+      </Card>
+
+      {/* Buttons. Splits have none of these except delete: their payments
+          are marked row by row, and pausing an installment plan means
+          nothing (the money is owed either way). */}
+      {markable && recurring && (
         <Button
           label={t("common.markPaid")}
           onPress={() => {
             hapticMarkPaid();
-            if (installment) markInstallmentPaid(item.id);
-            else markPaid(item.id);
+            markPaid(item.id);
           }}
         />
       )}
@@ -459,7 +510,7 @@ export default function ItemScreen() {
           onPress={guard(() => skipPayment(item.id))}
         />
       )}
-      {paidThisCycle && (
+      {paidThisCycle && recurring && (
         <Button
           variant="secondary"
           disabled
@@ -473,7 +524,7 @@ export default function ItemScreen() {
         />
       )}
 
-      {!complete && (
+      {!complete && recurring && (
         <Button
           variant="secondary"
           label={paused ? t("item.resume") : t("item.pause")}
@@ -548,6 +599,37 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
+    },
+    // The hero block: one big number and its context, centered, instead of
+    // the first rows of a facts table.
+    heroTop: {
+      alignItems: "center",
+      gap: spacing.xs,
+      paddingVertical: spacing.sm,
+    },
+    heroLabel: { ...typography.caption, color: colors.mutedText },
+    heroAmount: { fontSize: 34, fontWeight: "700", color: colors.text },
+    heroCaption: { ...typography.caption, color: colors.mutedText },
+    heroNext: { ...typography.body, fontWeight: "600", color: colors.text },
+    // The trackbar: paid share of the total.
+    progressTrack: {
+      alignSelf: "stretch",
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: withAlpha(colors.accent, 0.16),
+      marginVertical: spacing.xs,
+      overflow: "hidden",
+    },
+    progressFill: {
+      height: "100%",
+      borderRadius: 3,
+      backgroundColor: colors.accent,
+    },
+    tapHint: {
+      ...typography.caption,
+      color: colors.mutedText,
+      paddingTop: spacing.xs,
+      paddingBottom: spacing.sm,
     },
   });
 }

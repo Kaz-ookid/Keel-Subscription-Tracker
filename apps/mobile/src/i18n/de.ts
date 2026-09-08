@@ -419,6 +419,10 @@ export const de: typeof en = {
     paidToDate: "Bisher bezahlt",
     progress: "Fortschritt",
     progressValue: "{{paid}} von {{total}} bezahlt · {{left}} offen",
+    nextInstallment: "Nächste Rate",
+    details: "Details",
+    tapHint:
+      "Tippe die nächste Rate an, um sie als bezahlt zu markieren; tippe den letzten Haken für rückgängig.",
     payments: "Zahlungen",
     history: "Verlauf",
     priceHistory: "Preisverlauf",

@@ -417,6 +417,10 @@ export const fr: typeof en = {
     paidToDate: "Payé à ce jour",
     progress: "Avancement",
     progressValue: "{{paid}} sur {{total}} payés · reste {{left}}",
+    nextInstallment: "Prochaine échéance",
+    details: "Détails",
+    tapHint:
+      "Touchez la prochaine échéance pour la marquer payée ; touchez la dernière coche pour annuler.",
     payments: "Paiements",
     history: "Historique",
     priceHistory: "Historique des prix",

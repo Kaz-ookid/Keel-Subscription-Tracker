@@ -445,6 +445,10 @@ const translation = {
     paidToDate: "Opłacone do dziś",
     progress: "Postęp",
     progressValue: "{{paid}} z {{total}} opłacone · zostało {{left}}",
+    nextInstallment: "Następna rata",
+    details: "Szczegóły",
+    tapHint:
+      "Stuknij następną ratę, by oznaczyć ją jako zapłaconą; stuknij ostatni znacznik, by cofnąć.",
     payments: "Płatności",
     history: "Historia",
     priceHistory: "Historia cen",
