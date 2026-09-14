@@ -6,15 +6,16 @@
 
 import { today } from "@keel/core";
 import { File, Paths } from "expo-file-system";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { FULL_KEEL_PRICE_LATER } from "../src/constants";
 import { Button } from "../src/components/ui/Button";
+import { useEntitlement } from "../src/lib/entitlement";
 import { useAppActions } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
@@ -24,6 +25,20 @@ export default function LockedScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { exportData } = useAppActions();
+
+  // A purchase can happen ABOVE this screen (the Full Keel sheet pushed from
+  // here): once the entitlement unlocks, this wall is stale. Popping on
+  // focus (not on change) keeps the "Full Keel is yours" hero undisturbed;
+  // the swipe back then lands where the user was before the wall.
+  const entitlement = useEntitlement();
+  const unlocked = entitlement.hydrated && !entitlement.locked;
+  useFocusEffect(
+    useCallback(() => {
+      if (!unlocked) return;
+      if (router.canGoBack()) router.back();
+      else router.replace("/(tabs)");
+    }, [unlocked, router]),
+  );
 
   // The same export as Settings › iCloud & data — right here, because "you
   // keep your data" must be one tap, not a treasure hunt.
@@ -44,6 +59,10 @@ export default function LockedScreen() {
       Alert.alert(t("settings.exportFailTitle"), t("settings.exportFailMsg"));
     }
   };
+
+  // Unlocked and about to pop: an empty beat of the stage, not a flash of
+  // the outdated wall mid-transition.
+  if (unlocked) return <View style={styles.screen} />;
 
   return (
     <ScrollView
