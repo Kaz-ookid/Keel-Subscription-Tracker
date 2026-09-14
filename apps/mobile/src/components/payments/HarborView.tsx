@@ -58,10 +58,13 @@ import {
   type VesselKind,
 } from "./HarborVessels";
 
-// Tall on purpose: ~8px per day so the fleet has open water between billing
-// days instead of hulls rafting up against each other. This is the FLOOR —
-// a crowded harbor stretches taller (see the memo) so hulls keep that water.
-const BASE_CANVAS_HEIGHT = 3120;
+// Tall on purpose: ~8.5px per day of horizon, so the fleet has open water
+// between billing days instead of hulls rafting up against each other.
+// The canvas follows the ADAPTIVE horizon (a 6-month sea is half the
+// scroll of a year's), within bounds; a crowded fleet still adds extra.
+const PX_PER_DAY = 8.5;
+const MIN_CANVAS_HEIGHT = 1700;
+const MAX_BASE_CANVAS_HEIGHT = 3120;
 // Fleets past this size earn extra water per vessel; below it the base
 // height already gives every hull room.
 const COMFORT_FLEET = 24;
@@ -72,9 +75,15 @@ const QUAY_HEIGHT = 64;
 const WALL_H = 22;
 const HAZARD_H = 6;
 const LAP_HEIGHT = 10;
-// A full year of sea on a LINEAR scale: equal water is equal time, so the
-// gaps between vessels read as real gaps in the calendar.
-const HORIZON_DAYS = 365;
+// Sea on a LINEAR scale: equal water is equal time, so the gaps between
+// vessels read as real gaps in the calendar. The horizon ADAPTS to the
+// fleet (2026-09-14 retex): it sits a little past the farthest ship
+// instead of a fixed year, so a 6-month fleet fills the sea instead of
+// leaving the top half empty. Bounds keep tiny fleets from looking
+// cramped and cap at a year (the projection window).
+const MAX_HORIZON_DAYS = 365;
+const MIN_HORIZON_DAYS = 60;
+const HORIZON_HEADROOM_DAYS = 21;
 const MAX_VESSELS = 100;
 // Only the near fleet bobs; the far one holds still (and saves the frames).
 const DRIFT_DAYS = 60;
@@ -82,8 +91,8 @@ const TOP_PAD = 64; // room for the paused shelf and the horizon sail
 const BUBBLE_W = 232;
 
 /** 0 (at the quay) → 1 (horizon), linear in days. */
-function distanceFraction(days: number): number {
-  return Math.min(days, HORIZON_DAYS) / HORIZON_DAYS;
+function distanceFraction(days: number, horizonDays: number): number {
+  return Math.min(days, horizonDays) / horizonDays;
 }
 
 interface Cargo {
@@ -130,7 +139,7 @@ export function HarborView() {
   // Everything in display-currency terms so sizes compare honestly.
   const numeric = (value: Money) => amountInDisplay(value, displayCurrency, rates);
 
-  const { vessels, paused, overdue, canvasHeight } = useMemo(() => {
+  const { vessels, paused, overdue, canvasHeight, horizonDays } = useMemo(() => {
     const pausedItems = items.filter((i) => i.status === "paused");
 
     // The same projection engine as the Upcoming list, a year deep: EVERY
@@ -165,10 +174,22 @@ export function HarborView() {
     // The nearest days matter most if the cap ever bites.
     groups.sort((a, b) => a.daysUntil - b.daysUntil);
     const kept = groups.slice(0, MAX_VESSELS);
-    // A crowded harbor gets taller water: the base height is the minimum
-    // spacing, and every vessel past a comfortable fleet adds open sea, so
-    // forty billing days never raft up the way they would in a fixed canvas.
-    const height = BASE_CANVAS_HEIGHT + Math.max(0, kept.length - COMFORT_FLEET) * EXTRA_PER_VESSEL;
+    // The horizon ends a little past the farthest ship, never at a fixed
+    // year: no fleet leaves half the sea empty.
+    const farthestDay = kept.reduce((max, g) => Math.max(max, g.daysUntil), 0);
+    const horizonDays = Math.max(
+      MIN_HORIZON_DAYS,
+      Math.min(MAX_HORIZON_DAYS, farthestDay + HORIZON_HEADROOM_DAYS),
+    );
+    // Canvas height follows the horizon (equal water is equal time in
+    // PIXELS too), and a crowded fleet still earns extra sea per vessel
+    // past a comfortable size, so hulls never raft up.
+    const height =
+      Math.min(
+        MAX_BASE_CANVAS_HEIGHT,
+        Math.max(MIN_CANVAS_HEIGHT, Math.round(horizonDays * PX_PER_DAY)),
+      ) +
+      Math.max(0, kept.length - COMFORT_FLEET) * EXTRA_PER_VESSEL;
     const quayTop = height - QUAY_HEIGHT;
     const maxDay = Math.max(1, ...kept.map((g) => g.total));
     const maxCharge = Math.max(1, ...kept.flatMap((g) => g.cargo.map((c) => c.value)));
@@ -194,7 +215,7 @@ export function HarborView() {
       const scale = 0.8 + 0.5 * Math.sqrt(dayShare);
       const sw = geo.w * scale;
       const sh = geo.h * scale;
-      const yIdeal = yNear - distanceFraction(g.daysUntil) * (yNear - yFar);
+      const yIdeal = yNear - distanceFraction(g.daysUntil, horizonDays) * (yNear - yFar);
       const xMin = sw / 2 + 6;
       const xMax = w - sw / 2 - 6;
       const collides = (px: number, py: number) =>
@@ -236,7 +257,13 @@ export function HarborView() {
     // Oldest debt first: the crate that has waited longest leads the row.
     landed.sort((a, b) => (a.charge.dueDate < b.charge.dueDate ? -1 : 1));
 
-    return { vessels: placed, paused: pausedItems, overdue: landed, canvasHeight: height };
+    return {
+      vessels: placed,
+      paused: pausedItems,
+      overdue: landed,
+      canvasHeight: height,
+      horizonDays,
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, asOf, width, displayCurrency, rates]);
 
@@ -256,11 +283,12 @@ export function HarborView() {
   }
 
   // Depth lines share the fleet's anchor scale: a ship due in exactly 30 days
-  // sits with its waterline ON the 30 d line.
-  const gridDays = [7, 30, 90, 180, 365];
+  // sits with its waterline ON the 30 d line. Only lines within the adaptive
+  // horizon are drawn: a 6-month sea has no "1 year" line to promise.
+  const gridDays = [7, 30, 90, 180, 365].filter((d) => d <= horizonDays);
   const yNear = quayTop - LAP_HEIGHT - 12;
   const yFar = TOP_PAD + 52;
-  const gridY = (d: number) => yNear - distanceFraction(d) * (yNear - yFar);
+  const gridY = (d: number) => yNear - distanceFraction(d, horizonDays) * (yNear - yFar);
 
   // Deterministic ripple scatter across the open water.
   const ripples =
