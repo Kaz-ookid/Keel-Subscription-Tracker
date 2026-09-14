@@ -117,7 +117,13 @@ export default function DataScreen() {
       if (file.exists) file.delete();
       file.create();
       file.write(JSON.stringify(exportData(), null, 2));
-      await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
+      try {
+        await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
+      } finally {
+        // The share sheet is done with the file: a full financial dump must
+        // not linger in the cache (2026-09-14 security audit).
+        if (file.exists) file.delete();
+      }
     } catch {
       Alert.alert(t("settings.exportFailTitle"), t("settings.exportFailMsg"));
     }

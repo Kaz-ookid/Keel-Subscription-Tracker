@@ -73,6 +73,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { COLOR_SWATCHES } from "../constants";
 import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
+import { appLockConfigSnapshot, onAppLockChange } from "../lib/app-lock";
 import { entitlementSnapshot, markTrialStarted, onEntitlementChange } from "../lib/entitlement";
 import { fetchRates, loadCachedRates } from "../lib/exchange-rates";
 import {
@@ -365,6 +366,19 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         if (snapshot.locked !== lockedRef.current || snapshot.hydrated !== entHydratedRef.current) {
           lockedRef.current = snapshot.locked;
           entHydratedRef.current = snapshot.hydrated;
+          setLockNonce((n) => n + 1);
+        }
+      }),
+    [],
+  );
+  // The APP lock gates the widget snapshot too (a Face-ID-locked app must
+  // not paint amounts on the home screen): flipping it rewrites widgets.
+  const appLockEnabledRef = useRef(appLockConfigSnapshot().enabled);
+  useEffect(
+    () =>
+      onAppLockChange((config) => {
+        if (config.enabled !== appLockEnabledRef.current) {
+          appLockEnabledRef.current = config.enabled;
           setLockNonce((n) => n + 1);
         }
       }),

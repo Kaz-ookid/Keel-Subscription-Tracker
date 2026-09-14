@@ -19,6 +19,18 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
+      "privacyManifests": {
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": ["C617.1"]
+          }
+        ]
+      },
       "entitlements": {
         "com.apple.security.application-groups": ["group.ch.keelapp.keel"],
         "com.apple.developer.icloud-container-identifiers": ["iCloud.ch.keelapp.keel"],

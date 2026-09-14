@@ -104,10 +104,10 @@ export function AppLockGate() {
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
       const current = configRef.current;
-      if (!current?.enabled || authBusy.current) return;
+      if (authBusy.current) return;
       if (state === "active") {
         setCovered(false);
-        if (awaySince.current !== null) {
+        if (current?.enabled && awaySince.current !== null) {
           const awaySeconds = (Date.now() - awaySince.current) / 1000;
           awaySince.current = null;
           if (awaySeconds >= current.graceSeconds) {
@@ -116,7 +116,11 @@ export function AppLockGate() {
           }
         }
       } else {
-        if (awaySince.current === null) awaySince.current = Date.now();
+        // The privacy cover is UNCONDITIONAL (2026-09-14 security audit):
+        // the app-switcher snapshot shows the brand, never amounts, whether
+        // or not the lock itself is enabled. Only the re-lock logic above
+        // depends on the lock setting.
+        if (current?.enabled && awaySince.current === null) awaySince.current = Date.now();
         setCovered(true);
       }
     });

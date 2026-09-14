@@ -132,7 +132,11 @@ struct NextUpView: View {
   private var inline: some View {
     Group {
       if let snapshot, let next {
+        // privacySensitive: lock-screen surfaces redact the name + amount
+        // until the device is unlocked (a bystander sees placeholder bars,
+        // never "Netflix 12.90"; 2026-09-14 security audit).
         Text("\(next.name) \(next.amount) · \(snapshot.dueShort(next, from: entry.date))")
+          .privacySensitive()
       } else {
         Text(snapshot?.emptyLine ?? "All clear")
       }
@@ -174,11 +178,14 @@ struct NextUpView: View {
   private var rectangular: some View {
     VStack(alignment: .leading, spacing: 1) {
       if let snapshot, let next {
+        // Redacted on the lock screen until the device unlocks (see inline).
         Text(next.name)
           .font(.headline)
           .lineLimit(1)
+          .privacySensitive()
         Text(next.amount)
           .font(.body.weight(.semibold))
+          .privacySensitive()
         Text(
           next.shortDate.isEmpty
             ? snapshot.dueLabel(next, from: entry.date)

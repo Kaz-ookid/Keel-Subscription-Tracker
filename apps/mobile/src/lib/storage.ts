@@ -92,7 +92,11 @@ function coercePersistedState(parsed: unknown): { state: PersistedState; dropped
       categories: categories.kept,
       accounts: accounts.kept,
       displayCurrency:
-        typeof blob.displayCurrency === "string" && blob.displayCurrency in CURRENCIES
+        // The shape gate before `in`: a hand-edited backup could name a
+        // prototype key ("constructor") and satisfy `in` via the chain.
+        typeof blob.displayCurrency === "string" &&
+        /^[A-Z]{3}$/.test(blob.displayCurrency) &&
+        blob.displayCurrency in CURRENCIES
           ? (blob.displayCurrency as CurrencyCode)
           : DEFAULT_CURRENCY,
       pending: pending.kept,

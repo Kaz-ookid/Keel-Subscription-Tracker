@@ -50,11 +50,14 @@ const NAME_ARTICLE = /^(?:a|an|un|une)\s/i;
 const NAME_PLACEHOLDER = /\b(?:payment|purchase|paiement|achat|unknown|inconnu)\b/i;
 
 function isSuspectName(name: string): boolean {
+  // Length FIRST: it is a verdict on its own, and it caps what the regexes
+  // ever see (NAME_AMOUNT backtracks quadratically on long digit runs — a
+  // malicious clipboard froze the JS thread; 2026-09-14 security audit).
   return (
+    name.length > 30 ||
     NAME_AMOUNT.test(name) ||
     NAME_ARTICLE.test(name) ||
-    NAME_PLACEHOLDER.test(name) ||
-    name.length > 30
+    NAME_PLACEHOLDER.test(name)
   );
 }
 
@@ -226,7 +229,11 @@ class ItemReader {
   provider(value: unknown): BnplProviderId | undefined {
     if (value === undefined) return undefined;
     const raw = asTrimmedString(value);
-    if (raw && raw in BNPL_PROVIDERS) return raw as BnplProviderId;
+    // Own-property check, not `in`: `"constructor" in {...}` is true via the
+    // prototype chain, and a pasted document controls this string.
+    if (raw && Object.prototype.hasOwnProperty.call(BNPL_PROVIDERS, raw)) {
+      return raw as BnplProviderId;
+    }
     this.warn("provider-unknown", raw);
     return undefined;
   }
@@ -459,8 +466,11 @@ export function parseImportDocument(raw: string, ctx: ImportContext): ImportPars
 
   const takenNames = new Set((ctx.takenNames ?? []).map((n) => n.trim().toLowerCase()));
   const drafts: ImportDraft[] = [];
-  let skipped = 0;
-  for (const value of items) {
+  // A hard ceiling on drafts: no honest import carries 500+ items, and an
+  // unbounded pasted document must not allocate without limit.
+  const bounded = items.slice(0, 500);
+  let skipped = items.length - bounded.length;
+  for (const value of bounded) {
     const draft = parseItem(value, `draft-${drafts.length + 1}`, ctx, takenNames);
     if (draft) drafts.push(draft);
     else skipped++;

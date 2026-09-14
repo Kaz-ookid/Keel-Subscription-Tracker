@@ -12,12 +12,21 @@ function tryParse(text: string): unknown | undefined {
   }
 }
 
+// Bounds for the rescue scan: a real model answer sits far below both, and
+// without them the scan is quadratic on pathological pastes (a page of "{"
+// froze the JS thread — 2026-09-14 security audit).
+const MAX_SCAN_LENGTH = 200_000;
+const MAX_SCAN_STARTS = 2_000;
+
 /** Scan for balanced `{…}` blocks (string-aware) and return the first one that
  *  parses AND carries the marker key — prose around it is ignored. */
-function scanForDocument(text: string, markerKey: string): unknown | null {
+function scanForDocument(fullText: string, markerKey: string): unknown | null {
+  const text = fullText.length > MAX_SCAN_LENGTH ? fullText.slice(0, MAX_SCAN_LENGTH) : fullText;
   const looksLikeDocument = (value: unknown): boolean =>
     typeof value === "object" && value !== null && markerKey in value;
+  let starts = 0;
   for (let start = text.indexOf("{"); start !== -1; start = text.indexOf("{", start + 1)) {
+    if (++starts > MAX_SCAN_STARTS) return null;
     let depth = 0;
     let inString = false;
     let escaped = false;

@@ -56,6 +56,12 @@ export function useAppLockConfig(): AppLockConfig {
   return useSyncExternalStore(subscribe, getSnapshot);
 }
 
+/** The config as of now, for non-React callers (the widget snapshot writer:
+ *  a Face-ID-locked app must not push amounts onto the home screen). */
+export function appLockConfigSnapshot(): AppLockConfig {
+  return snapshot;
+}
+
 export async function loadAppLockConfig(): Promise<AppLockConfig> {
   try {
     const [enabled, grace] = await Promise.all([

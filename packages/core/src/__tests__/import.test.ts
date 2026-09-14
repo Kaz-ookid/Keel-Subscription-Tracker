@@ -419,6 +419,41 @@ describe("parseImportDocument — tolerance and recovery", () => {
     expect(byName("netflix")?.warnings.map((w) => w.code)).toContain("duplicate");
   });
 
+  it("survives hostile pastes: brace floods stay fast, item floods cap, proto keys don't pass", () => {
+    // A page of "{" (a malicious clipboard) must return quickly, not hang
+    // the JS thread in the balanced-brace rescue scan.
+    const started = Date.now();
+    expect(parseImportDocument("{".repeat(400_000), ctx).error).toBe("no-json");
+    expect(Date.now() - started).toBeLessThan(3_000);
+    // A very long digit-run name must not stall the suspect-name regex.
+    const longName = "9".repeat(100_000);
+    const t2 = Date.now();
+    const flagged = parseImportDocument(
+      JSON.stringify({ items: [{ name: longName, amount: 5 }] }),
+      ctx,
+    );
+    expect(Date.now() - t2).toBeLessThan(3_000);
+    expect(flagged.drafts[0].uncertainFields).toContain("name");
+    // 600 items cap at 500 drafts, the overflow counted as skipped.
+    const flood = { items: Array.from({ length: 600 }, (_, i) => ({ name: `x${i}`, amount: 1 })) };
+    const capped = parseImportDocument(JSON.stringify(flood), ctx);
+    expect(capped.drafts.length).toBe(500);
+    expect(capped.skipped).toBe(100);
+    // Prototype-chain keys must not satisfy the provider whitelist.
+    const proto = parseImportDocument(
+      JSON.stringify({
+        items: [{ name: "x", total: 9, installments: 3, provider: "constructor" }],
+      }),
+      ctx,
+    );
+    expect(proto.drafts[0].kind).toBe("split");
+    expect((proto.drafts[0].input as { provider?: string }).provider).toBeUndefined();
+    expect(proto.drafts[0].warnings).toContainEqual({
+      code: "provider-unknown",
+      detail: "constructor",
+    });
+  });
+
   it("merges a v1 reply's assumed/uncertain declarations into the computed report", () => {
     const doc = {
       items: [

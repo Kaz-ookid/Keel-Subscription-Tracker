@@ -24,6 +24,7 @@ import {
 import i18n from "../i18n";
 import { monthFull, monthShort } from "../i18n/dates";
 import { themeModeSnapshot } from "../theme";
+import { appLockConfigSnapshot } from "./app-lock";
 import { brandBleed } from "./brand";
 import { entitlementSnapshot } from "./entitlement";
 
@@ -97,7 +98,12 @@ export function buildWidgetSnapshot(
   // onto the home screen (the post-hydration rewrite corrects the rare
   // opposite miss within a beat).
   const entitlement = entitlementSnapshot();
-  if (entitlement.hydrated && entitlement.locked) {
+  // The app lock extends to the home screen (2026-09-14 security audit):
+  // a Face-ID-locked app must not display names and amounts in widgets.
+  // Same empty snapshot as the entitlement lock; the line reads right for
+  // both ("Keel is locked").
+  const appLocked = appLockConfigSnapshot().enabled;
+  if ((entitlement.hydrated && entitlement.locked) || appLocked) {
     return {
       version: 1,
       locale,
