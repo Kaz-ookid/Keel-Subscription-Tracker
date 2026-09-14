@@ -108,11 +108,20 @@ function RootNavigator() {
             <AssistantSessionProvider>
               <Stack
                 screenOptions={{
-                  // §9b chrome: pushed screens get a fully transparent header,
-                  // just the floating back circle and right actions; each
-                  // screen draws its own large title in the content (the
-                  // native large-title blur rendered as an empty band).
+                  // §9b chrome: pushed screens keep the bar minimal (back and
+                  // right actions; each screen draws its own large title in
+                  // the content) over the system's thin blur. The blur is
+                  // ALSO load-bearing on iOS 26: a fully transparent bar gets
+                  // the adaptive Liquid Glass buttons, which flash opposite-
+                  // scheme colors over our stage and mis-hit-test (screens
+                  // #3226/#3294) — the add stack's blur-backed bar is the
+                  // configuration that behaves, so the root stack matches it.
                   headerTransparent: true,
+                  headerBlurEffect:
+                    scheme === "dark"
+                      ? "systemUltraThinMaterialDark"
+                      : "systemUltraThinMaterialLight",
+                  headerShadowVisible: false,
                   headerTintColor: colors.accent,
                   contentStyle: { backgroundColor: "transparent" },
                   // Just the chevron — otherwise iOS prints the previous route's
