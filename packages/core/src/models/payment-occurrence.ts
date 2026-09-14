@@ -1,19 +1,10 @@
-import type { DescriptorMap } from "../primitives/descriptor";
 import type { Money } from "../primitives/money";
 import type { CalendarDate, Timestamp } from "../primitives/temporal";
 
+// `skipped` = deliberately not paid this cycle (a flexible commitment like
+// "monthly investing" the user sat out) — audit-trailed, but it never counts
+// as money spent, so analytics stay honest.
 export type PaymentOccurrenceStatus = "upcoming" | "charged" | "failed" | "refunded" | "skipped";
-
-export const PAYMENT_OCCURRENCE_STATUSES: DescriptorMap<PaymentOccurrenceStatus> = {
-  upcoming: { label: "Upcoming", icon: "clock", tone: "neutral" },
-  charged: { label: "Charged", icon: "check-circle", tone: "success" },
-  failed: { label: "Failed", icon: "alert-circle", tone: "danger" },
-  refunded: { label: "Refunded", icon: "arrow-uturn-left", tone: "info" },
-  // Deliberately not paid this cycle (a flexible commitment like "monthly
-  // investing" the user sat out) — audit-trailed, but it never counts as
-  // money spent, so analytics stay honest.
-  skipped: { label: "Skipped", icon: "skip", tone: "neutral" },
-};
 
 export interface PaymentOccurrence {
   id: string;
@@ -32,5 +23,4 @@ export interface PaymentOccurrence {
   /** When this event was logged (audit time) — distinct from the economic
    *  dueDate/paidDate. Anchors the historical spending ledger. */
   recordedAt: Timestamp;
-  sourceCaptureId?: string;
 }

@@ -182,7 +182,7 @@ export async function writeWidgetSnapshot(snapshot: WidgetSnapshot): Promise<voi
     // failure that must never stay silent.
     const readBack = storage.getString(WIDGET_SNAPSHOT_KEY, WIDGET_APP_GROUP);
     if (readBack !== payload) {
-      console.warn("[widgets] snapshot readback mismatch: App Group not writable?");
+      if (__DEV__) console.warn("[widgets] snapshot readback mismatch: App Group not writable?");
       return;
     }
     if (__DEV__) {

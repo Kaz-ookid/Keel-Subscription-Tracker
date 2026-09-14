@@ -17,7 +17,6 @@ export const fr: typeof en = {
     undo: "Annuler",
     undoLast: "Annuler le dernier",
     markPaid: "Marquer payé",
-    comingSoon: "Bientôt disponible.",
     yes: "Oui",
     no: "Non",
     xOfY: "{{x}} sur {{y}}",
@@ -343,13 +342,13 @@ export const fr: typeof en = {
       "Le jour où le nouveau prix prend le relais. Le rappel d'alerte s'ancre sur cette date.",
     infoCycleTitle: "Cycle de facturation",
     infoCycleBody:
-      "La fréquence : tous les 1 mois, toutes les 2 semaines, tous les 1 an... Le nombre multiplie l'unité.",
+      "La fréquence : tous les 1 mois, toutes les 2 semaines, tous les 1 an… Le nombre multiplie l'unité.",
     infoFirstBillingTitle: "Première facturation",
     infoFirstBillingBody:
       "Le jour du premier prélèvement ; les suivants en découlent, et il fixe le jour du mois. Un début dans le passé convient, le calendrier compte depuis là.",
     infoProviderTitle: "Prestataire",
     infoProviderBody:
-      "Qui gère le paiement en plusieurs fois (Klarna, PayPal...). Purement informatif, pour le badge et vos archives.",
+      "Qui gère le paiement en plusieurs fois (Klarna, PayPal…). Purement informatif, pour le badge et vos archives.",
     infoEndsTitle: "Dernière facturation",
     infoEndsBody:
       "Une dernière échéance connue : l'engagement se termine tout seul après cette date. Jamais = sans fin prévue.",
@@ -551,7 +550,7 @@ export const fr: typeof en = {
   },
   logos: {
     title: "Afficher les logos des marques ?",
-    body: "Keel peut afficher le vrai logo de chaque service, ou une initiale colorée à la place. Un vrai logo est récupéré sur le web, une petite requête pour l'icône de la marque la première fois qu'elle apparaît. Les initiales sont dessinées sur votre appareil et ne demandent aucune connexion.",
+    body: "Keel peut afficher le vrai logo de chaque service, ou une initiale colorée à la place. Un vrai logo est récupéré via le service d'icônes de Google, une petite requête pour l'icône de la marque la première fois qu'elle apparaît. Les initiales sont dessinées sur votre appareil et ne demandent aucune connexion.",
     previewWebLabel: "Vrai logo",
     previewWebCaption: "Récupéré sur le web",
     previewOfflineLabel: "Initiale colorée",
@@ -586,7 +585,7 @@ export const fr: typeof en = {
     groupPrivacy: "Confidentialité",
     groupBackup: "Sauvegarde",
     groupDebug: "Debug",
-    fullkeelDebug: "Full Keel (debug)",
+    fullkeelDebug: "Full Keel (débogage)",
     debugTrial6: "Essai : 6 jours restants",
     debugTrialExpire: "Essai : terminer (lecture seule)",
     debugTrialReset: "Essai : remettre le compteur à zéro",

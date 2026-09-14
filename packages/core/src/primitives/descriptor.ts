@@ -1,9 +1,6 @@
-// Shared shape for "display metadata attached to a closed set of values."
-//
-// This is the pattern every enum-like type in the core uses: alongside the
-// union type (e.g. AccountType) lives a `Record<Value, EnumDescriptor>` that
-// the UI reads instead of hand-writing a `switch`. It stays UI-agnostic on
-// purpose — see the field notes below.
+// Shared shape for "display metadata attached to a closed set of values"
+// (e.g. the BNPL provider table). Stays UI-agnostic on purpose — see the
+// field notes below.
 
 /**
  * A semantic colour role, NOT a hex value. The core only knows that (say) a
@@ -24,6 +21,3 @@ export interface EnumDescriptor {
   /** Semantic colour role; mapped to an actual colour by the platform theme. */
   readonly tone?: SemanticTone;
 }
-
-/** A descriptor map keyed by every value of a string-union `T`. */
-export type DescriptorMap<T extends string> = Readonly<Record<T, EnumDescriptor>>;

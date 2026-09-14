@@ -1,7 +1,7 @@
 // Keel's widget extension (home screen + lock screen), compiled from the
 // Swift files in this folder by the @bacons/apple-targets config plugin at
-// prebuild. DORMANT until the dev-build era: the plugin is not installed and
-// app.json does not list it yet — README.md here has the wiring steps.
+// prebuild (the plugin is listed in app.json). README.md here has the
+// details.
 /** @type {import('@bacons/apple-targets/app.plugin').Config} */
 module.exports = {
   type: "widget",

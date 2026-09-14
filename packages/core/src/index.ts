@@ -1,13 +1,10 @@
-// Foundational value types (Money, CalendarDate/Timestamp, RecurrenceRule) and
-// the shared enum-descriptor pattern that every model builds on.
+// Foundational value types (Money, CalendarDate/Timestamp, RecurrenceRule).
 export * from "./primitives";
 
 // Cross-entity reference data (supported currencies, default category seed).
 export * from "./constants";
 
-// Domain entities — each upgraded to use the primitives above.
-// Calculation logic (forecasts, budget smoothing) lands after the data-model
-// walkthrough validates these types — see PROJECT_BRIEF.md §7.
+// Domain entities, built on the primitives above.
 export * from "./models/account";
 export * from "./models/account-factory";
 export * from "./models/ai-activity";
@@ -19,7 +16,6 @@ export * from "./models/payment-item-factory";
 export * from "./models/payment-item-mutations";
 export * from "./models/payment-item-status";
 export * from "./models/payment-occurrence";
-export * from "./models/receipt-capture";
 export * from "./models/validate";
 
 // AI-assisted import (PROJECT_BRIEF §6.1): tolerant parsing of the AI-produced

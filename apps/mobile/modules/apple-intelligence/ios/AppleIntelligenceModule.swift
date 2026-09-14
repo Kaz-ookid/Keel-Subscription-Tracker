@@ -1,40 +1,20 @@
-// The Apple Intelligence bridge. TWO engines behind one API, chosen per
-// request by the JS side (src/lib/apple-intelligence.ts):
+// The Apple Intelligence bridge: every request runs on the on-device model
+// (SystemLanguageModel.default) — offline, unmetered, and nothing leaves the
+// phone. Guided generation constrains the output to the @Generable schemas,
+// so @keel/core always parses one shape. Compiles on older SDKs: everything
+// model-related sits behind canImport + availability checks.
 //
-//   "cloud" — PrivateCloudComputeLanguageModel: Apple's server model, 32K
-//             context, far better on messy multi-item input. Needs a network
-//             connection and is metered against the USER's iCloud account
-//             (free to us under the Small Business Program). The default.
-//   "local" — SystemLanguageModel.default: the on-device model. Offline,
-//             unlimited, private, and markedly weaker. The opt-in fallback.
-//
-// Guided generation constrains BOTH engines to the same @Generable schemas,
-// so whichever runs, @keel/core parses one shape. Compiles on older SDKs:
-// everything model-related sits behind canImport + availability checks.
+// The JS side (src/lib/apple-intelligence.ts) passes an `engine` parameter,
+// kept for bridge stability: it reserves room for a future server-backed
+// engine without changing the native API. Today every engine value resolves
+// to the on-device model, and `cloudQuota()` reports unsupported so the UI
+// never offers an engine that cannot run.
 
 import ExpoModulesCore
 
 #if canImport(FoundationModels)
   import FoundationModels
 
-  /// One session builder for both engines.
-  ///
-  /// CLOUD IS NOT BUILDABLE YET (checked 2026-07-20).
-  /// `PrivateCloudComputeLanguageModel` arrived with the WWDC26 SDK, i.e.
-  /// iOS 27 / Xcode 27. This target compiles against iPhoneOS26.0.sdk (EAS's
-  /// stable image), where the symbol does not exist: referencing it fails the
-  /// archive with "cannot find 'PrivateCloudComputeLanguageModel' in scope".
-  /// So "cloud" resolves to the on-device model for now, and `cloudQuota()`
-  /// reports unsupported so the JS side quietly uses local instead of
-  /// pretending a fallback happened.
-  ///
-  /// TO ENABLE once EAS ships an Xcode 27 image AND the deployment target
-  /// allows iOS 27: restore the branch below, guarded by
-  /// `if #available(iOS 27.0, *)`.
-  ///     if engine == "cloud", #available(iOS 27.0, *) {
-  ///       return LanguageModelSession(
-  ///         model: PrivateCloudComputeLanguageModel(), instructions: instructions)
-  ///     }
   @available(iOS 26.0, *)
   private func makeSession(engine _: String, instructions: String) -> LanguageModelSession {
     return LanguageModelSession(instructions: instructions)
@@ -74,21 +54,14 @@ public class AppleIntelligenceModule: Module {
       #endif
     }
 
-    // The cloud engine's standing: whether PCC can run at all, and whether the
-    // user's daily allowance is spent. The JS side uses this to show the
-    // remaining-allowance hint and to warn BEFORE quietly dropping to the
-    // weaker local model.
-    // Always "unsupported" until this target can build against the iOS 27
-    // SDK (see makeSession). The JS side reads this to decide whether cloud
-    // is even an option, so nothing in the UI offers a model that cannot run.
-    // TO ENABLE: return the real quota, guarded by #available(iOS 27.0, *):
-    //     let usage = PrivateCloudComputeLanguageModel().quotaUsage
-    //     return ["supported": true, "limitReached": usage.isLimitReached]
+    // Whether a server-backed engine exists and has allowance left. Always
+    // "unsupported": there is no server-backed engine (see the header), and
+    // the JS side reads this so the UI never offers one.
     Function("cloudQuota") { () -> [String: Any] in
       return ["supported": false, "limitReached": false]
     }
 
-    // Rough notes in, import-format-v1 JSON out. The instructions come from
+    // Rough notes in, import-format v2 JSON out. The instructions come from
     // core (buildOnDevicePrompt / buildImportPrompt) so every path shares one
     // format and one parser.
     AsyncFunction("parseSubscriptions") {
@@ -97,9 +70,7 @@ public class AppleIntelligenceModule: Module {
         guard #available(iOS 26.0, *) else {
           throw AppleIntelligenceError.unavailable
         }
-        // Every request runs on-device while cloud is unbuildable, so the
-        // on-device model must be ready. (When cloud is restored, make this
-        // conditional on `engine != "cloud"` again.)
+        // Every request runs on-device, so the on-device model must be ready.
         guard case .available = SystemLanguageModel.default.availability else {
           throw AppleIntelligenceError.unavailable
         }
@@ -125,9 +96,7 @@ public class AppleIntelligenceModule: Module {
         guard #available(iOS 26.0, *) else {
           throw AppleIntelligenceError.unavailable
         }
-        // Every request runs on-device while cloud is unbuildable, so the
-        // on-device model must be ready. (When cloud is restored, make this
-        // conditional on `engine != "cloud"` again.)
+        // Every request runs on-device, so the on-device model must be ready.
         guard case .available = SystemLanguageModel.default.availability else {
           throw AppleIntelligenceError.unavailable
         }

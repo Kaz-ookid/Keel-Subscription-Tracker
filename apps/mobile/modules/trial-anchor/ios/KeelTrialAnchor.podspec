@@ -4,8 +4,8 @@ Pod::Spec.new do |s|
   s.summary        = 'iCloud key-value store bridge for the Keel trial anchor'
   s.description    = 'Reads and writes the trial-start date in NSUbiquitousKeyValueStore so the trial clock follows the Apple ID across devices and reinstalls.'
   s.author         = 'Keel'
-  s.homepage       = 'https://github.com/Kaz-ookid/Keel'
-  s.license        = { :type => 'MIT' }
+  s.homepage       = 'https://keel-app.ch'
+  s.license        = { :type => 'Proprietary' }
   s.platforms      = { :ios => '15.1' }
   s.source         = { :git => '' }
   s.static_framework = true

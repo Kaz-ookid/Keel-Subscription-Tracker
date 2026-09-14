@@ -30,42 +30,19 @@ Behavior details:
 - Empty states: "All clear" / "Rien à venir"; a never-fed widget shows
   "Open Keel".
 
-## Wiring steps (dev-build era)
+## How it is wired
 
-1. `npx expo install @bacons/apple-targets` (from `apps/mobile`).
-2. `app.json`: add `"@bacons/apple-targets"` to `plugins`, set
-   `ios.appleTeamId`, and give the APP the same App Group:
-   ```json
-   "ios": {
-     "entitlements": {
-       "com.apple.security.application-groups": ["group.ch.keelapp.keel"]
-     }
-   }
-   ```
-3. `src/lib/widgets.ts`: delete the `@ts-expect-error` above the dynamic
-   import (the package now exists).
-4. Feed the widgets from `src/state/app-state.tsx`: extend the persist
-   effect (the one calling `saveState`) with:
-   ```ts
-   import { buildWidgetSnapshot, writeWidgetSnapshot } from "../lib/widgets";
-   // inside the effect, after saveState(...):
-   void writeWidgetSnapshot(
-     buildWidgetSnapshot(items, displayCurrency, rates, language, accent),
-   );
-   ```
-   `language`: current i18n language narrowed to the widget locales (see
-   WidgetSnapshot in widgets.ts); `accent`: the
-   dark theme's accent (widgets are always night-at-sea).
-5. `eas build --profile development --platform ios` (prebuild picks up this
-   folder), install, add widgets from the gallery, verify: data appears,
-   day rollover relabels, taps deep-link, lock-screen shapes render.
+- `@bacons/apple-targets` (in `app.json` plugins) compiles this folder into
+  the widget extension at prebuild; `ios.appleTeamId` and the shared App
+  Group are set in `app.json`.
+- The app feeds the snapshot from the persist effect in
+  `src/state/app-state.tsx` (via `buildWidgetSnapshot` /
+  `writeWidgetSnapshot` in `src/lib/widgets.ts`) on every data change.
 
 ## Constraints to remember
 
 - The three identifiers must stay in sync (`group.ch.keelapp.keel`,
   `keel.widget.snapshot.v1`): `Shared.swift` / `expo-target.config.js` /
   `widgets.ts`.
-- Swift here has never been compiled (written blind on Windows); budget a
-  small fix round on the first EAS build.
-- Widget iteration has no hot reload: every visual tweak is a full build.
-  Batch widget work; consider the paid EAS tier for that stretch.
+- Widget iteration has no hot reload: every visual tweak is a full build,
+  so batch widget work.

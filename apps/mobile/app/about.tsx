@@ -27,7 +27,7 @@ const CHIP = {
   terms: "#8E8E93",
 } as const;
 
-const APP_STORE_URL = APP_STORE_ID ? `https://apps.apple.com/app/id${APP_STORE_ID}` : null;
+const APP_STORE_URL = `https://apps.apple.com/app/id${APP_STORE_ID}`;
 
 export default function AboutScreen() {
   const { colors } = useTheme();
@@ -49,12 +49,10 @@ export default function AboutScreen() {
   };
 
   const shareApp = () => {
-    if (!APP_STORE_URL) return;
     void Share.share({ message: `${t("about.shareMessage")} ${APP_STORE_URL}` });
   };
 
   const rate = () => {
-    if (!APP_STORE_ID) return;
     void Linking.openURL(`itms-apps://itunes.apple.com/app/id${APP_STORE_ID}?action=write-review`);
   };
 
@@ -113,24 +111,19 @@ export default function AboutScreen() {
         <Text style={styles.footnote}>{t("about.translationsNote")}</Text>
       </Card>
 
-      {/* Only once the listing exists: never a dead or fake link. */}
-      {APP_STORE_ID !== "" && (
-        <>
-          <Text style={styles.groupLabel}>{t("about.groupSupport")}</Text>
-          <Card>
-            <Pressable style={styles.row} onPress={rate}>
-              <IconChip icon="star.fill" color={CHIP.rate} />
-              <Text style={styles.rowText}>{t("about.rate")}</Text>
-              <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
-            </Pressable>
-            <Pressable style={[styles.row, styles.rowDivider]} onPress={shareApp}>
-              <IconChip icon="square.and.arrow.up" color={CHIP.share} />
-              <Text style={styles.rowText}>{t("about.share")}</Text>
-            </Pressable>
-            <Text style={styles.footnote}>{t("about.supportFooter")}</Text>
-          </Card>
-        </>
-      )}
+      <Text style={styles.groupLabel}>{t("about.groupSupport")}</Text>
+      <Card>
+        <Pressable style={styles.row} onPress={rate}>
+          <IconChip icon="star.fill" color={CHIP.rate} />
+          <Text style={styles.rowText}>{t("about.rate")}</Text>
+          <SymbolView name="arrow.up.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={shareApp}>
+          <IconChip icon="square.and.arrow.up" color={CHIP.share} />
+          <Text style={styles.rowText}>{t("about.share")}</Text>
+        </Pressable>
+        <Text style={styles.footnote}>{t("about.supportFooter")}</Text>
+      </Card>
 
       {/* The REAL texts live on the website — one source of truth, always
           current, instead of a copy in five locales going stale in the app. */}

@@ -59,6 +59,14 @@ npm run format
 cd apps/mobile && npx expo start   # run the app
 ```
 
+## A note on comments
+
+Code comments occasionally cite internal working documents (PROJECT_BRIEF,
+DESIGN.md, section numbers like §7.3). Those are the project's private
+planning notes and are not part of this repository; the citations mark
+where a design decision is recorded, and the surrounding comment carries
+the decision itself.
+
 ## License
 
 Source visible for transparency. © 2026 Maxime Teuber, all rights

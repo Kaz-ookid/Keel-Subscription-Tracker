@@ -1,7 +1,8 @@
-import type { DescriptorMap } from "../primitives/descriptor";
 import type { Money } from "../primitives/money";
 import type { CalendarDate } from "../primitives/temporal";
 
+// `settled_early` = covered ahead of schedule by an early payoff — distinct
+// from `skipped`, which means not paid at all.
 export type InstallmentStatus =
   | "upcoming"
   | "due_soon"
@@ -9,17 +10,6 @@ export type InstallmentStatus =
   | "late"
   | "skipped"
   | "settled_early";
-
-export const INSTALLMENT_STATUSES: DescriptorMap<InstallmentStatus> = {
-  upcoming: { label: "Upcoming", icon: "clock", tone: "neutral" },
-  due_soon: { label: "Due soon", icon: "clock-alert", tone: "warning" },
-  paid: { label: "Paid", icon: "check-circle", tone: "success" },
-  late: { label: "Late", icon: "alert-circle", tone: "danger" },
-  skipped: { label: "Skipped", icon: "skip", tone: "neutral" },
-  // Covered ahead of schedule by an early payoff (PROJECT_BRIEF §8.3 edge #3) —
-  // distinct from `skipped`, which means not paid at all.
-  settled_early: { label: "Settled early", icon: "check-circle", tone: "success" },
-};
 
 /** Statuses that count as "covered" — no money is still owed for them. */
 export const COVERED_INSTALLMENT_STATUSES: readonly InstallmentStatus[] = ["paid", "settled_early"];

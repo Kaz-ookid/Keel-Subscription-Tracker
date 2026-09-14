@@ -24,7 +24,6 @@ const translation = {
     undo: "Cofnij",
     undoLast: "Cofnij ostatnie",
     markPaid: "Oznacz jako opłacone",
-    comingSoon: "Wkrótce.",
     yes: "Tak",
     no: "Nie",
     xOfY: "{{x}} z {{y}}",
@@ -363,13 +362,13 @@ const translation = {
     infoConvertsBody: "Dzień, w którym wchodzi nowa cena. Ostrzeżenie zaczepia się o tę datę.",
     infoCycleTitle: "Cykl rozliczeń",
     infoCycleBody:
-      "Jak często nalicza: co 1 miesiąc, co 2 tygodnie, co 1 rok... Liczba mnoży jednostkę.",
+      "Jak często nalicza: co 1 miesiąc, co 2 tygodnie, co 1 rok… Liczba mnoży jednostkę.",
     infoFirstBillingTitle: "Pierwsze naliczenie",
     infoFirstBillingBody:
       "Dzień pierwszej płatności; kolejne idą od niego i wyznacza dzień miesiąca. Start w przeszłości jest w porządku, harmonogram liczy od tamtąd.",
     infoProviderTitle: "Operator",
     infoProviderBody:
-      "Kto prowadzi plan ratalny (Klarna, PayPal...). Czysto informacyjne, dla plakietki i Twoich zapisków.",
+      "Kto prowadzi plan ratalny (Klarna, PayPal…). Czysto informacyjne, dla plakietki i Twoich zapisków.",
     infoEndsTitle: "Ostatnie naliczenie",
     infoEndsBody:
       "Znana ostatnia płatność: po tej dacie zobowiązanie samo się domyka. Nigdy = bezterminowo.",
@@ -581,7 +580,7 @@ const translation = {
   },
   logos: {
     title: "Pokazywać loga marek?",
-    body: "Keel może pokazywać prawdziwe logo każdej usługi albo kolorowy inicjał. Prawdziwe logo pochodzi z sieci: jedno małe zapytanie o ikonę marki, gdy pojawia się pierwszy raz. Inicjały są rysowane na twoim urządzeniu i nie potrzebują połączenia.",
+    body: "Keel może pokazywać prawdziwe logo każdej usługi albo kolorowy inicjał. Prawdziwe logo pochodzi z usługi ikon Google: jedno małe zapytanie o ikonę marki, gdy pojawia się pierwszy raz. Inicjały są rysowane na twoim urządzeniu i nie potrzebują połączenia.",
     previewWebLabel: "Prawdziwe logo",
     previewWebCaption: "Pobrane z sieci",
     previewOfflineLabel: "Kolorowy inicjał",

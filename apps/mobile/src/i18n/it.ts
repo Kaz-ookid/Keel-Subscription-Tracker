@@ -18,7 +18,6 @@ export const it: typeof en = {
     undo: "Annulla",
     undoLast: "Annulla l'ultima",
     markPaid: "Segna pagato",
-    comingSoon: "In arrivo.",
     yes: "Sì",
     no: "No",
     xOfY: "{{x}} di {{y}}",
@@ -344,13 +343,13 @@ export const it: typeof en = {
       "Il giorno in cui subentra il nuovo prezzo. L'avviso si aggancia a questa data.",
     infoCycleTitle: "Ciclo di fatturazione",
     infoCycleBody:
-      "Ogni quanto addebita: ogni 1 mese, ogni 2 settimane, ogni 1 anno... Il numero moltiplica l'unità.",
+      "Ogni quanto addebita: ogni 1 mese, ogni 2 settimane, ogni 1 anno… Il numero moltiplica l'unità.",
     infoFirstBillingTitle: "Primo addebito",
     infoFirstBillingBody:
       "Il giorno del primo addebito; i successivi ne derivano, e fissa il giorno del mese. Un inizio nel passato va bene, il calendario conta da lì.",
     infoProviderTitle: "Fornitore",
     infoProviderBody:
-      "Chi gestisce il piano a rate (Klarna, PayPal...). Puramente informativo, per il badge e i tuoi archivi.",
+      "Chi gestisce il piano a rate (Klarna, PayPal…). Puramente informativo, per il badge e i tuoi archivi.",
     infoEndsTitle: "Ultimo addebito",
     infoEndsBody:
       "Un'ultima scadenza nota: dopo quella data l'impegno si completa da solo. Mai = senza fine prevista.",
@@ -550,7 +549,7 @@ export const it: typeof en = {
   },
   logos: {
     title: "Mostrare i loghi dei marchi?",
-    body: "Keel può mostrare il vero logo di ogni servizio, oppure un'iniziale colorata. Un logo vero arriva dal web: una piccola richiesta per l'icona del marchio la prima volta che appare. Le iniziali sono disegnate sul tuo dispositivo e non richiedono connessione.",
+    body: "Keel può mostrare il vero logo di ogni servizio, oppure un'iniziale colorata. Un logo vero arriva dal servizio di icone di Google: una piccola richiesta per l'icona del marchio la prima volta che appare. Le iniziali sono disegnate sul tuo dispositivo e non richiedono connessione.",
     previewWebLabel: "Logo vero",
     previewWebCaption: "Scaricato dal web",
     previewOfflineLabel: "Iniziale colorata",

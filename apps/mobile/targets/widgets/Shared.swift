@@ -329,25 +329,28 @@ extension WidgetSnapshot {
       formatter.string(
         from: calendar.date(byAdding: .day, value: offset, to: reference) ?? reference)
     }
+    let monthFormatter = DateFormatter()
+    monthFormatter.locale = Locale(identifier: "en")
+    monthFormatter.dateFormat = "LLLL"
     return WidgetSnapshot(
       version: 1,
       locale: "en",
       generatedAt: "",
-      monthLabel: "July",
+      monthLabel: monthFormatter.string(from: reference),
       monthTotal: "128.50 CHF",
       payments: [
         WidgetPayment(
-          id: "sample-1", itemId: "sample-1", name: "Netflix", amount: "12.90 CHF",
-          dueDate: day(1), dateLabel: nil, color: "#E50914", overdue: false, manual: false),
+          id: "sample-1", itemId: "sample-1", name: "Streaming", amount: "12.90 CHF",
+          dueDate: day(1), dateLabel: nil, color: "#D65A6B", overdue: false, manual: false),
         WidgetPayment(
-          id: "sample-2", itemId: "sample-2", name: "Spotify", amount: "11.99 CHF",
-          dueDate: day(3), dateLabel: nil, color: "#1DB954", overdue: false, manual: false),
+          id: "sample-2", itemId: "sample-2", name: "Music", amount: "11.99 CHF",
+          dueDate: day(3), dateLabel: nil, color: "#4CAF7D", overdue: false, manual: false),
         WidgetPayment(
-          id: "sample-3", itemId: "sample-3", name: "iCloud+", amount: "2.99 CHF",
+          id: "sample-3", itemId: "sample-3", name: "Cloud storage", amount: "2.99 CHF",
           dueDate: day(6), dateLabel: nil, color: "#3693F3", overdue: false, manual: false),
         WidgetPayment(
           id: "sample-4", itemId: "sample-4", name: "Gym", amount: "24.90 CHF",
-          dueDate: day(9), dateLabel: nil, color: "#E30613", overdue: false, manual: true),
+          dueDate: day(9), dateLabel: nil, color: "#E0A93E", overdue: false, manual: true),
       ],
       lockedLine: nil,
       theme: nil

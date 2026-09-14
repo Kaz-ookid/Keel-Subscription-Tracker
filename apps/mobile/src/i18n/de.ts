@@ -18,7 +18,6 @@ export const de: typeof en = {
     undo: "Rückgängig",
     undoLast: "Letztes rückgängig",
     markPaid: "Bezahlt markieren",
-    comingSoon: "Bald verfügbar.",
     yes: "Ja",
     no: "Nein",
     xOfY: "{{x}} von {{y}}",
@@ -345,13 +344,13 @@ export const de: typeof en = {
       "Der Tag, an dem der neue Preis übernimmt. Die Vorwarnung hängt an diesem Datum.",
     infoCycleTitle: "Abrechnungszyklus",
     infoCycleBody:
-      "Wie oft abgerechnet wird: alle 1 Monat, alle 2 Wochen, alle 1 Jahr... Die Zahl multipliziert die Einheit.",
+      "Wie oft abgerechnet wird: alle 1 Monat, alle 2 Wochen, alle 1 Jahr… Die Zahl multipliziert die Einheit.",
     infoFirstBillingTitle: "Erste Abbuchung",
     infoFirstBillingBody:
       "Der Tag der ersten Abbuchung; alle weiteren folgen daraus, und er bestimmt den Monatstag. Ein Start in der Vergangenheit ist okay, der Plan zählt von dort.",
     infoProviderTitle: "Anbieter",
     infoProviderBody:
-      "Wer den Ratenplan betreibt (Klarna, PayPal...). Rein informativ, fürs Badge und deine Unterlagen.",
+      "Wer den Ratenplan betreibt (Klarna, PayPal…). Rein informativ, fürs Badge und deine Unterlagen.",
     infoEndsTitle: "Letzte Abbuchung",
     infoEndsBody:
       "Eine bekannte letzte Zahlung: danach schließt sich der Eintrag von selbst. Nie = unbefristet.",
@@ -552,7 +551,7 @@ export const de: typeof en = {
   },
   logos: {
     title: "Marken-Logos anzeigen?",
-    body: "Keel kann das echte Logo jedes Dienstes zeigen, oder stattdessen einen farbigen Anfangsbuchstaben. Ein echtes Logo kommt aus dem Netz: eine kleine Anfrage für das Icon der Marke, wenn sie zum ersten Mal erscheint. Anfangsbuchstaben werden auf deinem Gerät gezeichnet und brauchen keine Verbindung.",
+    body: "Keel kann das echte Logo jedes Dienstes zeigen, oder stattdessen einen farbigen Anfangsbuchstaben. Ein echtes Logo kommt über Googles Icon-Dienst: eine kleine Anfrage für das Icon der Marke, wenn sie zum ersten Mal erscheint. Anfangsbuchstaben werden auf deinem Gerät gezeichnet und brauchen keine Verbindung.",
     previewWebLabel: "Echtes Logo",
     previewWebCaption: "Aus dem Netz geladen",
     previewOfflineLabel: "Farbiger Buchstabe",

@@ -44,16 +44,16 @@ each of these as a distinct state and the screen explains them.
   finished screen: availability states, input, busy state, errors, then the
   normal review flow.
 
-## Wiring steps (dev-build era)
+## On-device QA checklist
 
-1. Nothing to install: local Expo modules under `modules/` are autolinked at
-   prebuild. The first `eas build` compiles this module. All UI entry points
-   are already live (import hub card, AI tab, assistant).
-2. On-device QA, reader: rough FR + EN lists, screenshots-derived text,
+Local Expo modules under `modules/` are autolinked at prebuild; the UI
+entry points are the import hub card and the assistant (Settings).
+
+1. On-device QA, reader: rough FR + EN lists, screenshots-derived text,
    trials, split payments; verify the review screen flags exactly like the
    external path; test all four unavailability states (old iOS, non-Pro
    device, AI toggled off, model downloading).
-3. On-device QA, assistant: pause/resume/end/delete/rename/move/reprice on
+2. On-device QA, assistant: pause/resume/end/delete/rename/move/reprice on
    real names and fuzzy names, in FR + EN; verify unresolved reasons show
    instead of wrong guesses; verify the safety backup lands and the revert
    from AI history restores it.
@@ -132,9 +132,6 @@ model does — never merging the two.
 
 ## Constraints to remember
 
-- Swift here has never been compiled (written blind on Windows); the
-  Foundation Models API shapes follow Apple's docs and WWDC25 material.
-  Budget a fix round on the first EAS build.
 - `@Generable` + `Codable` on the same structs is intentional (encode the
   decoded value straight back to JSON); if the macros clash at compile time,
   add small mirror structs for encoding instead.

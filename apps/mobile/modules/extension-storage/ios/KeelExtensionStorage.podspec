@@ -4,8 +4,8 @@ Pod::Spec.new do |s|
   s.summary        = 'App Group storage bridge for the Keel widgets'
   s.description    = 'Writes the pre-formatted widget snapshot into the shared App Group and reloads WidgetKit timelines.'
   s.author         = 'Keel'
-  s.homepage       = 'https://github.com/Kaz-ookid/Keel'
-  s.license        = { :type => 'MIT' }
+  s.homepage       = 'https://keel-app.ch'
+  s.license        = { :type => 'Proprietary' }
   s.platforms      = { :ios => '15.1' }
   s.source         = { :git => '' }
   s.static_framework = true

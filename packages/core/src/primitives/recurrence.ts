@@ -4,17 +4,7 @@
 // { week, 2 }. This single shape covers every preset AND arbitrary cadences
 // ("every 6 months", "every 10 days") without ever editing an enum.
 
-import type { DescriptorMap } from "./descriptor";
-
 export type TimeUnit = "day" | "week" | "month" | "year";
-
-/** Singular/plural labels for building human strings like "every 2 weeks". */
-export const TIME_UNITS: DescriptorMap<TimeUnit> = {
-  day: { label: "day" },
-  week: { label: "week" },
-  month: { label: "month" },
-  year: { label: "year" },
-};
 
 const PLURAL: Record<TimeUnit, string> = {
   day: "days",

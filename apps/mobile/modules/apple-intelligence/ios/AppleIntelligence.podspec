@@ -4,8 +4,8 @@ Pod::Spec.new do |s|
   s.summary        = 'On-device Foundation Models bridge for Keel'
   s.description    = 'Runs the Apple Intelligence on-device model to turn rough text into Keel import JSON.'
   s.author         = 'Keel'
-  s.homepage       = 'https://github.com/Kaz-ookid/Keel'
-  s.license        = { :type => 'MIT' }
+  s.homepage       = 'https://keel-app.ch'
+  s.license        = { :type => 'Proprietary' }
   s.platforms      = { :ios => '15.1' }
   s.source         = { :git => '' }
   s.static_framework = true

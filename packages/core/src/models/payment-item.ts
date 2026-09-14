@@ -1,5 +1,4 @@
 import type { BnplProviderId } from "../constants/bnpl-providers";
-import type { DescriptorMap } from "../primitives/descriptor";
 import type { Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
@@ -9,31 +8,13 @@ import type { Installment } from "./installment";
 
 export type PaymentItemStatus = "active" | "paused" | "completed" | "cancelled";
 
-export const PAYMENT_ITEM_STATUSES: DescriptorMap<PaymentItemStatus> = {
-  active: { label: "Active", icon: "play-circle", tone: "success" },
-  paused: { label: "Paused", icon: "pause-circle", tone: "warning" },
-  completed: { label: "Completed", icon: "check-circle", tone: "neutral" },
-  cancelled: { label: "Cancelled", icon: "x-circle", tone: "neutral" },
-};
-
 // How a payment leaves the user's pocket. `automatic` is debited from a
 // specific account (the per-account forecast lives here); `manual` is not
 // pre-linked to any account — the user pays it from wherever and ticks it off,
 // optionally recording the source account after the fact (see PaymentOccurrence).
 export type SettlementMode = "automatic" | "manual";
 
-export const SETTLEMENT_MODES: DescriptorMap<SettlementMode> = {
-  automatic: { label: "Automatic", icon: "bolt", tone: "info" },
-  manual: { label: "Manual", icon: "hand", tone: "warning" },
-};
-
 export type ScheduleType = "RECURRING" | "INSTALLMENT" | "ONE_TIME_ANNUAL";
-
-export const SCHEDULE_TYPES: DescriptorMap<ScheduleType> = {
-  RECURRING: { label: "Recurring", icon: "repeat", tone: "info" },
-  INSTALLMENT: { label: "Installments", icon: "calendar-days", tone: "warning" },
-  ONE_TIME_ANNUAL: { label: "Annual", icon: "calendar", tone: "neutral" },
-};
 
 export interface PriceHistoryEntry {
   amount: Money;
@@ -115,10 +96,6 @@ export function isInstallmentSchedule(schedule: Schedule): schedule is Installme
   return schedule.kind === "INSTALLMENT";
 }
 
-export function isOneTimeAnnualSchedule(schedule: Schedule): schedule is OneTimeAnnualSchedule {
-  return schedule.kind === "ONE_TIME_ANNUAL";
-}
-
 export interface PaymentItem {
   id: string;
   name: string;
@@ -163,5 +140,4 @@ export interface PaymentItem {
    *  Never surface these in UI or calculations. */
   createdAt: Timestamp;
   updatedAt: Timestamp;
-  sourceCaptureId?: string;
 }

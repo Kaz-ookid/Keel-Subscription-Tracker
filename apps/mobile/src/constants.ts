@@ -7,12 +7,10 @@ export const SUPPORT_EMAIL = "contactkeel@protonmail.com";
 // The marketing site (keel-app.ch); linked from the About screen.
 export const WEBSITE_URL = "https://keel-app.ch";
 
-// Filled once the app exists in App Store Connect; while empty, the rate and
-// share rows on the About screen stay hidden (no fake links, ever).
-export const APP_STORE_ID = "";
+// The App Store id, used by the rate and share rows on the About screen.
+export const APP_STORE_ID = "6792831014";
 
-// Full Keel (the one-time supporter purchase): everything in the app is free
-// The one-time purchase (PROJECT_BRIEF §7.3): 12 CHF while the 45-day trial
+// Full Keel, the one-time purchase: 12 CHF while the 45-day trial
 // runs, 15 CHF after. FALLBACK display strings only — the paywall shows the
 // live localized store price whenever StoreKit can supply one.
 export const FULL_KEEL_PRICE = "12 CHF";

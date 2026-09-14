@@ -1,15 +1,7 @@
-import type { DescriptorMap } from "../primitives/descriptor";
 import type { Money } from "../primitives/money";
 import type { CurrencyCode } from "../constants/currencies";
 
 export type AccountType = "checking" | "savings" | "credit_card" | "other";
-
-export const ACCOUNT_TYPES: DescriptorMap<AccountType> = {
-  checking: { label: "Checking", icon: "bank", tone: "neutral" },
-  savings: { label: "Savings", icon: "piggy-bank", tone: "success" },
-  credit_card: { label: "Credit card", icon: "creditcard", tone: "info" },
-  other: { label: "Other", icon: "wallet", tone: "neutral" },
-};
 
 export interface Account {
   id: string;
