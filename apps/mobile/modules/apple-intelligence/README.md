@@ -1,9 +1,10 @@
 # Apple Intelligence in Keel
 
-Fully written and linked from the UI (import hub + AI tab); the native half
-needs a dev build (Expo Go can't load it). In Expo Go every availability
-probe answers "unavailable" and the screens explain themselves instead of
-working.
+Fully written and linked from the UI (the import hub; the assistant is
+currently reachable through the Settings debug drawer while it runs on the
+limited on-device model). The native half needs a dev build (Expo Go can't
+load it): in Expo Go every availability probe answers "unavailable" and the
+screens explain themselves instead of working.
 
 Two jobs share this module:
 - **The reader** (`parseSubscriptions`): rough notes in, import-format v2

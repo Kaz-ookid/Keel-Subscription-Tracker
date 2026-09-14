@@ -13,25 +13,17 @@
       "backgroundColor": "#04112E"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
       "bundleIdentifier": "ch.keelapp.keel",
       "appleTeamId": "TBF3VV2BT8",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.security.application-groups": [
-          "group.ch.keelapp.keel"
-        ],
-        "com.apple.developer.icloud-container-identifiers": [
-          "iCloud.ch.keelapp.keel"
-        ],
-        "com.apple.developer.icloud-services": [
-          "CloudDocuments"
-        ],
-        "com.apple.developer.ubiquity-container-identifiers": [
-          "iCloud.ch.keelapp.keel"
-        ],
+        "com.apple.security.application-groups": ["group.ch.keelapp.keel"],
+        "com.apple.developer.icloud-container-identifiers": ["iCloud.ch.keelapp.keel"],
+        "com.apple.developer.icloud-services": ["CloudDocuments"],
+        "com.apple.developer.ubiquity-container-identifiers": ["iCloud.ch.keelapp.keel"],
         "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)"
       }
     },
@@ -43,10 +35,7 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.USE_BIOMETRIC",
-        "android.permission.USE_FINGERPRINT"
-      ]
+      "permissions": ["android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"]
     },
     "web": {
       "favicon": "./assets/favicon.png"

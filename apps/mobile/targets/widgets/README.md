@@ -1,9 +1,10 @@
 # Keel widgets (WidgetKit extension)
 
-Fully written, **not wired**: this code compiles into the app only through a
-dev build (EAS + Apple Developer account). Expo Go ignores this folder
-entirely. Until wired, nothing imports `src/lib/widgets.ts` and the widgets
-never appear.
+Shipped and wired: the app feeds a JSON snapshot through the shared App
+Group (`src/lib/widgets.ts`) on every data change, and these widgets render
+it. The extension compiles into dev/EAS builds via `@bacons/apple-targets`;
+Expo Go ignores this folder (the snapshot writer no-ops without the native
+module).
 
 ## What ships in the bundle
 
