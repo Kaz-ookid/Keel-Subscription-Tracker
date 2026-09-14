@@ -10,12 +10,6 @@ export const WEBSITE_URL = "https://keel-app.ch";
 // The App Store id, used by the rate and share rows on the About screen.
 export const APP_STORE_ID = "6792831014";
 
-// Full Keel, the one-time purchase: 12 CHF while the 45-day trial
-// runs, 15 CHF after. FALLBACK display strings only — the paywall shows the
-// live localized store price whenever StoreKit can supply one.
-export const FULL_KEEL_PRICE = "12 CHF";
-export const FULL_KEEL_PRICE_LATER = "15 CHF";
-
 // A curated spectrum for user-picked accents (subscription colour, account
 // colour). A fixed palette is reliable and crash-free (the previous
 // full-spectrum picker crashed on selection).

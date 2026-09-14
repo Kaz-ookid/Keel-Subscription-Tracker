@@ -13,9 +13,9 @@ import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { FULL_KEEL_PRICE_LATER } from "../src/constants";
 import { Button } from "../src/components/ui/Button";
 import { useEntitlement } from "../src/lib/entitlement";
+import { useFullKeelPrices } from "../src/lib/purchases";
 import { useAppActions } from "../src/state/app-state";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
@@ -25,6 +25,7 @@ export default function LockedScreen() {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { exportData } = useAppActions();
+  const prices = useFullKeelPrices();
 
   // A purchase can happen ABOVE this screen (the Full Keel sheet pushed from
   // here): once the entitlement unlocks, this wall is stale. Popping on
@@ -99,7 +100,9 @@ export default function LockedScreen() {
 
       <Button
         icon="checkmark.seal.fill"
-        label={`${t("fullkeel.cta")} · ${FULL_KEEL_PRICE_LATER}`}
+        // Live-or-nothing: the store's own price when it has answered,
+        // plain CTA otherwise (the paywall shows it either way).
+        label={prices.full === null ? t("fullkeel.cta") : `${t("fullkeel.cta")} · ${prices.full}`}
         onPress={() => router.push("/fullkeel")}
       />
       <Button

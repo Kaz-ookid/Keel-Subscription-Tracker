@@ -54,7 +54,7 @@ import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
-import { APP_NAME, FULL_KEEL_PRICE } from "../../src/constants";
+import { APP_NAME } from "../../src/constants";
 import { InfoDot } from "../../src/components/InfoDot";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
@@ -69,6 +69,7 @@ import {
   setFullKeel,
   useEntitlement,
 } from "../../src/lib/entitlement";
+import { useFullKeelPrices } from "../../src/lib/purchases";
 import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -155,6 +156,7 @@ export default function SettingsScreen() {
   const [debugOpen, setDebugOpen] = useState(false);
   // Full Keel: the banner reflects ownership; the debug switch flips it.
   const entitlement = useEntitlement();
+  const prices = useFullKeelPrices();
   const [bannerWidth, setBannerWidth] = useState(0);
   // Brand-logo opt-in: off until the user chooses (see logo-consent). Turning on
   // re-shows the onboarding explanation as a reminder before it commits.
@@ -332,10 +334,12 @@ export default function SettingsScreen() {
                 ? t("fullkeel.bannerOwned")
                 : // The live clock, from day one (user decision 2026-08-12):
                   // the hero card wears the countdown so the trial is never a
-                  // surprise, and the deal rides next to it.
-                  entitlement.state === "trial"
-                  ? `${t("trial.daysLeft", { count: entitlement.daysLeft })} · ${FULL_KEEL_PRICE}`
-                  : `${t("fullkeel.bannerSub")} · ${FULL_KEEL_PRICE}`}
+                  // surprise, and the deal rides next to it — the store's own
+                  // price when it has answered, nothing otherwise.
+                  (entitlement.state === "trial"
+                    ? t("trial.daysLeft", { count: entitlement.daysLeft })
+                    : t("fullkeel.bannerSub")) +
+                  (prices.early === null ? "" : ` · ${prices.early}`)}
             </Text>
           </View>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />

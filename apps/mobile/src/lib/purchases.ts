@@ -6,8 +6,8 @@
 // Connect.
 //
 // The import stays lazy and guarded: in Expo Go or a dev client built before
-// expo-iap, every function answers "unavailable" and the paywall falls back
-// to its static prices. expo-iap v5 is EVENT-based for purchases: the
+// expo-iap, every function answers "unavailable" and the paywall shows no
+// number (live-or-nothing). expo-iap v5 is EVENT-based for purchases: the
 // request dispatches, the outcome arrives via purchaseUpdatedListener /
 // purchaseErrorListener — buyFullKeel wraps that into one promise.
 //
@@ -17,6 +17,7 @@
 // reinstall + restore, second family account, airplane-mode failures.
 
 import { requireOptionalNativeModule } from "expo-modules-core";
+import { useEffect, useState } from "react";
 
 import type { TrialState } from "@keel/core";
 
@@ -83,6 +84,30 @@ export async function fullKeelPrices(): Promise<{
   } catch {
     return { early: null, full: null };
   }
+}
+
+// One fetch feeds every surface that mentions a price (paywall, the locked
+// wall's CTA, the Settings banner): cached once it succeeds, retried on the
+// next mount while it hasn't.
+let cachedPrices: { early: string | null; full: string | null } | null = null;
+
+/** Live store prices for display, live-or-nothing (decided 2026-09-14): a
+ *  price shows in the buyer's own storefront currency or not at all — never
+ *  a hardcoded guess that visibly swaps once StoreKit answers. */
+export function useFullKeelPrices(): { early: string | null; full: string | null } {
+  const [prices, setPrices] = useState(cachedPrices ?? { early: null, full: null });
+  useEffect(() => {
+    if (cachedPrices) return;
+    let alive = true;
+    void fullKeelPrices().then((resolved) => {
+      if (resolved.early !== null || resolved.full !== null) cachedPrices = resolved;
+      if (alive) setPrices(resolved);
+    });
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return prices;
 }
 
 /** The one purchase, at the price `state` earns. Ownership flips via

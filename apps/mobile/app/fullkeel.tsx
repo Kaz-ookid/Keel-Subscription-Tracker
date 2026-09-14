@@ -1,24 +1,23 @@
 // Full Keel: the one-time purchase (PROJECT_BRIEF §7.3). The pitch is
 // honesty itself: your data and charts stay yours forever, this returns the
 // working tools once the 45-day trial ends, and nothing ever renews. TWO
-// prices, one mechanism: 12 CHF while YOUR trial still runs (deciding early
-// is rewarded), 15 CHF after. The live localized store price leads when
-// StoreKit can supply it; the constants are the offline fallback. On
-// binaries without StoreKit (Expo Go, old dev clients) buying explains
-// itself instead of failing; the Settings debug switch stays the tester
-// escape hatch.
+// prices, one mechanism: the early price while YOUR trial still runs
+// (deciding early is rewarded), the regular price after. Prices are
+// live-or-nothing: always the buyer's own storefront price via StoreKit,
+// never a hardcoded guess. On binaries without StoreKit (Expo Go, old dev
+// clients) buying explains itself instead of failing; the Settings debug
+// switch stays the tester escape hatch.
 
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
-import { FULL_KEEL_PRICE, FULL_KEEL_PRICE_LATER } from "../src/constants";
 import { Button } from "../src/components/ui/Button";
 import { Sheen } from "../src/components/ui/Sheen";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
-import { buyFullKeel, fullKeelPrices, restoreFullKeel } from "../src/lib/purchases";
+import { buyFullKeel, restoreFullKeel, useFullKeelPrices } from "../src/lib/purchases";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
 
 export default function FullKeelScreen() {
@@ -29,28 +28,17 @@ export default function FullKeelScreen() {
   const full = entitlement.owned;
   const [cardWidth, setCardWidth] = useState(0);
   const [busy, setBusy] = useState(false);
-  // The store's own localized prices, when it can answer; fallback constants
-  // otherwise. Both are fetched so the full price can sit struck-through
-  // next to the early one — the discount stays true in every country.
-  const [livePrices, setLivePrices] = useState<{ early: string | null; full: string | null }>({
-    early: null,
-    full: null,
-  });
+  // The store's own localized prices, live-or-nothing: an ellipsis holds the
+  // spot for the beat StoreKit needs, and no hardcoded guess ever swaps out
+  // under the buyer's eyes. Both are fetched so the full price can sit
+  // struck-through next to the early one — the discount stays true in every
+  // country.
+  const livePrices = useFullKeelPrices();
   const aiHidden = useAiHidden();
 
   const earlyPrice = entitlement.state !== "expired";
-  const laterPrice = livePrices.full ?? FULL_KEEL_PRICE_LATER;
-  const price = earlyPrice ? (livePrices.early ?? FULL_KEEL_PRICE) : laterPrice;
-
-  useEffect(() => {
-    let alive = true;
-    void fullKeelPrices().then((resolved) => {
-      if (alive) setLivePrices(resolved);
-    });
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const laterPrice = livePrices.full;
+  const price = earlyPrice ? livePrices.early : livePrices.full;
 
   const buy = async () => {
     setBusy(true);
@@ -104,17 +92,21 @@ export default function FullKeelScreen() {
                 through next to the early one — the discount is visibly a
                 real sale, in the store's own currency. */}
             <View style={styles.priceRow}>
-              <Text style={styles.heroPrice}>{price}</Text>
-              {earlyPrice && <Text style={styles.strikePrice}>{laterPrice}</Text>}
+              <Text style={styles.heroPrice}>{price ?? "…"}</Text>
+              {earlyPrice && laterPrice !== null && (
+                <Text style={styles.strikePrice}>{laterPrice}</Text>
+              )}
             </View>
             <Text style={styles.heroTag}>
               {earlyPrice ? t("fullkeel.priceTag") : t("fullkeel.priceTagLater")}
             </Text>
-            <Text style={styles.heroNote}>
-              {earlyPrice
-                ? t("fullkeel.priceNote", { later: laterPrice })
-                : t("fullkeel.priceNoteLater")}
-            </Text>
+            {(!earlyPrice || laterPrice !== null) && (
+              <Text style={styles.heroNote}>
+                {earlyPrice
+                  ? t("fullkeel.priceNote", { later: laterPrice })
+                  : t("fullkeel.priceNoteLater")}
+              </Text>
+            )}
             {/* The live clock, in the warning orange — the hero's one accent
                 of urgency (Family Sharing already has its bullet below). */}
             {entitlement.state === "trial" && (
@@ -147,7 +139,7 @@ export default function FullKeelScreen() {
       {!full && !busy && (
         <>
           <Button
-            label={`${t("fullkeel.cta")} · ${price}`}
+            label={price === null ? t("fullkeel.cta") : `${t("fullkeel.cta")} · ${price}`}
             onPress={() => void buy()}
             style={styles.cta}
           />
