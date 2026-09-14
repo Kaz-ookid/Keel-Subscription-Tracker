@@ -84,7 +84,12 @@ const LAP_HEIGHT = 10;
 const MAX_HORIZON_DAYS = 365;
 const MIN_HORIZON_DAYS = 60;
 const HORIZON_HEADROOM_DAYS = 21;
-const MAX_VESSELS = 100;
+// A safety valve, NOT a working limit: it must sit above any realistic
+// year of billing days, or the far fleet silently vanishes (100 was
+// exhausted around day 200 by ~15 monthly commitments, 2026-09-14 retex —
+// the year then LOOKED like it ended there). Distinct billing days cap at
+// 365, so 300 only ever trims pathological data.
+const MAX_VESSELS = 300;
 // Only the near fleet bobs; the far one holds still (and saves the frames).
 const DRIFT_DAYS = 60;
 const TOP_PAD = 64; // room for the paused shelf and the horizon sail
