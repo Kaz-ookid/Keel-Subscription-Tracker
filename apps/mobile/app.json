@@ -7,11 +7,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./assets/icon.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#04112E"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "ch.keelapp.keel",
@@ -40,6 +35,18 @@
       }
     },
     "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-logo.png",
+          "imageWidth": 120,
+          "resizeMode": "contain",
+          "backgroundColor": "#F1F5F6",
+          "dark": {
+            "backgroundColor": "#0B1A33"
+          }
+        }
+      ],
       "expo-router",
       "@react-native-community/datetimepicker",
       "expo-localization",

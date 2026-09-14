@@ -12,10 +12,20 @@ import { StatusBar } from "expo-status-bar";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { AppState, Dimensions, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  AppState,
+  Dimensions,
+  Image,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { Waterline } from "./Waterline";
 
+import splashLogo from "../../assets/splash-logo.png";
 import { APP_NAME } from "../constants";
 import {
   authenticate,
@@ -115,12 +125,12 @@ export function AppLockGate() {
             void tryUnlock();
           }
         }
-      } else {
-        // The privacy cover is UNCONDITIONAL (2026-09-14 security audit):
-        // the app-switcher snapshot shows the brand, never amounts, whether
-        // or not the lock itself is enabled. Only the re-lock logic above
-        // depends on the lock setting.
-        if (current?.enabled && awaySince.current === null) awaySince.current = Date.now();
+      } else if (current?.enabled) {
+        // The privacy cover rides the lock setting (dogfood 2026-09-14: a
+        // security-looking cover with the lock OFF read as a glitch): lock
+        // on = the switcher snapshot shows the brand, never amounts; lock
+        // off = the switcher shows the app, like any unlocked app.
+        if (awaySince.current === null) awaySince.current = Date.now();
         setCovered(true);
       }
     });
@@ -133,6 +143,20 @@ export function AppLockGate() {
 
   // A real Modal (not an absolute overlay): the app's native sheets (Add,
   // import…) present above the root view, and the lock must sit above them.
+  // Not locked (the cold-start beat, or the privacy cover) = a replica of the
+  // native splash (small rounded icon, plain ground), so launch reads as one
+  // continuous screen; the branded shield surface is the LOCK's, only.
+  if (!locked) {
+    return (
+      <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
+        <StatusBar style={dark ? "light" : "dark"} />
+        <View style={[styles.cover, { backgroundColor: colors.background }]}>
+          <Image source={splashLogo} style={styles.splashIcon} />
+        </View>
+      </Modal>
+    );
+  }
+
   return (
     <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
       {/* The bar follows the cover's ink, not the app behind it. */}
@@ -142,35 +166,31 @@ export function AppLockGate() {
         {/* The brand's water, calm at the foot of the lock (§3.7 D). */}
         <Waterline height={36} width={Dimensions.get("window").width} color="#6FA8E8" />
         <View style={[styles.badge, { backgroundColor: plate }]}>
-          <SymbolView name={locked ? "lock.fill" : "shield.fill"} size={30} tintColor={plateInk} />
+          <SymbolView name="lock.fill" size={30} tintColor={plateInk} />
         </View>
         <Text style={[styles.appName, { color: ink }]}>{APP_NAME}</Text>
-        {locked && (
-          <>
-            <Text style={[styles.sub, { color: inkSoft }]}>
-              {t(
-                failed
-                  ? "applock.failedSub"
-                  : authKind === "faceId" || authKind === "touchId"
-                    ? "applock.lockedSub"
-                    : "applock.lockedSubCode",
-              )}
-            </Text>
-            <Pressable
-              style={[styles.unlock, { backgroundColor: plate }]}
-              onPress={() => void tryUnlock()}
-            >
-              <SymbolView
-                name={
-                  authKind === "faceId" ? "faceid" : authKind === "touchId" ? "touchid" : "key.fill"
-                }
-                size={18}
-                tintColor={plateInk}
-              />
-              <Text style={[styles.unlockText, { color: plateInk }]}>{t("applock.unlock")}</Text>
-            </Pressable>
-          </>
-        )}
+        <Text style={[styles.sub, { color: inkSoft }]}>
+          {t(
+            failed
+              ? "applock.failedSub"
+              : authKind === "faceId" || authKind === "touchId"
+                ? "applock.lockedSub"
+                : "applock.lockedSubCode",
+          )}
+        </Text>
+        <Pressable
+          style={[styles.unlock, { backgroundColor: plate }]}
+          onPress={() => void tryUnlock()}
+        >
+          <SymbolView
+            name={
+              authKind === "faceId" ? "faceid" : authKind === "touchId" ? "touchid" : "key.fill"
+            }
+            size={18}
+            tintColor={plateInk}
+          />
+          <Text style={[styles.unlockText, { color: plateInk }]}>{t("applock.unlock")}</Text>
+        </Pressable>
       </View>
     </Modal>
   );
@@ -191,6 +211,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  /* Mirrors the native splash: imageWidth 120, already-rounded asset. */
+  splashIcon: {
+    width: 120,
+    height: 120,
   },
   appName: {
     fontSize: 28,
