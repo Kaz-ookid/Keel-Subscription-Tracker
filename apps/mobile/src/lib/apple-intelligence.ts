@@ -120,3 +120,25 @@ export async function recognizeScreenshot(uri: string): Promise<string> {
     throw toFailure(error);
   }
 }
+
+/** A PDF's text, read on the phone by PDFKit (nothing leaves the device for
+ *  this step). Throws KeelReadsError("image-unreadable") when the file has
+ *  no readable text (a scan without a text layer, for instance). */
+export async function extractPdfText(uri: string): Promise<string> {
+  try {
+    return await (await native()).extractPdfText(uri);
+  } catch (error) {
+    throw toFailure(error);
+  }
+}
+
+/** Apple's allowance object for the cloud model, as the framework describes
+ *  it: property names and values stringified, plus a "description" line.
+ *  Meant for an advanced info line, not for logic; empty when unknown. */
+export async function cloudQuotaInfo(): Promise<Record<string, string>> {
+  try {
+    return (await native()).cloudQuota() ?? {};
+  } catch {
+    return {};
+  }
+}

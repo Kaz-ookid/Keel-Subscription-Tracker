@@ -42,11 +42,9 @@ export const it: typeof en = {
     importReview: "Verifica l'import",
   },
   importAI: {
-    methodOwn: "Usa un'IA di cui ti fidi",
-    methodOwnSub: "ChatGPT, Claude, Gemini: quella di cui ti fidi già.",
+    pageKeel: "Keel legge per te",
+    pageOwn: "La tua IA",
     methodKeel: "Keel legge per te",
-    methodKeelSub:
-      "Il modello cloud di Apple legge la tua lista per te. Serve internet; nulla viene salvato senza la tua verifica.",
     step1: "Copia le istruzioni.",
     step2:
       "Incollale alla tua IA e aggiungi i tuoi abbonamenti: scritti alla buona, screenshot di email di conferma e dell'app della banca, o l'export del tuo vecchio tracker.",
@@ -945,11 +943,7 @@ export const it: typeof en = {
     errQuota: "Il limite di oggi per il modello cloud di Apple è esaurito. Riprova domani.",
     errService: "Il modello cloud di Apple non è raggiungibile al momento. Riprova più tardi.",
     ownAi: "Usa invece la tua IA",
-    addScreenshots: "Aggiungi screenshot",
-    readingImage: "Lettura dello screenshot…",
     errImage: "Nessun testo leggibile in questa immagine. Prova uno screenshot più nitido.",
-    screenshotNote:
-      "Gli screenshot aprono un'anteprima di ciò che è stato letto, dove puoi togliere i dati privati prima dell'invio.",
     previewTitle: "Cosa ha letto Keel",
     previewHint_one:
       "Letto da {{count}} screenshot, su questo iPhone. Controlla, togli ciò che preferisci tenere per te, poi invia.",
@@ -968,6 +962,20 @@ export const it: typeof en = {
     kindPhone: "numeri di telefono",
     kindReference: "numeri di ricevuta o ordine",
     kindTaxId: "partite IVA",
+    methodScreenshots: "Screenshot",
+    methodScreenshotsSub:
+      "Ricevute, email di conferma, l'app della banca. Letti su questo iPhone, poi un'anteprima prima dell'invio.",
+    methodDocuments: "Documenti",
+    methodDocumentsSub:
+      "Estratti PDF, export CSV o di testo. Letti su questo iPhone, poi un'anteprima.",
+    methodText: "Scrivi o incolla",
+    methodTextSub: "Una lista alla buona, con parole tue.",
+    errDocument:
+      "Nessun testo leggibile in questi file. Un PDF scansionato senza livello di testo passa dagli screenshot.",
+    quotaLabel: "Limite Apple del modello cloud",
+    quotaInfoTitle: "Limite del modello cloud",
+    quotaInfoBody:
+      "Il modello cloud di Apple ha un limite giornaliero per persona (più alto con iCloud+). Qui sotto l'oggetto di stato di Apple per il tuo account, come lo riporta il sistema:",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",

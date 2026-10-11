@@ -1,24 +1,31 @@
-// The AI-import hub (PROJECT_BRIEF §6.1, Path A — bring your own AI). Three
-// calm steps: copy our generated instructions, hand them to the AI you already
-// use together with rough notes or screenshots, paste its answer back. The
-// answer is parsed tolerantly and everything lands on the review screen —
-// nothing is saved here. The "Keel reads it for you" card is the door to
-// Apple's cloud model path (import-keel.tsx), shown where that model exists.
+// The AI-import hub: two pages, swipeable and pill-switched. "Keel reads it
+// for you" (Apple's cloud model, opt-in) comes first; "Your own AI" (copy
+// our instructions, paste the answer) second. Where the cloud model cannot
+// exist on this phone the hub opens on the second page and the first one
+// explains itself. The pager is the same clamped paging ScrollView as the
+// Payments tab: the offset is applied on mount only, and a release with
+// momentum settles in onMomentumScrollEnd.
 
-import { buildImportPrompt, parseImportDocument, today, type ImportParseError } from "@keel/core";
-import * as Clipboard from "expo-clipboard";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { Stack, useLocalSearchParams } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import {
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
-import { InfoPopup } from "../../src/components/InfoPopup";
+import { KeelReadsPanel } from "../../src/components/import/KeelReadsPanel";
+import { OwnAiPanel } from "../../src/components/import/OwnAiPanel";
 import { ModalClose } from "../../src/components/ModalClose";
 import { isKeelReadsOffered, keelReadsAvailability } from "../../src/lib/apple-intelligence";
-import { Button } from "../../src/components/ui/Button";
-import { useAppData } from "../../src/state/app-state";
-import { useImportSession } from "../../src/state/import-session";
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 import {
   radius,
   spacing,
@@ -28,289 +35,84 @@ import {
   type ThemeColors,
 } from "../../src/theme";
 
-import { useLockedRedirect } from "../../src/lib/lock-gate";
-type OpenPopup = "instructions" | "where" | "example" | "privacy" | null;
-type PasteError = ImportParseError | "clipboard-empty";
-
-export default function ImportScreen() {
+export default function ImportHubScreen() {
   // Write screen: a locked mount bounces to the locked sheet (deep links
   // and stale stacks included).
   const locked = useLockedRedirect();
-  const router = useRouter();
-  // The cloud-model door shows only where that model exists (iOS 27 build).
-  const [keelReads, setKeelReads] = useState(false);
-  useEffect(() => {
-    void keelReadsAvailability().then((a) => setKeelReads(isKeelReadsOffered(a)));
-  }, []);
   // Settings and onboarding open the import directly (?direct=1): it is then
-  // the sheet's first screen and needs its own leave affordance. From the
-  // add chooser it is a push, and the system back button appears on its own.
+  // the sheet's first screen and needs its own leave affordance.
   const { direct } = useLocalSearchParams<{ direct?: string }>();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { items, accounts, categories, displayCurrency } = useAppData();
-  const { startSession } = useImportSession();
+  const { width: pageWidth } = useWindowDimensions();
+  // Not a scroll view at the top level, so the transparent glass header
+  // needs manual clearance (same as the add chooser).
+  const headerHeight = useHeaderHeight();
 
-  const [pasted, setPasted] = useState("");
-  // Pasting is the expected path (a Paste button, no keyboard); typing by
-  // hand stays possible behind a quiet toggle so it can never block the UI.
-  const [manualEntry, setManualEntry] = useState(false);
-  const [error, setError] = useState<PasteError | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [popup, setPopup] = useState<OpenPopup>(null);
-
-  // Generated fresh on every use — the header encodes our data model and
-  // "today", so a stale saved copy must never circulate (§6.1).
-  const prompt = () => buildImportPrompt({ today: today(), defaultCurrency: displayCurrency });
-
-  const copyInstructions = async () => {
-    await Clipboard.setStringAsync(prompt());
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
-  };
-
-  const parseAndGo = (text: string) => {
-    const result = parseImportDocument(text, {
-      defaultCurrency: displayCurrency,
-      today: today(),
-      accounts,
-      categories,
-      // Flags anything already tracked — pasting the same answer twice would
-      // otherwise silently double the whole list.
-      takenNames: items.map((i) => i.name),
+  // null until the probe answers: the pager mounts once, on the right page.
+  const [offered, setOffered] = useState<boolean | null>(null);
+  const [page, setPage] = useState(0);
+  useEffect(() => {
+    void keelReadsAvailability().then((a) => {
+      const yes = isKeelReadsOffered(a);
+      setOffered(yes);
+      setPage(yes ? 0 : 1);
     });
-    if (result.drafts.length === 0) {
-      setError(result.error ?? "empty");
-      return;
-    }
-    setError(null);
-    startSession(result.drafts, result.skipped);
-    router.push("/add/import-review");
+  }, []);
+  const pagerRef = useRef<ScrollView>(null);
+  const goTo = (next: number) => {
+    setPage(next);
+    pagerRef.current?.scrollTo({ x: next * pageWidth, animated: true });
+  };
+  const settle = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
+    setPage(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
+  const dragEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (Math.abs(e.nativeEvent.velocity?.x ?? 0) < 0.05) settle(e);
   };
 
-  // One tap: read the clipboard and go straight to review. On failure the
-  // pasted text stays visible in the preview so it's clear what came in.
-  const pasteAnswer = async () => {
-    const text = (await Clipboard.getStringAsync()).trim();
-    if (!text) {
-      setError("clipboard-empty");
-      return;
-    }
-    setPasted(text);
-    parseAndGo(text);
-  };
-
-  const clearPaste = () => {
-    setPasted("");
-    setError(null);
-    setManualEntry(false);
-  };
-
-  if (locked) return null;
+  if (locked || offered === null) return null;
+  const initial = offered ? 0 : 1;
   return (
-    <ScrollView
-      style={styles.screen}
-      contentInsetAdjustmentBehavior="automatic"
-      contentContainerStyle={styles.content}
-      keyboardShouldPersistTaps="handled"
-      automaticallyAdjustKeyboardInsets
-    >
+    <View style={[styles.screen, { paddingTop: headerHeight }]}>
       {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
-      {/* Two delivery paths: bring-your-own AI (this screen) and, where
-          Apple's cloud model exists, "Keel reads it for you" (its own screen,
-          opt-in before anything is sent). */}
-      <View style={styles.methods}>
-        <View style={[styles.methodCard, styles.methodActive]}>
-          <SymbolView
-            name="person.crop.circle.badge.checkmark"
-            size={22}
-            tintColor={colors.accent}
-          />
-          <Text style={styles.methodTitle}>{t("importAI.methodOwn")}</Text>
-          <Text style={styles.methodSub}>{t("importAI.methodOwnSub")}</Text>
-        </View>
-        {keelReads && (
+      <View style={styles.pills}>
+        {(["keel", "own"] as const).map((key, index) => (
           <Pressable
-            style={styles.methodCard}
-            onPress={() => router.push("/add/import-keel")}
-            accessibilityRole="button"
+            key={key}
+            style={[styles.pill, page === index && styles.pillActive]}
+            onPress={() => goTo(index)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: page === index }}
           >
-            <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
-            <Text style={styles.methodTitle}>{t("importAI.methodKeel")}</Text>
-            <Text style={styles.methodSub}>{t("importAI.methodKeelSub")}</Text>
+            <Text style={[styles.pillText, page === index && styles.pillTextActive]}>
+              {t(key === "keel" ? "importAI.pageKeel" : "importAI.pageOwn")}
+            </Text>
           </Pressable>
-        )}
+        ))}
       </View>
-
-      {/* The three steps — short, numbered, nothing else on the main path. */}
-      <View style={styles.card}>
-        <StepRow n={1} text={t("importAI.step1")} styles={styles} />
-        <View style={styles.stepActions}>
-          <Button
-            icon={copied ? "checkmark" : "doc.on.doc"}
-            label={copied ? t("importAI.copied") : t("importAI.copy")}
-            onPress={() => void copyInstructions()}
-            style={styles.copyButton}
-          />
-          <Pressable onPress={() => setPopup("instructions")} hitSlop={8}>
-            <Text style={styles.quietLink}>{t("importAI.viewInstructions")}</Text>
-          </Pressable>
-        </View>
-        <StepRow n={2} text={t("importAI.step2")} styles={styles} divider />
-        <View style={styles.linkRow}>
-          <Pressable onPress={() => setPopup("where")} hitSlop={8}>
-            <Text style={styles.quietLink}>{t("importAI.whereLink")}</Text>
-          </Pressable>
-          <Pressable onPress={() => setPopup("example")} hitSlop={8}>
-            <Text style={styles.quietLink}>{t("importAI.exampleLink")}</Text>
-          </Pressable>
-        </View>
-        <StepRow n={3} text={t("importAI.step3")} styles={styles} divider />
-      </View>
-
-      {/* Knowing the form makes better AI input: a quiet nudge, not a gate. */}
-      <Text style={styles.handFirst}>{t("importAI.handFirstHint")}</Text>
-
-      {/* The paste-back area: a Paste button first (no keyboard in the way);
-          typing by hand stays available behind the quiet toggle. */}
-      <View style={[styles.card, styles.pasteCard]}>
-        {manualEntry && (
-          <TextInput
-            style={styles.paste}
-            value={pasted}
-            onChangeText={(text) => {
-              setPasted(text);
-              if (error) setError(null);
-            }}
-            placeholder={t("importAI.pastePlaceholder")}
-            placeholderTextColor={colors.mutedText}
-            multiline
-            autoCorrect={false}
-            autoCapitalize="none"
-            autoFocus
-          />
-        )}
-        {!manualEntry && pasted !== "" && (
-          <Text style={styles.preview} numberOfLines={5}>
-            {pasted}
-          </Text>
-        )}
-        {error && (
-          <Text style={styles.error}>
-            {t(
-              error === "clipboard-empty"
-                ? "importAI.errClipboardEmpty"
-                : error === "no-json"
-                  ? "importAI.errNoJson"
-                  : "importAI.errEmpty",
-            )}
-          </Text>
-        )}
-        {manualEntry ? (
-          <Button
-            label={t("importAI.read")}
-            onPress={() => parseAndGo(pasted)}
-            disabled={pasted.trim() === ""}
-          />
-        ) : (
-          <Button
-            icon="doc.on.clipboard"
-            label={t("importAI.pasteButton")}
-            onPress={() => void pasteAnswer()}
-          />
-        )}
-        <View style={styles.pasteLinks}>
-          {!manualEntry && (
-            <Pressable onPress={() => setManualEntry(true)} hitSlop={8}>
-              <Text style={styles.quietLink}>{t("importAI.typeManually")}</Text>
-            </Pressable>
-          )}
-          {(pasted !== "" || manualEntry) && (
-            <Pressable onPress={clearPaste} hitSlop={8}>
-              <Text style={styles.quietLink}>{t("importAI.clear")}</Text>
-            </Pressable>
-          )}
-        </View>
-      </View>
-
-      <Pressable onPress={() => setPopup("privacy")} hitSlop={8} style={styles.privacyLink}>
-        <SymbolView name="lock.shield" size={14} tintColor={colors.mutedText} />
-        <Text style={styles.quietLink}>{t("importAI.privacyLink")}</Text>
-      </Pressable>
-
-      {/* The full instructions are informative content, so they share the
-          popup shape with every other explainer — just taller (§3.5). */}
-      <InfoPopup
-        visible={popup === "instructions"}
-        title={t("importAI.viewInstructionsTitle")}
-        onClose={() => setPopup(null)}
-        tall
+      <ScrollView
+        ref={pagerRef}
+        horizontal
+        pagingEnabled
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        contentOffset={{ x: initial * pageWidth, y: 0 }}
+        onMomentumScrollEnd={settle}
+        onScrollEndDrag={dragEnd}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.promptText}>{prompt()}</Text>
-      </InfoPopup>
-
-      <InfoPopup
-        visible={popup === "where"}
-        title={t("importAI.whereTitle")}
-        onClose={() => setPopup(null)}
-      >
-        <Text style={styles.sheetText}>{t("importAI.whereBody")}</Text>
-      </InfoPopup>
-
-      {/* Before/after: how rough the input can be, and what comes out. */}
-      <InfoPopup
-        visible={popup === "example"}
-        title={t("importAI.exampleTitle")}
-        onClose={() => setPopup(null)}
-      >
-        <Text style={styles.exampleLabel}>{t("importAI.exampleYouWrite")}</Text>
-        <View style={styles.exampleBox}>
-          <Text style={styles.exampleRough}>{t("importAI.exampleRough")}</Text>
+        <ScrollView
+          style={{ width: pageWidth }}
+          contentContainerStyle={styles.page}
+          keyboardShouldPersistTaps="handled"
+        >
+          <KeelReadsPanel onUseOwnAi={() => goTo(1)} />
+        </ScrollView>
+        <View style={{ width: pageWidth }}>
+          <OwnAiPanel />
         </View>
-        <View style={styles.exampleArrow}>
-          <SymbolView name="arrow.down" size={16} tintColor={colors.mutedText} />
-        </View>
-        <Text style={styles.exampleLabel}>{t("importAI.exampleYouGet")}</Text>
-        <View style={styles.exampleResults}>
-          {([1, 2, 3, 4, 5] as const).map((n) => (
-            <View key={n} style={styles.exampleRow}>
-              <Text style={styles.exampleName}>{t(`importAI.example${n}Name`)}</Text>
-              <Text style={styles.exampleSub}>{t(`importAI.example${n}Sub`)}</Text>
-            </View>
-          ))}
-        </View>
-        <Text style={styles.exampleNote}>{t("importAI.exampleNote")}</Text>
-      </InfoPopup>
-
-      <InfoPopup
-        visible={popup === "privacy"}
-        title={t("importAI.privacyTitle")}
-        onClose={() => setPopup(null)}
-      >
-        <Text style={styles.sheetText}>{t("importAI.privacyBody")}</Text>
-      </InfoPopup>
-    </ScrollView>
-  );
-}
-
-function StepRow({
-  n,
-  text,
-  styles,
-  divider,
-}: {
-  n: number;
-  text: string;
-  styles: ReturnType<typeof createStyles>;
-  divider?: boolean;
-}) {
-  return (
-    <View style={[styles.step, divider && styles.stepDivider]}>
-      <View style={styles.stepBadge}>
-        <Text style={styles.stepBadgeText}>{n}</Text>
-      </View>
-      <Text style={styles.stepText}>{text}</Text>
+      </ScrollView>
     </View>
   );
 }
@@ -318,145 +120,26 @@ function StepRow({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
-    methods: { flexDirection: "row", gap: spacing.sm },
-    // Material cards (§9f): the chosen method is a tint, not a heavy border.
-    methodCard: {
-      flex: 1,
+    pills: {
+      flexDirection: "row",
       gap: spacing.xs,
-      backgroundColor: colors.material,
-      borderRadius: radius.xl,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      padding: spacing.md,
-    },
-    methodActive: {
-      backgroundColor: withAlpha(colors.accent, 0.12),
-      borderColor: withAlpha(colors.accent, 0.45),
-    },
-    methodTitle: { ...typography.label, color: colors.text },
-    methodSub: { ...typography.caption, color: colors.mutedText },
-    card: {
+      marginHorizontal: spacing.md,
+      marginTop: spacing.sm,
+      padding: 3,
+      borderRadius: radius.lg,
       backgroundColor: colors.material,
       borderWidth: 1,
       borderColor: colors.hairline,
+    },
+    pill: {
+      flex: 1,
+      paddingVertical: spacing.xs + 4,
       borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      paddingBottom: spacing.md,
-    },
-    step: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: spacing.sm,
-      paddingTop: spacing.md,
-    },
-    stepDivider: {
-      marginTop: spacing.md,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-    },
-    stepBadge: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
-      backgroundColor: withAlpha(colors.accent, 0.2),
       alignItems: "center",
-      justifyContent: "center",
-      marginTop: 1,
     },
-    stepBadgeText: { ...typography.caption, fontWeight: "700", color: colors.accent },
-    stepText: { ...typography.body, color: colors.text, flex: 1 },
-    stepActions: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.md,
-      paddingTop: spacing.sm,
-      paddingLeft: 22 + spacing.sm,
-    },
-    // Compact override: the copy CTA sits inline under step 1.
-    copyButton: {
-      paddingVertical: spacing.sm,
-      paddingHorizontal: spacing.md,
-    },
-    quietLink: { ...typography.caption, color: colors.accent, fontWeight: "600" },
-    linkRow: {
-      flexDirection: "row",
-      flexWrap: "wrap",
-      gap: spacing.md,
-      paddingTop: spacing.sm,
-      paddingLeft: 22 + spacing.sm,
-    },
-    pasteCard: { paddingTop: spacing.md, gap: spacing.md },
-    preview: {
-      ...typography.caption,
-      color: colors.mutedText,
-      fontFamily: "Menlo",
-      lineHeight: 16,
-      padding: spacing.sm,
-      borderRadius: radius.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface2,
-    },
-    pasteLinks: {
-      flexDirection: "row",
-      justifyContent: "center",
-      gap: spacing.lg,
-    },
-    paste: {
-      minHeight: 120,
-      maxHeight: 240,
-      padding: spacing.sm,
-      borderRadius: radius.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface2,
-      ...typography.body,
-      color: colors.text,
-      textAlignVertical: "top",
-    },
-    error: { ...typography.caption, color: colors.tones.danger },
-    handFirst: {
-      ...typography.caption,
-      color: colors.mutedText,
-      paddingHorizontal: spacing.xs,
-    },
-    privacyLink: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.xs + 2,
-      paddingVertical: spacing.sm,
-    },
-    sheetText: { ...typography.body, color: colors.text, lineHeight: 23 },
-    promptText: { ...typography.caption, color: colors.text, fontFamily: "Menlo", lineHeight: 18 },
-    exampleLabel: { ...typography.caption, fontWeight: "700", color: colors.mutedText },
-    exampleBox: {
-      borderRadius: radius.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface2,
-      padding: spacing.md,
-    },
-    exampleRough: {
-      ...typography.caption,
-      color: colors.text,
-      fontFamily: "Menlo",
-      lineHeight: 18,
-    },
-    exampleArrow: { alignItems: "center" },
-    exampleResults: { gap: spacing.sm },
-    exampleRow: {
-      borderRadius: radius.sm,
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface2,
-      paddingHorizontal: spacing.md,
-      paddingVertical: spacing.sm,
-      gap: 1,
-    },
-    exampleName: { ...typography.label, color: colors.text },
-    exampleSub: { ...typography.caption, color: colors.mutedText },
-    exampleNote: { ...typography.caption, color: colors.mutedText, lineHeight: 18 },
+    pillActive: { backgroundColor: withAlpha(colors.accent, 0.18) },
+    pillText: { ...typography.label, color: colors.mutedText },
+    pillTextActive: { color: colors.accent },
+    page: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   });
 }

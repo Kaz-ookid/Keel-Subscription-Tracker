@@ -41,11 +41,9 @@ export const en = {
     importReview: "Review import",
   },
   importAI: {
-    methodOwn: "Use an AI you trust",
-    methodOwnSub: "ChatGPT, Claude, Gemini: whichever you already trust.",
+    pageKeel: "Keel reads it",
+    pageOwn: "Your own AI",
     methodKeel: "Keel reads it for you",
-    methodKeelSub:
-      "Apple's cloud model reads your list for you. Needs internet; nothing is saved without your review.",
     step1: "Copy the instructions.",
     step2:
       "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
@@ -939,11 +937,7 @@ export const en = {
     errQuota: "Today's allowance for Apple's cloud model is used up. Try again tomorrow.",
     errService: "Apple's cloud model isn't reachable right now. Try again later.",
     ownAi: "Use your own AI instead",
-    addScreenshots: "Add screenshots",
-    readingImage: "Reading your screenshot…",
     errImage: "Couldn't read any text from that image. Try a sharper screenshot.",
-    screenshotNote:
-      "Screenshots open a preview of what was read, where you can remove anything private before sending.",
     previewTitle: "What Keel read",
     previewHint_one:
       "Read off {{count}} screenshot, on this iPhone. Check it, remove anything you'd rather keep private, then send.",
@@ -962,6 +956,19 @@ export const en = {
     kindPhone: "phone numbers",
     kindReference: "receipt or order numbers",
     kindTaxId: "tax ids",
+    methodScreenshots: "Screenshots",
+    methodScreenshotsSub:
+      "Receipts, confirmation emails, your banking app. Read on this iPhone, then previewed before anything is sent.",
+    methodDocuments: "Documents",
+    methodDocumentsSub: "PDF statements, CSV or text exports. Read on this iPhone, then previewed.",
+    methodText: "Type or paste",
+    methodTextSub: "A rough list in your own words.",
+    errDocument:
+      "Couldn't read any text from those files. A scanned PDF without a text layer needs the screenshot path.",
+    quotaLabel: "Apple's allowance for the cloud model",
+    quotaInfoTitle: "Cloud model allowance",
+    quotaInfoBody:
+      "Apple's cloud model has a daily allowance per person (higher with iCloud+). Below is Apple's own status object for your account, as the system reports it:",
   },
   notifications: {
     bodyToday: "{{amount}} due today",

@@ -15,6 +15,7 @@
 // messages instead of one generic "the model failed".
 
 import ExpoModulesCore
+import PDFKit
 import UIKit
 import Vision
 
@@ -151,6 +152,39 @@ public class AppleIntelligenceModule: Module {
       } catch {
         throw AppleIntelligenceError.imageUnreadable
       }
+    }
+
+    // The cloud model's allowance, for the curious: the framework's quota
+    // object is read by REFLECTION (every stored property, stringified), so
+    // the bridge never names a field it cannot be sure of on a young API.
+    // Below iOS 27 (or without the framework) an empty dictionary.
+    Function("cloudQuota") { () -> [String: String] in
+      #if canImport(FoundationModels)
+        guard #available(iOS 27.0, *) else { return [:] }
+        var out: [String: String] = [:]
+        let usage = PrivateCloudComputeLanguageModel().quotaUsage
+        for child in Mirror(reflecting: usage).children {
+          if let label = child.label { out[label] = String(describing: child.value) }
+        }
+        out["description"] = String(describing: usage)
+        return out
+      #else
+        return [:]
+      #endif
+    }
+
+    // A PDF (file URI from the document picker) in, its text out, read on
+    // the phone by PDFKit. Feeds the same text path as screenshots.
+    AsyncFunction("extractPdfText") { (uri: String) async throws -> String in
+      guard let url = URL(string: uri), let document = PDFDocument(url: url) else {
+        throw AppleIntelligenceError.imageUnreadable
+      }
+      var pages: [String] = []
+      for index in 0..<document.pageCount {
+        if let text = document.page(at: index)?.string, !text.isEmpty { pages.append(text) }
+      }
+      guard !pages.isEmpty else { throw AppleIntelligenceError.imageUnreadable }
+      return pages.joined(separator: "\n\n")
     }
 
     // Rough notes in, import-format v2 JSON out. The instructions come from

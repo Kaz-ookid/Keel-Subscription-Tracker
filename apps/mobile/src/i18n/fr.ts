@@ -41,11 +41,9 @@ export const fr: typeof en = {
     importReview: "Vérifier l'import",
   },
   importAI: {
-    methodOwn: "Utilisez une IA de confiance",
-    methodOwnSub: "ChatGPT, Claude, Gemini : celle en qui vous avez déjà confiance.",
+    pageKeel: "Keel lit pour vous",
+    pageOwn: "Votre propre IA",
     methodKeel: "Keel lit pour vous",
-    methodKeelSub:
-      "Le modèle cloud d'Apple lit votre liste pour vous. Internet requis ; rien n'est enregistré sans votre vérification.",
     step1: "Copiez les instructions.",
     step2:
       "Collez-les à votre IA, puis ajoutez vos abonnements : tapés en vrac, en captures d'écran d'e-mails de confirmation et de votre app bancaire, ou l'export de votre ancienne app de suivi.",
@@ -946,11 +944,7 @@ export const fr: typeof en = {
     errQuota: "La limite du jour pour le modèle cloud d'Apple est atteinte. Réessayez demain.",
     errService: "Le modèle cloud d'Apple est injoignable pour le moment. Réessayez plus tard.",
     ownAi: "Utiliser plutôt votre propre IA",
-    addScreenshots: "Ajouter des captures d'écran",
-    readingImage: "Lecture de votre capture…",
     errImage: "Aucun texte lisible dans cette image. Essayez une capture plus nette.",
-    screenshotNote:
-      "Les captures ouvrent un aperçu de ce qui a été lu, où vous pouvez retirer ce qui est privé avant l'envoi.",
     previewTitle: "Ce que Keel a lu",
     previewHint_one:
       "Lu sur {{count}} capture, sur cet iPhone. Vérifiez, retirez ce que vous préférez garder pour vous, puis envoyez.",
@@ -969,6 +963,19 @@ export const fr: typeof en = {
     kindPhone: "numéros de téléphone",
     kindReference: "numéros de reçu ou de commande",
     kindTaxId: "numéros de TVA",
+    methodScreenshots: "Captures d'écran",
+    methodScreenshotsSub:
+      "Reçus, e-mails de confirmation, votre app bancaire. Lus sur cet iPhone, puis un aperçu avant tout envoi.",
+    methodDocuments: "Documents",
+    methodDocumentsSub: "Relevés PDF, exports CSV ou texte. Lus sur cet iPhone, puis un aperçu.",
+    methodText: "Saisir ou coller",
+    methodTextSub: "Une liste en vrac, avec vos mots.",
+    errDocument:
+      "Aucun texte lisible dans ces fichiers. Un PDF scanné sans couche de texte passe par les captures d'écran.",
+    quotaLabel: "Quota Apple du modèle cloud",
+    quotaInfoTitle: "Quota du modèle cloud",
+    quotaInfoBody:
+      "Le modèle cloud d'Apple a une limite quotidienne par personne (plus élevée avec iCloud+). Ci-dessous, l'objet d'état d'Apple pour votre compte, tel que le système le rapporte :",
   },
   notifications: {
     bodyToday: "{{amount}} à payer aujourd'hui",

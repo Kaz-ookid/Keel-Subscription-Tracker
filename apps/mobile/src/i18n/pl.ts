@@ -48,11 +48,9 @@ const translation = {
     importReview: "Sprawdź import",
   },
   importAI: {
-    methodOwn: "Użyj AI, której ufasz",
-    methodOwnSub: "ChatGPT, Claude, Gemini: ta, której już ufasz.",
+    pageKeel: "Keel czyta za ciebie",
+    pageOwn: "Twoja własna AI",
     methodKeel: "Keel przeczyta za ciebie",
-    methodKeelSub:
-      "Model chmurowy Apple czyta twoją listę za ciebie. Wymaga internetu; nic nie zapisze się bez twojego sprawdzenia.",
     step1: "Skopiuj instrukcje.",
     step2:
       "Wklej je swojej AI i dorzuć subskrypcje: wpisane z grubsza, zrzuty ekranu z maili potwierdzających i aplikacji banku, albo eksport ze starej aplikacji.",
@@ -990,11 +988,7 @@ const translation = {
     errQuota: "Dzisiejszy limit modelu chmurowego Apple został wyczerpany. Spróbuj jutro.",
     errService: "Model chmurowy Apple jest teraz niedostępny. Spróbuj później.",
     ownAi: "Użyj zamiast tego własnej AI",
-    addScreenshots: "Dodaj zrzuty ekranu",
-    readingImage: "Odczytywanie zrzutu ekranu…",
     errImage: "Nie udało się odczytać tekstu z tego obrazu. Spróbuj ostrzejszego zrzutu.",
-    screenshotNote:
-      "Zrzuty ekranu otwierają podgląd odczytanego tekstu, w którym możesz usunąć prywatne dane przed wysłaniem.",
     previewTitle: "Co odczytał Keel",
     previewHint_one:
       "Odczytane z {{count}} zrzutu ekranu, na tym iPhonie. Sprawdź, usuń to, co wolisz zachować dla siebie, i wyślij.",
@@ -1013,6 +1007,20 @@ const translation = {
     kindPhone: "numery telefonów",
     kindReference: "numery paragonów lub zamówień",
     kindTaxId: "numery NIP",
+    methodScreenshots: "Zrzuty ekranu",
+    methodScreenshotsSub:
+      "Paragony, e-maile z potwierdzeniem, aplikacja banku. Odczytane na tym iPhonie, potem podgląd przed wysłaniem.",
+    methodDocuments: "Dokumenty",
+    methodDocumentsSub:
+      "Wyciągi PDF, eksporty CSV lub tekstowe. Odczytane na tym iPhonie, potem podgląd.",
+    methodText: "Wpisz lub wklej",
+    methodTextSub: "Luźna lista własnymi słowami.",
+    errDocument:
+      "Nie udało się odczytać tekstu z tych plików. Zeskanowany PDF bez warstwy tekstowej przechodzi przez zrzuty ekranu.",
+    quotaLabel: "Limit Apple dla modelu chmurowego",
+    quotaInfoTitle: "Limit modelu chmurowego",
+    quotaInfoBody:
+      "Model chmurowy Apple ma dzienny limit na osobę (wyższy z iCloud+). Poniżej obiekt stanu Apple dla twojego konta, tak jak zgłasza go system:",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",

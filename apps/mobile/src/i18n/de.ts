@@ -42,11 +42,9 @@ export const de: typeof en = {
     importReview: "Import prüfen",
   },
   importAI: {
-    methodOwn: "Nutze eine KI, der du vertraust",
-    methodOwnSub: "ChatGPT, Claude, Gemini: die, der du ohnehin vertraust.",
+    pageKeel: "Keel liest es",
+    pageOwn: "Deine eigene KI",
     methodKeel: "Keel liest es für dich",
-    methodKeelSub:
-      "Apples Cloud-Modell liest deine Liste für dich. Braucht Internet; nichts wird ohne deine Prüfung gespeichert.",
     step1: "Kopiere die Anweisungen.",
     step2:
       "Füge sie deiner KI ein und gib deine Abos dazu: grob getippt, als Screenshots von Bestätigungs-Mails und deiner Banking-App, oder als Export deines alten Trackers.",
@@ -950,11 +948,7 @@ export const de: typeof en = {
       "Das heutige Kontingent für Apples Cloud-Modell ist aufgebraucht. Versuch es morgen noch einmal.",
     errService: "Apples Cloud-Modell ist gerade nicht erreichbar. Versuch es später noch einmal.",
     ownAi: "Stattdessen deine eigene KI verwenden",
-    addScreenshots: "Screenshots hinzufügen",
-    readingImage: "Dein Screenshot wird gelesen…",
     errImage: "In diesem Bild war kein Text lesbar. Versuch einen schärferen Screenshot.",
-    screenshotNote:
-      "Screenshots öffnen eine Vorschau des Gelesenen, in der du Privates vor dem Senden entfernen kannst.",
     previewTitle: "Was Keel gelesen hat",
     previewHint_one:
       "Von {{count}} Screenshot gelesen, auf diesem iPhone. Prüfen, Privates entfernen, dann senden.",
@@ -973,6 +967,20 @@ export const de: typeof en = {
     kindPhone: "Telefonnummern",
     kindReference: "Beleg- oder Bestellnummern",
     kindTaxId: "Steuernummern",
+    methodScreenshots: "Screenshots",
+    methodScreenshotsSub:
+      "Belege, Bestätigungs-Mails, deine Banking-App. Auf diesem iPhone gelesen, dann Vorschau vor dem Senden.",
+    methodDocuments: "Dokumente",
+    methodDocumentsSub:
+      "PDF-Auszüge, CSV- oder Textexporte. Auf diesem iPhone gelesen, dann Vorschau.",
+    methodText: "Tippen oder einfügen",
+    methodTextSub: "Eine grobe Liste in deinen Worten.",
+    errDocument:
+      "In diesen Dateien war kein Text lesbar. Ein gescanntes PDF ohne Textebene geht über Screenshots.",
+    quotaLabel: "Apples Kontingent für das Cloud-Modell",
+    quotaInfoTitle: "Kontingent des Cloud-Modells",
+    quotaInfoBody:
+      "Apples Cloud-Modell hat ein tägliches Kontingent pro Person (höher mit iCloud+). Unten Apples eigenes Statusobjekt für dein Konto, wie das System es meldet:",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",
