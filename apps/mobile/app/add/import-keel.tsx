@@ -7,7 +7,7 @@
 // weaker engine. Linked from the import hub; in Expo Go the availability
 // probe reports unavailable and this screen explains itself.
 
-import { parseImportDocument, today, type ImportParseError } from "@keel/core";
+import { detectCurrencyHint, parseImportDocument, today, type ImportParseError } from "@keel/core";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -83,16 +83,19 @@ export default function KeelReadsImportScreen() {
     void keelReadsAvailability().then(setAvailability);
   }, []);
 
-  const read = async () => {
+  const read = async (material: string) => {
     setBusy(true);
     setError(null);
+    // When the material itself shows one currency, an item the model leaves
+    // currency-less defaults to THAT, not to the display currency.
+    const defaultCurrency = detectCurrencyHint(material) ?? displayCurrency;
     try {
-      const json = await readWithKeel(text.trim(), {
+      const json = await readWithKeel(material, {
         today: today(),
-        defaultCurrency: displayCurrency,
+        defaultCurrency,
       });
       const result = parseImportDocument(json, {
-        defaultCurrency: displayCurrency,
+        defaultCurrency,
         today: today(),
         accounts,
         categories,
@@ -134,7 +137,13 @@ export default function KeelReadsImportScreen() {
         setError("image-unreadable");
         return;
       }
-      setText((current) => [current.trim(), ...chunks].filter(Boolean).join("\n\n"));
+      // One-shot gesture (dogfood 2026-10-11): the recognized text goes to
+      // the model right away, together with anything already typed. It also
+      // lands in the box, so a failed read can be seen and edited.
+      const material = [text.trim(), ...chunks].filter(Boolean).join("\n\n");
+      setText(material);
+      setOcrBusy(false);
+      await read(material);
     } catch (failure) {
       setError(failure instanceof KeelReadsError ? failure.reason : "image-unreadable");
     } finally {
@@ -249,7 +258,7 @@ export default function KeelReadsImportScreen() {
               <Button
                 icon="sparkles"
                 label={t("importAI.read")}
-                onPress={() => void read()}
+                onPress={() => void read(text.trim())}
                 disabled={text.trim() === "" || ocrBusy}
               />
             )}

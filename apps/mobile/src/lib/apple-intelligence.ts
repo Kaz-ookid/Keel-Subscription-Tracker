@@ -12,7 +12,7 @@
 
 import {
   buildAssistantPrompt,
-  buildImportPrompt,
+  buildKeelReadsPrompt,
   type AssistantPromptContext,
   type CalendarDate,
   type CurrencyCode,
@@ -91,7 +91,7 @@ export async function readWithKeel(
   context: { today: CalendarDate; defaultCurrency: CurrencyCode },
 ): Promise<string> {
   try {
-    return await (await native()).parseSubscriptions(input, buildImportPrompt(context), "cloud");
+    return await (await native()).parseSubscriptions(input, buildKeelReadsPrompt(context), "cloud");
   } catch (error) {
     throw toFailure(error);
   }

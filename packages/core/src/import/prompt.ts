@@ -30,13 +30,33 @@ export interface ImportPromptContext {
  *  conversation instead of a one-shot answer. (The default currency left
  *  the prompt in v2 — the parser defaults it.) */
 export function buildImportPrompt({ today }: ImportPromptContext): string {
-  return `You are helping someone import their recurring payments into the Keel app (import format v${IMPORT_FORMAT_VERSION}). After these instructions they will provide material in any mix and over several messages: rough typed notes, screenshots of confirmation emails, receipts, app subscription pages, their banking app, monthly bank or card statements, or an export from another tracker. Read everything and build Keel's JSON import document from it.
+  return `${CONVERSATION_HEADER}
+
+${rules(today)}
+
+The user's material follows; remember to gather first and only produce the file when they say they are done.`;
+}
+
+/** The "Keel reads it for you" variant: the same rules, but the whole
+ *  material arrives at once (typed notes plus the text read off screenshots)
+ *  and the output shape is forced by the native @Generable schema, so there is
+ *  no conversation and no file-format protocol to teach. */
+export function buildKeelReadsPrompt({ today }: ImportPromptContext): string {
+  return `${KEEL_READS_HEADER}
+
+${rules(today)}`;
+}
+
+const CONVERSATION_HEADER = `You are helping someone import their recurring payments into the Keel app (import format v${IMPORT_FORMAT_VERSION}). After these instructions they will provide material in any mix and over several messages: rough typed notes, screenshots of confirmation emails, receipts, app subscription pages, their banking app, monthly bank or card statements, or an export from another tracker. Read everything and build Keel's JSON import document from it.
 
 HOW THE CONVERSATION GOES (important):
 - Do NOT reply with the JSON right away. First, briefly list what you found so far (name and price per item, one line each), mention anything you were unsure about, and ask whether they want to add more before you produce the import file. People often have several screenshots to send one by one; keep collecting across messages and update your running list.
-- Only when they say they are done (any wording: "done", "that's all", "give me the file"...), reply with ONLY the JSON object of the form {"items":[ ... ]}, presented inside a single code block so it is easy to copy at once - no prose around it in that final message. If in the end nothing was parseable, output {"items":[]}.
+- Only when they say they are done (any wording: "done", "that's all", "give me the file"...), reply with ONLY the JSON object of the form {"items":[ ... ]}, presented inside a single code block so it is easy to copy at once - no prose around it in that final message. If in the end nothing was parseable, output {"items":[]}.`;
 
-WHAT COUNTS AS AN ITEM - reason about it, especially in bank statements:
+const KEEL_READS_HEADER = `You are reading material someone handed to the Keel app so it can import their recurring payments (import format v${IMPORT_FORMAT_VERSION}). Everything arrives at once: typed notes and the text read off screenshots (receipts, confirmation emails, app subscription pages, banking apps, monthly statements, an export from another tracker). Read all of it and produce the items; do not ask questions, do not explain.`;
+
+function rules(today: CalendarDate): string {
+  return `WHAT COUNTS AS AN ITEM - reason about it, especially in bank statements:
 - Keel tracks RECURRING commitments (subscriptions, bills, rent, insurance) and fixed instalment plans (pay in 4, BNPL). One-time spending does not belong: groceries, restaurants, shops, a single transfer.
 - A monthly bank or card statement mixes both. Take what recurs: a known subscription brand (Netflix, a gym, an insurer, a telecom), the same merchant with the same amount at a steady rhythm, anything labelled as a direct debit or standing order. Leave out the one-offs.
 - When you genuinely cannot tell whether a line recurs, either leave it out or include it with a short "notes" saying you are unsure - never present a guess as certain.
@@ -47,7 +67,7 @@ Each item:
 - "type": "subscription" for anything recurring; "split_payment" for a purchase paid in a fixed number of instalments (pay in 4, BNPL, Klarna, etc.).
 - "name": what the payment is for, kept in the user's own words and language. Do not translate or rename it. If the input gives no clear name, use a short descriptive one and record in "notes" that the name was guessed.
 - "amount" (subscription) or "total" (split_payment): a decimal in the currency's main unit (17.6 means 17.60). A FREE trial uses "amount": 0. Keep amounts as the user stated them; do not recompute totals from per-payment figures unless only the per-payment amount is given.
-- "currency": one of ${CURRENCY_LIST} - only when the input states or clearly implies one (a € sign means EUR).
+- "currency": one of ${CURRENCY_LIST}, whenever the input shows one as a code or as a symbol next to the amount: € means EUR, £ means GBP, CHF or Fr. means CHF, zł means PLN, ₹ means INR, R$ means BRL, a plain $ means USD (CA$ means CAD, A$ means AUD, MX$ means MXN), ¥ means JPY unless the context is Chinese (then CNY), kr means SEK, NOK or DKK only when the country is clear. A receipt, invoice or statement always shows its currency: read it there. Omit only when truly nothing shows one.
 - "settlement": "manual" if the user says they pay it themselves / by transfer; "automatic" if they say it's debited; omit when the input doesn't say.
 - "category": the closest of: streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other. This is the ONE field you infer from what the payment is; use "other" if unsure.
 - "cadence": {"unit":"day"|"week"|"month"|"year","interval":N} - only when the input states the cycle. monthly={"unit":"month","interval":1}; "every 2 months"={"unit":"month","interval":2}; yearly={"unit":"year","interval":1}.
@@ -69,9 +89,7 @@ Rules for the final answer:
 - Output valid JSON only, with the exact field names above.
 - Never use the em dash character in any text value; use a comma, colon or parentheses instead.
 - The input can contain many items across several accounts; emit one item per payment.
-- A price that changes over time is ONE item with a priceChange, never two items with the same name.
-
-The user's material follows; remember to gather first and only produce the file when they say they are done.`;
+- A price that changes over time is ONE item with a priceChange, never two items with the same name.`;
 }
 
 /**

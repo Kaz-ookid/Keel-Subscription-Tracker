@@ -52,7 +52,7 @@ import Foundation
     var name: String
     @Guide(
       description:
-        "The ISO currency code the input states or clearly implies (a euro sign means EUR); omit when the input names none"
+        "The ISO currency code shown next to the amount, as a code or a symbol: a euro sign means EUR, a pound sign GBP, CHF or Fr. means CHF, a plain dollar sign means USD (CA$ CAD, A$ AUD); omit only when nothing shows one"
     )
     var currency: String?
     @Guide(

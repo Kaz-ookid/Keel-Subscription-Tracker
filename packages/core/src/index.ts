@@ -20,6 +20,7 @@ export * from "./models/validate";
 
 // AI-assisted import (PROJECT_BRIEF §6.1): tolerant parsing of the AI-produced
 // import document into review-ready drafts, plus the canonical BYO-AI header.
+export * from "./import/currency-hint";
 export * from "./import/extract";
 export * from "./import/parse";
 export * from "./import/prompt";

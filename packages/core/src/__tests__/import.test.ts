@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   buildImportPrompt,
+  buildKeelReadsPrompt,
   buildOnDevicePrompt,
   calendarDate,
   DEFAULT_CATEGORIES,
@@ -728,5 +729,30 @@ describe("folding a price change the model split into two rows", () => {
       ctx,
     );
     expect(dup.drafts).toHaveLength(2);
+  });
+});
+
+describe("buildKeelReadsPrompt", () => {
+  const prompt = buildKeelReadsPrompt({
+    today: calendarDate("2026-10-11"),
+    defaultCurrency: "EUR",
+  });
+
+  it("teaches the currency symbols, dollars included", () => {
+    expect(prompt).toContain("a plain $ means USD");
+    expect(prompt).toContain("A receipt, invoice or statement always shows its currency");
+    expect(
+      buildImportPrompt({ today: calendarDate("2026-10-11"), defaultCurrency: "EUR" }),
+    ).toContain("a plain $ means USD");
+  });
+
+  it("is one-shot: no conversation protocol, same rules", () => {
+    expect(prompt).not.toContain("Do NOT reply with the JSON right away");
+    expect(prompt).not.toContain("code block");
+    expect(prompt).toContain("do not ask questions");
+    expect(prompt).toContain("backlogUnpaid");
+    expect(prompt).toContain("billingDay");
+    expect(prompt).toContain("One-time spending does not belong");
+    expect(prompt).not.toContain("—");
   });
 });
