@@ -41,6 +41,10 @@ interface Props {
 }
 
 const CHART_HEIGHT = 140;
+// Bars stop short of the top so the "now" and year landmarks keep their
+// room when the biggest month would otherwise fill the frame (dogfood
+// 2026-10-11).
+const BAR_MAX = CHART_HEIGHT - 22;
 const COL_WIDTH = 30;
 const COL_GAP = 4;
 const SLOT = COL_WIDTH + COL_GAP;
@@ -109,7 +113,7 @@ export function YearChart({
   const styles = useMemo(() => createStyles(colors), [colors]);
 
   const max = Math.max(scaleMax ?? 0, average, ...months.map((m) => m.amount), 1);
-  const averageY = (average / max) * CHART_HEIGHT;
+  const averageY = (average / max) * BAR_MAX;
   const current = selected !== null ? months[selected] : undefined;
   const contentWidth = months.length * SLOT;
   // Open with the current month in view, a little history to its left.
@@ -171,7 +175,7 @@ export function YearChart({
 
             <View style={styles.bars}>
               {months.map((m, i) => {
-                const height = Math.max((m.amount / max) * CHART_HEIGHT, m.amount > 0 ? 3 : 2);
+                const height = Math.max((m.amount / max) * BAR_MAX, m.amount > 0 ? 3 : 2);
                 const spiking = average > 0 && m.amount > average;
                 return (
                   <Pressable key={m.name} style={styles.column} onPress={() => onSelect(i)}>
