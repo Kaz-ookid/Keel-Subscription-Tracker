@@ -1,14 +1,23 @@
 // THE two-way (or n-way) pill switch (§9f): a material capsule track with a
-// sliding accent wash — the same motion as the Payments Upcoming/All
-// switcher, extracted so no screen hand-rolls it again. (Payments itself
-// keeps its own copy of the visuals because its wash is driven LIVE by the
-// pager's scroll position; this component owns the plain tap-to-switch case.)
+// sliding accent wash. Two drivers, one look:
+// - tap-to-switch (the form's Subscription/Split): the wash animates to the
+//   selected pill on its own;
+// - pager-driven (Payments' Upcoming/All, the import hub): the caller hands
+//   in a shared `progress` in pages (0..n-1) fed by its paging ScrollView, so
+//   the wash follows the finger; the caller re-asserts the settled page.
+// No screen hand-rolls this capsule again (the hub did once, 2026-10-12, and
+// Payments kept a copy for three months: this component now covers both).
 
 import { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { hapticSelection } from "../../lib/haptics";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+  type SharedValue,
+} from "react-native-reanimated";
 
 import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
 
@@ -19,11 +28,27 @@ interface Option<T extends string> {
 
 interface Props<T extends string> {
   options: readonly Option<T>[];
+  /** The selected value. May be outside `options` (Payments on the calendar):
+   *  then no label is lit and the wash sits where `progress` says. */
   value: T;
   onChange: (value: T) => void;
+  /** A pager's live position in pages. When given, the wash follows it
+   *  instead of animating on `value` changes. */
+  progress?: SharedValue<number>;
+  /** Wash opacity, for callers that fade it when something else owns the
+   *  selection (Payments' calendar/harbor toggles). */
+  washOpacity?: SharedValue<number>;
+  style?: StyleProp<ViewStyle>;
 }
 
-export function SegmentedPills<T extends string>({ options, value, onChange }: Props<T>) {
+export function SegmentedPills<T extends string>({
+  options,
+  value,
+  onChange,
+  progress,
+  washOpacity,
+  style,
+}: Props<T>) {
   const { colors } = useTheme();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [trackWidth, setTrackWidth] = useState(0);
@@ -35,15 +60,19 @@ export function SegmentedPills<T extends string>({ options, value, onChange }: P
     options.findIndex((o) => o.value === value),
   );
 
-  const washX = useSharedValue(0);
+  // Tap mode's own driver, in pages like `progress`.
+  const washX = useSharedValue(index);
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
-    washX.value = withTiming(index * (pillWidth + 3), { duration: 200 });
-  }, [index, pillWidth, washX]);
-  const washStyle = useAnimatedStyle(() => ({ transform: [{ translateX: washX.value }] }));
+    if (!progress) washX.value = withTiming(index, { duration: 200 });
+  }, [index, progress, washX]);
+  const washStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: (progress ? progress.value : washX.value) * (pillWidth + 3) }],
+    opacity: washOpacity ? washOpacity.value : 1,
+  }));
 
   return (
-    <View style={styles.track} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
+    <View style={[styles.track, style]} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
       {pillWidth > 0 && <Animated.View style={[styles.wash, { width: pillWidth }, washStyle]} />}
       {options.map((option) => {
         const active = option.value === value;
@@ -77,6 +106,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: colors.hairline,
       padding: 3,
       gap: 3,
+      // The wash must never escape the capsule, even mid-overscroll.
+      overflow: "hidden",
     },
     wash: {
       position: "absolute",

@@ -17,9 +17,10 @@ import {
   type NativeSyntheticEvent,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { useSharedValue, withTiming } from "react-native-reanimated";
 
 import { closeAllSwipeRows } from "../../src/components/ui/SwipeRow";
+import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
@@ -27,7 +28,7 @@ import { TabFade } from "../../src/components/TabFade";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppData } from "../../src/state/app-state";
-import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
+import { spacing, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
 
 // The harbor is no longer a top-level view: it lives INSIDE the schedule
 // slot as the calendar's bonus lens (see ScheduleView).
@@ -65,12 +66,11 @@ export default function PaymentsScreen() {
     });
   }, [loading, items, accounts, router]);
 
-  // The selection wash SLIDES between the two pills instead of teleporting,
+  // The pills are the shared SegmentedPills, driven LIVE by the pager: the
+  // wash follows pagerProgress (in pages) instead of teleporting on settle,
   // and fades out when the calendar/harbor toggles own the selection.
-  const [trackWidth, setTrackWidth] = useState(0);
-  const highlightX = useSharedValue(0);
+  const pagerProgress = useSharedValue(0);
   const highlightOpacity = useSharedValue(1);
-  const pillWidth = trackWidth > 0 ? (trackWidth - 2 - 6 - 3) / 2 : 0; // border+padding+gap
   // Upcoming ↔ All live in a plain PAGING SCROLLVIEW, not a PagerView: with
   // bounces off, a UIScrollView is physically clamped to its two pages, so
   // the wrap-around PagerView produced under aggressive two-finger swipes
@@ -99,12 +99,12 @@ export default function PaymentsScreen() {
     scrolledPage.current = Math.round(progress);
     // Reanimated shared values are driven by assigning `.value`; here the
     // pager's native scroll IS the animation, so no withTiming on top of it.
-    highlightX.value = progress * (pillWidth + 3);
+    pagerProgress.value = progress;
   };
   const settleOn = (page: number) => {
     // Settled: re-assert the truth on the wash and the label.
     scrolledPage.current = page;
-    highlightX.value = page * (pillWidth + 3);
+    pagerProgress.value = page;
     setView(page === 1 ? "all" : "upcoming");
   };
   const onPagerMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
@@ -131,19 +131,14 @@ export default function PaymentsScreen() {
       // The pager's own scroll slides the wash; this effect only brings it
       // back when returning from calendar/harbor: snap under the right pill
       // while invisible, then fade in.
-      if (highlightOpacity.value < 0.05)
-        highlightX.value = (view === "all" ? 1 : 0) * (pillWidth + 3);
+      if (highlightOpacity.value < 0.05) pagerProgress.value = view === "all" ? 1 : 0;
       highlightOpacity.value = withTiming(1, { duration: 150 });
     } else {
       // Leaving for calendar/harbor: fade where it stands. Moving it too read
       // as a glitchy slide.
       highlightOpacity.value = withTiming(0, { duration: 150 });
     }
-  }, [view, pillWidth, highlightX, highlightOpacity]);
-  const highlightStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: highlightX.value }],
-    opacity: highlightOpacity.value,
-  }));
+  }, [view, pagerProgress, highlightOpacity]);
 
   // A requested landing view arriving while already mounted (the screen sat
   // behind a modal): consume it on focus and swing the pager over.
@@ -179,28 +174,21 @@ export default function PaymentsScreen() {
       {/* The screen owns its title now: large, on the Ambient stage. */}
       <Text style={styles.largeTitle}>{t("tabs.payments")}</Text>
       <View style={styles.switchWrap}>
-        <View style={styles.switch} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
-          {pillWidth > 0 && (
-            <Animated.View style={[styles.highlight, { width: pillWidth }, highlightStyle]} />
-          )}
-          {VIEWS.map((v, index) => {
-            const active = view === v.value;
-            return (
-              <Pressable
-                key={v.value}
-                onPress={() => {
-                  if (onPills) goToPage(index, true);
-                  setView(v.value);
-                }}
-                style={styles.pill}
-              >
-                <Text style={[styles.pillText, active && styles.pillTextActive]}>
-                  {t(v.labelKey)}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
+        <SegmentedPills
+          options={VIEWS.map((v) => ({ value: v.value, label: t(v.labelKey) }))}
+          value={view}
+          onChange={(next) => {
+            if (onPills)
+              goToPage(
+                VIEWS.findIndex((v) => v.value === next),
+                true,
+              );
+            setView(next);
+          }}
+          progress={pagerProgress}
+          washOpacity={highlightOpacity}
+          style={styles.switch}
+        />
         <Pressable
           accessibilityLabel={t("payments.calendarA11y")}
           onPress={() => {
@@ -274,19 +262,7 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.md,
       paddingTop: spacing.md,
     },
-    // Material capsules (§9f): translucent track, hairline, accent tint wash.
-    switch: {
-      flex: 1,
-      flexDirection: "row",
-      backgroundColor: colors.material,
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      padding: 3,
-      gap: 3,
-      // The wash must never escape the capsule, even mid-overscroll.
-      overflow: "hidden",
-    },
+    switch: { flex: 1 },
     calendarToggle: {
       width: 40,
       height: 40,
@@ -301,22 +277,5 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: withAlpha(colors.accent, 0.2),
       borderColor: withAlpha(colors.accent, 0.45),
     },
-    pill: {
-      flex: 1,
-      alignItems: "center",
-      paddingVertical: spacing.sm,
-      borderRadius: 999,
-    },
-    // The sliding selection wash behind the pills.
-    highlight: {
-      position: "absolute",
-      top: 3,
-      bottom: 3,
-      left: 3,
-      borderRadius: 999,
-      backgroundColor: withAlpha(colors.accent, 0.2),
-    },
-    pillText: { ...typography.label, color: colors.mutedText },
-    pillTextActive: { color: colors.accent },
   });
 }
