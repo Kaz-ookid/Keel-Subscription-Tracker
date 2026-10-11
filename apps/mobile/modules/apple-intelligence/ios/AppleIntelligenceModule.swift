@@ -91,8 +91,7 @@ private func recognizeText(in image: UIImage) async throws -> String {
           return a.boundingBox.minX < b.boundingBox.minX
         }
         .compactMap { $0.topCandidates(1).first?.string }
-      continuation.resume(returning: lines.joined(separator: "
-"))
+      continuation.resume(returning: lines.joined(separator: "\n"))
     }
     request.recognitionLevel = .accurate
     request.usesLanguageCorrection = true
