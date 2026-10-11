@@ -174,14 +174,28 @@ public class AppleIntelligenceModule: Module {
     }
 
     // A PDF (file URI from the document picker) in, its text out, read on
-    // the phone by PDFKit. Feeds the same text path as screenshots.
+    // the phone. Pages with a text layer come through PDFKit; pages without
+    // one (scans, photographed bills) are rendered and read by Vision, so a
+    // scanned statement goes through like any other, with nothing asked of
+    // the user. Capped at 40 pages: a statement, not a book.
     AsyncFunction("extractPdfText") { (uri: String) async throws -> String in
       guard let url = URL(string: uri), let document = PDFDocument(url: url) else {
         throw AppleIntelligenceError.imageUnreadable
       }
       var pages: [String] = []
-      for index in 0..<document.pageCount {
-        if let text = document.page(at: index)?.string, !text.isEmpty { pages.append(text) }
+      for index in 0..<min(document.pageCount, 40) {
+        guard let page = document.page(at: index) else { continue }
+        let layer = (page.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        if layer.count >= 20 {
+          pages.append(layer)
+          continue
+        }
+        // No usable text layer: render at roughly 200 dpi and read the picture.
+        let bounds = page.bounds(for: .mediaBox)
+        let scale = max(1, 1600 / max(bounds.width, 1))
+        let size = CGSize(width: bounds.width * scale, height: bounds.height * scale)
+        let image = page.thumbnail(of: size, for: .mediaBox)
+        if let read = try? await recognizeText(in: image), !read.isEmpty { pages.append(read) }
       }
       guard !pages.isEmpty else { throw AppleIntelligenceError.imageUnreadable }
       return pages.joined(separator: "\n\n")
