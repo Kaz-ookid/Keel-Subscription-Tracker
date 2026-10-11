@@ -15,6 +15,8 @@
 // messages instead of one generic "the model failed".
 
 import ExpoModulesCore
+import UIKit
+import Vision
 
 #if canImport(FoundationModels)
   import FoundationModels
@@ -68,6 +70,58 @@ import ExpoModulesCore
   }
 #endif
 
+/// Screenshot text, read on the phone by Vision (nothing leaves the device
+/// for this step). Lines come back top to bottom so a list reads as a list.
+private func recognizeText(in image: UIImage) async throws -> String {
+  guard let cgImage = image.cgImage else { throw AppleIntelligenceError.imageUnreadable }
+  let orientation = CGImagePropertyOrientation(image.imageOrientation)
+  return try await withCheckedThrowingContinuation { continuation in
+    let request = VNRecognizeTextRequest { request, error in
+      if let error = error {
+        continuation.resume(throwing: error)
+        return
+      }
+      let observations = (request.results as? [VNRecognizedTextObservation]) ?? []
+      let lines = observations
+        .sorted { a, b in
+          // Vision's origin is bottom-left: higher minY = higher on screen.
+          if abs(a.boundingBox.minY - b.boundingBox.minY) > 0.01 {
+            return a.boundingBox.minY > b.boundingBox.minY
+          }
+          return a.boundingBox.minX < b.boundingBox.minX
+        }
+        .compactMap { $0.topCandidates(1).first?.string }
+      continuation.resume(returning: lines.joined(separator: "
+"))
+    }
+    request.recognitionLevel = .accurate
+    request.usesLanguageCorrection = true
+    request.recognitionLanguages = ["en-US", "fr-FR", "de-DE", "it-IT", "pl-PL"]
+    let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
+    do {
+      try handler.perform([request])
+    } catch {
+      continuation.resume(throwing: error)
+    }
+  }
+}
+
+extension CGImagePropertyOrientation {
+  init(_ orientation: UIImage.Orientation) {
+    switch orientation {
+    case .up: self = .up
+    case .upMirrored: self = .upMirrored
+    case .down: self = .down
+    case .downMirrored: self = .downMirrored
+    case .left: self = .left
+    case .leftMirrored: self = .leftMirrored
+    case .right: self = .right
+    case .rightMirrored: self = .rightMirrored
+    @unknown default: self = .up
+    }
+  }
+}
+
 public class AppleIntelligenceModule: Module {
   public func definition() -> ModuleDefinition {
     Name("AppleIntelligence")
@@ -81,6 +135,23 @@ public class AppleIntelligenceModule: Module {
       #else
         return "unsupported-os"
       #endif
+    }
+
+    // A screenshot (file URI from the picker) in, its text out, read on the
+    // phone by Vision. Feeds the same text path as typed notes.
+    AsyncFunction("recognizeText") { (uri: String) async throws -> String in
+      guard let url = URL(string: uri), let data = try? Data(contentsOf: url),
+        let image = UIImage(data: data)
+      else {
+        throw AppleIntelligenceError.imageUnreadable
+      }
+      do {
+        return try await recognizeText(in: image)
+      } catch let known as AppleIntelligenceError {
+        throw known
+      } catch {
+        throw AppleIntelligenceError.imageUnreadable
+      }
     }
 
     // Rough notes in, import-format v2 JSON out. The instructions come from
@@ -158,6 +229,8 @@ enum AppleIntelligenceError: Error, LocalizedError {
   case service
   /// The model ran but produced nothing usable.
   case modelFailed
+  /// The picked image could not be decoded or read.
+  case imageUnreadable
 
   var errorDescription: String? {
     switch self {
@@ -166,6 +239,7 @@ enum AppleIntelligenceError: Error, LocalizedError {
     case .quota: return "quota"
     case .service: return "service"
     case .modelFailed: return "model-failed"
+    case .imageUnreadable: return "image-unreadable"
     }
   }
 }

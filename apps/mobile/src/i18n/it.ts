@@ -943,6 +943,11 @@ export const it: typeof en = {
     errQuota: "Il limite di oggi per il modello cloud di Apple è esaurito. Riprova domani.",
     errService: "Il modello cloud di Apple non è raggiungibile al momento. Riprova più tardi.",
     ownAi: "Usa invece la tua IA",
+    addScreenshots: "Aggiungi screenshot",
+    readingImage: "Lettura dello screenshot…",
+    errImage: "Nessun testo leggibile in questa immagine. Prova uno screenshot più nitido.",
+    screenshotNote:
+      "Il testo degli screenshot viene letto su questo iPhone e aggiunto qui sopra: vedi e correggi esattamente ciò che verrà inviato.",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",

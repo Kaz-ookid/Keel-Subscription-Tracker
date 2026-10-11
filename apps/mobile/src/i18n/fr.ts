@@ -944,6 +944,11 @@ export const fr: typeof en = {
     errQuota: "La limite du jour pour le modèle cloud d'Apple est atteinte. Réessayez demain.",
     errService: "Le modèle cloud d'Apple est injoignable pour le moment. Réessayez plus tard.",
     ownAi: "Utiliser plutôt votre propre IA",
+    addScreenshots: "Ajouter des captures d'écran",
+    readingImage: "Lecture de votre capture…",
+    errImage: "Aucun texte lisible dans cette image. Essayez une capture plus nette.",
+    screenshotNote:
+      "Le texte des captures est lu sur cet iPhone et ajouté ci-dessus : vous voyez et corrigez exactement ce qui sera envoyé.",
   },
   notifications: {
     bodyToday: "{{amount}} à payer aujourd'hui",

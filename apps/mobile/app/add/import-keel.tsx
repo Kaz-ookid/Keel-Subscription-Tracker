@@ -8,6 +8,7 @@
 // probe reports unavailable and this screen explains itself.
 
 import { parseImportDocument, today, type ImportParseError } from "@keel/core";
+import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useMemo, useState } from "react";
@@ -30,6 +31,7 @@ import {
   KeelReadsError,
   keelReadsAvailability,
   readWithKeel,
+  recognizeScreenshot,
   type KeelReadsAvailability,
   type KeelReadsFailure,
 } from "../../src/lib/apple-intelligence";
@@ -53,6 +55,7 @@ const FAILURE_KEYS: Record<KeelReadsFailure, string> = {
   service: "keelReads.errService",
   unavailable: "keelReads.errService",
   "model-failed": "keelReads.errModel",
+  "image-unreadable": "keelReads.errImage",
 };
 
 export default function KeelReadsImportScreen() {
@@ -73,6 +76,7 @@ export default function KeelReadsImportScreen() {
   const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
+  const [ocrBusy, setOcrBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
 
   useEffect(() => {
@@ -104,6 +108,37 @@ export default function KeelReadsImportScreen() {
       setError(failure instanceof KeelReadsError ? failure.reason : "model-failed");
     } finally {
       setBusy(false);
+    }
+  };
+
+  // Screenshots: picked from the library, read on the phone by Vision, and
+  // appended as text INTO the box, so what will be sent is exactly what the
+  // user can see and edit. Nothing leaves the device for this step.
+  const addScreenshots = async () => {
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      selectionLimit: 6,
+      quality: 1,
+    });
+    if (picked.canceled || picked.assets.length === 0) return;
+    setOcrBusy(true);
+    setError(null);
+    try {
+      const chunks: string[] = [];
+      for (const asset of picked.assets) {
+        const read = (await recognizeScreenshot(asset.uri)).trim();
+        if (read) chunks.push(read);
+      }
+      if (chunks.length === 0) {
+        setError("image-unreadable");
+        return;
+      }
+      setText((current) => [current.trim(), ...chunks].filter(Boolean).join("\n\n"));
+    } catch (failure) {
+      setError(failure instanceof KeelReadsError ? failure.reason : "image-unreadable");
+    } finally {
+      setOcrBusy(false);
     }
   };
 
@@ -180,12 +215,31 @@ export default function KeelReadsImportScreen() {
               autoCorrect={false}
               autoCapitalize="none"
             />
-            {error && <Text style={styles.error}>{t(errorKey(error))}</Text>}
-            {error && error !== "no-json" && error !== "empty" && error !== "model-failed" && (
-              <Pressable onPress={useOwnAi} hitSlop={8}>
-                <Text style={styles.settingsLink}>{t("keelReads.ownAi")}</Text>
-              </Pressable>
+            {ocrBusy ? (
+              <View style={styles.busyRow}>
+                <ActivityIndicator color={colors.accent} />
+                <Text style={styles.busyText}>{t("keelReads.readingImage")}</Text>
+              </View>
+            ) : (
+              <Button
+                variant="secondary"
+                icon="photo.on.rectangle"
+                label={t("keelReads.addScreenshots")}
+                onPress={() => void addScreenshots()}
+                disabled={busy}
+              />
             )}
+            <Text style={styles.hint}>{t("keelReads.screenshotNote")}</Text>
+            {error && <Text style={styles.error}>{t(errorKey(error))}</Text>}
+            {error &&
+              error !== "no-json" &&
+              error !== "empty" &&
+              error !== "model-failed" &&
+              error !== "image-unreadable" && (
+                <Pressable onPress={useOwnAi} hitSlop={8}>
+                  <Text style={styles.settingsLink}>{t("keelReads.ownAi")}</Text>
+                </Pressable>
+              )}
             {busy ? (
               <View style={styles.busyRow}>
                 <ActivityIndicator color={colors.accent} />
@@ -196,7 +250,7 @@ export default function KeelReadsImportScreen() {
                 icon="sparkles"
                 label={t("importAI.read")}
                 onPress={() => void read()}
-                disabled={text.trim() === ""}
+                disabled={text.trim() === "" || ocrBusy}
               />
             )}
           </View>

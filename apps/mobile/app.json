@@ -72,6 +72,14 @@
             "deploymentTarget": "16.4"
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Keel reads the text of the screenshots you pick, on this iPhone.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

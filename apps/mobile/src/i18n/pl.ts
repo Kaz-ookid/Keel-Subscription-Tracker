@@ -988,6 +988,11 @@ const translation = {
     errQuota: "Dzisiejszy limit modelu chmurowego Apple został wyczerpany. Spróbuj jutro.",
     errService: "Model chmurowy Apple jest teraz niedostępny. Spróbuj później.",
     ownAi: "Użyj zamiast tego własnej AI",
+    addScreenshots: "Dodaj zrzuty ekranu",
+    readingImage: "Odczytywanie zrzutu ekranu…",
+    errImage: "Nie udało się odczytać tekstu z tego obrazu. Spróbuj ostrzejszego zrzutu.",
+    screenshotNote:
+      "Tekst ze zrzutów ekranu jest odczytywany na tym iPhonie i dodawany powyżej: widzisz i poprawiasz dokładnie to, co zostanie wysłane.",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",

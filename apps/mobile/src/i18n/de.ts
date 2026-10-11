@@ -948,6 +948,11 @@ export const de: typeof en = {
       "Das heutige Kontingent für Apples Cloud-Modell ist aufgebraucht. Versuch es morgen noch einmal.",
     errService: "Apples Cloud-Modell ist gerade nicht erreichbar. Versuch es später noch einmal.",
     ownAi: "Stattdessen deine eigene KI verwenden",
+    addScreenshots: "Screenshots hinzufügen",
+    readingImage: "Dein Screenshot wird gelesen…",
+    errImage: "In diesem Bild war kein Text lesbar. Versuch einen schärferen Screenshot.",
+    screenshotNote:
+      "Text aus Screenshots wird auf diesem iPhone gelesen und oben eingefügt: Du siehst und bearbeitest genau das, was gesendet wird.",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",

@@ -34,7 +34,13 @@ export type KeelReadsAvailability =
 
 /** Why a read failed, in the bridge's contract (see AppleIntelligenceError
  *  in the native module). The screens have a message for each. */
-export type KeelReadsFailure = "offline" | "quota" | "service" | "unavailable" | "model-failed";
+export type KeelReadsFailure =
+  | "offline"
+  | "quota"
+  | "service"
+  | "unavailable"
+  | "model-failed"
+  | "image-unreadable";
 
 export class KeelReadsError extends Error {
   constructor(public readonly reason: KeelReadsFailure) {
@@ -67,7 +73,13 @@ export function isKeelReadsOffered(availability: KeelReadsAvailability): boolean
 
 function toFailure(error: unknown): KeelReadsError {
   const message = error instanceof Error ? error.message : String(error);
-  const reasons: KeelReadsFailure[] = ["offline", "quota", "service", "unavailable"];
+  const reasons: KeelReadsFailure[] = [
+    "offline",
+    "quota",
+    "service",
+    "unavailable",
+    "image-unreadable",
+  ];
   const hit = reasons.find((reason) => message.includes(reason));
   return new KeelReadsError(hit ?? "model-failed");
 }
@@ -93,6 +105,17 @@ export async function assistWithKeel(
 ): Promise<string> {
   try {
     return await (await native()).assist(input, buildAssistantPrompt(context), "cloud");
+  } catch (error) {
+    throw toFailure(error);
+  }
+}
+
+/** A picked screenshot's text, read on the phone by Vision (nothing leaves
+ *  the device for this step); the caller shows it before anything is sent.
+ *  Throws KeelReadsError("image-unreadable"). */
+export async function recognizeScreenshot(uri: string): Promise<string> {
+  try {
+    return await (await native()).recognizeText(uri);
   } catch (error) {
     throw toFailure(error);
   }

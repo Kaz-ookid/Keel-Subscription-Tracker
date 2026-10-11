@@ -937,6 +937,11 @@ export const en = {
     errQuota: "Today's allowance for Apple's cloud model is used up. Try again tomorrow.",
     errService: "Apple's cloud model isn't reachable right now. Try again later.",
     ownAi: "Use your own AI instead",
+    addScreenshots: "Add screenshots",
+    readingImage: "Reading your screenshot…",
+    errImage: "Couldn't read any text from that image. Try a sharper screenshot.",
+    screenshotNote:
+      "Text from screenshots is read on this iPhone and added above, so you can see and edit exactly what will be sent.",
   },
   notifications: {
     bodyToday: "{{amount}} due today",
