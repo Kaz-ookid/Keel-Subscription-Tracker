@@ -9,17 +9,14 @@ import "../src/lib/font-scale";
 import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
+import { LockPresenter } from "../src/components/LockPresenter";
 import { SheetShield } from "../src/components/SheetShield";
 import { hydrateAiCloud } from "../src/lib/ai-cloud";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateAppLock } from "../src/lib/app-lock";
 import { hydrateCustomBank } from "../src/lib/custom-bank";
 import { hydrateBrandTints } from "../src/lib/dominant-color";
-import {
-  hydrateEntitlement,
-  onEntitlementChange,
-  shouldPresentLockOnce,
-} from "../src/lib/entitlement";
+import { hydrateEntitlement } from "../src/lib/entitlement";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
 import { noteScreenshotTap } from "../src/lib/screenshot-mode";
 import { AppStateProvider } from "../src/state/app-state";
@@ -50,19 +47,6 @@ function RootNavigator() {
     void hydrateBrandTints();
     void hydrateCustomBank();
     void hydrateEntitlement();
-  }, []);
-
-  // The "clear screen at expiry" (§7.3): the FIRST time the app is seen
-  // locked (at launch after day 45, or the moment expiry crosses while
-  // open), the locked sheet presents itself — exactly once, never a nag.
-  useEffect(() => {
-    const present = () =>
-      void shouldPresentLockOnce().then((should) => {
-        if (should) router.push("/locked");
-      });
-    present();
-    return onEntitlementChange(present);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Tapping a reminder lands on the commitment it's about.
@@ -103,6 +87,7 @@ function RootNavigator() {
       <Ambient />
       <ThemeProvider value={navTheme}>
         <AppStateProvider>
+          <LockPresenter />
           <ImportSessionProvider>
             <AssistantSessionProvider>
               <Stack

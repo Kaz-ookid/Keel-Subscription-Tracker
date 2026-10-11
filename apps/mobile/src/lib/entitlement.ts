@@ -224,6 +224,11 @@ export async function debugResetTrialClock(): Promise<void> {
 export async function shouldPresentLockOnce(): Promise<boolean> {
   await hydrateEntitlement();
   if (!state.locked) return false;
+  // Mount and the hydrate-change signal both ask within the same tick; the
+  // stored flag is written asynchronously, so an in-memory latch is what
+  // keeps the sheet from presenting twice (dogfood 2026-10-11).
+  if (lockPresentClaimed) return false;
+  lockPresentClaimed = true;
   try {
     if ((await AsyncStorage.getItem(LOCK_SHOWN_KEY)) === "true") return false;
     await AsyncStorage.setItem(LOCK_SHOWN_KEY, "true");
@@ -232,6 +237,7 @@ export async function shouldPresentLockOnce(): Promise<boolean> {
     return false;
   }
 }
+let lockPresentClaimed = false;
 
 /** The current snapshot for non-React call sites (reminder sync, widgets). */
 export function entitlementSnapshot(): Entitlement {
