@@ -73,37 +73,29 @@ import Vision
 
 /// Screenshot text, read on the phone by Vision (nothing leaves the device
 /// for this step). Lines come back top to bottom so a list reads as a list.
-private func recognizeText(in image: UIImage) async throws -> String {
+/// `perform` is synchronous and the request keeps its results, so there is
+/// no continuation to resume (one resumed from both the completion handler
+/// and the catch was a double-resume trap waiting for a bad bitmap). The
+/// callers already run off the JS thread inside an AsyncFunction.
+private func recognizeText(in image: UIImage) throws -> String {
   guard let cgImage = image.cgImage else { throw AppleIntelligenceError.imageUnreadable }
   let orientation = CGImagePropertyOrientation(image.imageOrientation)
-  return try await withCheckedThrowingContinuation { continuation in
-    let request = VNRecognizeTextRequest { request, error in
-      if let error = error {
-        continuation.resume(throwing: error)
-        return
+  let request = VNRecognizeTextRequest()
+  request.recognitionLevel = .accurate
+  request.usesLanguageCorrection = true
+  request.recognitionLanguages = ["en-US", "fr-FR", "de-DE", "it-IT", "pl-PL"]
+  let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
+  try handler.perform([request])
+  let lines = (request.results ?? [])
+    .sorted { a, b in
+      // Vision's origin is bottom-left: higher minY = higher on screen.
+      if abs(a.boundingBox.minY - b.boundingBox.minY) > 0.01 {
+        return a.boundingBox.minY > b.boundingBox.minY
       }
-      let observations = (request.results as? [VNRecognizedTextObservation]) ?? []
-      let lines = observations
-        .sorted { a, b in
-          // Vision's origin is bottom-left: higher minY = higher on screen.
-          if abs(a.boundingBox.minY - b.boundingBox.minY) > 0.01 {
-            return a.boundingBox.minY > b.boundingBox.minY
-          }
-          return a.boundingBox.minX < b.boundingBox.minX
-        }
-        .compactMap { $0.topCandidates(1).first?.string }
-      continuation.resume(returning: lines.joined(separator: "\n"))
+      return a.boundingBox.minX < b.boundingBox.minX
     }
-    request.recognitionLevel = .accurate
-    request.usesLanguageCorrection = true
-    request.recognitionLanguages = ["en-US", "fr-FR", "de-DE", "it-IT", "pl-PL"]
-    let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
-    do {
-      try handler.perform([request])
-    } catch {
-      continuation.resume(throwing: error)
-    }
-  }
+    .compactMap { $0.topCandidates(1).first?.string }
+  return lines.joined(separator: "\n")
 }
 
 extension CGImagePropertyOrientation {
@@ -146,7 +138,7 @@ public class AppleIntelligenceModule: Module {
         throw AppleIntelligenceError.imageUnreadable
       }
       do {
-        return try await recognizeText(in: image)
+        return try recognizeText(in: image)
       } catch let known as AppleIntelligenceError {
         throw known
       } catch {
@@ -190,12 +182,15 @@ public class AppleIntelligenceModule: Module {
     // the phone. Pages with a text layer come through PDFKit; pages without
     // one (scans, photographed bills) are rendered and read by Vision, so a
     // scanned statement goes through like any other, with nothing asked of
-    // the user. Capped at 40 pages: a statement, not a book.
+    // the user. Capped at 40 pages of text, and 8 pages of RECOGNITION: an
+    // accurate pass takes seconds per page with no way to cancel, and a
+    // statement is a few pages, not a book.
     AsyncFunction("extractPdfText") { (uri: String) async throws -> String in
       guard let url = URL(string: uri), let document = PDFDocument(url: url) else {
         throw AppleIntelligenceError.imageUnreadable
       }
       var pages: [String] = []
+      var recognitionBudget = 8
       for index in 0..<min(document.pageCount, 40) {
         guard let page = document.page(at: index) else { continue }
         let layer = (page.string ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
@@ -203,12 +198,16 @@ public class AppleIntelligenceModule: Module {
           pages.append(layer)
           continue
         }
-        // No usable text layer: render at roughly 200 dpi and read the picture.
+        guard recognitionBudget > 0 else { continue }
+        recognitionBudget -= 1
+        // No usable text layer: render at about 1600 px wide, whatever the
+        // page size (a scanner's 5000-point page must shrink, not be
+        // rasterized at full size), and read the picture.
         let bounds = page.bounds(for: .mediaBox)
-        let scale = max(1, 1600 / max(bounds.width, 1))
+        let scale = 1600 / max(bounds.width, 1)
         let size = CGSize(width: bounds.width * scale, height: bounds.height * scale)
         let image = page.thumbnail(of: size, for: .mediaBox)
-        if let read = try? await recognizeText(in: image), !read.isEmpty { pages.append(read) }
+        if let read = try? recognizeText(in: image), !read.isEmpty { pages.append(read) }
       }
       guard !pages.isEmpty else { throw AppleIntelligenceError.imageUnreadable }
       return pages.joined(separator: "\n\n")
