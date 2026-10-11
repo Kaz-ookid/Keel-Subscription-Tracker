@@ -37,7 +37,7 @@ const PATTERNS: readonly [ScrubKind, RegExp][] = [
   // Receipt / invoice / order / customer / transaction references.
   [
     "reference",
-    /\b(?:receipt|invoice|order|customer|transaction|reference|ref|facture|reçu|commande|client|rechnung|beleg|bestellung|kunde|fattura|ricevuta|ordine|cliente|faktura|paragon|zamówienie|klient)\s*(?:number|no\.?|nr\.?|n°|#|numéro|nummer|numero|numer)?\s*[:#]?\s*(?=[A-Z0-9-]*\d)[A-Z0-9][A-Z0-9-]{3,}\b/gi,
+    /\b(?:receipt|invoice|order|customer|transaction|reference|ref|billing|document|contract|member|policy|facture|reçu|commande|client|contrat|police|rechnung|beleg|bestellung|kunde|vertrag|mitglied|fattura|ricevuta|ordine|cliente|contratto|faktura|paragon|zamówienie|klient|umowa)\s*(?:number|no\.?|nr\.?|n°|#|id|numéro|nummer|numero|numer)?\s*[:#]?\s*(?=[A-Z0-9-]*\d)[A-Z0-9][A-Z0-9-]{3,}\b/gi,
   ],
   // VAT / UID / tax ids: CHE-123.456.789, FR12345678901, DE123456789, EU...
   ["taxId", /\b(?:CHE-\d{3}\.\d{3}\.\d{3}|[A-Z]{2}\d{8,12}|EU\d{9})\b/g],
