@@ -18,6 +18,7 @@ import { hydrateCustomBank } from "../src/lib/custom-bank";
 import { hydrateBrandTints } from "../src/lib/dominant-color";
 import { hydrateEntitlement } from "../src/lib/entitlement";
 import { hydrateLogoConsent } from "../src/lib/logo-consent";
+import { watchPurchases } from "../src/lib/purchases";
 import { noteScreenshotTap } from "../src/lib/screenshot-mode";
 import { AppStateProvider } from "../src/state/app-state";
 import { AssistantSessionProvider } from "../src/state/assistant-session";
@@ -47,6 +48,7 @@ function RootNavigator() {
     void hydrateBrandTints();
     void hydrateCustomBank();
     void hydrateEntitlement();
+    void watchPurchases();
   }, []);
 
   // Tapping a reminder lands on the commitment it's about.

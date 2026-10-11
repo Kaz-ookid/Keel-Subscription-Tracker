@@ -28,7 +28,7 @@ import { setFullKeel } from "./entitlement";
 export const FULL_KEEL_EARLY_PRODUCT_ID = "ch.keelapp.keel.full.early";
 export const FULL_KEEL_PRODUCT_ID = "ch.keelapp.keel.full";
 
-export type PurchaseOutcome = "purchased" | "cancelled" | "failed" | "unavailable";
+export type PurchaseOutcome = "purchased" | "pending" | "cancelled" | "failed" | "unavailable";
 export type RestoreOutcome = "restored" | "none" | "failed" | "unavailable";
 
 /** Which product a buyer in `state` may purchase. */
@@ -110,6 +110,31 @@ export function useFullKeelPrices(): { early: string | null; full: string | null
   return prices;
 }
 
+const FULL_KEEL_IDS = new Set([FULL_KEEL_PRODUCT_ID, FULL_KEEL_EARLY_PRODUCT_ID]);
+
+let watching = false;
+/** The listener that outlives any one paywall: a purchase StoreKit completes
+ *  after the sheet closed (a bank confirmation, Ask to Buy, the app killed
+ *  mid-flow) is replayed at the next launch, and this is what hears it and
+ *  unlocks. Registered once from the root layout; silent without StoreKit. */
+export async function watchPurchases(): Promise<void> {
+  if (watching) return;
+  watching = true;
+  const iap = await connected();
+  if (!iap) return;
+  iap.purchaseUpdatedListener((purchase) => {
+    void (async () => {
+      if (!FULL_KEEL_IDS.has(purchase.productId) || purchase.purchaseState !== "purchased") return;
+      try {
+        await iap.finishTransaction({ purchase, isConsumable: false });
+      } catch {
+        // Already finished by the paywall's own listener, or it retries.
+      }
+      await setFullKeel(true);
+    })();
+  });
+}
+
 /** The one purchase, at the price `state` earns. Ownership flips via
  *  setFullKeel(true), so every screen updates through the entitlement
  *  store. Resolves when the StoreKit flow settles either way. */
@@ -128,6 +153,13 @@ export async function buyFullKeel(state: TrialState): Promise<PurchaseOutcome> {
     };
     const updated = iap.purchaseUpdatedListener((purchase) => {
       void (async () => {
+        if (!FULL_KEEL_IDS.has(purchase.productId)) return;
+        if (purchase.purchaseState === "pending") {
+          // Ask to Buy: approved later, replayed at a later launch, where
+          // watchPurchases unlocks.
+          settle("pending");
+          return;
+        }
         try {
           // Non-consumable: acknowledge, then unlock. If finishing throws
           // after a real charge, restore remains the safety net.
@@ -140,8 +172,7 @@ export async function buyFullKeel(state: TrialState): Promise<PurchaseOutcome> {
       })();
     });
     const failed = iap.purchaseErrorListener((error) => {
-      const text = `${error.code ?? ""} ${error.message ?? ""}`.toLowerCase();
-      settle(text.includes("cancel") ? "cancelled" : "failed");
+      settle(error.code === "user-cancelled" ? "cancelled" : "failed");
     });
     iap.requestPurchase({ request: { apple: { sku } }, type: "in-app" }).catch(() => {
       settle("failed");

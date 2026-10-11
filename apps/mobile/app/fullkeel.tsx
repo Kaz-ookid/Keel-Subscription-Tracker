@@ -46,6 +46,8 @@ export default function FullKeelScreen() {
     setBusy(false);
     if (outcome === "failed") {
       Alert.alert(t("fullkeel.buyFailTitle"), t("fullkeel.buyFailMsg"));
+    } else if (outcome === "pending") {
+      Alert.alert(t("fullkeel.pendingTitle"), t("fullkeel.pendingMsg"));
     } else if (outcome === "unavailable") {
       // Expo Go / a build without StoreKit: say so instead of a dead button.
       Alert.alert(t("fullkeel.soonTitle"), t("fullkeel.soonMsg"), [{ text: t("common.done") }]);
@@ -60,7 +62,7 @@ export default function FullKeelScreen() {
     if (outcome === "none") {
       Alert.alert(t("fullkeel.restoreNoneTitle"), t("fullkeel.restoreNoneMsg"));
     } else if (outcome === "failed" || outcome === "unavailable") {
-      Alert.alert(t("fullkeel.buyFailTitle"), t("fullkeel.buyFailMsg"));
+      Alert.alert(t("fullkeel.restoreFailTitle"), t("fullkeel.restoreFailMsg"));
     }
   };
 
