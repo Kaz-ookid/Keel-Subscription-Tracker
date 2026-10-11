@@ -60,8 +60,7 @@ export function CadenceSection({ items, categories, asOf, displayCurrency, rates
 
   // Pay in X: what matters is how much is STILL OWED, and how far along.
   const planItems = items.filter(
-    (i) =>
-      i.status === "active" && isInstallmentSchedule(i.schedule) && !isPaymentItemComplete(i, asOf),
+    (i) => i.status === "active" && isInstallmentSchedule(i.schedule) && !isPaymentItemComplete(i),
   );
   const planSummaries = planItems.flatMap((i) =>
     isInstallmentSchedule(i.schedule) ? [summarizeInstallmentPlan(i.schedule)] : [],
@@ -95,7 +94,7 @@ export function CadenceSection({ items, categories, asOf, displayCurrency, rates
             (i) =>
               i.status === "active" &&
               isRecurringSchedule(i.schedule) &&
-              !isPaymentItemComplete(i, asOf) &&
+              !isPaymentItemComplete(i) &&
               cadenceBucket(i.schedule.recurrence) === g.kind,
           )
           .sort((a, b) => {

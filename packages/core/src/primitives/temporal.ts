@@ -34,19 +34,6 @@ export function calendarDate(value: string): CalendarDate {
   return value;
 }
 
-/** True if `value` parses as an ISO-8601 instant. */
-export function isTimestamp(value: string): value is Timestamp {
-  return !Number.isNaN(Date.parse(value)) && value.includes("T");
-}
-
-/** Smart constructor for an instant. Throws on un-parseable input. */
-export function timestamp(value: string): Timestamp {
-  if (!isTimestamp(value)) {
-    throw new RangeError(`Invalid timestamp: "${value}" (expected ISO-8601)`);
-  }
-  return value;
-}
-
 /** The current instant as a `Timestamp`. */
 export function now(): Timestamp {
   return new Date().toISOString() as Timestamp;
@@ -55,7 +42,11 @@ export function now(): Timestamp {
 /** The current day as a `CalendarDate` — the impure sibling of `now()`. Pure
  *  calculation code takes an `asOf` parameter instead of calling this. */
 export function today(): CalendarDate {
-  return new Date().toISOString().slice(0, 10) as CalendarDate;
+  // The LOCAL day, never the UTC one: at 00:30 in Zurich the UTC date is
+  // still yesterday, and every "due today" would be off until 01:00/02:00.
+  const d = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` as CalendarDate;
 }
 
 /** Format a calendar date for display in European style: "2026-06-08" → "08.06.2026".

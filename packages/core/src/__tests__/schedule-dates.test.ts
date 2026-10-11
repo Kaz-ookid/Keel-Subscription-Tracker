@@ -4,9 +4,9 @@ import {
   alignToOccurrence,
   anchorFromDate,
   calendarDate,
-  describeRecurrence,
   listOccurrenceDates,
   nextDueDate,
+  nextOnGrid,
   nthWeekdayOfMonth,
   RECURRENCE_PRESETS,
   type RecurrenceRule,
@@ -70,12 +70,42 @@ describe("listOccurrenceDates", () => {
     ]);
   });
 
-  it("steps through month-end clamping like addRecurrence", () => {
-    expect(listOccurrenceDates(calendarDate("2026-01-31"), RECURRENCE_PRESETS.MONTHLY, 3)).toEqual([
+  it("comes back to the anchor day after a short month instead of drifting", () => {
+    expect(listOccurrenceDates(calendarDate("2026-01-31"), RECURRENCE_PRESETS.MONTHLY, 4)).toEqual([
       "2026-01-31",
       "2026-02-28",
-      "2026-03-28",
+      "2026-03-31",
+      "2026-04-30",
     ]);
+    expect(
+      nextDueDate(
+        calendarDate("2026-01-31"),
+        RECURRENCE_PRESETS.MONTHLY,
+        calendarDate("2026-02-28"),
+      ),
+    ).toBe("2026-03-31");
+    // A leap-day yearly plan: Feb 28 in common years, Feb 29 when it exists.
+    expect(listOccurrenceDates(calendarDate("2028-02-29"), RECURRENCE_PRESETS.YEARLY, 5)).toEqual([
+      "2028-02-29",
+      "2029-02-28",
+      "2030-02-28",
+      "2031-02-28",
+      "2032-02-29",
+    ]);
+  });
+
+  it("steps a cursor on its grid even when the cursor itself sits on a clamped day", () => {
+    expect(
+      nextOnGrid(
+        calendarDate("2026-01-31"),
+        RECURRENCE_PRESETS.MONTHLY,
+        calendarDate("2026-02-28"),
+      ),
+    ).toBe("2026-03-31");
+    // A plain step from a date has no grid and keeps the old behavior.
+    expect(addRecurrence(calendarDate("2026-02-28"), RECURRENCE_PRESETS.MONTHLY)).toBe(
+      "2026-03-28",
+    );
   });
 });
 
@@ -128,13 +158,6 @@ describe("weekday-anchored monthly rules", () => {
       "2026-07-02",
       "2026-08-06",
     ]);
-  });
-
-  it("words anchored rules naturally", () => {
-    expect(describeRecurrence(firstThursday)).toBe("every 1st Thursday");
-    expect(
-      describeRecurrence({ unit: "month", interval: 2, anchor: { week: "last", weekday: 5 } }),
-    ).toBe("every 2 months on the last Friday");
   });
 });
 

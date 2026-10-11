@@ -1,7 +1,7 @@
 // Insights calculations: the "full picture" numbers. Two kinds of truth that
 // must never be conflated —
 //   REAL:   what actually leaves the pocket in a given month, projected from
-//           the schedules (forecastByMonth);
+//           the schedules (spendingByMonth);
 //   THEORY: what life costs per month/year once yearly/quarterly items are
 //           spread out (equivalents, cadence groups, yearlyCommitment).
 // All pure functions of items + a date, like the rest of the core.
@@ -12,13 +12,14 @@ import { addRecurrence, endOfMonth } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate } from "../primitives/temporal";
 import { COVERED_INSTALLMENT_STATUSES } from "../models/installment";
 import {
+  effectiveRecurringAmount,
   isInstallmentSchedule,
   isRecurringSchedule,
   type PaymentItem,
   type PriceHistoryEntry,
   type RecurringSchedule,
 } from "../models/payment-item";
-import { isPaymentItemComplete } from "../models/payment-item-status";
+import { isPaymentItemEnded } from "../models/payment-item-status";
 import type { PaymentOccurrence } from "../models/payment-occurrence";
 import { monthlyEquivalent, occurrencesPerYear, projectCharges } from "./forecast";
 
@@ -32,33 +33,6 @@ export interface MonthBucket {
   monthStart: CalendarDate;
   /** Real projected outflow that month, one total per currency. */
   totals: Money[];
-}
-
-/**
- * REAL money month by month: every projected charge from `from`'s month
- * through `months` months, bucketed by due month. Months with nothing due are
- * present with empty totals, so a 12-month chart always has 12 bars.
- */
-export function forecastByMonth(
-  items: readonly PaymentItem[],
-  from: CalendarDate,
-  months: number,
-): MonthBucket[] {
-  const starts: CalendarDate[] = [];
-  let start = calendarDate(`${from.slice(0, 7)}-01`);
-  for (let i = 0; i < months; i++) {
-    starts.push(start);
-    start = addRecurrence(start, { unit: "month", interval: 1 });
-  }
-
-  const until = endOfMonth(starts[starts.length - 1]);
-  const charges = projectCharges(items, until);
-
-  return starts.map((monthStart) => {
-    const key = monthStart.slice(0, 7);
-    const inMonth = charges.filter((c) => c.dueDate.slice(0, 7) === key);
-    return { monthStart, totals: sumByCurrency(inMonth.map((c) => c.amount)) };
-  });
 }
 
 /**
@@ -229,7 +203,7 @@ function liveRecurring(
   asOf: CalendarDate,
 ): { item: PaymentItem; schedule: RecurringSchedule }[] {
   return items.flatMap((item) => {
-    if (item.status !== "active" || isPaymentItemComplete(item, asOf)) return [];
+    if (item.status !== "active" || isPaymentItemEnded(item, asOf)) return [];
     if (!isRecurringSchedule(item.schedule)) return [];
     return [{ item, schedule: item.schedule }];
   });
@@ -245,7 +219,9 @@ export function groupByCadence(items: readonly PaymentItem[], asOf: CalendarDate
   const groups = new Map<CadenceKind, CadenceGroup>();
 
   for (const { schedule } of liveRecurring(items, asOf)) {
-    const { recurrence, amount } = schedule;
+    const { recurrence } = schedule;
+    // The price in force today, not the intro price a trial started at.
+    const amount = effectiveRecurringAmount(schedule, asOf);
     const kind = cadenceBucket(recurrence);
     const monthly = monthlyEquivalent(amount, recurrence);
     const yearly = yearlyEquivalent(amount, recurrence);
@@ -270,53 +246,8 @@ export function groupByCadence(items: readonly PaymentItem[], asOf: CalendarDate
 export function yearlyCommitment(items: readonly PaymentItem[], asOf: CalendarDate): Money[] {
   return sumByCurrency(
     liveRecurring(items, asOf).map(({ schedule }) =>
-      yearlyEquivalent(schedule.amount, schedule.recurrence),
+      yearlyEquivalent(effectiveRecurringAmount(schedule, asOf), schedule.recurrence),
     ),
-  );
-}
-
-export interface CategoryGroup {
-  /** Undefined = the uncategorised bucket. */
-  categoryId?: string;
-  count: number;
-  /** Theory: the category's per-month equivalent, one total per currency. */
-  monthlyTotal: Money[];
-  /** Theory: the category's per-year equivalent, one total per currency. */
-  yearlyTotal: Money[];
-}
-
-/**
- * THEORY: where the recurring money goes — per category, with monthly and
- * yearly equivalents. Sorted by yearly weight (largest first); items without
- * a category share one bucket at the end of wherever their weight lands.
- */
-export function groupByCategory(
-  items: readonly PaymentItem[],
-  asOf: CalendarDate,
-): CategoryGroup[] {
-  const groups = new Map<string, CategoryGroup>();
-
-  for (const { item, schedule } of liveRecurring(items, asOf)) {
-    const key = item.categoryId ?? "";
-    const monthly = monthlyEquivalent(schedule.amount, schedule.recurrence);
-    const yearly = yearlyEquivalent(schedule.amount, schedule.recurrence);
-    const existing = groups.get(key);
-    if (existing) {
-      existing.count += 1;
-      existing.monthlyTotal = sumByCurrency([...existing.monthlyTotal, monthly]);
-      existing.yearlyTotal = sumByCurrency([...existing.yearlyTotal, yearly]);
-    } else {
-      groups.set(key, {
-        categoryId: item.categoryId,
-        count: 1,
-        monthlyTotal: [monthly],
-        yearlyTotal: [yearly],
-      });
-    }
-  }
-
-  return Array.from(groups.values()).sort(
-    (a, b) => (b.yearlyTotal[0]?.amount ?? 0) - (a.yearlyTotal[0]?.amount ?? 0),
   );
 }
 
@@ -356,7 +287,7 @@ export function summarizePriceChanges(
     .map(({ item, schedule }) => {
       const history = schedule.priceHistory;
       const original = history[0].amount;
-      const current = schedule.amount;
+      const current = effectiveRecurringAmount(schedule, asOf);
       return {
         paymentItemId: item.id,
         name: item.name,

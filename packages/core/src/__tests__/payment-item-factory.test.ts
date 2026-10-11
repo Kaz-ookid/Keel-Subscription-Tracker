@@ -199,6 +199,27 @@ describe("update helpers", () => {
     expect(edited.schedule.nextChargeDate).toBe("2026-05-15"); // first monthly after last charge
   });
 
+  it("keeps a cursor a resume moved forward, so an edit never rewinds it", () => {
+    // Charged Jan 15, paused, resumed May 20: the cursor sits on Jun 15
+    // with no ledger row for Feb..May. A rename must not recompute it from
+    // the last charge, or the next catch-up would log four paused months.
+    const existing = makeRecurringPaymentItem(
+      { ...input, settlementMode: "automatic" },
+      { id: "item-1", now: now() },
+    );
+    const paused = pausePaymentItem(existing, { now: now() });
+    const resumed = resumePaymentItem(paused, { now: now(), asOf: calendarDate("2026-05-20") });
+    if (!isRecurringSchedule(resumed.schedule)) throw new Error("expected recurring");
+    expect(resumed.schedule.nextChargeDate).toBe("2026-06-15");
+    const renamed = updateRecurringPaymentItem(
+      resumed,
+      { ...input, settlementMode: "automatic", name: "Renamed" },
+      { now: now(), lastChargedDate: calendarDate("2026-01-15") },
+    );
+    if (!isRecurringSchedule(renamed.schedule)) throw new Error("expected recurring");
+    expect(renamed.schedule.nextChargeDate).toBe("2026-06-15");
+  });
+
   it("moves nextChargeDate when the recurrence changes", () => {
     const existing = makeRecurringPaymentItem(input, { id: "item-1", now: now() });
     const edited = updateRecurringPaymentItem(
@@ -385,7 +406,7 @@ describe("update helpers", () => {
       { ...plan, numberOfInstallments: 2 },
       { now: now(), makeId: ids("c") },
     );
-    expect(isPaymentItemComplete(shrunk, calendarDate("2026-02-15"))).toBe(true);
+    expect(isPaymentItemComplete(shrunk)).toBe(true);
   });
 });
 
@@ -395,18 +416,29 @@ describe("completion lifecycle", () => {
     return () => `i-${++n}`;
   };
 
-  it("marks a recurring item complete once its end date has passed", () => {
-    const item = makeRecurringPaymentItem(
-      { ...input, endDate: calendarDate("2026-03-31") },
+  it("stays open past its end date until the last billing is settled", () => {
+    // Manual, monthly on the 15th, ending 2026-03-15: a passed end date is
+    // not completion while the March charge was never ticked (it must stay
+    // overdue and markable), and it is complete the moment it is.
+    let item = makeRecurringPaymentItem(
+      { ...input, endDate: calendarDate("2026-03-15") },
       { id: "r1", now: now() },
     );
-    expect(isPaymentItemComplete(item, calendarDate("2026-03-15"))).toBe(false);
-    expect(isPaymentItemComplete(item, calendarDate("2026-04-01"))).toBe(true);
+    expect(isPaymentItemComplete(item)).toBe(false);
+    expect(canMarkPaid(item, calendarDate("2026-04-01"))).toBe(true);
+    for (let n = 1; n <= 3; n++) {
+      item = recordRecurringPayment(item, {
+        id: `occ-${n}`,
+        paidDate: calendarDate("2026-04-01"),
+        now: now(),
+      }).item;
+    }
+    expect(isPaymentItemComplete(item)).toBe(true);
   });
 
   it("never completes a recurring item without an end date", () => {
     const item = makeRecurringPaymentItem(input, { id: "r2", now: now() });
-    expect(isPaymentItemComplete(item, calendarDate("2030-01-01"))).toBe(false);
+    expect(isPaymentItemComplete(item)).toBe(false);
   });
 
   it("completes once the last billing is paid, even before the end date arrives", () => {
@@ -424,12 +456,12 @@ describe("completion lifecycle", () => {
 
     item = pay(1);
     item = pay(2);
-    expect(isPaymentItemComplete(item, calendarDate("2026-03-01"))).toBe(false);
+    expect(isPaymentItemComplete(item)).toBe(false);
 
     item = pay(3); // the March 15 billing — cursor moves past the end date
     if (!isRecurringSchedule(item.schedule)) throw new Error("expected recurring");
     expect(item.schedule.nextChargeDate).toBe("2026-04-15");
-    expect(isPaymentItemComplete(item, calendarDate("2026-03-01"))).toBe(true);
+    expect(isPaymentItemComplete(item)).toBe(true);
   });
 
   it("marks the next installment paid and completes the plan after the last", () => {
@@ -443,7 +475,7 @@ describe("completion lifecycle", () => {
     };
     let item = makeInstallmentPaymentItem(plan, { id: "p1", now: now(), makeId: ids() });
     const today = calendarDate("2026-06-01");
-    expect(isPaymentItemComplete(item, today)).toBe(false);
+    expect(isPaymentItemComplete(item)).toBe(false);
 
     item = markNextInstallmentPaid(item, { paidDate: today, now: now() });
     if (!isInstallmentSchedule(item.schedule)) throw new Error("expected installment");
@@ -451,7 +483,7 @@ describe("completion lifecycle", () => {
 
     item = markNextInstallmentPaid(item, { paidDate: today, now: now() });
     item = markNextInstallmentPaid(item, { paidDate: today, now: now() });
-    expect(isPaymentItemComplete(item, today)).toBe(true);
+    expect(isPaymentItemComplete(item)).toBe(true);
 
     // A further mark is a no-op once everything is covered.
     const same = markNextInstallmentPaid(item, { paidDate: today, now: now() });
@@ -541,10 +573,20 @@ describe("canMarkPaid (unified cycle cap)", () => {
     });
     expect(canMarkPaid(paused, calendarDate("2026-01-02"))).toBe(false);
 
-    const ended = makeRecurringPaymentItem(
+    // Ended on paper (last billing Feb 15) but never ticked: the two charges
+    // are overdue and must stay markable; once both are, nothing is left.
+    let ended = makeRecurringPaymentItem(
       { ...input, endDate: calendarDate("2026-02-15") },
       { id: "r4", now: now() },
     );
+    expect(canMarkPaid(ended, calendarDate("2026-03-01"))).toBe(true);
+    for (let n = 1; n <= 2; n++) {
+      ended = recordRecurringPayment(ended, {
+        id: `occ-end-${n}`,
+        paidDate: calendarDate("2026-03-01"),
+        now: now(),
+      }).item;
+    }
     expect(canMarkPaid(ended, calendarDate("2026-03-01"))).toBe(false);
   });
 });

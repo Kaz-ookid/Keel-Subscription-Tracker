@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calendarDate, formatCalendarDate, isCalendarDate, isTimestamp, timestamp } from "../index";
+import { calendarDate, formatCalendarDate, isCalendarDate, today } from "../index";
 
 describe("CalendarDate", () => {
   it("accepts a valid YYYY-MM-DD day", () => {
@@ -24,14 +24,10 @@ describe("CalendarDate", () => {
   });
 });
 
-describe("Timestamp", () => {
-  it("accepts an ISO-8601 instant", () => {
-    expect(isTimestamp("2026-06-01T14:30:00Z")).toBe(true);
-    expect(timestamp("2026-06-01T14:30:00Z")).toBe("2026-06-01T14:30:00Z");
-  });
-
-  it("rejects a bare calendar date (no time component)", () => {
-    expect(isTimestamp("2026-06-01")).toBe(false);
-    expect(() => timestamp("2026-06-01")).toThrow(RangeError);
+describe("today", () => {
+  it("is the local calendar day, not the UTC one", () => {
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    expect(today()).toBe(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`);
   });
 });

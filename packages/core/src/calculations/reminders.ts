@@ -8,6 +8,7 @@ import { reminderRules, type ReminderRule } from "../primitives/reminder";
 import { addDays, shiftOffWeekend } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import {
+  effectiveRecurringAmount,
   isInstallmentSchedule,
   isRecurringSchedule,
   type PaymentItem,
@@ -72,7 +73,7 @@ export function plannedReminders(
   asOf: CalendarDate,
 ): PlannedReminder[] {
   const planned = items.flatMap((item) => {
-    if (item.status !== "active" || isPaymentItemComplete(item, asOf)) return [];
+    if (item.status !== "active" || isPaymentItemComplete(item)) return [];
     const rules = reminderRules(item);
     const primary: ReminderRule | undefined = rules[0];
     const reminders: PlannedReminder[] = [];
@@ -110,7 +111,12 @@ export function plannedReminders(
       let amount: Money | undefined;
       if (isRecurringSchedule(item.schedule)) {
         dueDate = item.schedule.nextChargeDate;
-        amount = item.schedule.amount;
+        // The amount that will actually bill on that day (post-intro price);
+        // a free trial keeps its 0 so the trial-end reminder stays the only one.
+        amount =
+          item.schedule.amount.amount > 0
+            ? effectiveRecurringAmount(item.schedule, dueDate)
+            : item.schedule.amount;
       } else if (isInstallmentSchedule(item.schedule)) {
         const next = summarizeInstallmentPlan(item.schedule).nextDue;
         dueDate = next?.dueDate;

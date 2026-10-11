@@ -6,7 +6,7 @@
 
 import { money, sumByCurrency, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
-import { addRecurrence, shiftOffWeekend } from "../primitives/schedule-dates";
+import { nextOnGrid, shiftOffWeekend } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import { COVERED_INSTALLMENT_STATUSES } from "../models/installment";
 import {
@@ -17,7 +17,7 @@ import {
   type ScheduleType,
   type SettlementMode,
 } from "../models/payment-item";
-import { isPaymentItemComplete } from "../models/payment-item-status";
+import { isPaymentItemEnded } from "../models/payment-item-status";
 import { summarizeInstallmentPlan } from "../models/installment-plan";
 
 /**
@@ -92,7 +92,7 @@ export function projectItemCharges(item: PaymentItem, until: CalendarDate): Proj
           ...(shifted !== due ? { shiftedFrom: due } : {}),
         });
       }
-      due = addRecurrence(due, recurrence);
+      due = nextOnGrid(schedule.firstChargeDate, recurrence, due);
     }
     return charges;
   }
@@ -166,7 +166,7 @@ export function summarizeCommitments(
   items: readonly PaymentItem[],
   asOf: CalendarDate,
 ): CommitmentSummary {
-  const live = items.filter((i) => i.status === "active" && !isPaymentItemComplete(i, asOf));
+  const live = items.filter((i) => i.status === "active" && !isPaymentItemEnded(i, asOf));
 
   const monthly = sumByCurrency(
     live

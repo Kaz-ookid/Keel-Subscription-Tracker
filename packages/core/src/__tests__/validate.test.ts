@@ -75,6 +75,17 @@ describe("isValidPaymentItem", () => {
     expect(isValidPaymentItem({ ...recurring(), id: "" })).toBe(false);
   });
 
+  it("rejects impossible days and plans with no installments", () => {
+    const r = recurring();
+    expect(
+      isValidPaymentItem({ ...r, schedule: { ...r.schedule, firstChargeDate: "2026-02-30" } }),
+    ).toBe(false);
+    const plan = installment();
+    expect(isValidPaymentItem({ ...plan, schedule: { ...plan.schedule, installments: [] } })).toBe(
+      false,
+    );
+  });
+
   it("rejects a corrupted amount (string where Money should be)", () => {
     const item = recurring();
     const corrupt = {

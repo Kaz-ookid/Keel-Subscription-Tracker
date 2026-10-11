@@ -67,9 +67,9 @@ const STATUS_LABEL_KEY: Record<StatusKey, string> = {
   done: "allList.statusDone",
 };
 
-function statusOf(item: PaymentItem, asOf: ReturnType<typeof today>): StatusKey {
+function statusOf(item: PaymentItem): StatusKey {
   if (item.status === "paused") return "paused";
-  if (isPaymentItemComplete(item, asOf)) return "done";
+  if (isPaymentItemComplete(item)) return "done";
   return "ongoing";
 }
 
@@ -177,7 +177,7 @@ export function SubscriptionsView() {
   // bills on (the 5th before the 15th) — predictable and non-reshuffling,
   // where "next charge" would reorder the list all the time.
   const sorted = items
-    .filter((i) => shown.has(statusOf(i, asOf)))
+    .filter((i) => shown.has(statusOf(i)))
     .filter((i) =>
       accountFilter === "all"
         ? true
@@ -186,8 +186,8 @@ export function SubscriptionsView() {
           : i.accountId === accountFilter,
     )
     .sort((a, b) => {
-      const doneA = isPaymentItemComplete(a, asOf) ? 1 : 0;
-      const doneB = isPaymentItemComplete(b, asOf) ? 1 : 0;
+      const doneA = isPaymentItemComplete(a) ? 1 : 0;
+      const doneB = isPaymentItemComplete(b) ? 1 : 0;
       if (doneA !== doneB) return doneA - doneB;
       if (sort === "price") {
         return (

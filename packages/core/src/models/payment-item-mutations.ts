@@ -3,7 +3,8 @@
 // (payment-item-factory.ts) so creation and mutation each read in one sitting.
 // Same purity contract: all non-determinism (ids, "now") is injected.
 
-import { addRecurrence, nextDueDate, shiftOffWeekend } from "../primitives/schedule-dates";
+import type { RecurrenceRule } from "../primitives/recurrence";
+import { nextDueDate, nextOnGrid, shiftOffWeekend } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate, type Timestamp } from "../primitives/temporal";
 import {
   COVERED_INSTALLMENT_STATUSES,
@@ -50,6 +51,9 @@ function graduateIfConverted(
 
 export interface UpdateContext {
   now: Timestamp;
+  /** The local calendar day, for a price change's `effectiveFrom`. Falls
+   *  back to the UTC day of `now` when absent. */
+  today?: CalendarDate;
   /**
    * Latest recorded charge date for this item (max `dueDate` from the occurrence
    * ledger). Anchors the recomputed `nextChargeDate` so it never regresses behind
@@ -63,6 +67,15 @@ export interface UpdateContext {
    * change — rewrite the latest entry in place, never recording a change.
    */
   priceEdit?: "change" | "correction";
+}
+
+function sameRecurrence(a: RecurrenceRule, b: RecurrenceRule): boolean {
+  return (
+    a.unit === b.unit &&
+    a.interval === b.interval &&
+    a.anchor?.week === b.anchor?.week &&
+    a.anchor?.weekday === b.anchor?.weekday
+  );
 }
 
 /** Collapse neighbors that no longer differ (a rewrite/removal can leave two
@@ -96,14 +109,24 @@ export function updateRecurringPaymentItem(
     throw new TypeError("rebuilt item is not recurring"); // unreachable
   }
 
-  // Recompute the "next charge" cursor: the next occurrence after the last
-  // recorded charge, or the first charge itself if nothing has been charged.
-  // Recorded charges sit on the schedule grid, so an unchanged schedule yields
-  // the same value (no spurious shift) while a changed recurrence/first-date
-  // moves it correctly — and it never regresses behind a recorded charge.
-  const nextChargeDate = ctx.lastChargedDate
-    ? nextDueDate(input.firstChargeDate, input.recurrence, ctx.lastChargedDate)
-    : input.firstChargeDate;
+  // The "next charge" cursor. On an unchanged grid the stored cursor is the
+  // truth about what was paid OR skipped: a resume moves it past the paused
+  // months without a ledger row, so recomputing it from the last recorded
+  // charge would rewind it and the next catch-up would log the paused
+  // months as paid. It only moves forward here, never behind a recorded
+  // charge. A changed first date or recurrence recomputes it on the new
+  // grid (the snapped first date, not the raw input).
+  const grid = rebuilt.schedule;
+  const afterLastCharge = ctx.lastChargedDate
+    ? nextDueDate(grid.firstChargeDate, grid.recurrence, ctx.lastChargedDate)
+    : grid.firstChargeDate;
+  const sameGrid =
+    grid.firstChargeDate === previous.firstChargeDate &&
+    sameRecurrence(grid.recurrence, previous.recurrence);
+  const nextChargeDate =
+    sameGrid && previous.nextChargeDate > afterLastCharge
+      ? previous.nextChargeDate
+      : afterLastCharge;
 
   // Keep the price history; act only when the amount actually changed. A
   // "change" appends (the Price-changes insight reads it); a "correction"
@@ -123,7 +146,10 @@ export function updateRecurringPaymentItem(
           ])
         : [
             ...previous.priceHistory,
-            { amount: input.amount, effectiveFrom: calendarDate(ctx.now.slice(0, 10)) },
+            {
+              amount: input.amount,
+              effectiveFrom: ctx.today ?? calendarDate(ctx.now.slice(0, 10)),
+            },
           ];
   }
 
@@ -353,7 +379,7 @@ export function recordRecurringPayment(
     updatedAt: ctx.now,
     schedule: {
       ...graduated,
-      nextChargeDate: addRecurrence(due, schedule.recurrence),
+      nextChargeDate: nextOnGrid(schedule.firstChargeDate, schedule.recurrence, due),
     },
   };
 
@@ -411,7 +437,7 @@ export function skipRecurringPayment(
     updatedAt: ctx.now,
     schedule: {
       ...graduated,
-      nextChargeDate: addRecurrence(due, schedule.recurrence),
+      nextChargeDate: nextOnGrid(schedule.firstChargeDate, schedule.recurrence, due),
     },
   };
 
@@ -472,7 +498,10 @@ export function accrueDueOccurrences(
       });
     }
     if (schedule.introOffer && due >= schedule.introOffer.convertsOn) crossedConversion = true;
-    schedule = { ...schedule, nextChargeDate: addRecurrence(due, schedule.recurrence) };
+    schedule = {
+      ...schedule,
+      nextChargeDate: nextOnGrid(schedule.firstChargeDate, schedule.recurrence, due),
+    };
   }
 
   // Finalize a converted trial once a charge has crossed its conversion date.

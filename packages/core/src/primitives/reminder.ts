@@ -29,19 +29,3 @@ export function reminderRules(source: {
 }): readonly ReminderRule[] {
   return source.reminders ?? (source.reminder ? [source.reminder] : []);
 }
-
-export const REMINDER_PRESETS = {
-  SAME_DAY: { daysBefore: 0 },
-  ONE_DAY: { daysBefore: 1 },
-  TWO_DAYS: { daysBefore: 2 },
-  ONE_WEEK: { daysBefore: 7 },
-} as const satisfies Record<string, ReminderRule>;
-
-/** Human label, including the "never" case when no rule is set. */
-export function describeReminder(rule?: ReminderRule): string {
-  if (!rule) return "Never";
-  if (rule.daysBefore === 0) return "On the day";
-  if (rule.daysBefore === 1) return "1 day before";
-  if (rule.daysBefore === 7) return "1 week before";
-  return `${rule.daysBefore} days before`;
-}

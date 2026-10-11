@@ -43,9 +43,16 @@ export function anchorFromDate(date: CalendarDate): MonthlyAnchor {
  * Add one recurrence interval to a calendar date. Day/week stepping is exact;
  * month/year stepping clamps the day to the target month's length so
  * "Jan 31 + 1 month" → "Feb 28" (or "Feb 29" in a leap year) rather than
- * overflowing into March.
+ * overflowing into March. `anchorDay` is the day-of-month the GRID is
+ * anchored on: stepping from a clamped Feb 28 with anchor 31 lands on Mar
+ * 31, not Mar 28. Without it, the step clamps from `date`'s own day (a
+ * plain "one month from now", not a schedule step: see nextOnGrid).
  */
-export function addRecurrence(date: CalendarDate, rule: RecurrenceRule): CalendarDate {
+export function addRecurrence(
+  date: CalendarDate,
+  rule: RecurrenceRule,
+  anchorDay?: number,
+): CalendarDate {
   const [y, m, d] = date.split("-").map(Number);
 
   if (rule.unit === "day" || rule.unit === "week") {
@@ -69,8 +76,27 @@ export function addRecurrence(date: CalendarDate, rule: RecurrenceRule): Calenda
 
   // Day 0 of the *next* month gives the last day of the target month.
   const daysInTargetMonth = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
-  const clampedDay = Math.min(d, daysInTargetMonth);
+  const clampedDay = Math.min(anchorDay ?? d, daysInTargetMonth);
   return calendarDate(`${targetYear}-${pad(targetMonth + 1)}-${pad(clampedDay)}`);
+}
+
+/** The day-of-month a schedule's grid is anchored on. */
+function anchorDayOf(first: CalendarDate): number {
+  return Number(first.slice(8, 10));
+}
+
+/**
+ * The next occurrence after `due` on the grid that starts at `first`: the
+ * one step every cursor advance must use, so a subscription billed on the
+ * 31st comes back to the 31st after February instead of drifting to the
+ * 28th for the rest of its life.
+ */
+export function nextOnGrid(
+  first: CalendarDate,
+  rule: RecurrenceRule,
+  due: CalendarDate,
+): CalendarDate {
+  return addRecurrence(due, rule, anchorDayOf(first));
 }
 
 /**
@@ -86,7 +112,7 @@ export function nextDueDate(
   let due = firstChargeDate;
   // CalendarDate is YYYY-MM-DD, so string comparison is chronological.
   while (due <= asOf) {
-    due = addRecurrence(due, rule);
+    due = nextOnGrid(firstChargeDate, rule, due);
   }
   return due;
 }
@@ -104,7 +130,7 @@ export function listOccurrenceDates(
   let due = first;
   for (let i = 0; i < count; i++) {
     dates.push(due);
-    due = addRecurrence(due, rule);
+    due = nextOnGrid(first, rule, due);
   }
   return dates;
 }
@@ -168,7 +194,7 @@ export function alignToOccurrence(
   if (date <= first) return first;
   let current = first;
   for (;;) {
-    const next = addRecurrence(current, rule);
+    const next = nextOnGrid(first, rule, current);
     if (next > date) return current;
     current = next;
   }

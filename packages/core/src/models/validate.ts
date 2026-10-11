@@ -14,6 +14,7 @@
 import type { SuggestedCommitment } from "../constants/suggestions";
 import type { AiActivityEntry } from "./ai-activity";
 import type { Money } from "../primitives/money";
+import { isCalendarDate } from "../primitives/temporal";
 import type { MonthlyAnchor, RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
 import type { Account } from "./account";
@@ -45,10 +46,10 @@ function optional(value: unknown, guard: (v: unknown) => boolean): boolean {
   return value === undefined || guard(value);
 }
 
-const CALENDAR_DATE = /^\d{4}-\d{2}-\d{2}$/;
-
+/** One rule for "is this a calendar day" everywhere: the import parser's
+ *  strict check, so a backup or an assistant plan cannot carry Feb 30. */
 export function isValidCalendarDate(value: unknown): boolean {
-  return typeof value === "string" && CALENDAR_DATE.test(value);
+  return typeof value === "string" && isCalendarDate(value);
 }
 
 export function isValidMoney(value: unknown): value is Money {
@@ -160,6 +161,8 @@ function isValidInstallmentSchedule(value: Raw): value is Raw & InstallmentSched
     isValidRecurrence(value.recurrence) &&
     isValidCalendarDate(value.firstInstallmentDate) &&
     Array.isArray(value.installments) &&
+    // An empty plan passes `every` and then throws in the plan summary.
+    value.installments.length >= 1 &&
     value.installments.every(isValidInstallment) &&
     optional(value.provider, isNonEmptyString) &&
     optional(value.originalPurchase, (v) => typeof v === "string")

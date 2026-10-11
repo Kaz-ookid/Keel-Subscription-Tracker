@@ -2,10 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   cadenceBucket,
   calendarDate,
-  forecastByMonth,
   fromMajor,
   groupByCadence,
-  groupByCategory,
   makeInstallmentPaymentItem,
   makeRecurringPaymentItem,
   markNextInstallmentPaid,
@@ -123,41 +121,6 @@ describe("yearlyEquivalent", () => {
     expect(yearlyEquivalent(eur(50), RECURRENCE_PRESETS.QUARTERLY)).toEqual(eur(200));
     // 10 € weekly → 10 × 365.25/7 = 521.79 €/yr
     expect(yearlyEquivalent(eur(10), RECURRENCE_PRESETS.WEEKLY)).toEqual(eur(521.79));
-  });
-});
-
-describe("forecastByMonth", () => {
-  it("buckets real charges by month, keeping empty months", () => {
-    const sub = makeRecurringPaymentItem(netflix, { id: "r1", now: now() });
-    const fee = makeRecurringPaymentItem(licence, { id: "r2", now: now() });
-
-    const buckets = forecastByMonth([sub, fee], calendarDate("2026-06-12"), 12);
-    expect(buckets).toHaveLength(12);
-    expect(buckets[0].monthStart).toBe("2026-06-01");
-    expect(buckets[11].monthStart).toBe("2027-05-01");
-
-    // September = Netflix + the yearly licence; other months = Netflix alone.
-    const september = buckets.find((b) => b.monthStart === "2026-09-01");
-    expect(september?.totals).toEqual([eur(235.99)]);
-    const october = buckets.find((b) => b.monthStart === "2026-10-01");
-    expect(october?.totals).toEqual([eur(15.99)]);
-  });
-
-  it("includes installments in their months and nothing after the plan ends", () => {
-    const plan = makeInstallmentPaymentItem(
-      {
-        name: "Sofa",
-        totalAmount: eur(300),
-        numberOfInstallments: 3,
-        recurrence: RECURRENCE_PRESETS.MONTHLY,
-        firstInstallmentDate: calendarDate("2026-07-10"),
-        settlementMode: "manual",
-      },
-      { id: "p1", now: now(), makeId: ids() },
-    );
-
-    const buckets = forecastByMonth([plan], calendarDate("2026-06-12"), 6);
-    expect(buckets.map((b) => b.totals[0]?.amount ?? 0)).toEqual([0, 10000, 10000, 10000, 0, 0]);
   });
 });
 
@@ -348,31 +311,6 @@ describe("groupByCadence", () => {
       status: "paused" as const,
     };
     expect(groupByCadence([ended, paused], calendarDate("2026-06-12"))).toEqual([]);
-  });
-});
-
-describe("groupByCategory", () => {
-  it("splits theory spend per category, uncategorised in its own bucket", () => {
-    const a = makeRecurringPaymentItem(
-      { ...netflix, categoryId: "streaming" },
-      { id: "r1", now: now() },
-    );
-    const b = makeRecurringPaymentItem(
-      { ...netflix, name: "Spotify", amount: eur(9.99), categoryId: "streaming" },
-      { id: "r2", now: now() },
-    );
-    const c = makeRecurringPaymentItem(
-      { ...licence, categoryId: undefined },
-      { id: "r3", now: now() },
-    );
-
-    const groups = groupByCategory([a, b, c], calendarDate("2026-06-12"));
-    expect(groups).toHaveLength(2);
-    expect(groups[0].categoryId).toBe("streaming"); // 25.98/mo outweighs 18.33/mo
-    expect(groups[0].count).toBe(2);
-    expect(groups[0].monthlyTotal).toEqual([eur(25.98)]);
-    expect(groups[1].categoryId).toBeUndefined();
-    expect(groups[1].yearlyTotal).toEqual([eur(220)]);
   });
 });
 

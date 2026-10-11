@@ -12,6 +12,7 @@ import {
   isInstallmentSchedule,
   isRecurringSchedule,
   listOccurrenceDates,
+  nextOnGrid,
   reminderRules,
   splitMoney,
   toMajor,
@@ -469,7 +470,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     const dates = listOccurrenceDates(firstDateCal, recurrence, 120);
     // An end date beyond the window (e.g. from an edited item) must stay selectable.
     while (endDateCal && dates[dates.length - 1] < endDateCal) {
-      dates.push(addRecurrence(dates[dates.length - 1], recurrence));
+      dates.push(nextOnGrid(firstDateCal, recurrence, dates[dates.length - 1]));
     }
     return dates;
   })();
@@ -544,7 +545,8 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const installmentPreview = (() => {
     if (!isInstallment || !(amountValue > 0)) return null;
     let finish = firstDateCal;
-    for (let i = 1; i < installmentCount; i++) finish = addRecurrence(finish, recurrence);
+    for (let i = 1; i < installmentCount; i++)
+      finish = nextOnGrid(firstDateCal, recurrence, finish);
     const ends = formatCalendarDate(finish);
     if (amountMode === "total") {
       const per = splitMoney(installmentTotal, installmentCount)[0];

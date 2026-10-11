@@ -93,7 +93,7 @@ export default function ItemScreen() {
   }
 
   const asOf = today();
-  const complete = isPaymentItemComplete(item, asOf);
+  const complete = isPaymentItemComplete(item);
   const account = accounts.find((a) => a.id === item.accountId);
   const category = categories.find((c) => c.id === item.categoryId);
   const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;

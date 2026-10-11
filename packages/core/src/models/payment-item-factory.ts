@@ -9,8 +9,8 @@ import { splitMoney, type Money } from "../primitives/money";
 import type { RecurrenceRule } from "../primitives/recurrence";
 import type { ReminderRule } from "../primitives/reminder";
 import {
-  addRecurrence,
   alignToOccurrence,
+  nextOnGrid,
   nthWeekdayOfMonth,
   type WeekendShift,
 } from "../primitives/schedule-dates";
@@ -153,7 +153,7 @@ export function makeInstallmentPaymentItem(
       amount: parts[i],
       status: "upcoming",
     });
-    due = addRecurrence(due, input.recurrence);
+    due = nextOnGrid(firstInstallmentDate, input.recurrence, due);
   }
 
   const schedule: InstallmentSchedule = {

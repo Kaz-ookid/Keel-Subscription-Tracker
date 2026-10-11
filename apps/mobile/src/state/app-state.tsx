@@ -522,7 +522,12 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setItems((prev) =>
         prev.map((i) =>
           i.id === id
-            ? updateRecurringPaymentItem(i, input, { now: now(), lastChargedDate, priceEdit })
+            ? updateRecurringPaymentItem(i, input, {
+                now: now(),
+                today: today(),
+                lastChargedDate,
+                priceEdit,
+              })
             : i,
         ),
       );
@@ -588,7 +593,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     const skipPayment = (id: string) => {
       const item = rawRef.current.items.find((i) => i.id === id);
       if (!item || item.schedule.kind !== "RECURRING" || item.status !== "active") return;
-      if (isPaymentItemComplete(item, today())) return;
+      if (isPaymentItemComplete(item)) return;
       const { item: advanced, occurrence } = skipRecurringPayment(item, {
         id: randomUUID(),
         now: now(),
@@ -786,7 +791,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
           if (
             current.schedule.kind !== "RECURRING" ||
             current.status !== "active" ||
-            isPaymentItemComplete(current, asOf)
+            isPaymentItemComplete(current)
           ) {
             continue;
           }

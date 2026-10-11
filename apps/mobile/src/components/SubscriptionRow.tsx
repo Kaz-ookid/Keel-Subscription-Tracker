@@ -51,7 +51,7 @@ export const SubscriptionRow = memo(function SubscriptionRow({ item, onPress, on
   useBrandTints();
   const accent = brandBleed(item, colors.accent);
 
-  const complete = isPaymentItemComplete(item, today());
+  const complete = isPaymentItemComplete(item);
 
   // Derive the row's display per schedule kind.
   const recurring = isRecurringSchedule(item.schedule) ? item.schedule : undefined;
