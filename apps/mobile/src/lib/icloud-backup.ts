@@ -1,40 +1,10 @@
-// The iCloud backup bridge — DORMANT until the dev-build era (nothing
-// imports this file yet; Expo Go has no iCloud entitlement, so every
-// function below quietly reports "unavailable" there).
-//
-// Scope, deliberately small (BACKLOG "Dev-build era unlocks" #1): the whole
-// persisted blob rides to the app's iCloud container as ONE file with a
-// timestamp, last-writer-wins. This is a BACKUP that follows the account,
-// not a sync engine; true multi-device merge stays a later project
-// (PROJECT_BRIEF §9). The Settings switch already stores the preference
-// (keel.icloud.enabled.v1 in app/data.tsx) and its footnote already
-// promises exactly this.
-//
-// WIRING (dev-build era):
-//   1. npx expo install react-native-cloud-storage; add the iCloud
-//      entitlements to app.json ios.entitlements:
-//        "com.apple.developer.icloud-container-identifiers":
-//          ["iCloud.ch.keelapp.keel"],
-//        "com.apple.developer.icloud-services": ["CloudDocuments"],
-//        "com.apple.developer.ubiquity-container-identifiers":
-//          ["iCloud.ch.keelapp.keel"]
-//      and register the container in the Apple Developer portal.
-//   2. Delete the @ts-expect-error below once the package exists, and check
-//      the structural type against the installed version's API (written
-//      blind, like the widget bridge was).
-//   3. app/data.tsx: move ICLOUD_KEY here (export below), and on toggle-ON
-//      call uploadToICloud(exportData()) so the first backup exists
-//      immediately; surface isICloudAvailable() === false as a footnote
-//      ("sign in to iCloud on this iPhone").
-//   4. src/state/app-state.tsx: in the hydration effect, when the
-//      preference is on, call chooseNewerState(local, await
-//      downloadFromICloud()) and hydrate from the winner; in the persist
-//      effect, after saveState(...), fire-and-forget uploadToICloud(state)
-//      (it stamps savedAt itself).
-//   5. On-device QA: two devices on one Apple ID; edit on A, relaunch B
-//      (B adopts A's state); edit both while offline, relaunch (newest
-//      write wins and the loser's changes are gone: that is last-writer-
-//      wins, and the local daily backups remain the safety net).
+// The iCloud backup bridge: the whole persisted blob rides to the app's
+// iCloud container as ONE file with a timestamp, last-writer-wins. A BACKUP
+// that follows the account, not a sync engine (PROJECT_BRIEF §9): the
+// Data screen's switch turns it on and picks a side when a copy already
+// exists, app-state uploads after every local save and adopts a newer
+// cloud copy at launch (backing the local state up first). Offline, signed
+// out or in Expo Go every function quietly reports "unavailable".
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 

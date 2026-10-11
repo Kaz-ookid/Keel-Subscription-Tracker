@@ -18,7 +18,7 @@
         "NSPrivacyAccessedAPITypes": [
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
-            "NSPrivacyAccessedAPITypeReasons": ["CA92.1"]
+            "NSPrivacyAccessedAPITypeReasons": ["CA92.1", "1F8F.1"]
           },
           {
             "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
@@ -28,9 +28,6 @@
       },
       "entitlements": {
         "com.apple.security.application-groups": ["group.ch.keelapp.keel"],
-        "com.apple.developer.icloud-container-identifiers": ["iCloud.ch.keelapp.keel"],
-        "com.apple.developer.icloud-services": ["CloudDocuments"],
-        "com.apple.developer.ubiquity-container-identifiers": ["iCloud.ch.keelapp.keel"],
         "com.apple.developer.ubiquity-kvstore-identifier": "$(TeamIdentifierPrefix)$(CFBundleIdentifier)",
         "com.apple.developer.private-cloud-compute": true
       }
