@@ -143,10 +143,11 @@ function RootNavigator() {
                 <Stack.Screen name="add" options={{ presentation: "modal", headerShown: false }} />
                 {/* Titles live IN the content as large headings; the bar only
                   carries back and actions. */}
-                {/* ONE item screen ever: a constant getId makes any navigation
-                  to /item (widget deep links included) reuse the mounted
+                {/* ONE item screen ever: `dangerouslySingular` (expo-router 57's
+                  name for the constant-id trick) makes any navigation to
+                  /item (widget deep links included) reuse the mounted
                   instance with new params instead of stacking another copy. */}
-                <Stack.Screen name="item" options={{ title: "" }} getId={() => "item"} />
+                <Stack.Screen name="item" options={{ title: "" }} dangerouslySingular />
                 <Stack.Screen name="accounts" options={{ title: "" }} />
                 <Stack.Screen name="price-changes" options={{ title: "" }} />
                 <Stack.Screen name="by-account" options={{ title: "" }} />
