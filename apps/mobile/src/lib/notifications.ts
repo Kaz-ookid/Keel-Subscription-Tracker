@@ -262,7 +262,15 @@ function digestBody(digest: DigestOccurrence): string {
 }
 
 /** Re-derive every scheduled reminder from the current items and settings. */
-export async function syncReminders(items: readonly PaymentItem[]): Promise<void> {
+export function syncReminders(items: readonly PaymentItem[]): Promise<void> {
+  // Serialized: a run is "cancel everything, then schedule dozens", and two
+  // of them interleaving leave the first run's tail scheduled twice.
+  queue = queue.then(() => runSync(items));
+  return queue;
+}
+let queue: Promise<void> = Promise.resolve();
+
+async function runSync(items: readonly PaymentItem[]): Promise<void> {
   try {
     // Reminders are a paid surface (§7.3): a locked app cancels everything
     // scheduled instead of letting notifications fire from a frozen state.
