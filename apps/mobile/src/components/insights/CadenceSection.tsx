@@ -30,7 +30,7 @@ import Animated from "react-native-reanimated";
 import { localizedRecurrence } from "../../i18n/recurrence";
 import { totalInDisplay } from "../../lib/money-display";
 import { foldIn, foldLayout, foldOut } from "../../lib/motion";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, typography, useTheme, type ThemeColors, withAlpha } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 
 function capitalize(s: string): string {
@@ -321,7 +321,7 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       height: 4,
       borderRadius: 2,
-      backgroundColor: "transparent",
+      backgroundColor: withAlpha(colors.text, 0.14),
       overflow: "hidden",
     },
     shareFill: {
