@@ -573,13 +573,6 @@ export const de: typeof en = {
   },
   settings: {
     aiFeatures: "KI-Funktionen",
-    aiCloud: "Keel mit Apples Cloud-Modell lesen lassen",
-    aiCloudInfo:
-      'Ist das eingeschaltet, sendet die Option "Keel liest es für dich" deinen Text zum Lesen an Apples Private Cloud Compute und gibt Einträge zum Prüfen zurück. Apple erklärt, dass dort gesendete Daten weder gespeichert noch für Apple zugänglich sind; es braucht eine Internetverbindung und hat ein tägliches Kontingent.\n\nIst es aus, sendet Keel nie etwas irgendwohin: Du nutzt deine eigene KI per Kopieren und Einfügen oder tippst selbst.\n\nSo oder so bleibt KI optional. Du kannst sie direkt darüber komplett ausschalten, und Keel funktioniert vollständig ohne sie.',
-    aiCloudOn:
-      'Ein. Dein Text geht nur dann an Apples Private Cloud Compute, wenn du "Keel liest es für dich" verwendest.',
-    aiCloudOff:
-      "Aus. Keel sendet nichts irgendwohin; deine eigene KI per Kopieren und Einfügen funktioniert weiterhin.",
     aiFeaturesFooter:
       "Aus entfernt jede KI-Funktion und jeden Einstieg aus der App. Deine Daten und der KI-Verlauf bleiben unberührt.",
     groupGeneral: "Allgemein",
@@ -929,11 +922,11 @@ export const de: typeof en = {
     reading: "Deine Liste wird gelesen …",
     errModel: "Das Modell konnte das nicht lesen. Formuliere um oder gib etwas mehr Details an.",
     privacy:
-      "Verarbeitet auf Apples Private Cloud Compute, das laut Apple deine Daten weder speichert noch für Apple zugänglich macht. Braucht eine Internetverbindung. Keel hat keinen eigenen Server.",
-    consentTitle: "Keel mit Apples Cloud-Modell lesen lassen?",
+      "Gelesen von Apples privatem Cloud-Modell, das nichts behält. Keel hat keinen eigenen Server.",
+    consentTitle: "Keel liest es für dich",
     consentBody:
-      "Dein Text wird zum Lesen an Apples Private Cloud Compute gesendet und kommt direkt als Einträge zum Prüfen zurück. Apple erklärt, dass dort gesendete Daten weder gespeichert noch für Apple zugänglich sind. Es braucht eine Internetverbindung und hat ein tägliches Kontingent. Du kannst das jederzeit in den Einstellungen ausschalten.",
-    consentGo: "Einschalten und weiter",
+      "Was du hier auswählst, liest Apples privates Cloud-Modell und gibt es als Einträge zum Prüfen zurück. Nichts wird behalten. Eine Internetverbindung ist nötig.",
+    consentGo: "Weiter",
     consentAlt: "Oder deine eigene KI verwenden",
     unavailableTitle: "Apples Cloud-Modell ist hier nicht verfügbar",
     reasonOs: "Dafür ist iOS 27 oder neuer nötig.",
@@ -969,18 +962,21 @@ export const de: typeof en = {
     kindTaxId: "Steuernummern",
     methodScreenshots: "Screenshots",
     methodScreenshotsSub:
-      "Belege, Bestätigungs-Mails, deine Banking-App. Auf diesem iPhone gelesen, dann Vorschau vor dem Senden.",
+      "Belege, Bestätigungs-Mails, deine Banking-App. Auf diesem iPhone erfasst, dann Vorschau vor dem Senden.",
     methodDocuments: "Dokumente",
     methodDocumentsSub:
-      "PDF-Auszüge, CSV- oder Textexporte. Auf diesem iPhone gelesen, dann Vorschau.",
+      "PDF-Auszüge (auch gescannt), CSV- oder Textexporte. Auf diesem iPhone erfasst, dann Vorschau.",
     methodText: "Tippen oder einfügen",
     methodTextSub: "Eine grobe Liste in deinen Worten.",
-    errDocument:
-      "In diesen Dateien war kein Text lesbar. Ein gescanntes PDF ohne Textebene geht über Screenshots.",
+    errDocument: "In diesen Dateien war kein Text lesbar.",
     quotaLabel: "Apples Kontingent für das Cloud-Modell",
     quotaInfoTitle: "Kontingent des Cloud-Modells",
     quotaInfoBody:
       "Apples Cloud-Modell hat ein tägliches Kontingent pro Person (höher mit iCloud+). Unten Apples eigenes Statusobjekt für dein Konto, wie das System es meldet:",
+    offlineTitle: "Du bist offline",
+    offlineBody:
+      "Keel liest es braucht eine Internetverbindung. Die Anleitung für deine eigene KI lässt sich trotzdem kopieren.",
+    quotaInfoNone: "Apples System hat auf diesem iPhone kein Kontingent-Objekt gemeldet.",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",

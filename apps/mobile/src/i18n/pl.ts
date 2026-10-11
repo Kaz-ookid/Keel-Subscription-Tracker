@@ -602,13 +602,6 @@ const translation = {
   },
   settings: {
     aiFeatures: "Funkcje AI",
-    aiCloud: "Pozwól Keel czytać modelem chmurowym Apple",
-    aiCloudInfo:
-      'Gdy to włączysz, opcja "Keel czyta za ciebie" wysyła twój tekst do Private Cloud Compute firmy Apple w celu odczytania i zwraca wpisy do sprawdzenia. Apple deklaruje, że wysłane tam dane nie są przechowywane ani dostępne dla Apple; potrzebne jest połączenie z internetem i obowiązuje dzienny limit.\n\nGdy jest wyłączone, Keel nigdy niczego nigdzie nie wysyła: używasz własnej AI przez kopiuj-wklej albo wpisujesz wszystko sam.\n\nTak czy inaczej AI pozostaje opcjonalna. Możesz ją całkowicie wyłączyć tuż wyżej, a Keel działa w pełni bez niej.',
-    aiCloudOn:
-      'Włączone. Twój tekst trafia do Private Cloud Compute firmy Apple tylko wtedy, gdy używasz opcji "Keel czyta za ciebie".',
-    aiCloudOff:
-      "Wyłączone. Keel niczego nigdzie nie wysyła; własna AI przez kopiuj-wklej nadal działa.",
     aiFeaturesFooter:
       "Wyłączenie usuwa z aplikacji każdą funkcję i wejście AI. Twoje dane i historia AI zostają nietknięte.",
     groupGeneral: "Ogólne",
@@ -971,11 +964,11 @@ const translation = {
     reading: "Czytam twoją listę…",
     errModel: "Model nie zdołał tego przeczytać. Przeformułuj albo dodaj trochę szczegółów.",
     privacy:
-      "Przetwarzane w Private Cloud Compute firmy Apple, które według dokumentacji Apple nie przechowuje twoich danych i nie udostępnia ich Apple. Wymaga połączenia z internetem. Keel nie ma własnego serwera.",
-    consentTitle: "Pozwolić Keel czytać modelem chmurowym Apple?",
+      "Czyta prywatny model chmurowy Apple, który nic nie zachowuje. Keel nie ma własnego serwera.",
+    consentTitle: "Keel czyta za ciebie",
     consentBody:
-      "Twój tekst jest wysyłany do Private Cloud Compute firmy Apple w celu odczytania i od razu wraca jako wpisy do sprawdzenia. Apple deklaruje, że wysłane tam dane nie są przechowywane ani dostępne dla Apple. Potrzebne jest połączenie z internetem i obowiązuje dzienny limit. Możesz to wyłączyć w dowolnej chwili w Ustawieniach.",
-    consentGo: "Włącz i kontynuuj",
+      "To, co tu wybierzesz, czyta prywatny model chmurowy Apple i zwraca jako wpisy do sprawdzenia. Nic nie jest zachowywane. Potrzebne jest połączenie z internetem.",
+    consentGo: "Dalej",
     consentAlt: "Albo użyj własnej AI",
     unavailableTitle: "Model chmurowy Apple nie jest tu dostępny",
     reasonOs: "Wymaga iOS 27 lub nowszego.",
@@ -1009,18 +1002,21 @@ const translation = {
     kindTaxId: "numery NIP",
     methodScreenshots: "Zrzuty ekranu",
     methodScreenshotsSub:
-      "Paragony, e-maile z potwierdzeniem, aplikacja banku. Odczytane na tym iPhonie, potem podgląd przed wysłaniem.",
+      "Paragony, e-maile z potwierdzeniem, aplikacja banku. Przechwycone na tym iPhonie, potem podgląd przed wysłaniem.",
     methodDocuments: "Dokumenty",
     methodDocumentsSub:
-      "Wyciągi PDF, eksporty CSV lub tekstowe. Odczytane na tym iPhonie, potem podgląd.",
+      "Wyciągi PDF (także skany), eksporty CSV lub tekstowe. Przechwycone na tym iPhonie, potem podgląd.",
     methodText: "Wpisz lub wklej",
     methodTextSub: "Luźna lista własnymi słowami.",
-    errDocument:
-      "Nie udało się odczytać tekstu z tych plików. Zeskanowany PDF bez warstwy tekstowej przechodzi przez zrzuty ekranu.",
+    errDocument: "Nie udało się odczytać tekstu z tych plików.",
     quotaLabel: "Limit Apple dla modelu chmurowego",
     quotaInfoTitle: "Limit modelu chmurowego",
     quotaInfoBody:
       "Model chmurowy Apple ma dzienny limit na osobę (wyższy z iCloud+). Poniżej obiekt stanu Apple dla twojego konta, tak jak zgłasza go system:",
+    offlineTitle: "Jesteś offline",
+    offlineBody:
+      "Keel czyta za ciebie wymaga połączenia z internetem. Instrukcje dla twojej własnej AI nadal można skopiować.",
+    quotaInfoNone: "System Apple nie zgłosił obiektu limitu na tym iPhonie.",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",

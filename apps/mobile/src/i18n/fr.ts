@@ -572,13 +572,6 @@ export const fr: typeof en = {
   },
   settings: {
     aiFeatures: "Fonctions d'IA",
-    aiCloud: "Laisser Keel lire avec le modèle cloud d'Apple",
-    aiCloudInfo:
-      "Avec ce réglage activé, l'option « Keel lit pour vous » envoie votre texte au Private Cloud Compute d'Apple pour être lu, et vous rend des entrées à vérifier. Apple indique que les données envoyées ne sont pas conservées et ne sont pas accessibles à Apple ; il faut une connexion internet, et il y a une limite quotidienne.\n\nDésactivé, Keel n'envoie jamais rien nulle part : vous utilisez votre propre IA par copier-coller, ou vous saisissez à la main.\n\nDans les deux cas, l'IA reste optionnelle. Vous pouvez la désactiver complètement juste au-dessus, et Keel fonctionne entièrement sans elle.",
-    aiCloudOn:
-      "Activé. Votre texte part vers le Private Cloud Compute d'Apple uniquement quand vous utilisez « Keel lit pour vous ».",
-    aiCloudOff:
-      "Désactivé. Keel n'envoie rien nulle part ; votre propre IA par copier-coller fonctionne toujours.",
     aiFeaturesFooter:
       "Désactivé : tout ce qui mène à l'IA disparaît de l'app. Vos données et l'historique IA restent intacts.",
     groupGeneral: "Général",
@@ -927,11 +920,11 @@ export const fr: typeof en = {
     reading: "Lecture de votre liste…",
     errModel: "Le modèle n'a pas pu lire ceci. Reformulez ou ajoutez un peu de détail.",
     privacy:
-      "Traité sur le Private Cloud Compute d'Apple, qu'Apple documente comme ne conservant pas vos données et ne les rendant pas accessibles à Apple. Nécessite une connexion internet. Keel n'a aucun serveur à lui.",
-    consentTitle: "Laisser Keel lire avec le modèle cloud d'Apple ?",
+      "Lu par le modèle cloud privé d'Apple, qui ne conserve rien. Keel n'a aucun serveur à lui.",
+    consentTitle: "Keel lit pour vous",
     consentBody:
-      "Votre texte est envoyé au Private Cloud Compute d'Apple pour être lu, et revient aussitôt sous forme d'entrées à vérifier. Apple indique que les données envoyées ne sont pas conservées et ne sont pas accessibles à Apple. Il faut une connexion internet, et il y a une limite quotidienne. Vous pouvez désactiver ceci à tout moment dans les Réglages.",
-    consentGo: "Activer et continuer",
+      "Ce que vous choisissez ici est lu par le modèle cloud privé d'Apple et revient sous forme d'entrées à vérifier. Rien n'est conservé. Une connexion internet est nécessaire.",
+    consentGo: "Continuer",
     consentAlt: "Ou utiliser votre propre IA",
     unavailableTitle: "Le modèle cloud d'Apple n'est pas disponible ici",
     reasonOs: "Nécessite iOS 27 ou plus récent.",
@@ -965,17 +958,21 @@ export const fr: typeof en = {
     kindTaxId: "numéros de TVA",
     methodScreenshots: "Captures d'écran",
     methodScreenshotsSub:
-      "Reçus, e-mails de confirmation, votre app bancaire. Lus sur cet iPhone, puis un aperçu avant tout envoi.",
+      "Reçus, e-mails de confirmation, votre app bancaire. Capturés sur cet iPhone, puis un aperçu avant tout envoi.",
     methodDocuments: "Documents",
-    methodDocumentsSub: "Relevés PDF, exports CSV ou texte. Lus sur cet iPhone, puis un aperçu.",
+    methodDocumentsSub:
+      "Relevés PDF (même scannés), exports CSV ou texte. Capturés sur cet iPhone, puis un aperçu.",
     methodText: "Saisir ou coller",
     methodTextSub: "Une liste en vrac, avec vos mots.",
-    errDocument:
-      "Aucun texte lisible dans ces fichiers. Un PDF scanné sans couche de texte passe par les captures d'écran.",
+    errDocument: "Aucun texte lisible dans ces fichiers.",
     quotaLabel: "Quota Apple du modèle cloud",
     quotaInfoTitle: "Quota du modèle cloud",
     quotaInfoBody:
       "Le modèle cloud d'Apple a une limite quotidienne par personne (plus élevée avec iCloud+). Ci-dessous, l'objet d'état d'Apple pour votre compte, tel que le système le rapporte :",
+    offlineTitle: "Vous êtes hors ligne",
+    offlineBody:
+      "Keel lit pour vous nécessite une connexion internet. Les instructions pour votre propre IA restent copiables.",
+    quotaInfoNone: "Le système d'Apple n'a renvoyé aucun objet de quota sur cet iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} à payer aujourd'hui",

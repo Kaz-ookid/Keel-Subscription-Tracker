@@ -569,12 +569,6 @@ export const en = {
   },
   settings: {
     aiFeatures: "AI features",
-    aiCloud: "Let Keel read with Apple's cloud model",
-    aiCloudInfo:
-      'With this on, the "Keel reads it for you" option sends your text to Apple\'s Private Cloud Compute to be read, and returns entries for you to review. Apple states that data sent there is not stored and is not accessible to Apple; it needs an internet connection and has a daily allowance.\n\nWith it off, Keel never sends anything anywhere: you use your own AI by copy and paste, or type things in yourself.\n\nEither way, AI stays optional. You can switch it off completely just above, and Keel works fully without it.',
-    aiCloudOn:
-      'On. Your text goes to Apple\'s Private Cloud Compute only when you use "Keel reads it for you".',
-    aiCloudOff: "Off. Keel sends nothing anywhere; your own AI by copy and paste still works.",
     aiFeaturesFooter:
       "Off removes every AI feature and entry point from the app. Your data and AI history stay untouched.",
     groupGeneral: "General",
@@ -920,11 +914,11 @@ export const en = {
     reading: "Reading your list…",
     errModel: "The model couldn't read this. Try rephrasing or add a little detail.",
     privacy:
-      "Processed on Apple's Private Cloud Compute, which Apple documents as not storing your data and not making it accessible to Apple. Needs an internet connection. Keel has no server of its own.",
-    consentTitle: "Let Keel read with Apple's cloud model?",
+      "Read by Apple's private cloud model, which keeps nothing. Keel has no server of its own.",
+    consentTitle: "Keel reads it for you",
     consentBody:
-      "Your text is sent to Apple's Private Cloud Compute to be read, and comes straight back as entries for you to review. Apple states that data sent there is not stored and is not accessible to Apple. It needs an internet connection and has a daily allowance. You can switch this off at any time in Settings.",
-    consentGo: "Turn on and continue",
+      "What you choose here is read by Apple's private cloud model and comes back as entries for you to review. Nothing is kept. It needs an internet connection.",
+    consentGo: "Continue",
     consentAlt: "Or use your own AI",
     unavailableTitle: "Apple's cloud model isn't available here",
     reasonOs: "This needs iOS 27 or later.",
@@ -958,17 +952,21 @@ export const en = {
     kindTaxId: "tax ids",
     methodScreenshots: "Screenshots",
     methodScreenshotsSub:
-      "Receipts, confirmation emails, your banking app. Read on this iPhone, then previewed before anything is sent.",
+      "Receipts, confirmation emails, your banking app. Captured on this iPhone, then previewed before anything is sent.",
     methodDocuments: "Documents",
-    methodDocumentsSub: "PDF statements, CSV or text exports. Read on this iPhone, then previewed.",
+    methodDocumentsSub:
+      "PDF statements (scanned too), CSV or text exports. Captured on this iPhone, then previewed.",
     methodText: "Type or paste",
     methodTextSub: "A rough list in your own words.",
-    errDocument:
-      "Couldn't read any text from those files. A scanned PDF without a text layer needs the screenshot path.",
+    errDocument: "Couldn't read any text from those files.",
     quotaLabel: "Apple's allowance for the cloud model",
     quotaInfoTitle: "Cloud model allowance",
     quotaInfoBody:
       "Apple's cloud model has a daily allowance per person (higher with iCloud+). Below is Apple's own status object for your account, as the system reports it:",
+    offlineTitle: "You're offline",
+    offlineBody:
+      "Keel reads it needs an internet connection. Your own AI's instructions can still be copied.",
+    quotaInfoNone: "Apple's system did not report an allowance object on this iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} due today",

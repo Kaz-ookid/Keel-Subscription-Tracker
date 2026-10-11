@@ -571,13 +571,6 @@ export const it: typeof en = {
   },
   settings: {
     aiFeatures: "Funzioni IA",
-    aiCloud: "Lascia che Keel legga con il modello cloud di Apple",
-    aiCloudInfo:
-      "Con questa opzione attiva, \"Keel legge per te\" invia il tuo testo al Private Cloud Compute di Apple per essere letto e restituisce voci da verificare. Apple dichiara che i dati inviati non vengono conservati e non sono accessibili ad Apple; serve una connessione internet e c'è un limite giornaliero.\n\nDisattivata, Keel non invia mai nulla da nessuna parte: usi la tua IA con copia e incolla, oppure scrivi tu.\n\nIn ogni caso l'IA resta facoltativa. Puoi disattivarla del tutto qui sopra, e Keel funziona completamente senza.",
-    aiCloudOn:
-      'Attiva. Il tuo testo va al Private Cloud Compute di Apple solo quando usi "Keel legge per te".',
-    aiCloudOff:
-      "Disattiva. Keel non invia nulla da nessuna parte; la tua IA con copia e incolla funziona comunque.",
     aiFeaturesFooter:
       "Disattivato, ogni funzione e accesso IA sparisce dall'app. I tuoi dati e la cronologia IA restano intatti.",
     groupGeneral: "Generali",
@@ -926,11 +919,11 @@ export const it: typeof en = {
     reading: "Sto leggendo la tua lista…",
     errModel: "Il modello non è riuscito a leggere. Riformula o aggiungi qualche dettaglio.",
     privacy:
-      "Elaborato sul Private Cloud Compute di Apple, che Apple documenta come non conservare i tuoi dati e non renderli accessibili ad Apple. Richiede una connessione internet. Keel non ha alcun server proprio.",
-    consentTitle: "Lasciare che Keel legga con il modello cloud di Apple?",
+      "Letto dal modello cloud privato di Apple, che non conserva nulla. Keel non ha server propri.",
+    consentTitle: "Keel legge per te",
     consentBody:
-      "Il tuo testo viene inviato al Private Cloud Compute di Apple per essere letto e torna subito come voci da verificare. Apple dichiara che i dati inviati non vengono conservati e non sono accessibili ad Apple. Serve una connessione internet e c'è un limite giornaliero. Puoi disattivarlo in qualsiasi momento nelle Impostazioni.",
-    consentGo: "Attiva e continua",
+      "Ciò che scegli qui viene letto dal modello cloud privato di Apple e torna come voci da verificare. Nulla viene conservato. Serve una connessione internet.",
+    consentGo: "Continua",
     consentAlt: "Oppure usa la tua IA",
     unavailableTitle: "Il modello cloud di Apple non è disponibile qui",
     reasonOs: "Richiede iOS 27 o successivo.",
@@ -964,18 +957,21 @@ export const it: typeof en = {
     kindTaxId: "partite IVA",
     methodScreenshots: "Screenshot",
     methodScreenshotsSub:
-      "Ricevute, email di conferma, l'app della banca. Letti su questo iPhone, poi un'anteprima prima dell'invio.",
+      "Ricevute, email di conferma, l'app della banca. Acquisiti su questo iPhone, poi un'anteprima prima dell'invio.",
     methodDocuments: "Documenti",
     methodDocumentsSub:
-      "Estratti PDF, export CSV o di testo. Letti su questo iPhone, poi un'anteprima.",
+      "Estratti PDF (anche scansionati), export CSV o di testo. Acquisiti su questo iPhone, poi un'anteprima.",
     methodText: "Scrivi o incolla",
     methodTextSub: "Una lista alla buona, con parole tue.",
-    errDocument:
-      "Nessun testo leggibile in questi file. Un PDF scansionato senza livello di testo passa dagli screenshot.",
+    errDocument: "Nessun testo leggibile in questi file.",
     quotaLabel: "Limite Apple del modello cloud",
     quotaInfoTitle: "Limite del modello cloud",
     quotaInfoBody:
       "Il modello cloud di Apple ha un limite giornaliero per persona (più alto con iCloud+). Qui sotto l'oggetto di stato di Apple per il tuo account, come lo riporta il sistema:",
+    offlineTitle: "Sei offline",
+    offlineBody:
+      "Keel legge per te richiede una connessione internet. Le istruzioni per la tua IA restano copiabili.",
+    quotaInfoNone: "Il sistema di Apple non ha riportato alcun oggetto di limite su questo iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",

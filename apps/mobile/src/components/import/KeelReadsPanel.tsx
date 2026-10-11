@@ -6,6 +6,7 @@
 // bring-your-own page instead. The allowance line at the bottom is the
 // curious person's window: Apple's quota object as Apple describes it.
 
+import { useNetworkState } from "expo-network";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { type ComponentProps, useEffect, useMemo, useState } from "react";
@@ -32,6 +33,10 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const consented = useAiCloudConsent();
+  // No connection, no door: better a plain word here than a timeout later.
+  // Only an explicit "no" counts; an unknown state must not block anyone.
+  const network = useNetworkState();
+  const offline = network.isConnected === false || network.isInternetReachable === false;
 
   const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
   const [quota, setQuota] = useState<Record<string, string>>({});
@@ -95,6 +100,19 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
     );
   }
 
+  if (offline) {
+    return (
+      <View style={styles.centerCard}>
+        <SymbolView name="wifi.slash" size={28} tintColor={colors.mutedText} />
+        <Text style={styles.centerTitle}>{t("keelReads.offlineTitle")}</Text>
+        <Text style={styles.centerBody}>{t("keelReads.offlineBody")}</Text>
+        <Pressable onPress={onUseOwnAi} hitSlop={8}>
+          <Text style={styles.link}>{t("keelReads.ownAi")}</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   if (!consented) {
     return (
       <View style={styles.centerCard}>
@@ -114,9 +132,15 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
     );
   }
 
+  // Apple's quota object, field by field; failing fields, its description;
+  // failing that, the honest "nothing reported". The (i) is always there.
   const quotaLines = Object.entries(quota)
     .filter(([key]) => key !== "description")
     .map(([key, value]) => `${key}: ${value}`);
+  const quotaDetail = quotaLines.length > 0 ? quotaLines.join("\n") : quota.description;
+  const quotaBody = quotaDetail
+    ? `${t("keelReads.quotaInfoBody")}\n\n${quotaDetail}`
+    : t("keelReads.quotaInfoNone");
 
   return (
     <View style={styles.stack}>
@@ -171,15 +195,10 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
       </View>
       {/* The allowance, for the curious only: a quiet line plus an (i)
           that shows Apple's quota object as Apple describes it. */}
-      {quotaLines.length > 0 && (
-        <View style={styles.footRow}>
-          <Text style={styles.footText}>{t("keelReads.quotaLabel")}</Text>
-          <InfoDot
-            title={t("keelReads.quotaInfoTitle")}
-            body={`${t("keelReads.quotaInfoBody")}\n\n${quotaLines.join("\n")}`}
-          />
-        </View>
-      )}
+      <View style={styles.footRow}>
+        <Text style={styles.footText}>{t("keelReads.quotaLabel")}</Text>
+        <InfoDot title={t("keelReads.quotaInfoTitle")} body={quotaBody} />
+      </View>
     </View>
   );
 }
