@@ -47,15 +47,12 @@ import {
   type AuthKind,
 } from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
-import { setAiCloudConsent, useAiCloudConsent } from "../../src/lib/ai-cloud";
-import { isKeelReadsOffered, keelReadsAvailability } from "../../src/lib/apple-intelligence";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
 import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
 import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME } from "../../src/constants";
-import { InfoDot } from "../../src/components/InfoDot";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
 import { OptionWheel } from "../../src/components/ui/OptionWheel";
@@ -164,15 +161,6 @@ export default function SettingsScreen() {
   const [logoSheet, setLogoSheet] = useState(false);
   // The hard AI lock: on = every AI surface and entry point disappears.
   const aiHidden = useAiHidden();
-  // Consent for "Keel reads it for you" (Apple's cloud model). The row only
-  // appears where the cloud model exists on this OS and build, so we never
-  // offer a switch for something this iPhone cannot reach.
-  const aiCloud = useAiCloudConsent();
-  const [cloudSupported, setCloudSupported] = useState(false);
-  useEffect(() => {
-    void keelReadsAvailability().then((a) => setCloudSupported(isKeelReadsOffered(a)));
-  }, []);
-
   useEffect(() => {
     void loadLanguageMode().then(setLanguageModeState);
     void getAuthKind().then(setAuthKind);
@@ -465,32 +453,6 @@ export default function SettingsScreen() {
             }
           />
           {aiHidden && <Text style={styles.cardFooter}>{t("settings.aiFeaturesFooter")}</Text>}
-          {/* The cloud consent switch: what leaves the phone, and only when
-              "Keel reads it for you" is used; the (i) says it in Apple's
-              terms without talking anyone into or out of it. */}
-          {!aiHidden && cloudSupported && (
-            <SettingsRow
-              icon="cloud.fill"
-              chipColor={CHIP.exportBackup}
-              label={t("settings.aiCloud")}
-              divider
-              right={
-                <View style={styles.engineRight}>
-                  <InfoDot title={t("settings.aiCloud")} body={t("settings.aiCloudInfo")} />
-                  <Switch
-                    value={aiCloud}
-                    onValueChange={setAiCloudConsent}
-                    trackColor={{ true: colors.accent }}
-                  />
-                </View>
-              }
-            />
-          )}
-          {!aiHidden && cloudSupported && (
-            <Text style={styles.cardFooter}>
-              {t(aiCloud ? "settings.aiCloudOn" : "settings.aiCloudOff")}
-            </Text>
-          )}
           <SettingsRow
             icon="faceid"
             chipColor={authKind === "unavailable" ? CHIP.debug : CHIP.faceid}
@@ -766,7 +728,6 @@ function createStyles(colors: ThemeColors) {
       paddingBottom: spacing.md,
       paddingTop: spacing.xs,
     },
-    engineRight: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
     debugHeader: {
       flexDirection: "row",
       alignItems: "center",
