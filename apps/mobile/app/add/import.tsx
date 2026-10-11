@@ -2,9 +2,9 @@
 // for you" (Apple's cloud model, opt-in) comes first; "Your own AI" (copy
 // our instructions, paste the answer) second. Where the cloud model cannot
 // exist on this phone the hub opens on the second page and the first one
-// explains itself. The pager is the same clamped paging ScrollView as the
-// Payments tab: the offset is applied on mount only, and a release with
-// momentum settles in onMomentumScrollEnd.
+// explains itself. Pager and pills are the Payments tab's: a clamped paging
+// ScrollView whose own scroll drives the selection wash, so the highlight
+// follows the finger instead of teleporting when the page settles.
 
 import { Stack, useLocalSearchParams } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
@@ -20,20 +20,16 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
 import { KeelReadsPanel } from "../../src/components/import/KeelReadsPanel";
 import { OwnAiPanel } from "../../src/components/import/OwnAiPanel";
 import { ModalClose } from "../../src/components/ModalClose";
 import { isKeelReadsOffered, keelReadsAvailability } from "../../src/lib/apple-intelligence";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
-import {
-  radius,
-  spacing,
-  typography,
-  useTheme,
-  withAlpha,
-  type ThemeColors,
-} from "../../src/theme";
+import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
+
+const PAGES = ["pageKeel", "pageOwn"] as const;
 
 export default function ImportHubScreen() {
   // Write screen: a locked mount bounces to the locked sheet (deep links
@@ -53,6 +49,7 @@ export default function ImportHubScreen() {
   // null until the probe answers: the pager mounts once, on the right page.
   const [offered, setOffered] = useState<boolean | null>(null);
   const [page, setPage] = useState(0);
+  const pagerRef = useRef<ScrollView>(null);
   useEffect(() => {
     void keelReadsAvailability().then((a) => {
       const yes = isKeelReadsOffered(a);
@@ -60,14 +57,43 @@ export default function ImportHubScreen() {
       setPage(yes ? 0 : 1);
     });
   }, []);
-  const pagerRef = useRef<ScrollView>(null);
+
+  // The selection wash slides with the pager: its x is the scroll progress
+  // in pill widths (Reanimated shared values are driven by assigning
+  // `.value`). Placed under the starting pill when the track measures, and
+  // re-asserted under the page on every settle.
+  const [trackWidth, setTrackWidth] = useState(0);
+  const pillWidth = trackWidth > 0 ? (trackWidth - 2 - 6 - 3) / 2 : 0; // border+padding+gap
+  const highlightX = useSharedValue(0);
+  const onTrackLayout = (width: number) => {
+    setTrackWidth(width);
+    highlightX.value = page * ((width - 2 - 6 - 3) / 2 + 3);
+  };
+  const highlightStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: highlightX.value }],
+  }));
+
   const goTo = (next: number) => {
+    // The animated scroll's own events carry the wash along.
     setPage(next);
     pagerRef.current?.scrollTo({ x: next * pageWidth, animated: true });
   };
-  const settle = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
-    setPage(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
+  // Reanimated shared values are driven by assigning `.value` from scroll
+  // handlers: the library's API, not a state mutation to police (InfoPopup
+  // and SwipeRow carry the same note).
+  /* eslint-disable react-hooks/immutability */
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const progress = Math.min(1, Math.max(0, e.nativeEvent.contentOffset.x / pageWidth));
+    highlightX.value = progress * (pillWidth + 3);
+  };
+  const settle = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const next = Math.round(e.nativeEvent.contentOffset.x / pageWidth);
+    setPage(next);
+    highlightX.value = next * (pillWidth + 3);
+  };
   const dragEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    // A release with momentum settles in onMomentumScrollEnd; only a
+    // dead-stop release settles here (the Payments pager's lesson).
     if (Math.abs(e.nativeEvent.velocity?.x ?? 0) < 0.05) settle(e);
   };
 
@@ -76,28 +102,37 @@ export default function ImportHubScreen() {
   return (
     <View style={[styles.screen, { paddingTop: headerHeight }]}>
       {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
-      <View style={styles.pills}>
-        {(["keel", "own"] as const).map((key, index) => (
-          <Pressable
-            key={key}
-            style={[styles.pill, page === index && styles.pillActive]}
-            onPress={() => goTo(index)}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: page === index }}
-          >
-            <Text style={[styles.pillText, page === index && styles.pillTextActive]}>
-              {t(key === "keel" ? "importAI.pageKeel" : "importAI.pageOwn")}
-            </Text>
-          </Pressable>
-        ))}
+      <View style={styles.switchWrap}>
+        <View style={styles.switch} onLayout={(e) => onTrackLayout(e.nativeEvent.layout.width)}>
+          {pillWidth > 0 && (
+            <Animated.View style={[styles.highlight, { width: pillWidth }, highlightStyle]} />
+          )}
+          {PAGES.map((key, index) => (
+            <Pressable
+              key={key}
+              style={styles.pill}
+              onPress={() => goTo(index)}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: page === index }}
+            >
+              <Text style={[styles.pillText, page === index && styles.pillTextActive]}>
+                {t(`importAI.${key}`)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
       </View>
       <ScrollView
         ref={pagerRef}
+        style={styles.pager}
         horizontal
         pagingEnabled
+        // No bounce = no overscroll = nothing to wrap to.
         bounces={false}
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
         contentOffset={{ x: initial * pageWidth, y: 0 }}
+        onScroll={onScroll}
         onMomentumScrollEnd={settle}
         onScrollEndDrag={dragEnd}
         keyboardShouldPersistTaps="handled"
@@ -120,26 +155,31 @@ export default function ImportHubScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    pills: {
+    switchWrap: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
+    // Material capsule (§9f): translucent track, hairline, accent tint wash.
+    switch: {
       flexDirection: "row",
-      gap: spacing.xs,
-      marginHorizontal: spacing.md,
-      marginTop: spacing.sm,
-      padding: 3,
-      borderRadius: radius.lg,
       backgroundColor: colors.material,
+      borderRadius: 999,
       borderWidth: 1,
       borderColor: colors.hairline,
+      padding: 3,
+      gap: 3,
+      // The wash must never escape the capsule, even mid-overscroll.
+      overflow: "hidden",
     },
-    pill: {
-      flex: 1,
-      paddingVertical: spacing.xs + 4,
-      borderRadius: radius.md,
-      alignItems: "center",
+    pill: { flex: 1, alignItems: "center", paddingVertical: spacing.sm, borderRadius: 999 },
+    highlight: {
+      position: "absolute",
+      top: 3,
+      bottom: 3,
+      left: 3,
+      borderRadius: 999,
+      backgroundColor: withAlpha(colors.accent, 0.2),
     },
-    pillActive: { backgroundColor: withAlpha(colors.accent, 0.18) },
     pillText: { ...typography.label, color: colors.mutedText },
     pillTextActive: { color: colors.accent },
+    pager: { flex: 1 },
     page: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   });
 }
