@@ -825,7 +825,7 @@ export const it: typeof en = {
     groupSetup: "Configurare & proteggere",
     aiTitle: "Importa con l'IA",
     aiBody:
-      "Dai una lista alla buona, screenshot o l'export del tuo vecchio tracker; le voci escono precompilate e passano prima da una schermata di verifica.",
+      "Screenshot, estratti PDF o una lista alla buona: Keel li legge con il modello cloud di Apple (iOS 27), oppure usi la tua IA con istruzioni copiate. Tutto passa prima da una schermata di verifica.",
     todoTitle: "Una coda Da completare",
     todoBody:
       "Scegli ora i servizi che sai di pagare, completa i dettagli dopo: la coda ti aspetta sotto Tutti.",
@@ -967,11 +967,15 @@ export const it: typeof en = {
     quotaLabel: "Limite Apple del modello cloud",
     quotaInfoTitle: "Limite del modello cloud",
     quotaInfoBody:
-      "Il modello cloud di Apple ha un limite giornaliero per persona (più alto con iCloud+). Qui sotto l'oggetto di stato di Apple per il tuo account, come lo riporta il sistema:",
+      "Il modello cloud di Apple ha un limite giornaliero per persona (più alto con iCloud+). Keel non vede il numero, solo a che punto sei:",
     offlineTitle: "Sei offline",
     offlineBody:
       "Keel legge per te richiede una connessione internet. Le istruzioni per la tua IA restano copiabili.",
-    quotaInfoNone: "Il sistema di Apple non ha riportato alcun oggetto di limite su questo iPhone.",
+    quotaBelow: "Sei entro il limite di oggi.",
+    quotaApproaching: "Ti stai avvicinando al limite di oggi.",
+    quotaReached: "Il limite di oggi è esaurito.",
+    quotaResets: "Si azzera {{when}}.",
+    quotaUnknown: "Apple non ha riportato uno stato del limite su questo iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",

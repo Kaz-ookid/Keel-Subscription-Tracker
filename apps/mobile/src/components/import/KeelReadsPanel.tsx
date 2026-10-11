@@ -4,7 +4,7 @@
 // anything can be sent the page asks for consent in place (ai-cloud.ts),
 // and where the cloud model cannot run it says which wall and offers the
 // bring-your-own page instead. The allowance line at the bottom is the
-// curious person's window: Apple's quota object as Apple describes it.
+// curious person's window: where they stand on Apple's daily allowance.
 
 import { useNetworkState } from "expo-network";
 import { useRouter } from "expo-router";
@@ -20,6 +20,7 @@ import { setAiCloudConsent, useAiCloudConsent } from "../../lib/ai-cloud";
 import {
   cloudQuotaInfo,
   keelReadsAvailability,
+  type CloudQuota,
   type KeelReadsAvailability,
 } from "../../lib/apple-intelligence";
 import { stageDocuments, stageScreenshots } from "../../lib/keel-material";
@@ -27,10 +28,17 @@ import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } fr
 
 type Busy = "screenshots" | "documents" | null;
 
+const QUOTA_KEYS: Record<CloudQuota["state"], string> = {
+  below: "keelReads.quotaBelow",
+  approaching: "keelReads.quotaApproaching",
+  reached: "keelReads.quotaReached",
+  unknown: "keelReads.quotaUnknown",
+};
+
 export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   const router = useRouter();
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const consented = useAiCloudConsent();
   // No connection, no door: better a plain word here than a timeout later.
@@ -39,7 +47,7 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   const offline = network.isConnected === false || network.isInternetReachable === false;
 
   const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
-  const [quota, setQuota] = useState<Record<string, string>>({});
+  const [quota, setQuota] = useState<CloudQuota | null>(null);
   const [busy, setBusy] = useState<Busy>(null);
   const [error, setError] = useState<"screenshots" | "documents" | null>(null);
 
@@ -132,15 +140,21 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
     );
   }
 
-  // Apple's quota object, field by field; failing fields, its description;
-  // failing that, the honest "nothing reported". The (i) is always there.
-  const quotaLines = Object.entries(quota)
-    .filter(([key]) => key !== "description")
-    .map(([key, value]) => `${key}: ${value}`);
-  const quotaDetail = quotaLines.length > 0 ? quotaLines.join("\n") : quota.description;
-  const quotaBody = quotaDetail
-    ? `${t("keelReads.quotaInfoBody")}\n\n${quotaDetail}`
-    : t("keelReads.quotaInfoNone");
+  // Where the user stands, in one plain sentence; Apple gives no number,
+  // only a state and (once the limit is reached) when it resets.
+  const quotaStanding = quota
+    ? t(QUOTA_KEYS[quota.state]) +
+      (quota.resetDate
+        ? " " +
+          t("keelReads.quotaResets", {
+            when: new Date(quota.resetDate).toLocaleString(i18n.language, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }),
+          })
+        : "")
+    : t("keelReads.quotaUnknown");
+  const quotaBody = `${t("keelReads.quotaInfoBody")}\n\n${quotaStanding}`;
 
   return (
     <View style={styles.stack}>
@@ -194,7 +208,7 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
         <Text style={styles.footText}>{t("keelReads.privacy")}</Text>
       </View>
       {/* The allowance, for the curious only: a quiet line plus an (i)
-          that shows Apple's quota object as Apple describes it. */}
+          that says where the user stands on Apple's daily quota. */}
       <View style={styles.footRow}>
         <Text style={styles.footText}>{t("keelReads.quotaLabel")}</Text>
         <InfoDot title={t("keelReads.quotaInfoTitle")} body={quotaBody} />

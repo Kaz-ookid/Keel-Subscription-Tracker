@@ -858,7 +858,7 @@ const translation = {
     groupSetup: "Konfiguracja i ochrona",
     aiTitle: "Import z AI",
     aiBody:
-      "Wrzuć listę z grubsza, zrzuty ekranu albo eksport starej aplikacji; pozycje wychodzą wypełnione i najpierw lądują na ekranie weryfikacji.",
+      "Zrzuty ekranu, wyciągi PDF albo luźna lista: Keel czyta je modelem chmurowym Apple (iOS 27) albo używasz własnej AI ze skopiowanymi instrukcjami. Wszystko trafia najpierw na ekran sprawdzania.",
     todoTitle: "Kolejka Do uzupełnienia",
     todoBody:
       "Wybierz teraz usługi, za które na pewno płacisz, szczegóły uzupełnij później: kolejka czeka pod Wszystkie.",
@@ -1012,11 +1012,15 @@ const translation = {
     quotaLabel: "Limit Apple dla modelu chmurowego",
     quotaInfoTitle: "Limit modelu chmurowego",
     quotaInfoBody:
-      "Model chmurowy Apple ma dzienny limit na osobę (wyższy z iCloud+). Poniżej obiekt stanu Apple dla twojego konta, tak jak zgłasza go system:",
+      "Model chmurowy Apple ma dzienny limit na osobę (wyższy z iCloud+). Keel nie widzi liczby, tylko gdzie jesteś:",
     offlineTitle: "Jesteś offline",
     offlineBody:
       "Keel czyta za ciebie wymaga połączenia z internetem. Instrukcje dla twojej własnej AI nadal można skopiować.",
-    quotaInfoNone: "System Apple nie zgłosił obiektu limitu na tym iPhonie.",
+    quotaBelow: "Mieścisz się w dzisiejszym limicie.",
+    quotaApproaching: "Zbliżasz się do dzisiejszego limitu.",
+    quotaReached: "Dzisiejszy limit został wykorzystany.",
+    quotaResets: "Odnowi się {{when}}.",
+    quotaUnknown: "Apple nie zgłosił stanu limitu na tym iPhonie.",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",

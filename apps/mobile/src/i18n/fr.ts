@@ -825,7 +825,7 @@ export const fr: typeof en = {
     groupSetup: "Démarrer et protéger",
     aiTitle: "Importer avec l'IA",
     aiBody:
-      "Déposez une liste en vrac, des captures ou l'export de votre ancienne app ; les engagements ressortent préremplis et passent d'abord par un écran de vérification.",
+      "Captures d'écran, relevés PDF ou liste en vrac : Keel les lit avec le modèle cloud d'Apple (iOS 27), ou vous passez par votre propre IA avec des instructions copiées. Tout arrive d'abord sur un écran de vérification.",
     todoTitle: "Une file À compléter",
     todoBody:
       "Choisissez maintenant les services que vous payez, complétez les détails plus tard : la file attend sous Tout.",
@@ -968,11 +968,15 @@ export const fr: typeof en = {
     quotaLabel: "Quota Apple du modèle cloud",
     quotaInfoTitle: "Quota du modèle cloud",
     quotaInfoBody:
-      "Le modèle cloud d'Apple a une limite quotidienne par personne (plus élevée avec iCloud+). Ci-dessous, l'objet d'état d'Apple pour votre compte, tel que le système le rapporte :",
+      "Le modèle cloud d'Apple a une limite quotidienne par personne (plus élevée avec iCloud+). Keel ne voit pas le chiffre, seulement où vous en êtes :",
     offlineTitle: "Vous êtes hors ligne",
     offlineBody:
       "Keel lit pour vous nécessite une connexion internet. Les instructions pour votre propre IA restent copiables.",
-    quotaInfoNone: "Le système d'Apple n'a renvoyé aucun objet de quota sur cet iPhone.",
+    quotaBelow: "Vous êtes dans la limite du jour.",
+    quotaApproaching: "Vous approchez de la limite du jour.",
+    quotaReached: "La limite du jour est atteinte.",
+    quotaResets: "Elle se réinitialise {{when}}.",
+    quotaUnknown: "Apple n'a pas indiqué d'état de limite sur cet iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} à payer aujourd'hui",

@@ -827,7 +827,7 @@ export const de: typeof en = {
     groupSetup: "Einrichten & schützen",
     aiTitle: "Mit KI importieren",
     aiBody:
-      "Gib eine grobe Liste, Screenshots oder den Export deines alten Trackers ab; die Posten kommen vorausgefüllt heraus und landen zuerst auf einem Prüfbildschirm.",
+      "Screenshots, PDF-Auszüge oder eine grobe Liste: Keel liest sie mit Apples Cloud-Modell (iOS 27), oder du nutzt deine eigene KI mit kopierter Anleitung. Alles landet zuerst auf einem Prüfbildschirm.",
     todoTitle: "Eine Noch-offen-Liste",
     todoBody:
       "Wähle jetzt die Dienste, für die du zahlst, und ergänze die Details später: Die Liste wartet unter Alle.",
@@ -972,11 +972,15 @@ export const de: typeof en = {
     quotaLabel: "Apples Kontingent für das Cloud-Modell",
     quotaInfoTitle: "Kontingent des Cloud-Modells",
     quotaInfoBody:
-      "Apples Cloud-Modell hat ein tägliches Kontingent pro Person (höher mit iCloud+). Unten Apples eigenes Statusobjekt für dein Konto, wie das System es meldet:",
+      "Apples Cloud-Modell hat ein tägliches Kontingent pro Person (höher mit iCloud+). Keel sieht die Zahl nicht, nur wo du stehst:",
     offlineTitle: "Du bist offline",
     offlineBody:
       "Keel liest es braucht eine Internetverbindung. Die Anleitung für deine eigene KI lässt sich trotzdem kopieren.",
-    quotaInfoNone: "Apples System hat auf diesem iPhone kein Kontingent-Objekt gemeldet.",
+    quotaBelow: "Du bist innerhalb des heutigen Kontingents.",
+    quotaApproaching: "Du näherst dich dem heutigen Kontingent.",
+    quotaReached: "Das heutige Kontingent ist aufgebraucht.",
+    quotaResets: "Es wird {{when}} zurückgesetzt.",
+    quotaUnknown: "Apple hat auf diesem iPhone keinen Kontingentstatus gemeldet.",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",

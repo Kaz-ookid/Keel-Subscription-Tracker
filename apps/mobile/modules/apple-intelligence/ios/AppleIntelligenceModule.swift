@@ -154,19 +154,32 @@ public class AppleIntelligenceModule: Module {
       }
     }
 
-    // The cloud model's allowance, for the curious: the framework's quota
-    // object is read by REFLECTION (every stored property, stringified), so
-    // the bridge never names a field it cannot be sure of on a young API.
-    // Below iOS 27 (or without the framework) an empty dictionary.
+    // The cloud model's allowance, for the curious. The framework's quota
+    // object is read by REFLECTION so the bridge names no field it cannot be
+    // sure of on a young API; what comes back is a small, stable contract:
+    // state = below | approaching | reached | unknown, resetDate (ISO) when
+    // Apple gives one. Observed on iOS 27.0: status .belowLimit(
+    // isApproachingLimit:), resetDate nil while below the limit.
     Function("cloudQuota") { () -> [String: String] in
       #if canImport(FoundationModels)
         guard #available(iOS 27.0, *) else { return [:] }
-        var out: [String: String] = [:]
         let usage = PrivateCloudComputeLanguageModel().quotaUsage
+        var out: [String: String] = ["state": "unknown"]
         for child in Mirror(reflecting: usage).children {
-          if let label = child.label { out[label] = String(describing: child.value) }
+          guard let label = child.label else { continue }
+          let text = String(describing: child.value)
+          if label == "status" {
+            if text.contains("limitReached") {
+              out["state"] = "reached"
+            } else if text.contains("isApproachingLimit: true") {
+              out["state"] = "approaching"
+            } else if text.contains("belowLimit") {
+              out["state"] = "below"
+            }
+          } else if label == "resetDate", let date = child.value as? Date {
+            out["resetDate"] = ISO8601DateFormatter().string(from: date)
+          }
         }
-        out["description"] = String(describing: usage)
         return out
       #else
         return [:]

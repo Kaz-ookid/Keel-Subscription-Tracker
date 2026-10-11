@@ -821,7 +821,7 @@ export const en = {
     groupSetup: "Set up & protect",
     aiTitle: "Import with AI",
     aiBody:
-      "Drop a rough list, screenshots, or your old tracker's export; commitments come out pre-filled and land on a review screen first.",
+      "Screenshots, PDF statements or a rough list: Keel reads them with Apple's cloud model (iOS 27), or you use your own AI with copied instructions. Everything lands on a review screen first.",
     todoTitle: "A To-complete queue",
     todoBody:
       "Pick the services you know you pay for now, fill in the details later: the queue waits under All.",
@@ -962,11 +962,15 @@ export const en = {
     quotaLabel: "Apple's allowance for the cloud model",
     quotaInfoTitle: "Cloud model allowance",
     quotaInfoBody:
-      "Apple's cloud model has a daily allowance per person (higher with iCloud+). Below is Apple's own status object for your account, as the system reports it:",
+      "Apple's cloud model has a daily allowance per person (higher with iCloud+). Keel can't see the number, only where you stand:",
     offlineTitle: "You're offline",
     offlineBody:
       "Keel reads it needs an internet connection. Your own AI's instructions can still be copied.",
-    quotaInfoNone: "Apple's system did not report an allowance object on this iPhone.",
+    quotaBelow: "You're within today's allowance.",
+    quotaApproaching: "You're getting close to today's allowance.",
+    quotaReached: "Today's allowance is used up.",
+    quotaResets: "It resets {{when}}.",
+    quotaUnknown: "Apple didn't report an allowance state on this iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} due today",
