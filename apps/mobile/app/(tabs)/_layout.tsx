@@ -4,9 +4,9 @@
 // DOCK_CLEARANCE). `action: true` is the center ＋ — it opens the Add modal
 // instead of switching tab.
 
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import { Tabs, useRouter } from "expo-router";
+import type { ComponentProps } from "react";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -18,6 +18,10 @@ import { bumpTabReset } from "../../src/lib/tabReset";
 import { radius, typography, useTheme, withAlpha } from "../../src/theme";
 
 type SymbolName = SymbolViewProps["name"];
+
+// The props expo-router hands a custom `tabBar` (SDK 56+ no longer exposes
+// React Navigation's types directly).
+type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
 const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] = [
   { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },

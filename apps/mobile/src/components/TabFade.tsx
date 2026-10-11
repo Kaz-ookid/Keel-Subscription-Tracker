@@ -12,10 +12,10 @@
 // again → snap to visible (no animation); a different tab → the fade-through.
 // Both paths end at opacity 1, so the anti-stuck guarantee stands.
 
-import { useIsFocused, useRoute } from "@react-navigation/native";
 import { useEffect, type ReactNode } from "react";
 import type { StyleProp, ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from "react-native-reanimated";
+import { useIsFocused, useRoute } from "expo-router";
 
 interface Props {
   style?: StyleProp<ViewStyle>;

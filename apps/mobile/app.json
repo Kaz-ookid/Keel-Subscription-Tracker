@@ -59,7 +59,19 @@
       "@bacons/apple-targets",
       "react-native-cloud-storage",
       "expo-secure-store",
-      "expo-iap"
+      "expo-iap",
+      "expo-image",
+      "expo-sharing",
+      "expo-status-bar",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true,
+            "deploymentTarget": "16.4"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

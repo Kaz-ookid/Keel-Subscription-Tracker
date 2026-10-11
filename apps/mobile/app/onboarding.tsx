@@ -17,12 +17,12 @@ import Animated, {
   FadeInRight,
   FadeOut,
   FadeOutLeft,
-  runOnJS,
   useAnimatedReaction,
   useAnimatedRef,
   useAnimatedScrollHandler,
   useSharedValue,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { Ambient } from "../src/components/Ambient";
@@ -89,7 +89,7 @@ export default function OnboardingScreen() {
   useAnimatedReaction(
     () => Math.round(scrollX.value / SCREEN_WIDTH),
     (next, previous) => {
-      if (next !== previous && next >= 0 && next < TOUR_PANES.length) runOnJS(setPane)(next);
+      if (next !== previous && next >= 0 && next < TOUR_PANES.length) scheduleOnRN(setPane, next);
     },
   );
   const [savedCount, setSavedCount] = useState(0);

@@ -9,13 +9,13 @@ import { useEffect, useMemo, type ReactNode } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
-  runOnJS,
   SlideInDown,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
@@ -68,7 +68,7 @@ export function InfoPopup({ visible, title, onClose, tall, children }: Props) {
     })
     .onEnd((e) => {
       if (dragY.value > 90 || (dragY.value > 20 && e.velocityY > 700)) {
-        runOnJS(onClose)();
+        scheduleOnRN(onClose);
       } else {
         dragY.value = withTiming(0, { duration: 150 });
       }

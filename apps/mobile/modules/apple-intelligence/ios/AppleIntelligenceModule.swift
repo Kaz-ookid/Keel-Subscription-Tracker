@@ -25,7 +25,9 @@ import ExpoModulesCore
   /// maximumResponseTokens sits past anything the context can produce, so a
   /// multi-item answer is never truncated mid-list.
   @available(iOS 26.0, *)
-  private let extractionOptions = GenerationOptions(temperature: 0, maximumResponseTokens: 4000)
+  private var extractionOptions: GenerationOptions {
+    GenerationOptions(temperature: 0, maximumResponseTokens: 4000)
+  }
 #endif
 
 public class AppleIntelligenceModule: Module {

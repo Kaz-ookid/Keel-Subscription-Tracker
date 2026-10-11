@@ -14,8 +14,7 @@ import {
   type ImportWarning,
   type NewAccountInput,
 } from "@keel/core";
-import { useNavigation } from "@react-navigation/native";
-import { useRouter } from "expo-router";
+import { useNavigation, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";

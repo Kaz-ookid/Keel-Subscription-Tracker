@@ -5,8 +5,8 @@
 // AI drafts) — then the ✕ closes the whole sheet, since there is no chooser.
 
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
-import { useNavigation, usePreventRemove } from "@react-navigation/native";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { usePreventRemove } from "expo-router/react-navigation";
+import { Stack, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";

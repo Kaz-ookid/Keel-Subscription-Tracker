@@ -18,11 +18,11 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
   Extrapolation,
   interpolate,
-  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
+import { scheduleOnRN } from "react-native-worklets";
 import { SymbolView } from "expo-symbols";
 
 import { radius, spacing, useTheme } from "../../theme";
@@ -125,8 +125,8 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
       .failOffsetY([-12, 12])
       .onStart(() => {
         startX.value = translateX.value;
-        runOnJS(closeOthers)(rowId);
-        runOnJS(setEngaged)(true);
+        scheduleOnRN(closeOthers, rowId);
+        scheduleOnRN(setEngaged, true);
       })
       .onUpdate((e) => {
         const raw = Math.min(0, startX.value + e.translationX);
@@ -140,11 +140,11 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
         const shouldOpen = !flickClose && (translateX.value < OPEN_X / 2 || e.velocityX < -400);
         if (shouldOpen) {
           translateX.value = withTiming(OPEN_X, { duration: 160 });
-          runOnJS(setOpen)(true);
+          scheduleOnRN(setOpen, true);
         } else {
           translateX.value = withTiming(0, { duration: 160 });
-          runOnJS(setEngaged)(false);
-          runOnJS(setOpen)(false);
+          scheduleOnRN(setEngaged, false);
+          scheduleOnRN(setOpen, false);
         }
       });
     // The press is a gesture too, EXCLUSIVE with the pan: it can only win
@@ -154,7 +154,7 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
     // open. Inside the gesture system the race cannot exist.
     const firePress = () => pressRef.current();
     const tap = Gesture.Tap().onEnd((_e, success) => {
-      if (success) runOnJS(firePress)();
+      if (success) scheduleOnRN(firePress);
     });
     return Gesture.Exclusive(pan, tap);
     // eslint-disable-next-line react-hooks/exhaustive-deps

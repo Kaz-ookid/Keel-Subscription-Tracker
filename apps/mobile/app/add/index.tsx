@@ -5,7 +5,7 @@
 // button is the system's own.
 
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
-import { useHeaderHeight } from "@react-navigation/elements";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
