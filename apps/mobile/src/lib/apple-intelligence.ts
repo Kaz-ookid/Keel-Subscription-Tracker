@@ -1,54 +1,45 @@
-// The AI surface (PROJECT_BRIEF §6.1), riding Apple's Foundation Models with
-// TWO engines: Private Cloud Compute (default, 32K context, needs network,
-// metered against the user's iCloud allowance) and the on-device model
-// (offline, unlimited, weaker). Which one the user prefers lives in
-// ai-engine.ts; which one actually RAN is reported back on every call, so the
-// UI can say so instead of degrading silently.
+// "Keel reads it for you" (PROJECT_BRIEF §6.1): the AI import and the
+// assistant, run by Apple's Private Cloud Compute model through the native
+// bridge in modules/apple-intelligence. Cloud-or-nothing by decision
+// (2026-10-11): the on-device model could not carry the feature, so when the
+// cloud model cannot run (OS, device, offline, allowance spent) the screens
+// say so and point at bring-your-own AI; nothing degrades silently.
 //
-// In Expo Go the native module doesn't exist, every probe lands on
-// "unavailable", and the screens explain themselves. Wiring steps live in
-// modules/apple-intelligence/README.md.
+// Sending anything is OPT-IN (ai-cloud.ts): the screens check consent before
+// the first byte leaves the phone. In Expo Go the native module doesn't
+// exist, every probe lands on "unavailable", and the screens explain
+// themselves.
 
 import {
   buildAssistantPrompt,
   buildImportPrompt,
-  buildOnDevicePrompt,
   type AssistantPromptContext,
   type CalendarDate,
   type CurrencyCode,
 } from "@keel/core";
 
-import { currentAiEngine, type AiEngine } from "./ai-engine";
-
-export type OnDeviceAvailability =
-  /** Ready to parse. */
+export type KeelReadsAvailability =
+  /** Ready to read. */
   | "available"
-  /** iOS below 26 (or a build without the framework). */
+  /** iOS below 27 (or a build without the framework). */
   | "unsupported-os"
-  /** Hardware can't run Apple Intelligence. */
+  /** This iPhone cannot use the cloud model. */
   | "device"
   /** Supported, but Apple Intelligence is turned off in iOS Settings. */
   | "disabled"
-  /** Enabled, model still downloading; retry later. */
+  /** Apple's side isn't ready; retry later. */
   | "not-ready"
   /** Native module missing (Expo Go) or probe failed. */
   | "unavailable";
 
-/** What the cloud engine can do right now. */
-export interface CloudStanding {
-  /** PCC exists on this OS/build. */
-  supported: boolean;
-  /** The user's daily allowance is spent; cloud calls will fall back. */
-  limitReached: boolean;
-}
+/** Why a read failed, in the bridge's contract (see AppleIntelligenceError
+ *  in the native module). The screens have a message for each. */
+export type KeelReadsFailure = "offline" | "quota" | "service" | "unavailable" | "model-failed";
 
-/** Every AI call reports which engine actually produced the answer, so the
- *  UI can badge it and never imply cloud quality from a local result. */
-export interface EngineResult {
-  json: string;
-  ranOn: AiEngine;
-  /** True when the user wanted cloud but we had to use the on-device model. */
-  fellBack: boolean;
+export class KeelReadsError extends Error {
+  constructor(public readonly reason: KeelReadsFailure) {
+    super(reason);
+  }
 }
 
 async function native() {
@@ -56,73 +47,53 @@ async function native() {
   return binding.default;
 }
 
-export async function onDeviceAvailability(): Promise<OnDeviceAvailability> {
+export async function keelReadsAvailability(): Promise<KeelReadsAvailability> {
   try {
     const result = (await native()).availability();
     return ["available", "unsupported-os", "device", "disabled", "not-ready"].includes(result)
-      ? (result as OnDeviceAvailability)
+      ? (result as KeelReadsAvailability)
       : "unavailable";
   } catch {
     return "unavailable";
   }
 }
 
-/** Cloud standing, including whether today's allowance is used up. Safe
- *  everywhere: an unsupported build reports `supported: false`. */
-export async function cloudStanding(): Promise<CloudStanding> {
+/** True when the cloud model exists on this OS and build, whatever its
+ *  momentary state: the surfaces that OFFER it (hub card, Settings switch)
+ *  key on this; the screen itself explains the finer states. */
+export function isKeelReadsOffered(availability: KeelReadsAvailability): boolean {
+  return availability !== "unsupported-os" && availability !== "unavailable";
+}
+
+function toFailure(error: unknown): KeelReadsError {
+  const message = error instanceof Error ? error.message : String(error);
+  const reasons: KeelReadsFailure[] = ["offline", "quota", "service", "unavailable"];
+  const hit = reasons.find((reason) => message.includes(reason));
+  return new KeelReadsError(hit ?? "model-failed");
+}
+
+/** Rough notes in, import-format JSON out; feed it to core's
+ *  parseImportDocument like any pasted answer. Throws KeelReadsError. */
+export async function readWithKeel(
+  input: string,
+  context: { today: CalendarDate; defaultCurrency: CurrencyCode },
+): Promise<string> {
   try {
-    const quota = (await native()).cloudQuota();
-    return {
-      supported: Boolean(quota?.supported),
-      limitReached: Boolean(quota?.limitReached),
-    };
-  } catch {
-    return { supported: false, limitReached: false };
+    return await (await native()).parseSubscriptions(input, buildImportPrompt(context), "cloud");
+  } catch (error) {
+    throw toFailure(error);
   }
 }
 
-/** Decide the engine for THIS call. Cloud is used when the user wants it and
- *  it can actually run; otherwise we fall back to the on-device model and say
- *  so. Callers warn the user before a fallback answer is produced. */
-export async function resolveEngine(): Promise<{ engine: AiEngine; fellBack: boolean }> {
-  const wanted = currentAiEngine();
-  if (wanted === "local") return { engine: "local", fellBack: false };
-  const standing = await cloudStanding();
-  // Cloud not existing on this build/OS is NOT a fallback: there was never
-  // anything to fall back from, so warning on every request would just nag.
-  // Only a cloud that COULD have run (allowance spent) earns the warning.
-  if (!standing.supported) return { engine: "local", fellBack: false };
-  if (standing.limitReached) return { engine: "local", fellBack: true };
-  return { engine: "cloud", fellBack: false };
-}
-
-/** Rough notes in, import-format JSON out. Throws when no engine can run;
- *  feed `json` to core's parseImportDocument like any pasted answer. */
-export async function parseOnDevice(
-  input: string,
-  context: { today: CalendarDate; defaultCurrency: CurrencyCode },
-  /** Pass the engine the screen already resolved (so it could warn about a
-   *  fallback first); omit to resolve here. */
-  chosen?: { engine: AiEngine; fellBack: boolean },
-): Promise<EngineResult> {
-  const { engine, fellBack } = chosen ?? (await resolveEngine());
-  // The cloud model handles the full instructions; the small on-device model
-  // needs the compact, example-led variant.
-  const instructions =
-    engine === "cloud" ? buildImportPrompt(context) : buildOnDevicePrompt(context);
-  const json = await (await native()).parseSubscriptions(input, instructions, engine);
-  return { json, ranOn: engine, fellBack };
-}
-
 /** A natural-language request in, assistant plan JSON out. Nothing applies
- *  without the review screen. */
-export async function assistOnDevice(
+ *  without the review screen. Throws KeelReadsError. */
+export async function assistWithKeel(
   input: string,
   context: AssistantPromptContext,
-  chosen?: { engine: AiEngine; fellBack: boolean },
-): Promise<EngineResult> {
-  const { engine, fellBack } = chosen ?? (await resolveEngine());
-  const instructions = buildAssistantPrompt(context);
-  const json = await (await native()).assist(input, instructions, engine);
-  return { json, ranOn: engine, fellBack };
+): Promise<string> {
+  try {
+    return await (await native()).assist(input, buildAssistantPrompt(context), "cloud");
+  } catch (error) {
+    throw toFailure(error);
+  }
 }

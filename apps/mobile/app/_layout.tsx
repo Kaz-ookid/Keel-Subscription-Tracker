@@ -10,7 +10,7 @@ import "../src/i18n";
 import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
 import { SheetShield } from "../src/components/SheetShield";
-import { hydrateAiEngine } from "../src/lib/ai-engine";
+import { hydrateAiCloud } from "../src/lib/ai-cloud";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateAppLock } from "../src/lib/app-lock";
 import { hydrateCustomBank } from "../src/lib/custom-bank";
@@ -45,7 +45,7 @@ function RootNavigator() {
   useEffect(() => {
     void hydrateLogoConsent();
     void hydrateAiVisibility();
-    void hydrateAiEngine();
+    void hydrateAiCloud();
     void hydrateAppLock();
     void hydrateBrandTints();
     void hydrateCustomBank();

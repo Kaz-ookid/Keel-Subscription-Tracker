@@ -47,8 +47,8 @@ import {
   type AuthKind,
 } from "../../src/lib/app-lock";
 import { reminderPermissionGranted } from "../../src/lib/notifications";
-import { setAiEngine, useAiEngine } from "../../src/lib/ai-engine";
-import { cloudStanding } from "../../src/lib/apple-intelligence";
+import { setAiCloudConsent, useAiCloudConsent } from "../../src/lib/ai-cloud";
+import { isKeelReadsOffered, keelReadsAvailability } from "../../src/lib/apple-intelligence";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
 import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
@@ -164,13 +164,13 @@ export default function SettingsScreen() {
   const [logoSheet, setLogoSheet] = useState(false);
   // The hard AI lock: on = every AI surface and entry point disappears.
   const aiHidden = useAiHidden();
-  // Which model answers: Apple's cloud (default, better) or on-device only.
-  // The row only appears where cloud can actually run, so we never offer a
-  // model this build/OS cannot reach (PCC needs the iOS 27 SDK).
-  const aiEngine = useAiEngine();
+  // Consent for "Keel reads it for you" (Apple's cloud model). The row only
+  // appears where the cloud model exists on this OS and build, so we never
+  // offer a switch for something this iPhone cannot reach.
+  const aiCloud = useAiCloudConsent();
   const [cloudSupported, setCloudSupported] = useState(false);
   useEffect(() => {
-    void cloudStanding().then((standing) => setCloudSupported(standing.supported));
+    void keelReadsAvailability().then((a) => setCloudSupported(isKeelReadsOffered(a)));
   }, []);
 
   useEffect(() => {
@@ -465,9 +465,9 @@ export default function SettingsScreen() {
             }
           />
           {aiHidden && <Text style={styles.cardFooter}>{t("settings.aiFeaturesFooter")}</Text>}
-          {/* Which engine answers. Cloud is the default because the on-device
-              model can't carry the feature honestly; the (i) explains the
-              trade both ways without talking anyone out of either. */}
+          {/* The cloud consent switch: what leaves the phone, and only when
+              "Keel reads it for you" is used; the (i) says it in Apple's
+              terms without talking anyone into or out of it. */}
           {!aiHidden && cloudSupported && (
             <SettingsRow
               icon="cloud.fill"
@@ -478,8 +478,8 @@ export default function SettingsScreen() {
                 <View style={styles.engineRight}>
                   <InfoDot title={t("settings.aiCloud")} body={t("settings.aiCloudInfo")} />
                   <Switch
-                    value={aiEngine === "cloud"}
-                    onValueChange={(next) => setAiEngine(next ? "cloud" : "local")}
+                    value={aiCloud}
+                    onValueChange={setAiCloudConsent}
                     trackColor={{ true: colors.accent }}
                   />
                 </View>
@@ -488,7 +488,7 @@ export default function SettingsScreen() {
           )}
           {!aiHidden && cloudSupported && (
             <Text style={styles.cardFooter}>
-              {t(aiEngine === "cloud" ? "settings.aiCloudOn" : "settings.aiCloudOff")}
+              {t(aiCloud ? "settings.aiCloudOn" : "settings.aiCloudOff")}
             </Text>
           )}
           <SettingsRow

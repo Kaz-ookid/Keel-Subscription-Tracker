@@ -23,12 +23,10 @@ import {
 
 import { Button } from "../src/components/ui/Button";
 import {
-  assistOnDevice,
-  onDeviceAvailability,
-  resolveEngine,
-  type OnDeviceAvailability,
+  assistWithKeel,
+  keelReadsAvailability,
+  type KeelReadsAvailability,
 } from "../src/lib/apple-intelligence";
-import { confirmLocalFallback } from "../src/lib/ai-fallback";
 import { useAppData } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
 import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
@@ -47,27 +45,25 @@ export default function AssistantScreen() {
   const { items, accounts, categories, displayCurrency } = useAppData();
   const { startPlan } = useAssistantSession();
 
-  const [availability, setAvailability] = useState<OnDeviceAvailability | "checking">("checking");
+  const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<AssistError | null>(null);
 
   useEffect(() => {
-    void onDeviceAvailability().then(setAvailability);
+    void keelReadsAvailability().then(setAvailability);
   }, []);
 
   const run = async () => {
-    // Same contract as the import: warn before a weaker engine answers.
-    const chosen = await resolveEngine();
-    if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
     try {
-      const { json: raw } = await assistOnDevice(
-        text.trim(),
-        { items, accounts, today: today(), defaultCurrency: displayCurrency },
-        chosen,
-      );
+      const raw = await assistWithKeel(text.trim(), {
+        items,
+        accounts,
+        today: today(),
+        defaultCurrency: displayCurrency,
+      });
       const plan = parseAssistantPlan(raw, {
         items,
         accounts,
@@ -157,23 +153,23 @@ export default function AssistantScreen() {
       {availability !== "checking" && availability !== "available" && (
         <View style={styles.centerCard}>
           <SymbolView name="sparkles" size={28} tintColor={colors.mutedText} />
-          <Text style={styles.unavailableTitle}>{t("onDevice.unavailableTitle")}</Text>
+          <Text style={styles.unavailableTitle}>{t("keelReads.unavailableTitle")}</Text>
           <Text style={styles.unavailableBody}>
             {t(
               availability === "unsupported-os"
-                ? "onDevice.reasonOs"
+                ? "keelReads.reasonOs"
                 : availability === "device"
-                  ? "onDevice.reasonDevice"
+                  ? "keelReads.reasonDevice"
                   : availability === "disabled"
-                    ? "onDevice.reasonDisabled"
+                    ? "keelReads.reasonDisabled"
                     : availability === "not-ready"
-                      ? "onDevice.reasonNotReady"
-                      : "onDevice.reasonBuild",
+                      ? "keelReads.reasonNotReady"
+                      : "keelReads.reasonBuild",
             )}
           </Text>
           {availability === "disabled" && (
             <Pressable onPress={() => void Linking.openSettings()} hitSlop={8}>
-              <Text style={styles.settingsLink}>{t("onDevice.openSettings")}</Text>
+              <Text style={styles.settingsLink}>{t("keelReads.openSettings")}</Text>
             </Pressable>
           )}
         </View>

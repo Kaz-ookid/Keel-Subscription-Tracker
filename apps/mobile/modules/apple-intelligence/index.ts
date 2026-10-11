@@ -6,14 +6,12 @@
 import { requireNativeModule } from "expo-modules-core";
 
 export interface AppleIntelligenceNative {
-  /** ON-DEVICE model standing:
+  /** Cloud model (Private Cloud Compute) standing:
    *  "available" | "unsupported-os" | "device" | "disabled" | "not-ready" */
   availability(): string;
-  /** Cloud (Private Cloud Compute) standing: whether it is supported at all,
-   *  and whether the user's daily allowance is spent. */
-  cloudQuota(): { supported: boolean; limitReached: boolean };
-  /** Rough notes in, import-format-v1 JSON out (guided generation).
-   *  `engine` is "cloud" (PCC) or "local" (on-device). */
+  /** Rough notes in, import-format v2 JSON out (guided generation). Rejects
+   *  with "offline" | "quota" | "service" | "unavailable" | "model-failed".
+   *  `engine` is reserved for a future second engine; pass "cloud". */
   parseSubscriptions(input: string, instructions: string, engine: string): Promise<string>;
   /** A natural-language request in, assistant plan JSON out
    *  ({"actions":[...],"additions":[...]}, guided generation). */

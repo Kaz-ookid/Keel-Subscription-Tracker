@@ -1,23 +1,48 @@
-// The Apple Intelligence bridge: every request runs on the on-device model
-// (SystemLanguageModel.default) — offline, unmetered, and nothing leaves the
-// phone. Guided generation constrains the output to the @Generable schemas,
-// so @keel/core always parses one shape. Compiles on older SDKs: everything
-// model-related sits behind canImport + availability checks.
+// The Apple Intelligence bridge: every request runs on Apple's Private Cloud
+// Compute model (PrivateCloudComputeLanguageModel, iOS 27), opt-in from the
+// JS side and gated by the `com.apple.developer.private-cloud-compute`
+// entitlement. Guided generation constrains the output to the @Generable
+// schemas, so @keel/core always parses one shape. Compiles on older SDKs:
+// everything model-related sits behind canImport + availability checks, and
+// below iOS 27 every call reports "unsupported-os".
 //
 // The JS side (src/lib/apple-intelligence.ts) passes an `engine` parameter,
-// kept for bridge stability: it reserves room for a future server-backed
-// engine without changing the native API. Today every engine value resolves
-// to the on-device model, and `cloudQuota()` reports unsupported so the UI
-// never offers an engine that cannot run.
+// kept for bridge stability: it reserves room for another engine without
+// changing the native API. Today every value resolves to the cloud model.
+//
+// Failure reporting is a small string contract (see AppleIntelligenceError):
+// the JS maps "offline" / "quota" / "service" / "unavailable" to their own
+// messages instead of one generic "the model failed".
 
 import ExpoModulesCore
 
 #if canImport(FoundationModels)
   import FoundationModels
 
-  @available(iOS 26.0, *)
+  /// The cloud model's standing, in the bridge's string contract. The
+  /// unavailability reasons are classified by description rather than by
+  /// case so the mapping survives SDK renames; anything unrecognized reads
+  /// as "device" (the honest catch-all: it cannot run here).
+  @available(iOS 27.0, *)
+  private func cloudAvailability() -> String {
+    switch PrivateCloudComputeLanguageModel().availability {
+    case .available:
+      return "available"
+    case .unavailable(let reason):
+      let why = String(describing: reason).lowercased()
+      if why.contains("eligible") { return "device" }
+      if why.contains("enabled") { return "disabled" }
+      if why.contains("ready") { return "not-ready" }
+      return "device"
+    @unknown default:
+      return "device"
+    }
+  }
+
+  @available(iOS 27.0, *)
   private func makeSession(engine _: String, instructions: String) -> LanguageModelSession {
-    return LanguageModelSession(instructions: instructions)
+    return LanguageModelSession(
+      model: PrivateCloudComputeLanguageModel(), instructions: instructions)
   }
 
   /// Structured extraction wants determinism, not creativity, so temperature 0
@@ -28,62 +53,61 @@ import ExpoModulesCore
   private var extractionOptions: GenerationOptions {
     GenerationOptions(temperature: 0, maximumResponseTokens: 4000)
   }
+
+  /// Turns whatever the framework threw into the bridge's failure contract.
+  /// Classified by description so the mapping does not depend on the exact
+  /// error case names of a still-young API.
+  private func classify(_ error: Error) -> AppleIntelligenceError {
+    let text = String(describing: error).lowercased()
+    if text.contains("quota") || text.contains("limit") { return .quota }
+    if text.contains("network") || text.contains("offline") || text.contains("connection") {
+      return .offline
+    }
+    if text.contains("unavailable") || text.contains("service") { return .service }
+    return .modelFailed
+  }
 #endif
 
 public class AppleIntelligenceModule: Module {
   public func definition() -> ModuleDefinition {
     Name("AppleIntelligence")
 
-    // On-device availability. "available" | "unsupported-os" | "device" |
-    // "disabled" | "not-ready". The local engine only.
+    // Cloud model standing: "available" | "unsupported-os" | "device" |
+    // "disabled" | "not-ready".
     Function("availability") { () -> String in
       #if canImport(FoundationModels)
-        guard #available(iOS 26.0, *) else { return "unsupported-os" }
-        switch SystemLanguageModel.default.availability {
-        case .available:
-          return "available"
-        case .unavailable(.deviceNotEligible):
-          return "device"
-        case .unavailable(.appleIntelligenceNotEnabled):
-          return "disabled"
-        case .unavailable(.modelNotReady):
-          return "not-ready"
-        case .unavailable:
-          return "device"
-        }
+        guard #available(iOS 27.0, *) else { return "unsupported-os" }
+        return cloudAvailability()
       #else
         return "unsupported-os"
       #endif
     }
 
-    // Whether a server-backed engine exists and has allowance left. Always
-    // "unsupported": there is no server-backed engine (see the header), and
-    // the JS side reads this so the UI never offers one.
-    Function("cloudQuota") { () -> [String: Any] in
-      return ["supported": false, "limitReached": false]
-    }
-
     // Rough notes in, import-format v2 JSON out. The instructions come from
-    // core (buildOnDevicePrompt / buildImportPrompt) so every path shares one
-    // format and one parser.
+    // core (buildImportPrompt) so every path shares one format and one parser.
     AsyncFunction("parseSubscriptions") {
       (input: String, instructions: String, engine: String) async throws -> String in
       #if canImport(FoundationModels)
-        guard #available(iOS 26.0, *) else {
+        guard #available(iOS 27.0, *) else {
           throw AppleIntelligenceError.unavailable
         }
-        // Every request runs on-device, so the on-device model must be ready.
-        guard case .available = SystemLanguageModel.default.availability else {
+        guard cloudAvailability() == "available" else {
           throw AppleIntelligenceError.unavailable
         }
-        let session = makeSession(engine: engine, instructions: instructions)
-        let response = try await session.respond(
-          to: input,
-          generating: ImportedDocument.self,
-          options: extractionOptions
-        )
-        let data = try JSONEncoder().encode(response.content)
-        return String(data: data, encoding: .utf8) ?? #"{"items":[]}"#
+        do {
+          let session = makeSession(engine: engine, instructions: instructions)
+          let response = try await session.respond(
+            to: input,
+            generating: ImportedDocument.self,
+            options: extractionOptions
+          )
+          let data = try JSONEncoder().encode(response.content)
+          return String(data: data, encoding: .utf8) ?? #"{"items":[]}"#
+        } catch let known as AppleIntelligenceError {
+          throw known
+        } catch {
+          throw classify(error)
+        }
       #else
         throw AppleIntelligenceError.unavailable
       #endif
@@ -95,21 +119,26 @@ public class AppleIntelligenceModule: Module {
     AsyncFunction("assist") {
       (input: String, instructions: String, engine: String) async throws -> String in
       #if canImport(FoundationModels)
-        guard #available(iOS 26.0, *) else {
+        guard #available(iOS 27.0, *) else {
           throw AppleIntelligenceError.unavailable
         }
-        // Every request runs on-device, so the on-device model must be ready.
-        guard case .available = SystemLanguageModel.default.availability else {
+        guard cloudAvailability() == "available" else {
           throw AppleIntelligenceError.unavailable
         }
-        let session = makeSession(engine: engine, instructions: instructions)
-        let response = try await session.respond(
-          to: input,
-          generating: AssistantPlanDocument.self,
-          options: extractionOptions
-        )
-        let data = try JSONEncoder().encode(response.content)
-        return String(data: data, encoding: .utf8) ?? #"{"actions":[],"additions":[]}"#
+        do {
+          let session = makeSession(engine: engine, instructions: instructions)
+          let response = try await session.respond(
+            to: input,
+            generating: AssistantPlanDocument.self,
+            options: extractionOptions
+          )
+          let data = try JSONEncoder().encode(response.content)
+          return String(data: data, encoding: .utf8) ?? #"{"actions":[],"additions":[]}"#
+        } catch let known as AppleIntelligenceError {
+          throw known
+        } catch {
+          throw classify(error)
+        }
       #else
         throw AppleIntelligenceError.unavailable
       #endif
@@ -117,13 +146,26 @@ public class AppleIntelligenceModule: Module {
   }
 }
 
+/// The failure contract the JS side reads off `error.message`.
 enum AppleIntelligenceError: Error, LocalizedError {
+  /// Cannot run here: OS, device, Apple Intelligence off, or model not ready.
   case unavailable
+  /// No network: the cloud model needs a connection.
+  case offline
+  /// The user's daily allowance for the cloud model is spent.
+  case quota
+  /// Apple's service did not answer.
+  case service
+  /// The model ran but produced nothing usable.
+  case modelFailed
 
   var errorDescription: String? {
     switch self {
-    case .unavailable:
-      return "Apple Intelligence is not available on this device."
+    case .unavailable: return "unavailable"
+    case .offline: return "offline"
+    case .quota: return "quota"
+    case .service: return "service"
+    case .modelFailed: return "model-failed"
     }
   }
 }

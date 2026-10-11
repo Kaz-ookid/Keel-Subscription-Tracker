@@ -1,10 +1,11 @@
-// "Keel reads it for you" (PROJECT_BRIEF §6.1 Path C/D): the AI import run by
-// the ON-DEVICE Apple Intelligence model. Free, private, offline; the answer
-// goes through the exact same parse + review pipeline as the
-// bring-your-own-AI path. Linked from the import hub and the AI tab; in Expo
-// Go the availability probe reports unavailable and this screen explains
-// itself instead of working (the native module needs the dev build).
-// Wiring steps: modules/apple-intelligence/README.md.
+// "Keel reads it for you" (PROJECT_BRIEF §6.1): the AI import run by Apple's
+// Private Cloud Compute model. The answer goes through the exact same parse
+// + review pipeline as the bring-your-own-AI path. Sending anything is
+// opt-in: the first visit asks in place (ai-cloud.ts keeps the choice,
+// Settings keeps the switch). When the model cannot run, the screen says
+// which wall it hit and points at the user's own AI; it never degrades to a
+// weaker engine. Linked from the import hub; in Expo Go the availability
+// probe reports unavailable and this screen explains itself.
 
 import { parseImportDocument, today, type ImportParseError } from "@keel/core";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -24,13 +25,15 @@ import {
 
 import { ModalClose } from "../../src/components/ModalClose";
 import { Button } from "../../src/components/ui/Button";
+import { setAiCloudConsent, useAiCloudConsent } from "../../src/lib/ai-cloud";
 import {
-  onDeviceAvailability,
-  parseOnDevice,
-  resolveEngine,
-  type OnDeviceAvailability,
+  KeelReadsError,
+  keelReadsAvailability,
+  readWithKeel,
+  type KeelReadsAvailability,
+  type KeelReadsFailure,
 } from "../../src/lib/apple-intelligence";
-import { confirmLocalFallback } from "../../src/lib/ai-fallback";
+import { useLockedRedirect } from "../../src/lib/lock-gate";
 import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
 import {
@@ -42,45 +45,48 @@ import {
   type ThemeColors,
 } from "../../src/theme";
 
-import { useLockedRedirect } from "../../src/lib/lock-gate";
-type ReadError = ImportParseError | "model-failed";
+type ReadError = ImportParseError | KeelReadsFailure;
 
-export default function OnDeviceImportScreen() {
+const FAILURE_KEYS: Record<KeelReadsFailure, string> = {
+  offline: "keelReads.errOffline",
+  quota: "keelReads.errQuota",
+  service: "keelReads.errService",
+  unavailable: "keelReads.errService",
+  "model-failed": "keelReads.errModel",
+};
+
+export default function KeelReadsImportScreen() {
   // Write screen: a locked mount bounces to the locked sheet (deep links
   // and stale stacks included).
   const locked = useLockedRedirect();
   const router = useRouter();
-  // The AI tab opens this directly (?direct=1): it is then the sheet's first
-  // screen and needs its own leave affordance, like the import hub.
+  // Opened directly (?direct=1), this is the sheet's first screen and needs
+  // its own leave affordance, like the import hub.
   const { direct } = useLocalSearchParams<{ direct?: string }>();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { items, accounts, categories, displayCurrency } = useAppData();
   const { startSession } = useImportSession();
+  const consented = useAiCloudConsent();
 
-  const [availability, setAvailability] = useState<OnDeviceAvailability | "checking">("checking");
+  const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
 
   useEffect(() => {
-    void onDeviceAvailability().then(setAvailability);
+    void keelReadsAvailability().then(setAvailability);
   }, []);
 
   const read = async () => {
-    // Which engine can actually run, and does the user accept a weaker
-    // answer? Asked BEFORE anything is generated, never after.
-    const chosen = await resolveEngine();
-    if (chosen.fellBack && !(await confirmLocalFallback())) return;
     setBusy(true);
     setError(null);
     try {
-      const { json } = await parseOnDevice(
-        text.trim(),
-        { today: today(), defaultCurrency: displayCurrency },
-        chosen,
-      );
+      const json = await readWithKeel(text.trim(), {
+        today: today(),
+        defaultCurrency: displayCurrency,
+      });
       const result = parseImportDocument(json, {
         defaultCurrency: displayCurrency,
         today: today(),
@@ -94,12 +100,22 @@ export default function OnDeviceImportScreen() {
       }
       startSession(result.drafts, result.skipped, "ondevice_import");
       router.push("/add/import-review");
-    } catch {
-      setError("model-failed");
+    } catch (failure) {
+      setError(failure instanceof KeelReadsError ? failure.reason : "model-failed");
     } finally {
       setBusy(false);
     }
   };
+
+  // The hub is one step back; from a direct open, it is a sibling push.
+  const useOwnAi = () => (direct ? router.push("/add/import") : router.back());
+
+  const errorKey = (which: ReadError): string =>
+    which === "no-json"
+      ? "importAI.errNoJson"
+      : which === "empty"
+        ? "importAI.errEmpty"
+        : FAILURE_KEYS[which];
 
   if (locked) return null;
   return (
@@ -123,29 +139,34 @@ export default function OnDeviceImportScreen() {
         </View>
       )}
 
-      {availability === "available" && (
+      {/* First visit: what leaves the phone, in Apple's terms, before any
+          byte does. The choice is remembered (Settings keeps the switch). */}
+      {availability === "available" && !consented && (
+        <View style={styles.centerCard}>
+          <SymbolView name="cloud.fill" size={28} tintColor={colors.accent} />
+          <Text style={styles.consentTitle}>{t("keelReads.consentTitle")}</Text>
+          <Text style={styles.consentBody}>{t("keelReads.consentBody")}</Text>
+          <Button
+            icon="checkmark"
+            label={t("keelReads.consentGo")}
+            onPress={() => setAiCloudConsent(true)}
+            style={styles.consentButton}
+          />
+          <Pressable onPress={useOwnAi} hitSlop={8}>
+            <Text style={styles.settingsLink}>{t("keelReads.consentAlt")}</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {availability === "available" && consented && (
         <>
-          {/* What this actually is: the small on-device model, honestly
-              described rather than sold. */}
           <View style={styles.heroCard}>
             <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
-            <Text style={styles.heroText}>{t("onDevice.hero")}</Text>
-          </View>
-
-          {/* The limit, stated before anyone wastes a list on it: Apple's
-              better model isn't available to apps yet, so point people at
-              their own AI for anything real. */}
-          <View style={styles.limitCard}>
-            <SymbolView
-              name="exclamationmark.triangle"
-              size={16}
-              tintColor={colors.tones.warning}
-            />
-            <Text style={styles.limitText}>{t("onDevice.limitation")}</Text>
+            <Text style={styles.heroText}>{t("keelReads.hero")}</Text>
           </View>
 
           <View style={styles.card}>
-            <Text style={styles.hint}>{t("onDevice.hint")}</Text>
+            <Text style={styles.hint}>{t("keelReads.hint")}</Text>
             <TextInput
               style={styles.input}
               value={text}
@@ -153,27 +174,22 @@ export default function OnDeviceImportScreen() {
                 setText(next);
                 if (error) setError(null);
               }}
-              placeholder={t("onDevice.inputPlaceholder")}
+              placeholder={t("keelReads.inputPlaceholder")}
               placeholderTextColor={colors.mutedText}
               multiline
               autoCorrect={false}
               autoCapitalize="none"
             />
-            {error && (
-              <Text style={styles.error}>
-                {t(
-                  error === "model-failed"
-                    ? "onDevice.errModel"
-                    : error === "no-json"
-                      ? "importAI.errNoJson"
-                      : "importAI.errEmpty",
-                )}
-              </Text>
+            {error && <Text style={styles.error}>{t(errorKey(error))}</Text>}
+            {error && error !== "no-json" && error !== "empty" && error !== "model-failed" && (
+              <Pressable onPress={useOwnAi} hitSlop={8}>
+                <Text style={styles.settingsLink}>{t("keelReads.ownAi")}</Text>
+              </Pressable>
             )}
             {busy ? (
               <View style={styles.busyRow}>
                 <ActivityIndicator color={colors.accent} />
-                <Text style={styles.busyText}>{t("onDevice.reading")}</Text>
+                <Text style={styles.busyText}>{t("keelReads.reading")}</Text>
               </View>
             ) : (
               <Button
@@ -187,7 +203,7 @@ export default function OnDeviceImportScreen() {
 
           <View style={styles.privacyRow}>
             <SymbolView name="lock.shield" size={14} tintColor={colors.mutedText} />
-            <Text style={styles.privacyText}>{t("onDevice.privacy")}</Text>
+            <Text style={styles.privacyText}>{t("keelReads.privacy")}</Text>
           </View>
         </>
       )}
@@ -195,25 +211,28 @@ export default function OnDeviceImportScreen() {
       {availability !== "checking" && availability !== "available" && (
         <View style={styles.centerCard}>
           <SymbolView name="sparkles" size={28} tintColor={colors.mutedText} />
-          <Text style={styles.unavailableTitle}>{t("onDevice.unavailableTitle")}</Text>
+          <Text style={styles.unavailableTitle}>{t("keelReads.unavailableTitle")}</Text>
           <Text style={styles.unavailableBody}>
             {t(
               availability === "unsupported-os"
-                ? "onDevice.reasonOs"
+                ? "keelReads.reasonOs"
                 : availability === "device"
-                  ? "onDevice.reasonDevice"
+                  ? "keelReads.reasonDevice"
                   : availability === "disabled"
-                    ? "onDevice.reasonDisabled"
+                    ? "keelReads.reasonDisabled"
                     : availability === "not-ready"
-                      ? "onDevice.reasonNotReady"
-                      : "onDevice.reasonBuild",
+                      ? "keelReads.reasonNotReady"
+                      : "keelReads.reasonBuild",
             )}
           </Text>
           {availability === "disabled" && (
             <Pressable onPress={() => void Linking.openSettings()} hitSlop={8}>
-              <Text style={styles.settingsLink}>{t("onDevice.openSettings")}</Text>
+              <Text style={styles.settingsLink}>{t("keelReads.openSettings")}</Text>
             </Pressable>
           )}
+          <Pressable onPress={useOwnAi} hitSlop={8}>
+            <Text style={styles.settingsLink}>{t("keelReads.ownAi")}</Text>
+          </Pressable>
         </View>
       )}
     </ScrollView>
@@ -235,17 +254,6 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.md,
     },
     heroText: { ...typography.body, color: colors.text, flex: 1 },
-    limitCard: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      gap: spacing.sm,
-      backgroundColor: withAlpha(colors.tones.warning, 0.1),
-      borderWidth: 1,
-      borderColor: withAlpha(colors.tones.warning, 0.35),
-      borderRadius: radius.xl,
-      padding: spacing.md,
-    },
-    limitText: { ...typography.caption, color: colors.text, flex: 1, lineHeight: 18 },
     card: {
       backgroundColor: colors.material,
       borderWidth: 1,
@@ -281,7 +289,7 @@ function createStyles(colors: ThemeColors) {
       justifyContent: "center",
       gap: spacing.xs + 2,
     },
-    privacyText: { ...typography.caption, color: colors.mutedText },
+    privacyText: { ...typography.caption, color: colors.mutedText, flex: 1 },
     centerCard: {
       alignItems: "center",
       gap: spacing.sm,
@@ -292,6 +300,14 @@ function createStyles(colors: ThemeColors) {
       padding: spacing.xl,
       marginTop: spacing.xl,
     },
+    consentTitle: { ...typography.label, color: colors.text, textAlign: "center" },
+    consentBody: {
+      ...typography.caption,
+      color: colors.mutedText,
+      textAlign: "center",
+      lineHeight: 18,
+    },
+    consentButton: { alignSelf: "stretch", marginTop: spacing.sm },
     unavailableTitle: { ...typography.label, color: colors.text, textAlign: "center" },
     unavailableBody: {
       ...typography.caption,

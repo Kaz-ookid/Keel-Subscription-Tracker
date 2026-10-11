@@ -44,7 +44,8 @@ export const en = {
     methodOwn: "Use an AI you trust",
     methodOwnSub: "ChatGPT, Claude, Gemini: whichever you already trust.",
     methodKeel: "Keel reads it for you",
-    methodKeelSub: "Limited for now. Uses the small on-device model; best for a few simple lines.",
+    methodKeelSub:
+      "Apple's cloud model reads your list for you. Needs internet; nothing is saved without your review.",
     step1: "Copy the instructions.",
     step2:
       "Paste them to your AI, then add your subscriptions: typed roughly, screenshots of confirmation emails and your banking app, or whatever your old tracker exports.",
@@ -91,7 +92,7 @@ export const en = {
     privacyLink: "How this works & your data",
     privacyTitle: "How this works",
     privacyBody:
-      "On iPhones with Apple Intelligence, the reading can happen right here in the app, on the phone's own model: Apple documents this processing as on-device and offline, with nothing leaving the device.\n\nThe other path goes through an AI you already trust (ChatGPT, Claude, Gemini…). Keel is not connected to it: you copy ready-made instructions, paste them into your AI wherever you normally use it, and bring its answer back here. Your list travels only where you take it, under that AI's terms: pick one you trust, and leave out anything you'd rather keep to yourself.\n\nEither way, Keel has no server and never sees your list. The app only reads the answer, right here on your phone, and every item lands on a review screen where you check, fix or remove it before anything is saved.\n\nWe don't store your list, sell it, train anything on it, or build a profile on you. No account, no upload. Prefer to type things in yourself? Always free, and often quicker for just one or two.\n\nFor the curious: the copied instructions ask your AI for a small JSON document (Keel import format v2). They're generated fresh each time, so they always match your app version.",
+      "If you turn it on, Keel can read a list for you with Apple's cloud model (Private Cloud Compute). Your text goes to Apple to be read and comes straight back; Apple states that data sent there is not stored and is not accessible to Apple. It needs an internet connection, and it stays off until you choose it.\n\nThe other path goes through an AI you already trust (ChatGPT, Claude, Gemini…). Keel is not connected to it: you copy ready-made instructions, paste them into your AI wherever you normally use it, and bring its answer back here. Your list travels only where you take it, under that AI's terms: pick one you trust, and leave out anything you'd rather keep to yourself.\n\nEither way, Keel has no server and never sees your list. The app only reads the answer, right here on your phone, and every item lands on a review screen where you check, fix or remove it before anything is saved.\n\nWe don't store your list, sell it, train anything on it, or build a profile on you. No account, no upload. Prefer to type things in yourself? Always free, and often quicker for just one or two.\n\nFor the curious: the copied instructions ask your AI for a small JSON document (Keel import format v2). They're generated fresh each time, so they always match your app version.",
     reviewTitle: "Check what it read",
     reviewHero_one: "{{count}} item",
     reviewHero_other: "{{count}} items",
@@ -568,12 +569,12 @@ export const en = {
   },
   settings: {
     aiFeatures: "AI features",
-    aiCloud: "Use Apple's cloud model",
+    aiCloud: "Let Keel read with Apple's cloud model",
     aiCloudInfo:
-      "Keel's AI can run two ways.\n\nWith this on, requests go to Apple Intelligence's cloud model (Private Cloud Compute). It is far better at reading messy lists and understanding what you ask. It needs an internet connection, and Apple states that data sent there is not stored or made accessible to Apple, and is used only to answer your request.\n\nWith it off, everything runs on this iPhone instead. Nothing leaves the device and it works offline, but the on-device model is much smaller: expect simpler results and trouble with long or complicated lists.\n\nEither way, AI stays optional. You can switch it off completely just above, and Keel works fully without it.",
-    aiCloudOn: "Better results, needs internet. Switch off to keep every request on this iPhone.",
-    aiCloudOff:
-      "Everything runs on this iPhone, offline. Results are simpler, and long lists may fail.",
+      'With this on, the "Keel reads it for you" option sends your text to Apple\'s Private Cloud Compute to be read, and returns entries for you to review. Apple states that data sent there is not stored and is not accessible to Apple; it needs an internet connection and has a daily allowance.\n\nWith it off, Keel never sends anything anywhere: you use your own AI by copy and paste, or type things in yourself.\n\nEither way, AI stays optional. You can switch it off completely just above, and Keel works fully without it.',
+    aiCloudOn:
+      'On. Your text goes to Apple\'s Private Cloud Compute only when you use "Keel reads it for you".',
+    aiCloudOff: "Off. Keel sends nothing anywhere; your own AI by copy and paste still works.",
     aiFeaturesFooter:
       "Off removes every AI feature and entry point from the app. Your data and AI history stay untouched.",
     groupGeneral: "General",
@@ -842,14 +843,15 @@ export const en = {
   },
   assistant: {
     title: "Assistant",
-    hero: "Experimental. The on-device model handles simple requests; check every change before applying it.",
+    hero: "Experimental. Apple's cloud model prepares the changes; check every one before applying it.",
     hint: "The assistant can add commitments and pause, resume, end, delete, rename, move, reprice or mark them paid. Rough names are fine; it matches what you track.",
     placeholder: "Cancel my gym, move Netflix to the 12th, and add Spotify at 12.95 a month…",
     go: "Prepare changes",
     thinking: "Preparing the changes…",
     errModel: "The model couldn't process this. Try rephrasing.",
     errEmpty: "Nothing usable in there. Name the commitment and say what should happen.",
-    safety: "Uses Apple's on-device model. Nothing is applied without your review.",
+    safety:
+      "Uses Apple's cloud model (Private Cloud Compute). Nothing is applied without your review.",
     reviewTitle: "Review",
     reviewHero_one: "{{count}} change",
     reviewHero_other: "{{count}} changes",
@@ -911,29 +913,30 @@ export const en = {
     footer:
       "Assistant actions can be reverted while their safety backup is kept (Keel keeps the last 10 backups).",
   },
-  aiEngine: {
-    fallbackTitle: "Using the on-device model",
-    fallbackBody:
-      "Apple's cloud model isn't available right now (no connection, or today's allowance is used up), so this will run on the smaller model on your iPhone. It still works, but expect simpler results, especially on long lists. This costs you nothing.",
-    fallbackGo: "Continue",
-  },
-  onDevice: {
-    hero: "Reads on this iPhone. Good for a few simple lines, not for a long or messy list.",
-    limitation:
-      "Apple's stronger model isn't available to apps on your iPhone yet, so this runs on the small on-device one. For a real list, your own AI (ChatGPT, Claude, Gemini) does a far better job. Keel will offer Apple's better model as soon as Apple ships it.",
-    inputPlaceholder: "Netflix 12.99 on the 6th, gym 40 a month, Spotify since May…",
+  keelReads: {
+    hero: "Apple's cloud model reads your list for you. Rough text, long lists, mixed languages: all fine. Every line lands on a review screen before anything is saved.",
     hint: "Type or paste your subscriptions, rough is fine: name, price, when it hits, which account.",
+    inputPlaceholder: "Netflix 12.99 on the 6th, gym 40 a month, Spotify since May…",
     reading: "Reading your list…",
     errModel: "The model couldn't read this. Try rephrasing or add a little detail.",
     privacy:
-      "Reads on this iPhone and works offline, as documented by Apple. Keel itself sends nothing anywhere.",
-    unavailableTitle: "Apple Intelligence isn't available here",
-    reasonOs: "This needs iOS 26 or later.",
-    reasonDevice: "This iPhone can't run Apple Intelligence.",
+      "Processed on Apple's Private Cloud Compute, which Apple documents as not storing your data and not making it accessible to Apple. Needs an internet connection. Keel has no server of its own.",
+    consentTitle: "Let Keel read with Apple's cloud model?",
+    consentBody:
+      "Your text is sent to Apple's Private Cloud Compute to be read, and comes straight back as entries for you to review. Apple states that data sent there is not stored and is not accessible to Apple. It needs an internet connection and has a daily allowance. You can switch this off at any time in Settings.",
+    consentGo: "Turn on and continue",
+    consentAlt: "Or use your own AI",
+    unavailableTitle: "Apple's cloud model isn't available here",
+    reasonOs: "This needs iOS 27 or later.",
+    reasonDevice: "This iPhone can't use Apple's cloud model.",
     reasonDisabled: "Turn on Apple Intelligence in iOS Settings, then come back.",
-    reasonNotReady: "The model is still downloading. Try again in a few minutes.",
-    reasonBuild: "This build can't load the on-device model yet.",
+    reasonNotReady: "Apple's model isn't ready yet. Try again in a few minutes.",
+    reasonBuild: "This build can't reach Apple's cloud model.",
     openSettings: "Open Settings",
+    errOffline: "No internet connection. Apple's cloud model needs one.",
+    errQuota: "Today's allowance for Apple's cloud model is used up. Try again tomorrow.",
+    errService: "Apple's cloud model isn't reachable right now. Try again later.",
+    ownAi: "Use your own AI instead",
   },
   notifications: {
     bodyToday: "{{amount}} due today",

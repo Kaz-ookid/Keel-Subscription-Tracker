@@ -2,19 +2,20 @@
 // calm steps: copy our generated instructions, hand them to the AI you already
 // use together with rough notes or screenshots, paste its answer back. The
 // answer is parsed tolerantly and everything lands on the review screen —
-// nothing is saved here. The "Keel reads it for you" card is the door to the
-// on-device Apple Intelligence path (import-ondevice.tsx).
+// nothing is saved here. The "Keel reads it for you" card is the door to
+// Apple's cloud model path (import-keel.tsx), shown where that model exists.
 
 import { buildImportPrompt, parseImportDocument, today, type ImportParseError } from "@keel/core";
 import * as Clipboard from "expo-clipboard";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { InfoPopup } from "../../src/components/InfoPopup";
 import { ModalClose } from "../../src/components/ModalClose";
+import { isKeelReadsOffered, keelReadsAvailability } from "../../src/lib/apple-intelligence";
 import { Button } from "../../src/components/ui/Button";
 import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
@@ -36,6 +37,11 @@ export default function ImportScreen() {
   // and stale stacks included).
   const locked = useLockedRedirect();
   const router = useRouter();
+  // The cloud-model door shows only where that model exists (iOS 27 build).
+  const [keelReads, setKeelReads] = useState(false);
+  useEffect(() => {
+    void keelReadsAvailability().then((a) => setKeelReads(isKeelReadsOffered(a)));
+  }, []);
   // Settings and onboarding open the import directly (?direct=1): it is then
   // the sheet's first screen and needs its own leave affordance. From the
   // add chooser it is a push, and the system back button appears on its own.
@@ -111,10 +117,9 @@ export default function ImportScreen() {
       automaticallyAdjustKeyboardInsets
     >
       {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
-      {/* One delivery path for now. "Keel reads it for you" is HIDDEN until
-          Apple's cloud model ships to apps (PCC, iOS 27) — the on-device
-          screen stays wired for that day (import-ondevice.tsx); shipping a
-          door to a weak model read as a broken promise in beta. */}
+      {/* Two delivery paths: bring-your-own AI (this screen) and, where
+          Apple's cloud model exists, "Keel reads it for you" (its own screen,
+          opt-in before anything is sent). */}
       <View style={styles.methods}>
         <View style={[styles.methodCard, styles.methodActive]}>
           <SymbolView
@@ -125,6 +130,17 @@ export default function ImportScreen() {
           <Text style={styles.methodTitle}>{t("importAI.methodOwn")}</Text>
           <Text style={styles.methodSub}>{t("importAI.methodOwnSub")}</Text>
         </View>
+        {keelReads && (
+          <Pressable
+            style={styles.methodCard}
+            onPress={() => router.push("/add/import-keel")}
+            accessibilityRole="button"
+          >
+            <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
+            <Text style={styles.methodTitle}>{t("importAI.methodKeel")}</Text>
+            <Text style={styles.methodSub}>{t("importAI.methodKeelSub")}</Text>
+          </Pressable>
+        )}
       </View>
 
       {/* The three steps — short, numbered, nothing else on the main path. */}
