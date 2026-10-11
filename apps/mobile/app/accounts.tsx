@@ -60,7 +60,7 @@ export default function AccountsScreen() {
           ),
         }}
       />
-      <Text style={[styles.largeTitle, { paddingTop: insets.top + 52 }]}>
+      <Text style={[styles.largeTitle, { paddingTop: insets.top + 44 }]}>
         {t("titles.accounts")}
       </Text>
       {accounts.length === 0 ? (

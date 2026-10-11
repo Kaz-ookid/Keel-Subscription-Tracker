@@ -92,19 +92,13 @@ function RootNavigator() {
             <AssistantSessionProvider>
               <Stack
                 screenOptions={{
-                  // §9b chrome: pushed screens keep the bar minimal (back and
-                  // right actions; each screen draws its own large title in
-                  // the content) over the system's thin blur. The blur is
-                  // ALSO load-bearing on iOS 26: a fully transparent bar gets
-                  // the adaptive Liquid Glass buttons, which flash opposite-
-                  // scheme colors over our stage and mis-hit-test (screens
-                  // #3226/#3294) — the add stack's blur-backed bar is the
-                  // configuration that behaves, so the root stack matches it.
+                  // §9b chrome: pushed screens get a fully transparent bar
+                  // (back and right actions only; each screen draws its own
+                  // large title in the content). The blur band that worked
+                  // around iOS 26's Liquid Glass hit-testing (screens 4.16)
+                  // read as a sharp slab pushing content down (dogfood
+                  // 2026-10-11) and is gone with screens 4.26.
                   headerTransparent: true,
-                  headerBlurEffect:
-                    scheme === "dark"
-                      ? "systemUltraThinMaterialDark"
-                      : "systemUltraThinMaterialLight",
                   headerShadowVisible: false,
                   headerTintColor: colors.accent,
                   contentStyle: { backgroundColor: "transparent" },
