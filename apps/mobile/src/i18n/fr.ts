@@ -519,6 +519,8 @@ export const fr: typeof en = {
     explainer:
       "Chaque navire est un jour de paiement qui vogue vers le quai. Une caisse restée à quai est en retard, touchez-la pour régulariser.",
     overdueA11y: "{{name}}, en retard",
+    overdueTitle_one: "{{count}} autre en retard",
+    overdueTitle_other: "{{count}} autres en retard",
     dock: "Aujourd'hui",
     days: "{{count}} j",
     year: "1 an",

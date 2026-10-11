@@ -550,6 +550,8 @@ const translation = {
     explainer:
       "Każdy statek to dzień płatności płynący do nabrzeża. Ładunek pozostawiony na kei jest zaległy, dotknij go, aby uregulować.",
     overdueA11y: "{{name}}, zaległe",
+    overdueTitle_one: "{{count}} kolejne zaległe",
+    overdueTitle_other: "{{count}} kolejnych zaległych",
     dock: "Dziś",
     days: "{{count}} d",
     year: "1 r",

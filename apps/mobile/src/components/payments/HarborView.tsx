@@ -137,6 +137,8 @@ export function HarborView() {
   const [width, setWidth] = useState(0);
   // The day bubble: which vessel's cargo is being previewed.
   const [selectedKey, setSelectedKey] = useState<CalendarDate | null>(null);
+  // The quay's "+N" chip: the overdue crates that did not fit, previewed.
+  const [overdueOpen, setOverdueOpen] = useState(false);
 
   const asOf = today();
   const sea = harborPalette(scheme === "dark" ? "dark" : "light");
@@ -599,13 +601,65 @@ export function HarborView() {
               );
             })}
           {width > 0 && overdue.length > overdueShown && (
-            <View
+            <Pressable
               style={[styles.overdueMore, { left: 14 + overdueShown * 40, top: surfaceTop - 26 }]}
+              onPress={() => {
+                setSelectedKey(null);
+                setOverdueOpen((open) => !open);
+              }}
+              hitSlop={8}
+              accessibilityRole="button"
             >
               <Text style={styles.overdueMoreText}>
                 {t("harbor.more", { count: overdue.length - overdueShown })}
               </Text>
-            </View>
+            </Pressable>
+          )}
+          {/* The rest of the quay's overdue, in the day bubble's clothes,
+              anchored above the chip; tap outside or the chip to close. */}
+          {overdueOpen && overdue.length > overdueShown && (
+            <>
+              <Pressable style={StyleSheet.absoluteFill} onPress={() => setOverdueOpen(false)} />
+              <View
+                style={[
+                  styles.bubble,
+                  {
+                    bottom: canvasHeight - (surfaceTop - 40),
+                    left: Math.min(Math.max(14 + overdueShown * 40 - 20, 8), width - BUBBLE_W - 8),
+                    width: BUBBLE_W,
+                  },
+                ]}
+              >
+                <Text style={styles.bubbleTitle}>
+                  {t("harbor.overdueTitle", { count: overdue.length - overdueShown })}
+                </Text>
+                {overdue.slice(overdueShown).map((c) => {
+                  const category = categories.find((cat) => cat.id === c.charge.categoryId);
+                  return (
+                    <Pressable
+                      key={`overdue-more-${c.charge.paymentItemId}-${c.charge.dueDate}`}
+                      style={styles.bubbleRow}
+                      onPress={() => {
+                        setOverdueOpen(false);
+                        router.push({ pathname: "/item", params: { id: c.charge.paymentItemId } });
+                      }}
+                    >
+                      <BrandBadge
+                        domain={c.charge.domain}
+                        icon={c.charge.icon ?? category?.icon}
+                        fallback={c.charge.name.charAt(0).toUpperCase()}
+                        color={c.charge.color ?? colors.accent}
+                        size={22}
+                      />
+                      <Text style={styles.bubbleName} numberOfLines={1}>
+                        {c.charge.name}
+                      </Text>
+                      <Text style={styles.bubbleAmount}>{formatMoney(c.charge.amount)}</Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </>
           )}
 
           {/* The fleet. Each vessel is a billing day; tap it for the day.
@@ -629,7 +683,10 @@ export function HarborView() {
               >
                 <MaybeDrift active={v.daysUntil <= DRIFT_DAYS} index={i}>
                   <Pressable
-                    onPress={() => setSelectedKey(selectedKey === v.key ? null : v.key)}
+                    onPress={() => {
+                      setOverdueOpen(false);
+                      setSelectedKey(selectedKey === v.key ? null : v.key);
+                    }}
                     accessibilityLabel={v.cargo.map((c) => c.charge.name).join(", ")}
                   >
                     <VesselSprite

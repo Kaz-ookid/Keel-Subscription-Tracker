@@ -521,6 +521,8 @@ export const de: typeof en = {
     explainer:
       "Jedes Schiff ist ein Zahltag auf dem Weg zum Kai. Fracht, die am Kai stehen bleibt, ist überfällig; tippe sie an, um sie zu begleichen.",
     overdueA11y: "{{name}}, überfällig",
+    overdueTitle_one: "{{count}} weitere überfällig",
+    overdueTitle_other: "{{count}} weitere überfällig",
     dock: "Heute",
     days: "{{count}} T",
     year: "1 J",
