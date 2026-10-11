@@ -477,6 +477,8 @@ export const fr: typeof en = {
     plusOwed: "plus {{amount}} de paiement échelonné encore dû",
     commitments_one: "{{count}} engagement",
     commitments_other: "{{count}} engagements",
+    payments_one: "{{count}} paiement",
+    payments_other: "{{count}} paiements",
   },
   priceChanges: {
     heroLabel: "Dérive des prix",
@@ -569,6 +571,14 @@ export const fr: typeof en = {
     saveFailedTitle: "Échec de l'enregistrement",
     saveFailedBody:
       "Keel n'a pas pu enregistrer vos derniers changements sur ce téléphone, même après un nouvel essai. En général, le stockage est plein. Libérez de l'espace, puis faites une petite modification pour que Keel enregistre à nouveau.",
+    loadFailedTitle: "Keel n'a pas pu charger vos données",
+    loadFailedBody:
+      "Vos données sont toujours sur ce téléphone, mais elles n'ont pas pu être lues. Fermez complètement Keel et rouvrez-le. Si cela se répète, restaurez une sauvegarde depuis Réglages, Données.",
+    rescuedTitle: "Des données ont été mises de côté",
+    rescuedAllBody:
+      "Keel n'a pas pu lire ses données enregistrées et démarre donc vide. L'original a été conservé à part. Pour retrouver votre liste, restaurez une sauvegarde depuis Réglages, Données.",
+    rescuedSomeBody:
+      "Quelques entrées enregistrées n'ont pas pu être lues et ont été laissées de côté. L'original a été conservé à part. S'il manque quelque chose, restaurez une sauvegarde depuis Réglages, Données.",
   },
   settings: {
     aiFeatures: "Fonctions d'IA",
@@ -707,7 +717,8 @@ export const fr: typeof en = {
     cta: "Obtenir Full Keel",
     restore: "Restaurer l'achat",
     buyFailTitle: "Ça n'est pas passé",
-    buyFailMsg: "Rien n'a été débité. Vérifiez votre connexion et réessayez.",
+    buyFailMsg:
+      "Rien n'a été débité. Si votre banque ou Apple vous a quand même débité, l'achat se débloque de lui-même au prochain lancement, ou touchez Restaurer l'achat.",
     restoreNoneTitle: "Rien à restaurer",
     restoreNoneMsg: "Aucun achat Full Keel trouvé sur cet identifiant Apple.",
     soonTitle: "Bientôt",
@@ -717,6 +728,11 @@ export const fr: typeof en = {
     ownedBody: "Merci de soutenir Keel.",
     bannerSub: "Tous les outils, un seul achat",
     bannerOwned: "Merci pour votre soutien",
+    restoreFailTitle: "La restauration n'a pas abouti",
+    restoreFailMsg: "Vérifiez votre connexion et réessayez.",
+    pendingTitle: "En attente d'approbation",
+    pendingMsg:
+      "Cet achat doit être approuvé (Demander à acheter). Keel se débloque de lui-même une fois l'approbation donnée.",
   },
   trial: {
     startedTitle: "Vos 45 jours commencent aujourd'hui",

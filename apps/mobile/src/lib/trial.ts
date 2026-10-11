@@ -8,6 +8,13 @@
 //
 // This module is storage I/O only; the entitlement store (entitlement.ts)
 // owns the state machine and derives trial/locked from what's read here.
+//
+// Two accepted edges: the iCloud leg is read once at launch with a
+// synchronous synchronize(), so on a fresh install the cloud value can land
+// after that read and only win at the next launch (day one may say "45
+// days left" and the next day the older anchor); and a device clock set
+// permanently back reads as day one for as long as it stays back, because
+// punishing a clock fix would be worse than tolerating that.
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { requireOptionalNativeModule } from "expo-modules-core";

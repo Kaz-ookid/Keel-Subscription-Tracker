@@ -477,6 +477,8 @@ export const it: typeof en = {
     plusOwed: "più {{amount}} di rate ancora dovute",
     commitments_one: "{{count}} voce",
     commitments_other: "{{count}} voci",
+    payments_one: "{{count}} pagamento",
+    payments_other: "{{count}} pagamenti",
   },
   priceChanges: {
     heroLabel: "Prezzi in salita",
@@ -568,6 +570,14 @@ export const it: typeof en = {
     saveFailedTitle: "Salvataggio non riuscito",
     saveFailedBody:
       "Keel non è riuscita a salvare le tue ultime modifiche su questo telefono, nemmeno riprovando. Di solito significa che lo spazio è pieno. Libera un po' di spazio, poi fai una qualsiasi piccola modifica perché Keel possa salvare di nuovo.",
+    loadFailedTitle: "Keel non è riuscito a caricare i tuoi dati",
+    loadFailedBody:
+      "I tuoi dati sono ancora su questo iPhone, ma adesso non è stato possibile leggerli. Chiudi del tutto Keel e riaprilo. Se succede ancora, ripristina un backup da Impostazioni, Dati.",
+    rescuedTitle: "Alcuni dati sono stati messi da parte",
+    rescuedAllBody:
+      "Keel non è riuscito a leggere i dati salvati, quindi parte vuoto. L'originale è stato conservato a parte. Per recuperare la tua lista, ripristina un backup da Impostazioni, Dati.",
+    rescuedSomeBody:
+      "Alcune voci salvate non si sono potute leggere e sono state lasciate fuori. L'originale è stato conservato a parte. Se manca qualcosa, ripristina un backup da Impostazioni, Dati.",
   },
   settings: {
     aiFeatures: "Funzioni IA",
@@ -706,7 +716,8 @@ export const it: typeof en = {
     cta: "Prendi Full Keel",
     restore: "Ripristina acquisto",
     buyFailTitle: "Non è andata",
-    buyFailMsg: "Non è stato addebitato nulla. Controlla la connessione e riprova.",
+    buyFailMsg:
+      "Non è stato addebitato nulla. Se la tua banca o Apple ha comunque addebitato, l'acquisto si sblocca da solo al prossimo avvio, oppure tocca Ripristina acquisto.",
     restoreNoneTitle: "Niente da ripristinare",
     restoreNoneMsg: "Nessun acquisto Full Keel trovato su questo ID Apple.",
     soonTitle: "Quasi",
@@ -716,6 +727,11 @@ export const it: typeof en = {
     ownedBody: "Grazie per sostenere Keel.",
     bannerSub: "Tutti gli strumenti, un solo acquisto",
     bannerOwned: "Grazie del sostegno",
+    restoreFailTitle: "Il ripristino non è andato a buon fine",
+    restoreFailMsg: "Controlla la connessione e riprova.",
+    pendingTitle: "In attesa di approvazione",
+    pendingMsg:
+      "Questo acquisto richiede un'approvazione (Chiedi per acquistare). Keel si sblocca da solo una volta approvato.",
   },
   trial: {
     startedTitle: "I tuoi 45 giorni iniziano oggi",

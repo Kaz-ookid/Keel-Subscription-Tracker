@@ -507,6 +507,10 @@ const translation = {
     commitments_few: "{{count}} pozycje",
     commitments_many: "{{count}} pozycji",
     commitments_other: "{{count}} pozycji",
+    payments_one: "{{count}} płatność",
+    payments_few: "{{count}} płatności",
+    payments_many: "{{count}} płatności",
+    payments_other: "{{count}} płatności",
   },
   priceChanges: {
     heroLabel: "Pełzające ceny",
@@ -599,6 +603,14 @@ const translation = {
     saveFailedTitle: "Zapis nie powiódł się",
     saveFailedBody:
       "Keel nie zdołał zapisać twoich ostatnich zmian na tym telefonie, nawet po ponownej próbie. Zwykle oznacza to pełną pamięć. Zwolnij trochę miejsca, a potem zrób dowolną drobną zmianę, aby Keel mógł znów zapisać.",
+    loadFailedTitle: "Keel nie mógł wczytać twoich danych",
+    loadFailedBody:
+      "Twoje dane nadal są na tym iPhonie, ale nie udało się ich teraz odczytać. Zamknij Keel całkowicie i otwórz ponownie. Jeśli to się powtarza, przywróć kopię z Ustawień, Dane.",
+    rescuedTitle: "Część danych odłożono na bok",
+    rescuedAllBody:
+      "Keel nie mógł odczytać zapisanych danych, więc startuje pusty. Oryginał został zachowany osobno. Aby odzyskać listę, przywróć kopię z Ustawień, Dane.",
+    rescuedSomeBody:
+      "Kilku zapisanych wpisów nie dało się odczytać i zostały pominięte. Oryginał został zachowany osobno. Jeśli czegoś brakuje, przywróć kopię z Ustawień, Dane.",
   },
   settings: {
     aiFeatures: "Funkcje AI",
@@ -737,7 +749,8 @@ const translation = {
     cta: "Weź Full Keel",
     restore: "Przywróć zakup",
     buyFailTitle: "Nie udało się",
-    buyFailMsg: "Nic nie zostało pobrane. Sprawdź połączenie i spróbuj ponownie.",
+    buyFailMsg:
+      "Nic nie zostało pobrane. Jeśli bank albo Apple jednak pobrały opłatę, zakup odblokuje się sam przy następnym uruchomieniu, albo stuknij Przywróć zakup.",
     restoreNoneTitle: "Nie ma czego przywracać",
     restoreNoneMsg: "Na tym Apple ID nie znaleziono zakupu Full Keel.",
     soonTitle: "Prawie",
@@ -747,6 +760,11 @@ const translation = {
     ownedBody: "Dziękuję za wspieranie Keel.",
     bannerSub: "Wszystkie narzędzia, jeden zakup",
     bannerOwned: "Dziękuję za wsparcie",
+    restoreFailTitle: "Przywracanie się nie powiodło",
+    restoreFailMsg: "Sprawdź połączenie i spróbuj ponownie.",
+    pendingTitle: "Oczekuje na zatwierdzenie",
+    pendingMsg:
+      "Ten zakup wymaga zatwierdzenia (Poproś o zakup). Keel odblokuje się sam po zatwierdzeniu.",
   },
   trial: {
     startedTitle: "Twoje 45 dni zaczyna się dziś",

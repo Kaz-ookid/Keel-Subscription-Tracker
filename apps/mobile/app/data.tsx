@@ -8,15 +8,12 @@ import { today } from "@keel/core";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
 import { File, Paths } from "expo-file-system";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
-
-import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
 
 import { activityDateLabel } from "../src/lib/ai-activity-display";
 import { Card } from "../src/components/ui/Card";
@@ -76,14 +73,25 @@ export default function DataScreen() {
   );
 
   const toggleIcloud = (next: boolean) => {
-    setIcloud(next);
-    void AsyncStorage.setItem(ICLOUD_ENABLED_KEY, String(next));
-    if (!next) return;
+    if (!next) {
+      setIcloud(false);
+      void AsyncStorage.setItem(ICLOUD_ENABLED_KEY, "false");
+      return;
+    }
     // Turning it on must NEVER silently clobber an existing cloud copy: a
     // fresh install flipping the switch would otherwise upload its empty
-    // state over the real backup. If a copy exists, the user picks a side.
+    // state over the real backup. If a copy exists, the user picks a side,
+    // and the switch is stored "on" only once a side IS picked: stored
+    // earlier, a Cancel would leave it on with nothing uploaded, and the
+    // next launch would adopt the old cloud copy over the local data with
+    // no prompt at all.
+    const enable = () => {
+      setIcloud(true);
+      void AsyncStorage.setItem(ICLOUD_ENABLED_KEY, "true");
+    };
     void downloadFromICloud().then((envelope) => {
       if (!envelope) {
+        enable();
         void uploadToICloud(exportData()).then(refreshCloudStatus);
         return;
       }
@@ -94,6 +102,7 @@ export default function DataScreen() {
           {
             text: t("data.icloudUseCloud"),
             onPress: () => {
+              enable();
               importData(JSON.stringify(envelope.state));
               refreshCloudStatus();
             },
@@ -102,6 +111,7 @@ export default function DataScreen() {
             text: t("data.icloudReplaceCloud"),
             style: "destructive",
             onPress: () => {
+              enable();
               void uploadToICloud(exportData()).then(refreshCloudStatus);
             },
           },

@@ -479,6 +479,8 @@ export const de: typeof en = {
     plusOwed: "plus {{amount}} noch offene Raten",
     commitments_one: "{{count}} Posten",
     commitments_other: "{{count}} Posten",
+    payments_one: "{{count}} Zahlung",
+    payments_other: "{{count}} Zahlungen",
   },
   priceChanges: {
     heroLabel: "Preisanstieg",
@@ -570,6 +572,14 @@ export const de: typeof en = {
     saveFailedTitle: "Speichern fehlgeschlagen",
     saveFailedBody:
       "Keel konnte deine letzten Änderungen auch nach einem zweiten Versuch nicht auf diesem iPhone speichern. Meist ist der Speicher voll. Schaffe etwas Platz und mach dann irgendeine kleine Änderung, damit Keel wieder speichern kann.",
+    loadFailedTitle: "Keel konnte deine Daten nicht laden",
+    loadFailedBody:
+      "Deine Daten sind noch auf diesem iPhone, konnten aber gerade nicht gelesen werden. Schliesse Keel ganz und öffne es erneut. Passiert es weiter, stelle ein Backup unter Einstellungen, Daten wieder her.",
+    rescuedTitle: "Einige Daten wurden beiseitegelegt",
+    rescuedAllBody:
+      "Keel konnte seine gespeicherten Daten nicht lesen und startet deshalb leer. Das Original wurde beiseitegelegt. Stelle ein Backup unter Einstellungen, Daten wieder her, um deine Liste zurückzubekommen.",
+    rescuedSomeBody:
+      "Ein paar gespeicherte Einträge konnten nicht gelesen werden und wurden ausgelassen. Das Original wurde beiseitegelegt. Fehlt etwas, stelle ein Backup unter Einstellungen, Daten wieder her.",
   },
   settings: {
     aiFeatures: "KI-Funktionen",
@@ -708,7 +718,8 @@ export const de: typeof en = {
     cta: "Full Keel holen",
     restore: "Kauf wiederherstellen",
     buyFailTitle: "Das hat nicht geklappt",
-    buyFailMsg: "Es wurde nichts abgebucht. Prüf deine Verbindung und versuch es nochmal.",
+    buyFailMsg:
+      "Es wurde nichts abgebucht. Hat deine Bank oder Apple doch abgebucht, schaltet sich der Kauf beim nächsten Start von selbst frei, oder tippe auf Kauf wiederherstellen.",
     restoreNoneTitle: "Nichts wiederherzustellen",
     restoreNoneMsg: "Kein Full-Keel-Kauf auf dieser Apple-ID gefunden.",
     soonTitle: "Fast",
@@ -718,6 +729,11 @@ export const de: typeof en = {
     ownedBody: "Danke, dass du Keel unterstützt.",
     bannerSub: "Alle Werkzeuge, ein Kauf",
     bannerOwned: "Danke für die Unterstützung",
+    restoreFailTitle: "Die Wiederherstellung hat nicht geklappt",
+    restoreFailMsg: "Prüfe deine Verbindung und versuche es erneut.",
+    pendingTitle: "Wartet auf Genehmigung",
+    pendingMsg:
+      "Dieser Kauf braucht eine Genehmigung (Kaufanfrage). Keel schaltet sich von selbst frei, sobald sie erteilt ist.",
   },
   trial: {
     startedTitle: "Deine 45 Tage starten heute",

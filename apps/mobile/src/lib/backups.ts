@@ -110,8 +110,12 @@ export function listBackups(): BackupEntry[] {
   }
 }
 
-function prune(): void {
-  const extra = listBackupStamps().slice(KEEP);
+/** Keep the newest KEEP of ONE kind: a run of AI imports must never evict
+ *  the daily safety net, and daily backups never a user's manual one. */
+function prune(kind: BackupKind): void {
+  const extra = listBackupStamps()
+    .filter((entry) => entry.kind === kind)
+    .slice(KEEP);
   for (const entry of extra) deleteBackup(entry.name);
 }
 
@@ -122,7 +126,7 @@ export function createBackup(state: PersistedState, kind: BackupKind = "manual")
     const file = new File(backupsDir(), name);
     file.create();
     file.write(JSON.stringify(state));
-    prune();
+    prune(kind);
     return name;
   } catch {
     return null;
@@ -158,5 +162,6 @@ export function deleteBackup(name: string): void {
 }
 
 export function deleteAllBackups(): void {
-  for (const entry of listBackups()) deleteBackup(entry.name);
+  // By stamp, not by parsed content: an unreadable file must go too.
+  for (const entry of listBackupStamps()) deleteBackup(entry.name);
 }

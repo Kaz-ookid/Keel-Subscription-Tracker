@@ -70,6 +70,7 @@ import {
 } from "@keel/core";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import i18next from "i18next";
 
 import { COLOR_SWATCHES } from "../constants";
 import { autoBackupIfDue, createBackup, readBackup } from "../lib/backups";
@@ -85,10 +86,10 @@ import {
 import { syncReminders } from "../lib/notifications";
 import { buildSampleData } from "../lib/sample-data";
 import { buildWidgetSnapshot, writeWidgetSnapshot } from "../lib/widgets";
-import { darkColors } from "../theme";
+import { darkColors, onThemeModeChange } from "../theme";
 import {
   loadSnapshot,
-  loadState,
+  loadStateDetailed,
   parsePersistedStateDetailed,
   saveSnapshot as persistSnapshot,
   saveState,
@@ -296,11 +297,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     // BACKUP that follows the account, not a merge engine. Offline or
     // signed-out just means the local state stands.
     const hydrate = async () => {
-      let state = await loadState();
+      const loaded = await loadStateDetailed();
+      let state = loaded.state;
+      if (loaded.rescued) {
+        // The singleton: this runs before the hook-bound instance exists.
+        Alert.alert(
+          i18next.t("storage.rescuedTitle"),
+          i18next.t(
+            loaded.rescued === "all" ? "storage.rescuedAllBody" : "storage.rescuedSomeBody",
+          ),
+        );
+      }
       try {
         if ((await AsyncStorage.getItem(ICLOUD_ENABLED_KEY)) === "true") {
           const remote = await downloadFromICloud();
           const decision = await chooseNewerState(state, remote);
+          // Adopting the cloud copy replaces the local state: keep a backup
+          // of what was here, so the adoption is always reversible.
+          if (decision.adoptedCloud && (state.items.length > 0 || state.accounts.length > 0)) {
+            createBackup(state, "manual");
+          }
           state = decision.state;
         }
       } catch {
@@ -308,31 +324,39 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }
       return state;
     };
-    hydrate().then((state) => {
-      const accrued: PaymentOccurrence[] = [];
-      const caughtUp = state.items.map((item) => {
-        const result = catchUp(item);
-        accrued.push(...result.occurrences);
-        return result.item;
+    hydrate()
+      .catch((): PersistedState | null => {
+        // Storage itself failed: say so and stay on the loading state, so
+        // nothing empty is ever persisted over the real data.
+        Alert.alert(i18next.t("storage.loadFailedTitle"), i18next.t("storage.loadFailedBody"));
+        return null;
+      })
+      .then((state) => {
+        if (!state) return;
+        const accrued: PaymentOccurrence[] = [];
+        const caughtUp = state.items.map((item) => {
+          const result = catchUp(item);
+          accrued.push(...result.occurrences);
+          return result.item;
+        });
+        setItems(caughtUp);
+        // Prune ledger entries whose item is gone (deleted before cascade
+        // deletion existed) — they'd render as nameless "(removed)" rows.
+        const knownIds = new Set(caughtUp.map((i) => i.id));
+        const kept = state.occurrences.filter((o) => knownIds.has(o.paymentItemId));
+        setOccurrences([...kept, ...accrued]);
+        setCustomCategories(state.categories);
+        setAccounts(state.accounts);
+        setDisplayCurrency(state.displayCurrency);
+        setPending(state.pending);
+        setAiActivity(state.aiActivity);
+        setLoading(false);
+        // Migration (§7.3 a-bis): data that predates the trial has commitments
+        // but no anchor anywhere — the "first commitment" trigger can never
+        // fire for it. Stamp now: the update that introduces the trial grants
+        // the full 45 days. Idempotent: an existing anchor always wins.
+        if (caughtUp.length > 0) void markTrialStarted();
       });
-      setItems(caughtUp);
-      // Prune ledger entries whose item is gone (deleted before cascade
-      // deletion existed) — they'd render as nameless "(removed)" rows.
-      const knownIds = new Set(caughtUp.map((i) => i.id));
-      const kept = state.occurrences.filter((o) => knownIds.has(o.paymentItemId));
-      setOccurrences([...kept, ...accrued]);
-      setCustomCategories(state.categories);
-      setAccounts(state.accounts);
-      setDisplayCurrency(state.displayCurrency);
-      setPending(state.pending);
-      setAiActivity(state.aiActivity);
-      setLoading(false);
-      // Migration (§7.3 a-bis): data that predates the trial has commitments
-      // but no anchor anywhere — the "first commitment" trigger can never
-      // fire for it. Stamp now: the update that introduces the trial grants
-      // the full 45 days. Idempotent: an existing anchor always wins.
-      if (caughtUp.length > 0) void markTrialStarted();
-    });
     // Surface the stashed snapshot's date (if any) on the restore button.
     void loadSnapshot().then((snapshot) => {
       if (snapshot) setSnapshotSavedAt(snapshot.savedAt);
@@ -384,6 +408,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       }),
     [],
   );
+  // So does the appearance: the snapshot carries the theme, and a widget
+  // must not keep yesterday's scheme until the next data edit.
+  useEffect(() => onThemeModeChange(() => setLockNonce((n) => n + 1)), []);
   useEffect(() => {
     if (!loading) void syncReminders(items);
   }, [items, loading, i18n.language, lockNonce]);
@@ -410,7 +437,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         // A newer state is already being saved; let its attempt report.
         if (stale) return;
         if (retriesLeft > 0) {
-          setTimeout(() => attempt(retriesLeft - 1), 1500);
+          setTimeout(() => {
+            // A newer state may have been saved while the timer ran: a
+            // late retry must never write the older one over it.
+            if (!stale) attempt(retriesLeft - 1);
+          }, 1500);
         } else if (!saveWarned.current) {
           saveWarned.current = true;
           Alert.alert(i18n.t("storage.saveFailedTitle"), i18n.t("storage.saveFailedBody"));
@@ -677,7 +708,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       setAccounts((prev) => prev.map((a) => (a.id === id ? { ...a, isArchived: true } : a)));
     };
 
+    // Every path that swaps the whole dataset keeps what it replaces: a
+    // manual backup, so a wrong file, a wrong tap or a debug action is
+    // reversible from Backups (an empty state has nothing to keep).
+    const backupBeforeReplace = () => {
+      const current = exportData();
+      if (current.items.length > 0 || current.accounts.length > 0) createBackup(current, "manual");
+    };
+
     const clearAllData = () => {
+      backupBeforeReplace();
       setItems([]);
       setOccurrences([]);
       setCustomCategories([]);
@@ -699,6 +739,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     const loadSampleData = () => {
+      backupBeforeReplace();
       const sample = buildSampleData();
       setItems(sample.items);
       setOccurrences(sample.occurrences);
@@ -723,6 +764,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       const parsed = parsePersistedStateDetailed(json);
       if (!parsed) return { ok: false, dropped: 0 };
       const { state, dropped } = parsed;
+      backupBeforeReplace();
       setItems(state.items);
       setOccurrences(state.occurrences);
       setCustomCategories(state.categories);
@@ -893,6 +935,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     const restoreSnapshot = () => {
+      backupBeforeReplace();
       void loadSnapshot().then((snapshot) => {
         if (!snapshot) return;
         setItems(snapshot.state.items);

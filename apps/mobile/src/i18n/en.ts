@@ -476,6 +476,8 @@ export const en = {
     plusOwed: "plus {{amount}} of split payments still owed",
     commitments_one: "{{count}} commitment",
     commitments_other: "{{count}} commitments",
+    payments_one: "{{count}} payment",
+    payments_other: "{{count}} payments",
   },
   priceChanges: {
     heroLabel: "Price creep",
@@ -566,6 +568,14 @@ export const en = {
     saveFailedTitle: "Saving failed",
     saveFailedBody:
       "Keel couldn't save your latest changes on this phone, even after retrying. This usually means storage is full. Free up some space, then make any small change so Keel can save again.",
+    loadFailedTitle: "Keel couldn't load your data",
+    loadFailedBody:
+      "Your data is still on this phone, but it couldn't be read just now. Close Keel fully and open it again. If it keeps happening, restore a backup from Settings, Data.",
+    rescuedTitle: "Some data was set aside",
+    rescuedAllBody:
+      "Keel couldn't read its saved data, so it starts empty. The original was kept aside. To get your list back, restore a backup from Settings, Data.",
+    rescuedSomeBody:
+      "A few saved entries couldn't be read and were left out. The original was kept aside. If something is missing, restore a backup from Settings, Data.",
   },
   settings: {
     aiFeatures: "AI features",
@@ -703,7 +713,8 @@ export const en = {
     cta: "Get Full Keel",
     restore: "Restore purchase",
     buyFailTitle: "That didn't go through",
-    buyFailMsg: "Nothing was charged. Check your connection and try again.",
+    buyFailMsg:
+      "Nothing was charged. If your bank or Apple did charge you, the purchase unlocks on its own at the next launch, or tap Restore purchase.",
     restoreNoneTitle: "Nothing to restore",
     restoreNoneMsg: "No Full Keel purchase was found on this Apple ID.",
     soonTitle: "Almost",
@@ -713,6 +724,11 @@ export const en = {
     ownedBody: "Thank you for supporting Keel.",
     bannerSub: "The full toolset, one purchase",
     bannerOwned: "Thank you for the support",
+    restoreFailTitle: "Restore didn't go through",
+    restoreFailMsg: "Check your connection and try again.",
+    pendingTitle: "Waiting for approval",
+    pendingMsg:
+      "This purchase needs an approval (Ask to Buy). Keel unlocks on its own once it is approved.",
   },
   trial: {
     startedTitle: "Your 45 days start today",

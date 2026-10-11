@@ -103,7 +103,12 @@ function coercePersistedState(parsed: unknown): { state: PersistedState; dropped
       aiActivity: aiActivity.kept,
     },
     dropped:
-      items.dropped + occurrences.dropped + categories.dropped + accounts.dropped + pending.dropped,
+      items.dropped +
+      occurrences.dropped +
+      categories.dropped +
+      accounts.dropped +
+      pending.dropped +
+      aiActivity.dropped,
   };
 }
 
@@ -125,11 +130,35 @@ export function parsePersistedState(raw: string): PersistedState | null {
   return parsePersistedStateDetailed(raw)?.state ?? null;
 }
 
-export async function loadState(): Promise<PersistedState> {
+/** Where a blob that could not be (fully) read is set aside before the app
+ *  moves on: the first persist after launch rewrites the real key, so
+ *  without this copy an unreadable byte would mean deleted data. */
+const RESCUE_KEY = "keel.subscriptions.rescued.v1";
+
+/** The launch read, with what had to be given up: "all" when the blob did
+ *  not parse at all (the app starts empty), a count when entries were
+ *  rejected by the guards, null when everything came through. Either way
+ *  the original bytes are kept under RESCUE_KEY. */
+export async function loadStateDetailed(): Promise<{
+  state: PersistedState;
+  rescued: number | "all" | null;
+}> {
   const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (!raw) return EMPTY;
-  // Corrupt blob — start clean rather than crash the app on launch.
-  return parsePersistedState(raw) ?? EMPTY;
+  if (!raw) return { state: EMPTY, rescued: null };
+  const parsed = parsePersistedStateDetailed(raw);
+  if (parsed && parsed.dropped === 0) return { state: parsed.state, rescued: null };
+  try {
+    await AsyncStorage.setItem(RESCUE_KEY, raw);
+  } catch {
+    // Setting the copy aside is best effort; the alert still fires.
+  }
+  return parsed
+    ? { state: parsed.state, rescued: parsed.dropped }
+    : { state: EMPTY, rescued: "all" };
+}
+
+export async function loadState(): Promise<PersistedState> {
+  return (await loadStateDetailed()).state;
 }
 
 export async function saveState(state: PersistedState): Promise<void> {
@@ -138,7 +167,7 @@ export async function saveState(state: PersistedState): Promise<void> {
 
 /** A stashed copy of the user's data, so debug actions (demo data, clear all)
  *  can be undone. One slot: saving again overwrites the previous snapshot. */
-export interface Snapshot {
+interface Snapshot {
   /** ISO timestamp of when the snapshot was taken. */
   savedAt: string;
   state: PersistedState;

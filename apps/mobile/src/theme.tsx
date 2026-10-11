@@ -149,6 +149,22 @@ export function themeModeSnapshot(): ThemeMode {
   return currentMode;
 }
 
+// Non-React listeners (the widget snapshot writer re-renders on a change).
+const modeListeners = new Set<() => void>();
+function setCurrentMode(next: ThemeMode): void {
+  if (next === currentMode) return;
+  currentMode = next;
+  for (const listener of modeListeners) listener();
+}
+
+/** Subscribe to appearance changes; returns the unsubscribe. */
+export function onThemeModeChange(listener: () => void): () => void {
+  modeListeners.add(listener);
+  return () => {
+    modeListeners.delete(listener);
+  };
+}
+
 /** The RESOLVED scheme, outside React (for module-level color resolution
  *  like brand.ts): the user's explicit choice, or the device's under
  *  "system". Snapshot semantics — callers re-run per render anyway. */
@@ -179,7 +195,7 @@ export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
       .then((stored) => {
         if (stored === "light" || stored === "dark" || stored === "system") {
           setModeState(stored);
-          currentMode = stored;
+          setCurrentMode(stored);
         }
       })
       .finally(() => setHydrated(true));
@@ -187,7 +203,7 @@ export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
 
   const setMode = (next: ThemeMode) => {
     setModeState(next);
-    currentMode = next;
+    setCurrentMode(next);
     void AsyncStorage.setItem(THEME_KEY, next);
   };
 
