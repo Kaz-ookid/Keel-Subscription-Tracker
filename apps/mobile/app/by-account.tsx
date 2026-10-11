@@ -191,7 +191,7 @@ export default function ByAccountScreen() {
           amount={
             selectedBucket.totals.length > 0 ? totals(selectedBucket.totals) : t("insights.nothing")
           }
-          sub={t("history.count", { count: monthDetail.length })}
+          sub={t("byAccount.payments", { count: monthDetail.length })}
         />
       ) : (
         <HeroCard
