@@ -24,9 +24,9 @@ Launching on the App Store. Website: [keel-app.ch](https://keel-app.ch).
   forecast charts, yearly costs smoothed into the monthly baseline,
   price-change log, multi-currency merge at ECB reference rates
 - **AI-assisted import**: paste a generated prompt into any assistant and
-  review every proposed line before it is saved; on supported devices an
-  on-device Apple Intelligence model can do the reading locally. Entirely
-  optional, and it switches off completely.
+  review every proposed line before it is saved; or, on iOS 27, let Apple's
+  cloud model (Private Cloud Compute) do the reading, opt-in and described
+  in Apple's terms. Entirely optional, and it switches off completely.
 - **Reminders**: up to three per commitment, any lead (days, weeks,
   months), repeating nudges until the due day, plus a daily/weekly/monthly
   overdue summary
