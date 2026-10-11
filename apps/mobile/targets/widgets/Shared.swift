@@ -49,7 +49,7 @@ struct WidgetSnapshot: Codable {
   let monthLabel: String
   /// Pre-formatted committed total still ahead this month.
   let monthTotal: String
-  /// The next charges (today through ~30 days), soonest first, capped.
+  /// The next charges for the year ahead, soonest first.
   let payments: [WidgetPayment]
   /// Present while the app is locked (trial over, no purchase): shown as the
   /// empty line so the widget explains itself instead of looking stale.
@@ -106,11 +106,6 @@ extension WidgetSnapshot {
   /// charge stays urgent no matter how old. The reference day only changes
   /// LABELS (a charge that was upcoming at write time flips to overdue when
   /// its day passes with the app unopened).
-  func upcoming(from reference: Date) -> [WidgetPayment] {
-    _ = reference
-    return payments
-  }
-
   /// Overdue as of the timeline day: the snapshot's flag OR date drift.
   func isLate(_ payment: WidgetPayment, from reference: Date) -> Bool {
     payment.isOverdue || payment.daysFrom(reference) < 0

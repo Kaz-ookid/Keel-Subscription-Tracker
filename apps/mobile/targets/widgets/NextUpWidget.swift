@@ -31,7 +31,7 @@ struct NextUpView: View {
   }
   /// The single most urgent thing: the oldest overdue charge if any exists
   /// (the app pins them first), else the nearest upcoming one.
-  private var next: WidgetPayment? { snapshot?.upcoming(from: entry.date).first }
+  private var next: WidgetPayment? { snapshot?.payments.first }
   private var nextIsLate: Bool {
     guard let snapshot, let next else { return false }
     return snapshot.isLate(next, from: entry.date)
@@ -51,7 +51,7 @@ struct NextUpView: View {
   /// What comes after `next`: the tile teases up to two more so "in 5 days"
   /// can't hide something landing the day after.
   private func following(_ index: Int) -> WidgetPayment? {
-    guard let list = snapshot?.upcoming(from: entry.date), list.count > index else { return nil }
+    guard let list = snapshot?.payments, list.count > index else { return nil }
     return list[index]
   }
 

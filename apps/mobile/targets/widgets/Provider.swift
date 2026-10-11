@@ -16,7 +16,9 @@ struct KeelProvider: TimelineProvider {
   }
 
   func getSnapshot(in context: Context, completion: @escaping (KeelEntry) -> Void) {
-    let snapshot = context.isPreview ? WidgetSnapshot.sample() : SharedStore.load() ?? .sample()
+    // Sample rows belong to the gallery only: a real home screen with no
+    // snapshot yet shows the empty state, never invented subscriptions.
+    let snapshot = context.isPreview ? WidgetSnapshot.sample() : SharedStore.load()
     completion(KeelEntry(date: Date(), snapshot: snapshot))
   }
 

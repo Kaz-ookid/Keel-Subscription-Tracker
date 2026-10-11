@@ -44,7 +44,7 @@ struct UpcomingView: View {
   }
 
   private func content(_ snapshot: WidgetSnapshot) -> some View {
-    let upcoming = Array(snapshot.upcoming(from: entry.date).prefix(rowCount))
+    let upcoming = Array(snapshot.payments.prefix(rowCount))
     let lateCount = snapshot.overdueCount(from: entry.date)
     return VStack(alignment: .leading, spacing: 6) {
       HStack(alignment: .firstTextBaseline) {

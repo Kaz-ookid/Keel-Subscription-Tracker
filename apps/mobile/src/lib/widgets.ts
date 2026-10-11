@@ -37,8 +37,6 @@ export const WIDGET_SNAPSHOT_KEY = "keel.widget.snapshot.v1";
 // months out: "All clear" must mean "nothing ahead at all", never "nothing
 // in the next 30 days".
 const HORIZON_DAYS = 365;
-// Large shows up to 12 rows; a few beyond that keep the "+N more" honest.
-const MAX_PAYMENTS = 16;
 
 /** Mirror of WidgetPayment in Shared.swift. */
 export interface WidgetPayment {
@@ -139,7 +137,8 @@ export function buildWidgetSnapshot(
       ...overdue.map((charge) => ({ charge, overdue: true })),
       ...upcoming.map((charge) => ({ charge, overdue: false })),
     ]
-      .slice(0, MAX_PAYMENTS)
+      // Uncapped: the widget's "+N more" counts what the snapshot holds, so
+      // the snapshot holds the whole year (a few hundred small rows at most).
       .map(({ charge, overdue: isOverdue }) => ({
         id: `${charge.paymentItemId}:${charge.dueDate}`,
         itemId: charge.paymentItemId,

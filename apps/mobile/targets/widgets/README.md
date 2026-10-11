@@ -13,7 +13,7 @@ Two widgets, one shared timeline provider, Keel's night-at-sea look:
 | Widget | Families | Shows |
 |---|---|---|
 | **Next payment** | home small + lock screen inline, circular, rectangular | The single next charge: name, amount, "Today / Tomorrow / In N days"; circular shows days-until as a dial number. |
-| **Upcoming payments** | home medium (3 rows), home large (7 rows) | The next charges with due-in labels and amounts, month + committed total in the header. |
+| **Upcoming payments** | home medium (4 rows), home large (12 rows) | The next charges with due-in labels and amounts, month + committed total in the header. |
 
 Behavior details:
 - **The app does all the math.** `src/lib/widgets.ts` pre-formats a JSON
@@ -23,8 +23,9 @@ Behavior details:
   timeline day so "Tomorrow" stays honest between app opens.
 - **Timeline**: one entry per day for 7 days, `.atEnd`, plus a forced reload
   from the app on every data change.
-- **Deep links**: every widget/row opens `keel://item?id=<id>` (expo-router
-  handles the route).
+- **Deep links**: an Upcoming row opens its item (`keel://item?id=<id>`);
+  everything else opens the Upcoming list (`keel://upcoming`). expo-router
+  handles both routes.
 - **Language**: follows the app's language (stored in the snapshot), not the
   device's. Gallery names/descriptions are English for now.
 - Empty states: "All clear" / "Rien à venir"; a never-fed widget shows
