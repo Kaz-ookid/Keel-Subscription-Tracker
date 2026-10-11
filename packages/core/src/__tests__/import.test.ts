@@ -579,7 +579,9 @@ describe("buildImportPrompt", () => {
 
   it("asks for extraction only: no self-reporting, no brand colors", () => {
     expect(prompt).not.toContain('"assumed"');
-    expect(prompt).not.toContain('"uncertain"');
+    // v2.1: identity may be inferred when declared, money never (2026-10-11)
+    expect(prompt).toContain('list "name" in "uncertain"');
+    expect(prompt).toContain("Never infer amounts, dates or currencies");
     expect(prompt).not.toContain('"color"');
   });
 

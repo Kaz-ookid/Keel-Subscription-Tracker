@@ -95,7 +95,7 @@ import Foundation
     var provider: String?
     @Guide(description: "The bank account name exactly as the user wrote it")
     var account: String?
-    @Guide(description: "Bare brand website like netflix.com; omit when unsure, never guess")
+    @Guide(description: "Bare brand website like netflix.com for a brand you know; omit when unsure")
     var domain: String?
     @Guide(
       description:
@@ -104,6 +104,11 @@ import Foundation
     var weekendShift: String?
     @Guide(description: "Anything that fits no field")
     var notes: String?
+    @Guide(
+      description:
+        "Names of fields you inferred rather than read, name above all; never list amount, total, currency or dates: omit those instead"
+    )
+    var uncertain: [String]?
     @Guide(description: "Only when the user asks to be reminded: days before")
     var reminderDaysBefore: Int?
     @Guide(description: "Only true when the user says past payments were NOT made")
