@@ -35,6 +35,7 @@ const ERROR_KEYS: Record<ReadError, string> = {
   service: "keelReads.errService",
   unavailable: "keelReads.errService",
   "model-failed": "keelReads.errModel",
+  "image-unreadable": "keelReads.errImage",
 };
 
 const KIND_KEYS = {
