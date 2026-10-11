@@ -75,6 +75,7 @@ export default function PaymentsScreen() {
   // bounces off, a UIScrollView is physically clamped to its two pages, so
   // the wrap-around PagerView produced under aggressive two-finger swipes
   // cannot exist — there is no state to heal, the edges ARE the track.
+  const onPills = view === "upcoming" || view === "all";
   const pagerRef = useRef<ScrollView>(null);
   const { width: pageWidth } = useWindowDimensions();
   const scrolledPage = useRef(view === "all" ? 1 : 0);
@@ -100,12 +101,30 @@ export default function PaymentsScreen() {
     // pager's native scroll IS the animation, so no withTiming on top of it.
     highlightX.value = progress * (pillWidth + 3);
   };
-  const onPagerSettled = () => {
+  const settleOn = (page: number) => {
     // Settled: re-assert the truth on the wash and the label.
-    const page = scrolledPage.current;
+    scrolledPage.current = page;
     highlightX.value = page * (pillWidth + 3);
     setView(page === 1 ? "all" : "upcoming");
   };
+  const onPagerMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
+    settleOn(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
+  const onPagerDragEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    // A drag that lets go with momentum settles in onMomentumScrollEnd;
+    // settling here too (mid-flight, with a half-way offset rounded) is
+    // what made a fast reverse swipe teleport to the wrong page (dogfood
+    // 2026-10-11). Only a dead-stop release settles from here.
+    const velocity = Math.abs(e.nativeEvent.velocity?.x ?? 0);
+    if (velocity < 0.05) settleOn(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
+  };
+  // The offset the pager MOUNTS with (returning from calendar/harbor must
+  // land on the remembered page). Deliberately not tied to `view`: a view
+  // change mid-gesture would re-apply the prop and yank the scroll.
+  const mountOffset = useMemo(
+    () => ({ x: view === "all" ? pageWidth : 0, y: 0 }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onPills, pageWidth],
+  );
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
     if (view === "upcoming" || view === "all") {
@@ -125,8 +144,6 @@ export default function PaymentsScreen() {
     transform: [{ translateX: highlightX.value }],
     opacity: highlightOpacity.value,
   }));
-
-  const onPills = view === "upcoming" || view === "all";
 
   // A requested landing view arriving while already mounted (the screen sat
   // behind a modal): consume it on focus and swing the pager over.
@@ -212,12 +229,11 @@ export default function PaymentsScreen() {
           bounces={false}
           showsHorizontalScrollIndicator={false}
           scrollEventThrottle={16}
-          contentOffset={{ x: view === "all" ? pageWidth : 0, y: 0 }}
+          contentOffset={mountOffset}
           onScrollBeginDrag={onPagerBeginDrag}
           onScroll={onPagerScroll}
-          // Paging always settles through one of these; both are idempotent.
-          onMomentumScrollEnd={onPagerSettled}
-          onScrollEndDrag={onPagerSettled}
+          onMomentumScrollEnd={onPagerMomentumEnd}
+          onScrollEndDrag={onPagerDragEnd}
         >
           <View key="upcoming" style={[styles.page, { width: pageWidth }]} collapsable={false}>
             <UpcomingView resetSignal={resetSignal} />
