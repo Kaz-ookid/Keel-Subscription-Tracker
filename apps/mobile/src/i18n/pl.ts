@@ -994,7 +994,25 @@ const translation = {
     readingImage: "Odczytywanie zrzutu ekranu…",
     errImage: "Nie udało się odczytać tekstu z tego obrazu. Spróbuj ostrzejszego zrzutu.",
     screenshotNote:
-      "Tekst ze zrzutów ekranu jest odczytywany na tym iPhonie i dodawany powyżej: widzisz i poprawiasz dokładnie to, co zostanie wysłane.",
+      "Zrzuty ekranu otwierają podgląd odczytanego tekstu, w którym możesz usunąć prywatne dane przed wysłaniem.",
+    previewTitle: "Co odczytał Keel",
+    previewHint_one:
+      "Odczytane z {{count}} zrzutu ekranu, na tym iPhonie. Sprawdź, usuń to, co wolisz zachować dla siebie, i wyślij.",
+    previewHint_other:
+      "Odczytane z {{count}} zrzutów ekranu, na tym iPhonie. Sprawdź, usuń to, co wolisz zachować dla siebie, i wyślij.",
+    scrubbed_one:
+      "{{count}} dana osobowa usunięta automatycznie ({{kinds}}). Imiona i adresy usuwasz sam.",
+    scrubbed_other:
+      "{{count}} danych osobowych usuniętych automatycznie ({{kinds}}). Imiona i adresy usuwasz sam.",
+    scrubbedNone:
+      "Nie znaleziono numerów kart, e-maili ani numerów referencyjnych. Imiona i adresy usuwasz sam.",
+    readPreview: "Wyślij i odczytaj",
+    kindCard: "numery kart",
+    kindEmail: "e-maile",
+    kindIban: "numery IBAN",
+    kindPhone: "numery telefonów",
+    kindReference: "numery paragonów lub zamówień",
+    kindTaxId: "numery NIP",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",

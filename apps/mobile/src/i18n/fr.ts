@@ -950,7 +950,25 @@ export const fr: typeof en = {
     readingImage: "Lecture de votre capture…",
     errImage: "Aucun texte lisible dans cette image. Essayez une capture plus nette.",
     screenshotNote:
-      "Le texte des captures est lu sur cet iPhone et ajouté ci-dessus : vous voyez et corrigez exactement ce qui sera envoyé.",
+      "Les captures ouvrent un aperçu de ce qui a été lu, où vous pouvez retirer ce qui est privé avant l'envoi.",
+    previewTitle: "Ce que Keel a lu",
+    previewHint_one:
+      "Lu sur {{count}} capture, sur cet iPhone. Vérifiez, retirez ce que vous préférez garder pour vous, puis envoyez.",
+    previewHint_other:
+      "Lu sur {{count}} captures, sur cet iPhone. Vérifiez, retirez ce que vous préférez garder pour vous, puis envoyez.",
+    scrubbed_one:
+      "{{count}} donnée personnelle retirée automatiquement ({{kinds}}). Les noms et adresses restent à vous.",
+    scrubbed_other:
+      "{{count}} données personnelles retirées automatiquement ({{kinds}}). Les noms et adresses restent à vous.",
+    scrubbedNone:
+      "Aucun numéro de carte, e-mail ou référence trouvé. Les noms et adresses restent à vous.",
+    readPreview: "Envoyer et lire",
+    kindCard: "numéros de carte",
+    kindEmail: "e-mails",
+    kindIban: "IBAN",
+    kindPhone: "numéros de téléphone",
+    kindReference: "numéros de reçu ou de commande",
+    kindTaxId: "numéros de TVA",
   },
   notifications: {
     bodyToday: "{{amount}} à payer aujourd'hui",

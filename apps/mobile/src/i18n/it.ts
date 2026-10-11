@@ -949,7 +949,25 @@ export const it: typeof en = {
     readingImage: "Lettura dello screenshot…",
     errImage: "Nessun testo leggibile in questa immagine. Prova uno screenshot più nitido.",
     screenshotNote:
-      "Il testo degli screenshot viene letto su questo iPhone e aggiunto qui sopra: vedi e correggi esattamente ciò che verrà inviato.",
+      "Gli screenshot aprono un'anteprima di ciò che è stato letto, dove puoi togliere i dati privati prima dell'invio.",
+    previewTitle: "Cosa ha letto Keel",
+    previewHint_one:
+      "Letto da {{count}} screenshot, su questo iPhone. Controlla, togli ciò che preferisci tenere per te, poi invia.",
+    previewHint_other:
+      "Letto da {{count}} screenshot, su questo iPhone. Controlla, togli ciò che preferisci tenere per te, poi invia.",
+    scrubbed_one:
+      "{{count}} dato personale rimosso automaticamente ({{kinds}}). Nomi e indirizzi li togli tu.",
+    scrubbed_other:
+      "{{count}} dati personali rimossi automaticamente ({{kinds}}). Nomi e indirizzi li togli tu.",
+    scrubbedNone:
+      "Nessun numero di carta, email o riferimento trovato. Nomi e indirizzi li togli tu.",
+    readPreview: "Invia e leggi",
+    kindCard: "numeri di carta",
+    kindEmail: "email",
+    kindIban: "IBAN",
+    kindPhone: "numeri di telefono",
+    kindReference: "numeri di ricevuta o ordine",
+    kindTaxId: "partite IVA",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",

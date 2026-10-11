@@ -943,7 +943,25 @@ export const en = {
     readingImage: "Reading your screenshot…",
     errImage: "Couldn't read any text from that image. Try a sharper screenshot.",
     screenshotNote:
-      "Text from screenshots is read on this iPhone and added above, so you can see and edit exactly what will be sent.",
+      "Screenshots open a preview of what was read, where you can remove anything private before sending.",
+    previewTitle: "What Keel read",
+    previewHint_one:
+      "Read off {{count}} screenshot, on this iPhone. Check it, remove anything you'd rather keep private, then send.",
+    previewHint_other:
+      "Read off {{count}} screenshots, on this iPhone. Check it, remove anything you'd rather keep private, then send.",
+    scrubbed_one:
+      "{{count}} personal detail removed automatically ({{kinds}}). Names and addresses are yours to remove.",
+    scrubbed_other:
+      "{{count}} personal details removed automatically ({{kinds}}). Names and addresses are yours to remove.",
+    scrubbedNone:
+      "No card numbers, emails or references found. Names and addresses are yours to remove.",
+    readPreview: "Send and read",
+    kindCard: "card numbers",
+    kindEmail: "emails",
+    kindIban: "IBANs",
+    kindPhone: "phone numbers",
+    kindReference: "receipt or order numbers",
+    kindTaxId: "tax ids",
   },
   notifications: {
     bodyToday: "{{amount}} due today",

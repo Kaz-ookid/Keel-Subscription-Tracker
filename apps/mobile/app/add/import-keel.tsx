@@ -7,7 +7,7 @@
 // weaker engine. Linked from the import hub; in Expo Go the availability
 // probe reports unavailable and this screen explains itself.
 
-import { detectCurrencyHint, parseImportDocument, today, type ImportParseError } from "@keel/core";
+import { scrubPersonalData } from "@keel/core";
 import * as ImagePicker from "expo-image-picker";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -30,14 +30,14 @@ import { setAiCloudConsent, useAiCloudConsent } from "../../src/lib/ai-cloud";
 import {
   KeelReadsError,
   keelReadsAvailability,
-  readWithKeel,
   recognizeScreenshot,
   type KeelReadsAvailability,
-  type KeelReadsFailure,
 } from "../../src/lib/apple-intelligence";
+import { runKeelRead, type KeelReadOutcome } from "../../src/lib/keel-read-flow";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 import { useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
+import { setKeelReadsDraft } from "../../src/state/keel-reads-draft";
 import {
   radius,
   spacing,
@@ -47,9 +47,11 @@ import {
   type ThemeColors,
 } from "../../src/theme";
 
-type ReadError = ImportParseError | KeelReadsFailure;
+type ReadError = Extract<KeelReadOutcome, { ok: false }>["error"] | "image-unreadable";
 
-const FAILURE_KEYS: Record<KeelReadsFailure, string> = {
+const ERROR_KEYS: Record<ReadError, string> = {
+  "no-json": "importAI.errNoJson",
+  empty: "importAI.errEmpty",
   offline: "keelReads.errOffline",
   quota: "keelReads.errQuota",
   service: "keelReads.errService",
@@ -86,37 +88,21 @@ export default function KeelReadsImportScreen() {
   const read = async (material: string) => {
     setBusy(true);
     setError(null);
-    // When the material itself shows one currency, an item the model leaves
-    // currency-less defaults to THAT, not to the display currency.
-    const defaultCurrency = detectCurrencyHint(material) ?? displayCurrency;
-    try {
-      const json = await readWithKeel(material, {
-        today: today(),
-        defaultCurrency,
-      });
-      const result = parseImportDocument(json, {
-        defaultCurrency,
-        today: today(),
-        accounts,
-        categories,
-        takenNames: items.map((i) => i.name),
-      });
-      if (result.drafts.length === 0) {
-        setError(result.error ?? "empty");
-        return;
-      }
-      startSession(result.drafts, result.skipped, "ondevice_import");
-      router.push("/add/import-review");
-    } catch (failure) {
-      setError(failure instanceof KeelReadsError ? failure.reason : "model-failed");
-    } finally {
-      setBusy(false);
+    const outcome = await runKeelRead(material, { displayCurrency, items, accounts, categories });
+    setBusy(false);
+    if (!outcome.ok) {
+      setError(outcome.error);
+      return;
     }
+    startSession(outcome.drafts, outcome.skipped, "ondevice_import");
+    router.push("/add/import-review");
   };
 
-  // Screenshots: picked from the library, read on the phone by Vision, and
-  // appended as text INTO the box, so what will be sent is exactly what the
-  // user can see and edit. Nothing leaves the device for this step.
+  // Screenshots: picked from the library, read on the phone by Vision,
+  // scrubbed of patterned personal details, and handed to the PREVIEW
+  // screen, where the user sees what was read and removes the rest before
+  // anything is sent. The typed box stays the user's own (dogfood
+  // 2026-10-11: OCR text appearing in it, then an auto-jump, read as weird).
   const addScreenshots = async () => {
     const picked = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
@@ -137,13 +123,14 @@ export default function KeelReadsImportScreen() {
         setError("image-unreadable");
         return;
       }
-      // One-shot gesture (dogfood 2026-10-11): the recognized text goes to
-      // the model right away, together with anything already typed. It also
-      // lands in the box, so a failed read can be seen and edited.
-      const material = [text.trim(), ...chunks].filter(Boolean).join("\n\n");
-      setText(material);
-      setOcrBusy(false);
-      await read(material);
+      const scrubbed = scrubPersonalData(chunks.join("\n\n"));
+      setKeelReadsDraft({
+        text: scrubbed.text,
+        removed: scrubbed.removed,
+        count: scrubbed.count,
+        screenshots: picked.assets.length,
+      });
+      router.push("/add/import-keel-preview");
     } catch (failure) {
       setError(failure instanceof KeelReadsError ? failure.reason : "image-unreadable");
     } finally {
@@ -153,13 +140,6 @@ export default function KeelReadsImportScreen() {
 
   // The hub is one step back; from a direct open, it is a sibling push.
   const useOwnAi = () => (direct ? router.push("/add/import") : router.back());
-
-  const errorKey = (which: ReadError): string =>
-    which === "no-json"
-      ? "importAI.errNoJson"
-      : which === "empty"
-        ? "importAI.errEmpty"
-        : FAILURE_KEYS[which];
 
   if (locked) return null;
   return (
@@ -239,7 +219,7 @@ export default function KeelReadsImportScreen() {
               />
             )}
             <Text style={styles.hint}>{t("keelReads.screenshotNote")}</Text>
-            {error && <Text style={styles.error}>{t(errorKey(error))}</Text>}
+            {error && <Text style={styles.error}>{t(ERROR_KEYS[error])}</Text>}
             {error &&
               error !== "no-json" &&
               error !== "empty" &&

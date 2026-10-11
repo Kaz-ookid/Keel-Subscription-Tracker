@@ -954,7 +954,25 @@ export const de: typeof en = {
     readingImage: "Dein Screenshot wird gelesen…",
     errImage: "In diesem Bild war kein Text lesbar. Versuch einen schärferen Screenshot.",
     screenshotNote:
-      "Text aus Screenshots wird auf diesem iPhone gelesen und oben eingefügt: Du siehst und bearbeitest genau das, was gesendet wird.",
+      "Screenshots öffnen eine Vorschau des Gelesenen, in der du Privates vor dem Senden entfernen kannst.",
+    previewTitle: "Was Keel gelesen hat",
+    previewHint_one:
+      "Von {{count}} Screenshot gelesen, auf diesem iPhone. Prüfen, Privates entfernen, dann senden.",
+    previewHint_other:
+      "Von {{count}} Screenshots gelesen, auf diesem iPhone. Prüfen, Privates entfernen, dann senden.",
+    scrubbed_one:
+      "{{count}} persönliche Angabe automatisch entfernt ({{kinds}}). Namen und Adressen entfernst du selbst.",
+    scrubbed_other:
+      "{{count}} persönliche Angaben automatisch entfernt ({{kinds}}). Namen und Adressen entfernst du selbst.",
+    scrubbedNone:
+      "Keine Kartennummern, E-Mails oder Referenzen gefunden. Namen und Adressen entfernst du selbst.",
+    readPreview: "Senden und lesen",
+    kindCard: "Kartennummern",
+    kindEmail: "E-Mails",
+    kindIban: "IBANs",
+    kindPhone: "Telefonnummern",
+    kindReference: "Beleg- oder Bestellnummern",
+    kindTaxId: "Steuernummern",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",

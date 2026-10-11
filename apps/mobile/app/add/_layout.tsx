@@ -40,6 +40,7 @@ export default function AddLayout() {
         {/* The on-device Apple Intelligence path (linked from the import hub
           and the AI tab) — see modules/apple-intelligence/README.md. */}
         <Stack.Screen name="import-keel" options={{ title: t("importAI.methodKeel") }} />
+        <Stack.Screen name="import-keel-preview" options={{ title: t("keelReads.previewTitle") }} />
         <Stack.Screen name="import-review" options={{ title: t("titles.importReview") }} />
       </Stack>
     </View>
