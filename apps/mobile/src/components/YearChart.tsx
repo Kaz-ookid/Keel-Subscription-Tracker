@@ -41,9 +41,12 @@ interface Props {
 }
 
 const CHART_HEIGHT = 140;
-// Bars stop short of the top so the "now" and year landmarks keep their
-// room when the biggest month would otherwise fill the frame (dogfood
-// 2026-10-11).
+// The landmarks' headroom: the "now" line starts here so its buoy and label
+// are never clipped by the card's top; bars stop short of the top so the
+// label keeps its room when the biggest month would otherwise fill the
+// frame (dogfood 2026-10-11). Years are written under the month labels,
+// never on the line, so no bar can ever hide one.
+const LANDMARK_TOP = 6;
 const BAR_MAX = CHART_HEIGHT - 22;
 const COL_WIDTH = 30;
 const COL_GAP = 4;
@@ -148,17 +151,15 @@ export function YearChart({
               </View>
             )}
 
-            {/* Year milestones: a hairline + vertical year at each January. */}
+            {/* Year milestones: a hairline at each January; the year itself
+                sits under the month labels. */}
             {months.map((m, i) =>
               m.yearStart && i > 0 ? (
                 <View
                   key={`year-${m.yearStart}`}
-                  style={[styles.yearMark, { left: i * SLOT - COL_GAP / 2 - 1 }]}
+                  style={[styles.yearLine, { left: i * SLOT - COL_GAP / 2 - 1 }]}
                   pointerEvents="none"
-                >
-                  <View style={styles.yearLine} />
-                  <Text style={styles.yearText}>{m.yearStart}</Text>
-                </View>
+                />
               ) : null,
             )}
 
@@ -196,16 +197,18 @@ export function YearChart({
 
           <View style={styles.labels}>
             {months.map((m, i) => (
-              <Text
-                key={m.name}
-                style={[
-                  styles.label,
-                  i === selected && { color: colors.text, fontWeight: "700" },
-                  i === todayIndex && { color: colors.accent, fontWeight: "700" },
-                ]}
-              >
-                {m.label}
-              </Text>
+              <View key={m.name} style={styles.labelColumn}>
+                <Text
+                  style={[
+                    styles.label,
+                    i === selected && { color: colors.text, fontWeight: "700" },
+                    i === todayIndex && { color: colors.accent, fontWeight: "700" },
+                  ]}
+                >
+                  {m.label}
+                </Text>
+                {m.yearStart && i > 0 ? <Text style={styles.yearText}>{m.yearStart}</Text> : null}
+              </View>
             ))}
           </View>
         </View>
@@ -278,7 +281,7 @@ function createStyles(colors: ThemeColors) {
     },
     todayLine: {
       position: "absolute",
-      top: 0,
+      top: LANDMARK_TOP,
       bottom: 0,
       width: 2,
       borderRadius: 1,
@@ -287,7 +290,7 @@ function createStyles(colors: ThemeColors) {
     },
     buoy: {
       position: "absolute",
-      top: -1,
+      top: -3,
       left: -2,
       width: 6,
       height: 6,
@@ -297,34 +300,25 @@ function createStyles(colors: ThemeColors) {
     // The line's own name, riding beside the buoy at the top.
     nowText: {
       position: "absolute",
-      top: -2,
+      top: -4,
       left: 7,
       fontSize: 9,
       color: colors.mutedText,
       width: 40,
     },
-    // Quieter than the "now" landmark: a hairline with the year written
-    // vertically along it, marking each January like a roadside milestone.
-    yearMark: {
-      position: "absolute",
-      top: 0,
-      bottom: 0,
-      width: 1,
-    },
+    // Quieter than the "now" landmark: a hairline marking each January.
     yearLine: {
-      flex: 1,
+      position: "absolute",
+      top: LANDMARK_TOP,
+      bottom: 0,
       width: 1,
       backgroundColor: colors.border,
     },
+    labelColumn: { width: COL_WIDTH, alignItems: "center" },
+    // The year, under its January: never on the line, never behind a bar.
     yearText: {
-      position: "absolute",
-      top: 16,
-      left: -16,
-      width: 32,
-      textAlign: "center",
       fontSize: 9,
       color: colors.mutedText,
-      transform: [{ rotate: "90deg" }],
     },
     dash: {
       width: 8,
