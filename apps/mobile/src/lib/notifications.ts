@@ -6,6 +6,8 @@
 // something to schedule — never on launch.
 
 import {
+  nextDigestDates,
+  type DigestRule,
   formatCalendarDate,
   formatMoney,
   plannedReminders,
@@ -16,10 +18,12 @@ import {
 } from "@keel/core";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
+import { useCallback, useEffect, useState } from "react";
+import { AppState } from "react-native";
 
 import i18n from "../i18n";
 import { daysUntil } from "../i18n/dates";
-import { fromCalendarDate, toCalendarDate } from "./dates";
+import { fromCalendarDate } from "./dates";
 import { entitlementSnapshot } from "./entitlement";
 
 Notifications.setNotificationHandler({
@@ -42,11 +46,7 @@ export const DEFAULT_LEAD_OPTIONS = ["0", "1", "2", "7"] as const;
 /** The recurring overdue summary: off, or a daily/weekly/monthly rhythm the
  *  user picks. Weekday follows the JS convention (0 = Sunday); the monthly
  *  day is capped at 28 so every month has it. */
-export type DigestRule =
-  | { mode: "off" }
-  | { mode: "daily" }
-  | { mode: "weekly"; weekday: number }
-  | { mode: "monthly"; day: number };
+export type { DigestRule };
 
 export interface NotificationSettings {
   /** The in-app master switch — instant, independent of the OS permission. */
@@ -181,53 +181,6 @@ async function ensurePermission(): Promise<boolean> {
 
 /** How many upcoming digest occurrences to keep scheduled. */
 const DIGEST_HORIZON = 4;
-
-/** The next `count` calendar dates matching the rule, starting after
- *  (or on) `asOf` — the past-instant guard at schedule time drops a same-day
- *  date whose hour already rang. */
-export function nextDigestDates(
-  rule: DigestRule,
-  asOf: CalendarDate,
-  count: number,
-): CalendarDate[] {
-  if (rule.mode === "off") return [];
-  const dates: CalendarDate[] = [];
-  if (rule.mode === "daily") {
-    // From today on: a today-fire whose hour already passed is dropped by
-    // the scheduler's past-instant guard, so no off-by-one dance here.
-    const cursor = fromCalendarDate(asOf);
-    for (let i = 0; i < count; i++) {
-      dates.push(toCalendarDate(cursor));
-      cursor.setDate(cursor.getDate() + 1);
-    }
-    return dates;
-  }
-  if (rule.mode === "weekly") {
-    const cursor = fromCalendarDate(asOf);
-    while (cursor.getDay() !== rule.weekday) cursor.setDate(cursor.getDate() + 1);
-    for (let i = 0; i < count; i++) {
-      dates.push(toCalendarDate(cursor));
-      cursor.setDate(cursor.getDate() + 7);
-    }
-    return dates;
-  }
-  // Monthly: day is 1..28, so every month has it — no clamping needed.
-  let year = Number(asOf.slice(0, 4));
-  let month = Number(asOf.slice(5, 7));
-  const bump = () => {
-    month += 1;
-    if (month > 12) {
-      month = 1;
-      year += 1;
-    }
-  };
-  if (Number(asOf.slice(8, 10)) > rule.day) bump();
-  for (let i = 0; i < count; i++) {
-    dates.push(toCalendarDate(new Date(year, month - 1, rule.day)));
-    bump();
-  }
-  return dates;
-}
 
 interface DigestOccurrence {
   fireDate: CalendarDate;
@@ -398,4 +351,20 @@ export async function previewNotification(
   } catch {
     return false;
   }
+}
+
+/** The OS notification permission as the screens show it, re-checked
+ *  whenever the app returns to the foreground (back from iOS Settings).
+ *  `recheck` is for right after a request. */
+export function useReminderPermission(): { granted: boolean | null; recheck: () => void } {
+  const [granted, setGranted] = useState<boolean | null>(null);
+  const recheck = useCallback(() => void reminderPermissionGranted().then(setGranted), []);
+  useEffect(() => {
+    recheck();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") recheck();
+    });
+    return () => subscription.remove();
+  }, [recheck]);
+  return { granted, recheck };
 }

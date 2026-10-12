@@ -19,7 +19,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Alert,
-  AppState,
   Linking,
   Pressable,
   ScrollView,
@@ -30,7 +29,7 @@ import {
 } from "react-native";
 import Animated from "react-native-reanimated";
 
-import { REMINDER_OPTIONS } from "../src/components/add-form/useAddForm";
+import { REMINDER_OPTIONS } from "../src/components/add-form/useReminderDrafts";
 import { IconChip } from "../src/components/ui/IconChip";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { Sheet } from "../src/components/Sheet";
@@ -40,10 +39,10 @@ import { formatHour } from "../src/lib/dates";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
 import {
+  useReminderPermission,
   DEFAULT_LEAD_OPTIONS,
   loadNotificationSettings,
   previewNotification,
-  reminderPermissionGranted,
   requestReminderPermission,
   saveNotificationSettings,
   syncReminders,
@@ -51,7 +50,7 @@ import {
   type NotificationSettings,
 } from "../src/lib/notifications";
 import { useAppActions, useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 import { useLockedRedirect } from "../src/lib/lock-gate";
 const CHIP = {
@@ -78,27 +77,17 @@ export default function NotificationsScreen() {
   const router = useRouter();
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, categories } = useAppData();
   const { setItemReminder } = useAppActions();
 
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
-  const [granted, setGranted] = useState<boolean | null>(null);
+  const { granted, recheck } = useReminderPermission();
   const [wheel, setWheel] = useState<NotifWheel | null>(null);
   const [addSheet, setAddSheet] = useState(false);
 
   useEffect(() => {
     void loadNotificationSettings().then(setSettings);
-  }, []);
-
-  // The OS permission, re-checked when coming back from iOS Settings.
-  useEffect(() => {
-    const check = () => void reminderPermissionGranted().then(setGranted);
-    check();
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") check();
-    });
-    return () => subscription.remove();
   }, []);
 
   const update = (patch: Partial<NotificationSettings>) => {
@@ -114,7 +103,7 @@ export default function NotificationsScreen() {
       void Linking.openSettings();
       return;
     }
-    setGranted(result === "granted");
+    recheck();
     if (result === "granted") void syncReminders(items);
   };
 

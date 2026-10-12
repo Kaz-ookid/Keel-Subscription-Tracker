@@ -36,6 +36,7 @@ export * from "./assistant/prompt";
 // future money movement from the schedules above.
 export * from "./calculations/forecast";
 export * from "./calculations/insights";
+export * from "./calculations/digests";
 export * from "./calculations/ledger";
 export * from "./calculations/reminders";
 
