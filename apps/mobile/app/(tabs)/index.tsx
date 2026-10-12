@@ -4,23 +4,15 @@
 
 import { useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
-} from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 
 import { closeAllSwipeRows } from "../../src/components/ui/SwipeRow";
 import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
+import { usePager } from "../../src/components/ui/usePager";
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
@@ -28,7 +20,7 @@ import { TabFade } from "../../src/components/TabFade";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppData } from "../../src/state/app-state";
-import { spacing, useTheme, withAlpha, type ThemeColors } from "../../src/theme";
+import { spacing, type ThemeColors, useStyles, useTheme, withAlpha } from "../../src/theme";
 
 // The harbor is no longer a top-level view: it lives INSIDE the schedule
 // slot as the calendar's bonus lens (see ScheduleView).
@@ -43,7 +35,7 @@ export default function PaymentsScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   // Another screen may have requested a landing view (e.g. the browse picker
   // closes onto All, where its picks now live).
   const [view, setView] = useState<PaymentsView>(() => consumePaymentsView() ?? "upcoming");
@@ -66,23 +58,29 @@ export default function PaymentsScreen() {
     });
   }, [loading, items, accounts, router]);
 
-  // The pills are the shared SegmentedPills, driven LIVE by the pager: the
-  // wash follows pagerProgress (in pages) instead of teleporting on settle,
-  // and fades out when the calendar/harbor toggles own the selection.
-  const pagerProgress = useSharedValue(0);
+  // The pills are the shared SegmentedPills, driven LIVE by the pager's
+  // progress instead of teleporting on settle; the wash fades out when the
+  // calendar/harbor toggles own the selection.
   const highlightOpacity = useSharedValue(1);
   // Upcoming ↔ All live in a plain PAGING SCROLLVIEW, not a PagerView: with
   // bounces off, a UIScrollView is physically clamped to its two pages, so
   // the wrap-around PagerView produced under aggressive two-finger swipes
   // cannot exist — there is no state to heal, the edges ARE the track.
   const onPills = view === "upcoming" || view === "all";
-  const pagerRef = useRef<ScrollView>(null);
   const { width: pageWidth } = useWindowDimensions();
-  const scrolledPage = useRef(view === "all" ? 1 : 0);
+  const pagerRef = useRef<ScrollView>(null);
+  const pager = usePager({
+    ref: pagerRef,
+    pageWidth,
+    pageCount: 2,
+    initialPage: view === "all" ? 1 : 0,
+    // Returning from calendar/harbor remounts the pager on the remembered page.
+    mountKey: onPills,
+    onSettle: (page) => setView(page === 1 ? "all" : "upcoming"),
+  });
   const goToPage = (page: number, animated: boolean) => {
     closeAllSwipeRows();
-    scrolledPage.current = page;
-    pagerRef.current?.scrollTo({ x: page * pageWidth, animated });
+    pager.goTo(page, animated);
   };
   // ANY page movement (finger or programmatic) folds open swipe rows shut,
   // and so does leaving the screen — a revealed trash button must never
@@ -93,52 +91,22 @@ export default function PaymentsScreen() {
       return () => closeAllSwipeRows();
     }, []),
   );
-  const onPagerScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    // Clamped for safety, though bounces={false} already pins the offset.
-    const progress = Math.min(1, Math.max(0, e.nativeEvent.contentOffset.x / pageWidth));
-    scrolledPage.current = Math.round(progress);
-    // Reanimated shared values are driven by assigning `.value`; here the
-    // pager's native scroll IS the animation, so no withTiming on top of it.
-    pagerProgress.value = progress;
-  };
-  const settleOn = (page: number) => {
-    // Settled: re-assert the truth on the wash and the label.
-    scrolledPage.current = page;
-    pagerProgress.value = page;
-    setView(page === 1 ? "all" : "upcoming");
-  };
-  const onPagerMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) =>
-    settleOn(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
-  const onPagerDragEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    // A drag that lets go with momentum settles in onMomentumScrollEnd;
-    // settling here too (mid-flight, with a half-way offset rounded) is
-    // what made a fast reverse swipe teleport to the wrong page (dogfood
-    // 2026-10-11). Only a dead-stop release settles from here.
-    const velocity = Math.abs(e.nativeEvent.velocity?.x ?? 0);
-    if (velocity < 0.05) settleOn(Math.round(e.nativeEvent.contentOffset.x / pageWidth));
-  };
-  // The offset the pager MOUNTS with (returning from calendar/harbor must
-  // land on the remembered page). Deliberately not tied to `view`: a view
-  // change mid-gesture would re-apply the prop and yank the scroll.
-  const mountOffset = useMemo(
-    () => ({ x: view === "all" ? pageWidth : 0, y: 0 }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onPills, pageWidth],
-  );
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
     if (view === "upcoming" || view === "all") {
       // The pager's own scroll slides the wash; this effect only brings it
       // back when returning from calendar/harbor: snap under the right pill
       // while invisible, then fade in.
-      if (highlightOpacity.value < 0.05) pagerProgress.value = view === "all" ? 1 : 0;
+      if (highlightOpacity.value < 0.05) pager.goTo(view === "all" ? 1 : 0, false);
       highlightOpacity.value = withTiming(1, { duration: 150 });
     } else {
       // Leaving for calendar/harbor: fade where it stands. Moving it too read
       // as a glitchy slide.
       highlightOpacity.value = withTiming(0, { duration: 150 });
     }
-  }, [view, pagerProgress, highlightOpacity]);
+    // pager.goTo is a per-render closure; the effect is about `view`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [view, highlightOpacity]);
 
   // A requested landing view arriving while already mounted (the screen sat
   // behind a modal): consume it on focus and swing the pager over.
@@ -185,7 +153,7 @@ export default function PaymentsScreen() {
               );
             setView(next);
           }}
-          progress={pagerProgress}
+          progress={pager.progress}
           washOpacity={highlightOpacity}
           style={styles.switch}
         />
@@ -211,17 +179,8 @@ export default function PaymentsScreen() {
         <ScrollView
           ref={pagerRef}
           style={styles.pager}
-          horizontal
-          pagingEnabled
-          // THE lock: no bounce = no overscroll = nothing to wrap to.
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          scrollEventThrottle={16}
-          contentOffset={mountOffset}
           onScrollBeginDrag={onPagerBeginDrag}
-          onScroll={onPagerScroll}
-          onMomentumScrollEnd={onPagerMomentumEnd}
-          onScrollEndDrag={onPagerDragEnd}
+          {...pager.scrollProps}
         >
           <View key="upcoming" style={[styles.page, { width: pageWidth }]} collapsable={false}>
             <UpcomingView resetSignal={resetSignal} />
