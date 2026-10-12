@@ -798,6 +798,8 @@ describe("buildKeelReadsPrompt", () => {
     expect(prompt).toContain("HK$ means HKD");
     expect(prompt).toContain("use the listed equivalent");
     expect(prompt).toContain("final TOTAL including taxes");
+    expect(prompt).toContain("is never a note");
+    expect(prompt).toContain("the heading itself is not an item");
   });
 
   it("has a lean twin: same header, a fraction of the words", () => {
