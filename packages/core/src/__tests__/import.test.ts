@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildImportPrompt,
   buildKeelReadsPrompt,
+  buildKeelReadsPromptLean,
   buildOnDevicePrompt,
   calendarDate,
   DEFAULT_CATEGORIES,
@@ -797,6 +798,16 @@ describe("buildKeelReadsPrompt", () => {
     expect(prompt).toContain("HK$ means HKD");
     expect(prompt).toContain("use the listed equivalent");
     expect(prompt).toContain("final TOTAL including taxes");
+  });
+
+  it("has a lean twin: same header, a fraction of the words", () => {
+    const lean = buildKeelReadsPromptLean({
+      today: calendarDate("2026-10-11"),
+      defaultCurrency: "EUR",
+    });
+    expect(lean).toContain("You are reading material someone handed to the Keel app");
+    expect(lean).toContain("2026-03-26");
+    expect(lean.length).toBeLessThan(prompt.length / 3);
   });
 
   it("is one-shot: no conversation protocol, same rules", () => {

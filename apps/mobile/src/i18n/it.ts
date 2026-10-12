@@ -615,6 +615,7 @@ export const it: typeof en = {
     loadSample: "Carica dati di esempio",
     testOnboarding: "Prova l'onboarding (cancella i dati)",
     assistantDebug: "Assistente IA (sperimentale)",
+    readerLab: "Laboratorio del lettore (debug)",
     clearAll: "Cancella tutti i dati",
     clearMsg:
       "Ogni abbonamento, pagamento, categoria e conto verrà eliminato. Non si può annullare.",

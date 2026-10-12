@@ -613,6 +613,7 @@ export const en = {
     loadSample: "Load sample data",
     testOnboarding: "Test onboarding (wipes data)",
     assistantDebug: "AI assistant (experimental)",
+    readerLab: "Reader lab (debug)",
     clearAll: "Clear all data",
     clearMsg:
       "Every subscription, payment, category and account will be deleted. This cannot be undone.",

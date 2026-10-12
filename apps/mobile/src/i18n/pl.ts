@@ -647,6 +647,7 @@ const translation = {
     loadSample: "Wczytaj dane przykładowe",
     testOnboarding: "Testuj onboarding (kasuje dane)",
     assistantDebug: "Asystent AI (eksperymentalny)",
+    readerLab: "Laboratorium czytnika (debug)",
     clearAll: "Wyczyść wszystkie dane",
     clearMsg:
       "Każda subskrypcja, płatność, kategoria i konto zostaną usunięte. Tego nie da się cofnąć.",

@@ -106,6 +106,21 @@ export async function readWithKeel(
   }
 }
 
+/** The reader lab's door: material plus the exact instructions, against the
+ *  full schema ("cloud") or the lean-guide one ("cloud-lean"). Throws
+ *  KeelReadsError like readWithKeel. */
+export async function readWithInstructions(
+  input: string,
+  instructions: string,
+  engine: "cloud" | "cloud-lean" = "cloud",
+): Promise<string> {
+  try {
+    return await (await native()).parseSubscriptions(input, instructions, engine);
+  } catch (error) {
+    throw toFailure(error);
+  }
+}
+
 /** A natural-language request in, assistant plan JSON out. Nothing applies
  *  without the review screen. Throws KeelReadsError. */
 export async function assistWithKeel(

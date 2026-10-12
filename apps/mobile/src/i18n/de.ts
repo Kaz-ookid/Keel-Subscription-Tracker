@@ -617,6 +617,7 @@ export const de: typeof en = {
     loadSample: "Beispieldaten laden",
     testOnboarding: "Onboarding testen (löscht Daten)",
     assistantDebug: "KI-Assistent (experimentell)",
+    readerLab: "Leser-Labor (Debug)",
     clearAll: "Alle Daten löschen",
     clearMsg:
       "Jedes Abo, jede Zahlung, jede Kategorie und jedes Konto wird gelöscht. Das lässt sich nicht rückgängig machen.",

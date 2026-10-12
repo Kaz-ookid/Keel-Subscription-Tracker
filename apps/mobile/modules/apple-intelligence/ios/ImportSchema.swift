@@ -121,4 +121,63 @@ import Foundation
     @Guide(description: "Every subscription or split payment found; empty if none")
     var items: [ImportedItem]
   }
+
+  // The reader lab's twin: the same shape with one-line guides, so the
+  // effect of guide length on the cloud model can be measured on a phone.
+  // Selected by engine "cloud-lean"; the app itself uses ImportedDocument.
+  @available(iOS 26.0, *)
+  @Generable
+  struct ImportedItemLean: Codable {
+    @Guide(description: "subscription or split_payment")
+    var type: String
+    @Guide(description: "What the payment is for, in the user's words")
+    var name: String
+    @Guide(description: "ISO currency code shown with the amount; omit when none shows")
+    var currency: String?
+    @Guide(description: "manual or automatic; omit when the input does not say")
+    var settlement: String?
+    @Guide(description: "Category id: streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other")
+    var category: String?
+    @Guide(description: "Billing cycle when stated")
+    var cadence: ImportCadence?
+    @Guide(description: "First charge date YYYY-MM-DD when a full date is given")
+    var firstDate: String?
+    @Guide(description: "Day of the month 1 to 31 when only a day is given")
+    var billingDay: Int?
+    @Guide(description: "Recurring price in main units; subscriptions only")
+    var amount: Double?
+    @Guide(description: "Last charge date YYYY-MM-DD when known")
+    var endDate: String?
+    @Guide(description: "Only for first-Thursday style rules")
+    var anchor: ImportAnchor?
+    @Guide(description: "A future price change or a trial converting")
+    var priceChange: ImportPriceChange?
+    @Guide(description: "Full price, split payments only")
+    var total: Double?
+    @Guide(description: "Number of payments, split payments only")
+    var installments: Int?
+    @Guide(description: "paypal_pay_in_x klarna afterpay alma oney cb_nx other; split payments only")
+    var provider: String?
+    @Guide(description: "Bank account name as written")
+    var account: String?
+    @Guide(description: "Bare brand website when sure")
+    var domain: String?
+    @Guide(description: "before or after, only when the bank skips weekends")
+    var weekendShift: String?
+    @Guide(description: "Anything that fits no field")
+    var notes: String?
+    @Guide(description: "Fields you invented, never amounts or dates")
+    var uncertain: [String]?
+    @Guide(description: "Days before, only when a reminder is asked for")
+    var reminderDaysBefore: Int?
+    @Guide(description: "true only when past payments were not made")
+    var backlogUnpaid: Bool?
+  }
+
+  @available(iOS 26.0, *)
+  @Generable
+  struct ImportedDocumentLean: Codable {
+    @Guide(description: "Every subscription or split payment found; empty if none")
+    var items: [ImportedItemLean]
+  }
 #endif

@@ -162,6 +162,16 @@ export function DebugDrawer() {
                 onPress={() => router.push("/assistant")}
               />
             )}
+            {!aiHidden && (
+              <SettingsRow
+                icon="flask.fill"
+                chipColor={CHIP.importAI}
+                label={t("settings.readerLab")}
+                chevron
+                divider
+                onPress={() => router.push("/reader-lab")}
+              />
+            )}
             <SettingsRow
               icon="checkmark.seal.fill"
               chipColor={CHIP.debug}

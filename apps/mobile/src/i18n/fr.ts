@@ -616,6 +616,7 @@ export const fr: typeof en = {
     loadSample: "Charger des données d'exemple",
     testOnboarding: "Tester l'accueil (efface tout)",
     assistantDebug: "Assistant IA (expérimental)",
+    readerLab: "Labo du lecteur (debug)",
     clearAll: "Tout effacer",
     clearMsg:
       "Tous les abonnements, paiements, catégories et comptes seront supprimés. Action irréversible.",
