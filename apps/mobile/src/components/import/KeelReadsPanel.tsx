@@ -40,11 +40,10 @@ import {
 
 type Busy = "screenshots" | "documents" | null;
 
-const QUOTA_KEYS: Record<CloudQuota["state"], string> = {
+const QUOTA_KEYS: Record<Exclude<CloudQuota["state"], "unknown">, string> = {
   below: "keelReads.quotaBelow",
   approaching: "keelReads.quotaApproaching",
   reached: "keelReads.quotaReached",
-  unknown: "keelReads.quotaUnknown",
 };
 
 export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
@@ -120,20 +119,21 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   }
 
   // Where the user stands, in one plain sentence; Apple gives no number,
-  // only a state and (once the limit is reached) when it resets.
-  const quotaStanding = quota
-    ? t(QUOTA_KEYS[quota.state]) +
-      (quota.resetDate
-        ? " " +
-          t("keelReads.quotaResets", {
-            when: new Date(quota.resetDate).toLocaleString(i18n.language, {
-              dateStyle: "medium",
-              timeStyle: "short",
-            }),
-          })
-        : "")
-    : t("keelReads.quotaUnknown");
-  const quotaBody = `${t("keelReads.quotaInfoBody")}\n\n${quotaStanding}`;
+  // only a state and (once the limit is reached) when it resets. No state
+  // reported (older build, odd API answer): no line at all, nothing to say.
+  const quotaStanding =
+    quota && quota.state !== "unknown"
+      ? t(QUOTA_KEYS[quota.state]) +
+        (quota.resetDate
+          ? " " +
+            t("keelReads.quotaResets", {
+              when: new Date(quota.resetDate).toLocaleString(i18n.language, {
+                dateStyle: "medium",
+                timeStyle: "short",
+              }),
+            })
+          : "")
+      : null;
 
   return (
     <View style={styles.stack}>
@@ -182,10 +182,15 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
       <AiPrivacyLine text={t("keelReads.privacy")} />
       {/* The allowance, for the curious only: a quiet line plus an (i)
           that says where the user stands on Apple's daily quota. */}
-      <View style={styles.footRow}>
-        <Text style={styles.footText}>{t("keelReads.quotaLabel")}</Text>
-        <InfoDot title={t("keelReads.quotaInfoTitle")} body={quotaBody} />
-      </View>
+      {quotaStanding && (
+        <View style={styles.footRow}>
+          <Text style={styles.footText}>{t("keelReads.quotaLabel")}</Text>
+          <InfoDot
+            title={t("keelReads.quotaInfoTitle")}
+            body={`${t("keelReads.quotaInfoBody")}\n\n${quotaStanding}`}
+          />
+        </View>
+      )}
     </View>
   );
 }

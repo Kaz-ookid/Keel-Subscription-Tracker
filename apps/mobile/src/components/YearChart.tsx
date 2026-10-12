@@ -59,6 +59,8 @@ const BAR_MAX = CHART_HEIGHT - 22;
 const COL_WIDTH = 30;
 const COL_GAP = 4;
 const SLOT = COL_WIDTH + COL_GAP;
+// The year label's box, centered on its line.
+const YEAR_WIDTH = 40;
 
 /** One month's sounding: grows up from the seabed on mount, each a beat
  *  after its neighbour (§3.7 C/D) — the chart takes its soundings once. */
@@ -165,7 +167,7 @@ export function YearChart({
               m.yearStart && i > 0 ? (
                 <View
                   key={`year-${m.yearStart}`}
-                  style={[styles.yearLine, { left: i * SLOT - COL_GAP / 2 - 1 }]}
+                  style={[styles.yearLine, { left: i * SLOT - COL_GAP / 2 - 0.5 }]}
                   pointerEvents="none"
                 />
               ) : null,
@@ -205,20 +207,34 @@ export function YearChart({
 
           <View style={styles.labels}>
             {months.map((m, i) => (
-              <View key={m.name} style={styles.labelColumn}>
-                <Text
-                  style={[
-                    styles.label,
-                    i === selected && { color: colors.text, fontWeight: "700" },
-                    i === todayIndex && { color: colors.accent, fontWeight: "700" },
-                  ]}
-                >
-                  {m.label}
-                </Text>
-                {m.yearStart && i > 0 ? <Text style={styles.yearText}>{m.yearStart}</Text> : null}
-              </View>
+              <Text
+                key={m.name}
+                style={[
+                  styles.label,
+                  i === selected && { color: colors.text, fontWeight: "700" },
+                  i === todayIndex && { color: colors.accent, fontWeight: "700" },
+                ]}
+              >
+                {m.label}
+              </Text>
             ))}
           </View>
+          {/* The year, centered under its milestone line (between the two
+              months it separates), never behind a bar. */}
+          {months.some((m, i) => m.yearStart && i > 0) && (
+            <View style={styles.yearRow}>
+              {months.map((m, i) =>
+                m.yearStart && i > 0 ? (
+                  <Text
+                    key={`label-${m.yearStart}`}
+                    style={[styles.yearText, { left: i * SLOT - COL_GAP / 2 - YEAR_WIDTH / 2 }]}
+                  >
+                    {m.yearStart}
+                  </Text>
+                ) : null,
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
 
@@ -322,9 +338,12 @@ function createStyles(colors: ThemeColors) {
       width: 1,
       backgroundColor: colors.border,
     },
-    labelColumn: { width: COL_WIDTH, alignItems: "center" },
-    // The year, under its January: never on the line, never behind a bar.
+    yearRow: { height: 12 },
     yearText: {
+      position: "absolute",
+      top: 0,
+      width: YEAR_WIDTH,
+      textAlign: "center",
       fontSize: 9,
       color: colors.mutedText,
     },
