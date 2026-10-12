@@ -560,3 +560,30 @@ export function accrueDueInstallments(
 
   return { ...item, updatedAt: ctx.now, schedule: { ...schedule, installments } };
 }
+
+/** The last day of the month before the one `date` is in. */
+function endOfPreviousMonth(date: CalendarDate): CalendarDate {
+  const year = Number(date.slice(0, 4));
+  const month = Number(date.slice(5, 7));
+  return calendarDate(new Date(Date.UTC(year, month - 1, 0)).toISOString().slice(0, 10));
+}
+
+/**
+ * Land an imported item. Whatever was due in EARLIER months was paid outside
+ * the app, so it is settled whatever the settlement mode; this month's
+ * charges follow the mode: automatic ones are settled up to `today` (the
+ * bank took them), manual ones stay open for the user to tick. Inactive
+ * items pass through. Pure — id/clock are injected.
+ */
+export function settleImportedItem(
+  item: PaymentItem,
+  today: CalendarDate,
+  ctx: AccrueContext,
+): { item: PaymentItem; occurrences: PaymentOccurrence[] } {
+  if (item.status !== "active") return { item, occurrences: [] };
+  const upTo = item.settlementMode === "automatic" ? today : endOfPreviousMonth(today);
+  if (item.schedule.kind === "INSTALLMENT") {
+    return { item: accrueDueInstallments(item, upTo, ctx), occurrences: [] };
+  }
+  return accrueDueOccurrences(item, upTo, ctx);
+}

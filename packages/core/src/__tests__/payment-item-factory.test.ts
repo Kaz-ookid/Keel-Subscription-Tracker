@@ -20,6 +20,7 @@ import {
   removePriceChange,
   resumePaymentItem,
   rewindRecurringPayment,
+  settleImportedItem,
   sumMoney,
   unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
@@ -727,5 +728,61 @@ describe("pause / resume", () => {
     // Guards: pause is a no-op on non-active, resume on non-paused.
     expect(pausePaymentItem(paused, { now: now() })).toBe(paused);
     expect(resumePaymentItem(item, { now: now(), asOf: calendarDate("2026-06-20") })).toBe(item);
+  });
+});
+
+describe("settleImportedItem (an import lands)", () => {
+  const ids = () => {
+    let n = 0;
+    return () => `occ-${++n}`;
+  };
+
+  it("settles earlier months for a manual item and leaves this month open", () => {
+    // Monthly on the 15th since January, manual, imported on 2026-03-20:
+    // January and February were paid outside the app; March is to tick.
+    const item = makeRecurringPaymentItem(
+      { ...input, settlementMode: "manual" },
+      { id: "item-m", now: now() },
+    );
+    const { item: landed, occurrences } = settleImportedItem(item, calendarDate("2026-03-20"), {
+      now: now(),
+      makeId: ids(),
+    });
+    expect(occurrences.map((o) => o.dueDate)).toEqual(["2026-01-15", "2026-02-15"]);
+    if (!isRecurringSchedule(landed.schedule)) throw new Error("expected recurring");
+    expect(landed.schedule.nextChargeDate).toBe("2026-03-15");
+  });
+
+  it("settles this month too for an automatic item", () => {
+    const item = makeRecurringPaymentItem(
+      { ...input, settlementMode: "automatic" },
+      { id: "item-a", now: now() },
+    );
+    const { occurrences } = settleImportedItem(item, calendarDate("2026-03-20"), {
+      now: now(),
+      makeId: ids(),
+    });
+    expect(occurrences.map((o) => o.dueDate)).toEqual(["2026-01-15", "2026-02-15", "2026-03-15"]);
+  });
+
+  it("does the same for a pay-in-X plan", () => {
+    const plan = makeInstallmentPaymentItem(
+      {
+        name: "Sofa (Klarna 3x)",
+        totalAmount: fromMajor(300, "EUR"),
+        numberOfInstallments: 3,
+        recurrence: RECURRENCE_PRESETS.MONTHLY,
+        firstInstallmentDate: calendarDate("2026-01-10"),
+        provider: "klarna",
+        settlementMode: "manual",
+      },
+      { id: "plan-m", now: now(), makeId: ids() },
+    );
+    const { item: landed } = settleImportedItem(plan, calendarDate("2026-03-20"), {
+      now: now(),
+      makeId: ids(),
+    });
+    if (landed.schedule.kind !== "INSTALLMENT") throw new Error("expected installments");
+    expect(landed.schedule.installments.map((i) => i.status)).toEqual(["paid", "paid", "upcoming"]);
   });
 });

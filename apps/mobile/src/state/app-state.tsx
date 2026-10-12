@@ -29,8 +29,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 import {
-  accrueDueInstallments,
-  accrueDueOccurrences,
+  settleImportedItem,
   appendAiActivity,
   applyAssistantOperation,
   canMarkPaid,
@@ -208,9 +207,10 @@ export interface AppActions {
 }
 
 export interface AddItemOptions {
-  /** Record every occurrence due before today as paid, regardless of the
+  /** Record what was due in earlier months as paid, regardless of the
    *  settlement mode — for imports, where the past was paid outside the app
-   *  and must not arrive as a wall of "overdue" cycles. */
+   *  and must not arrive as a wall of "overdue" cycles. This month's charges
+   *  follow the mode: automatic ones settle, manual ones stay open. */
   settlePastPayments?: boolean;
 }
 
@@ -239,17 +239,14 @@ function catchUp(item: PaymentItem): { item: PaymentItem; occurrences: PaymentOc
   return settleBacklog(item);
 }
 
-/** Catch ANY active item up to today, manual ones included — the import path,
- *  where whatever was due before today was paid outside the app. */
+/** The import path: earlier months were paid outside the app, so they land
+ *  settled for every item; this month follows the settlement mode (an
+ *  automatic charge is taken, a manual one stays open to tick). */
 function settleBacklog(item: PaymentItem): {
   item: PaymentItem;
   occurrences: PaymentOccurrence[];
 } {
-  if (item.status !== "active") return { item, occurrences: [] };
-  if (item.scheduleType === "INSTALLMENT") {
-    return { item: accrueDueInstallments(item, today(), { now: now() }), occurrences: [] };
-  }
-  return accrueDueOccurrences(item, today(), { now: now(), makeId: randomUUID });
+  return settleImportedItem(item, today(), { now: now(), makeId: randomUUID });
 }
 
 export function AppStateProvider({ children }: { children: ReactNode }) {
