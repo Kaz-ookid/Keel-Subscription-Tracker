@@ -13,7 +13,6 @@ import {
   isRecurringSchedule,
   listOccurrenceDates,
   nextOnGrid,
-  reminderRules,
   splitMoney,
   toMajor,
   type BnplProviderId,
@@ -21,7 +20,6 @@ import {
   type CurrencyCode,
   type NewInstallmentInput,
   type NewRecurringInput,
-  type ReminderRule,
   type SettlementMode,
   type SuggestedCommitment,
   type TimeUnit,
@@ -33,10 +31,10 @@ import { Alert } from "react-native";
 
 import { COLOR_SWATCHES } from "../../constants";
 import { localizedAnchor } from "../../i18n/recurrence";
-import { formatHour, fromCalendarDate, toCalendarDate } from "../../lib/dates";
+import { fromCalendarDate, toCalendarDate } from "../../lib/dates";
+import { useReminderDrafts } from "./useReminderDrafts";
 import { noteCustomService } from "../../lib/custom-bank";
 import { dominantColor, subscribeBrandTints } from "../../lib/dominant-color";
-import { loadNotificationSettings } from "../../lib/notifications";
 import { matchSuggestions } from "../../lib/suggestions";
 import { useAppActions, useAppData } from "../../state/app-state";
 import { useImportSession } from "../../state/import-session";
@@ -61,74 +59,6 @@ export type OpenSheet =
   | "provider"
   | "weekend"
   | null;
-
-// The lead wheel. "Never" is not an option here: the switch owns off, and
-// an extra rule is removed by its own affordance.
-export const REMINDER_OPTIONS: { value: string; labelKey: string; count?: number }[] = [
-  { value: "0", labelKey: "add.reminderOnDay" },
-  { value: "1", labelKey: "add.reminderDayBefore", count: 1 },
-  { value: "2", labelKey: "add.reminderDayBefore", count: 2 },
-  { value: "7", labelKey: "add.reminderWeekBefore" },
-  { value: "14", labelKey: "add.reminderDayBefore", count: 14 },
-  { value: "30", labelKey: "add.reminderMonthBefore" },
-];
-
-export type RepeatKey = "off" | "daily" | "weekly";
-
-// The free-range lead: any number of days, weeks or months before. Stored
-// flat as daysBefore (a month is 30 days); the wheel shows number × unit.
-export type LeadUnit = "day" | "week" | "month";
-export const LEAD_FACTOR: Record<LeadUnit, number> = { day: 1, week: 7, month: 30 };
-export const LEAD_MAX: Record<LeadUnit, number> = { day: 31, week: 12, month: 12 };
-
-/** daysBefore → the wheel's (number, unit): the largest unit that divides
- *  it cleanly ("14" reads as 2 weeks, "30" as 1 month, "10" as 10 days). */
-export function leadParts(daysBefore: number): { leadN: number; leadUnit: LeadUnit } {
-  if (daysBefore > 0 && daysBefore % 30 === 0 && daysBefore / 30 <= LEAD_MAX.month) {
-    return { leadN: daysBefore / 30, leadUnit: "month" };
-  }
-  if (daysBefore > 0 && daysBefore % 7 === 0 && daysBefore / 7 <= LEAD_MAX.week) {
-    return { leadN: daysBefore / 7, leadUnit: "week" };
-  }
-  return { leadN: daysBefore, leadUnit: "day" };
-}
-
-/** Which repeats make sense for a lead: a series needs room to repeat in —
- *  weekly wants at least a week of lead, daily at least a day. */
-export function availableRepeats(daysBefore: number): RepeatKey[] {
-  const repeats: RepeatKey[] = ["off"];
-  if (daysBefore >= 1) repeats.push("daily");
-  if (daysBefore >= 7) repeats.push("weekly");
-  return repeats;
-}
-
-/** One reminder rule as the form holds it: everything a string key, so the
- *  wheels and the dirty-signature stay trivial. */
-export interface ReminderDraft {
-  /** daysBefore as a string ("2"). */
-  key: string;
-  /** "default" = the app-wide fire hour; otherwise the hour ("20"). */
-  hourKey: string;
-  repeatKey: RepeatKey;
-}
-
-const MAX_REMINDER_RULES = 3;
-
-function draftsFromRules(rules: readonly ReminderRule[]): ReminderDraft[] {
-  return rules.map((r) => ({
-    key: String(r.daysBefore),
-    hourKey: r.hour !== undefined ? String(r.hour) : "default",
-    repeatKey: r.repeat ?? "off",
-  }));
-}
-
-function rulesFromDrafts(drafts: readonly ReminderDraft[]): ReminderRule[] {
-  return drafts.map((d) => ({
-    daysBefore: Number(d.key),
-    ...(d.hourKey === "default" ? {} : { hour: Number(d.hourKey) }),
-    ...(d.repeatKey === "off" ? {} : { repeat: d.repeatKey }),
-  }));
-}
 
 export type AddForm = ReturnType<typeof useAddForm>;
 
@@ -254,60 +184,28 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   const [settlementMode, setSettlementMode] = useState<SettlementMode>(
     () => seedItem?.settlementMode ?? "automatic",
   );
-  // The item's reminder rules as editable drafts (empty = never remind).
-  // Rule 1 is the simple case; extra rules and repeats are the disclosed depth.
-  const [reminderDrafts, setReminderDrafts] = useState<ReminderDraft[]>(() =>
-    draftsFromRules(seedItem ? reminderRules(seedItem) : []),
-  );
-  // Which draft the reminder sheets edit (set when a row opens a sheet).
-  const [reminderIndex, setReminderIndex] = useState(0);
+  // The reminder sub-form lives in its own hook.
+  const reminders = useReminderDrafts(seedItem, t);
+  const {
+    reminderRows,
+    reminderIndex,
+    setReminderIndex,
+    setReminderEnabled,
+    patchReminderDraft,
+    setReminderLead,
+    addReminderDraft,
+    removeReminderDraft,
+    seedTrialReminder,
+  } = reminders;
   // Weekend shift: "none" | "before" | "after" (none is not persisted).
   const [weekendShift, setWeekendShift] = useState<"none" | "before" | "after">(
     () => seedItem?.weekendShift ?? "none",
   );
-  // "default" follows the app-wide fire hour; a number is a rule's own. The
-  // UI shows the RESOLVED hour either way (no "default" entry to decode), so
-  // the app-wide hour is loaded to fill the label and preselect the wheel.
-  const [defaultFireHour, setDefaultFireHour] = useState(9);
-  useEffect(() => {
-    void loadNotificationSettings().then((s) => setDefaultFireHour(s.fireHour));
-  }, []);
-
-  const patchReminderDraft = (index: number, patch: Partial<ReminderDraft>) =>
-    setReminderDrafts((prev) => prev.map((d, i) => (i === index ? { ...d, ...patch } : d)));
-  /** The two-part lead wheel writes through here: number × unit → daysBefore,
-   *  and a repeat the new lead can't hold heals itself back to "off". */
-  const setReminderLead = (index: number, leadN: number, leadUnit: LeadUnit) => {
-    const n = Math.min(Math.max(0, Math.floor(leadN)), LEAD_MAX[leadUnit]);
-    const daysBefore = n * LEAD_FACTOR[leadUnit];
-    setReminderDrafts((prev) =>
-      prev.map((d, i) =>
-        i === index
-          ? {
-              ...d,
-              key: String(daysBefore),
-              repeatKey: availableRepeats(daysBefore).includes(d.repeatKey) ? d.repeatKey : "off",
-            }
-          : d,
-      ),
-    );
-  };
-  const addReminderDraft = () =>
-    setReminderDrafts((prev) =>
-      prev.length >= MAX_REMINDER_RULES
-        ? prev
-        : [...prev, { key: "1", hourKey: "default", repeatKey: "off" }],
-    );
-  const removeReminderDraft = (index: number) =>
-    setReminderDrafts((prev) => prev.filter((_, i) => i !== index));
-
   // Turning a trial on lights up a heads-up reminder by default — the whole
   // point is not to be surprised by the conversion.
   const setIsTrial = (next: boolean) => {
     setIsTrialState(next);
-    if (next && reminderDrafts.length === 0) {
-      setReminderDrafts([{ key: "2", hourKey: "default", repeatKey: "off" }]);
-    }
+    if (next) seedTrialReminder();
     // A trial that ends TODAY is never what anyone means: an untouched
     // conversion date defaults a month out (a date the user already picked,
     // or an edited item's real date, stays put).
@@ -318,17 +216,6 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     }
   };
 
-  // The reminder switch: ON picks up the default lead from the notification
-  // settings (the advanced rows below it stay adjustable), OFF clears all.
-  const setReminderEnabled = (next: boolean) => {
-    if (!next) {
-      setReminderDrafts([]);
-      return;
-    }
-    void loadNotificationSettings().then((s) =>
-      setReminderDrafts([{ key: s.defaultLeadKey, hourKey: "default", repeatKey: "off" }]),
-    );
-  };
   const [categoryId, setCategoryId] = useState<string | undefined>(
     () => seedItem?.categoryId ?? suggestion?.categoryId,
   );
@@ -409,7 +296,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     isTrial,
     trialRegularText,
     convertsTime: convertsDate.getTime(),
-    remindersSig: JSON.stringify(reminderDrafts),
+    remindersSig: reminders.signature,
     settlementMode,
     categoryId,
     accountId,
@@ -434,7 +321,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     isTrial !== initial.isTrial ||
     trialRegularText !== initial.trialRegularText ||
     convertsDate.getTime() !== initial.convertsTime ||
-    JSON.stringify(reminderDrafts) !== initial.remindersSig ||
+    reminders.signature !== initial.remindersSig ||
     settlementMode !== initial.settlementMode ||
     categoryId !== initial.categoryId ||
     accountId !== initial.accountId ||
@@ -475,38 +362,6 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     return dates;
   })();
   const selectedCategory = categories.find((c) => c.id === categoryId);
-  // Per-rule display rows: everything the reminder UI prints, precomputed.
-  const reminderRows = reminderDrafts.map((d) => {
-    const daysBefore = Number(d.key);
-    const { leadN, leadUnit } = leadParts(daysBefore);
-    const hourValue = d.hourKey === "default" ? String(defaultFireHour) : d.hourKey;
-    return {
-      ...d,
-      leadN,
-      leadUnit,
-      label:
-        daysBefore === 0
-          ? t("add.reminderOnDay")
-          : leadUnit === "month"
-            ? t("add.reminderMonthsBefore", { count: leadN })
-            : leadUnit === "week"
-              ? t("add.reminderWeeksBefore", { count: leadN })
-              : t("add.reminderDayBefore", { count: leadN }),
-      hourValue,
-      hourLabel: formatHour(Number(hourValue)),
-      // The repeats this lead has room for — the wheel offers only these,
-      // and setReminderLead resets a repeat that stops fitting.
-      repeatOptions: availableRepeats(daysBefore),
-      repeatLabel: t(
-        d.repeatKey === "off"
-          ? "add.repeatOff"
-          : d.repeatKey === "daily"
-            ? "add.repeatDaily"
-            : "add.repeatWeekly",
-      ),
-    };
-  });
-
   // Live trial summary: "Free until 20 Jun · then CHF 12.90" (or the intro
   // price when it isn't free). Shown under the toggle once a regular price set.
   const trialPreview = (() => {
@@ -599,7 +454,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     if (!canSubmit) return;
     // The full rule list, with the legacy single slot mirrored to the first
     // rule so blobs read by older builds still show one reminder.
-    const reminderList = rulesFromDrafts(reminderDrafts);
+    const reminderList = reminders.rules;
     const reminderFields = {
       reminder: reminderList[0],
       reminders: reminderList.length > 0 ? reminderList : undefined,

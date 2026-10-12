@@ -25,7 +25,8 @@ import { Sheet } from "../Sheet";
 import { OptionWheel } from "../ui/OptionWheel";
 import { WheelSheet } from "../WheelSheet";
 import { useFormStyles } from "./styles";
-import { LEAD_MAX, type AddForm, type LeadUnit, type RepeatKey } from "./useAddForm";
+import type { AddForm } from "./useAddForm";
+import { LEAD_MAX, type LeadUnit, type RepeatKey } from "./useReminderDrafts";
 
 // @react-native-picker/picker@2.11 doesn't declare `children` under React 19's
 // JSX types; alias to a children-accepting component (runtime is unaffected).

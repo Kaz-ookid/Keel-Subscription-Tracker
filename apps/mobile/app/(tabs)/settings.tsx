@@ -3,28 +3,13 @@
 // lives here rather than occupying a whole tab). Rows speak the shared
 // SettingsRow grammar (src/components/settings/); this file is the list.
 
-import {
-  calendarDate,
-  CURRENCIES,
-  currencyLabel,
-  formatCalendarDate,
-  type CurrencyCode,
-} from "@keel/core";
+import { CURRENCIES, currencyLabel, type CurrencyCode } from "@keel/core";
 import { useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Alert,
-  AppState,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 
 import {
   APP_LANGUAGES,
@@ -46,26 +31,20 @@ import {
   useAppLockConfig,
   type AuthKind,
 } from "../../src/lib/app-lock";
-import { reminderPermissionGranted } from "../../src/lib/notifications";
+import { useReminderPermission } from "../../src/lib/notifications";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
-import { resetLogoConsent, setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
+import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
-import { resetOnboardingSeen } from "../../src/lib/onboarding";
 
 import { APP_NAME } from "../../src/constants";
+import { DEBUG_TOOLS, DebugDrawer } from "../../src/components/settings/DebugDrawer";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
 import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
 import { TabFade } from "../../src/components/TabFade";
 import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
-import {
-  debugResetTrialClock,
-  debugSetTrialDaysLeft,
-  resetEntitlement,
-  setFullKeel,
-  useEntitlement,
-} from "../../src/lib/entitlement";
+import { useEntitlement } from "../../src/lib/entitlement";
 import { useFullKeelPrices } from "../../src/lib/purchases";
 import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -73,12 +52,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   dockClearance,
   spacing,
+  type ThemeColors,
+  type ThemeMode,
   typography,
+  useStyles,
   useTheme,
   useThemeMode,
   withAlpha,
-  type ThemeColors,
-  type ThemeMode,
 } from "../../src/theme";
 
 const THEME_OPTIONS: { value: ThemeMode; labelKey: string }[] = [
@@ -95,10 +75,6 @@ const LANGUAGE_OPTIONS: { value: LanguageMode; label?: string; labelKey?: string
 ];
 
 const CURRENCY_CODES = Object.keys(CURRENCIES) as CurrencyCode[];
-
-/** The debug drawer's existence, decided at BUILD time: dev clients always,
- *  TestFlight via the beta profile's env var, the App Store build never. */
-const DEBUG_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEBUG_TOOLS === "1";
 
 /** Which value wheel is up (§9d: values pick on the bottom wheel). */
 type SettingsWheel = "currency" | "theme" | "language" | "grace";
@@ -129,28 +105,25 @@ export default function SettingsScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   // Tab re-tap (§9i): back to the top.
   const scrollRef = useRef<ScrollView>(null);
   const resetSignal = useTabReset("settings");
   useEffect(() => {
     if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [resetSignal]);
-  const { accounts, displayCurrency, rates, snapshotSavedAt } = useAppData();
-  const { setDisplayCurrency, clearAllData, loadSampleData, saveSnapshot, restoreSnapshot } =
-    useAppActions();
+  const { accounts, displayCurrency, rates } = useAppData();
+  const { setDisplayCurrency } = useAppActions();
   const { mode, setMode } = useThemeMode();
   const { t } = useTranslation();
   const [wheel, setWheel] = useState<SettingsWheel | null>(null);
   const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
-  const [remindersOn, setRemindersOn] = useState<boolean | null>(null);
+  const { granted: remindersOn } = useReminderPermission();
   // App lock: what the device offers (wording + availability) and the live
   // config from the shared store, so enabling it anywhere (onboarding's nudge
   // included) is reflected here without a reload.
   const [authKind, setAuthKind] = useState<AuthKind | null>(null);
   const { enabled: lockEnabled, graceSeconds } = useAppLockConfig();
-  // The debug drawer stays collapsed until a tester opens it.
-  const [debugOpen, setDebugOpen] = useState(false);
   // Full Keel: the banner reflects ownership; the debug switch flips it.
   const entitlement = useEntitlement();
   const prices = useFullKeelPrices();
@@ -222,77 +195,6 @@ export default function SettingsScreen() {
 
   const languageLabel = (option: (typeof LANGUAGE_OPTIONS)[number]) =>
     option.label ?? t(option.labelKey ?? "");
-
-  // Reflect the OS notification permission (re-check when returning from iOS
-  // Settings via the app coming back to the foreground).
-  useEffect(() => {
-    const check = () => void reminderPermissionGranted().then(setRemindersOn);
-    check();
-    const subscription = AppState.addEventListener("change", (state) => {
-      if (state === "active") check();
-    });
-    return () => subscription.remove();
-  }, []);
-
-  // The safety net around the destructive debug actions below: stash the real
-  // data in an on-device slot, play with demo/empty data, then put it back.
-  const snapshotLabel = snapshotSavedAt
-    ? formatCalendarDate(calendarDate(snapshotSavedAt.slice(0, 10)))
-    : "";
-
-  const confirmSnapshotSave = () => {
-    if (!snapshotSavedAt) {
-      saveSnapshot();
-      return;
-    }
-    Alert.alert(
-      t("settings.snapshotSave"),
-      t("settings.snapshotOverwriteMsg", { date: snapshotLabel }),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("settings.replace"), style: "destructive", onPress: saveSnapshot },
-      ],
-    );
-  };
-
-  const confirmSnapshotRestore = () =>
-    Alert.alert(
-      t("settings.snapshotRestore"),
-      t("settings.snapshotRestoreMsg", { date: snapshotLabel }),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        { text: t("settings.replace"), style: "destructive", onPress: restoreSnapshot },
-      ],
-    );
-
-  const confirmSample = () =>
-    Alert.alert(t("settings.loadSample"), t("settings.sampleMsg"), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("settings.replace"), style: "destructive", onPress: loadSampleData },
-    ]);
-
-  // Debug: relive the first launch — wipe everything, forget the tour was
-  // seen, and open onboarding right away.
-  const confirmOnboarding = () =>
-    Alert.alert(t("settings.onboardingTitle"), t("settings.onboardingMsg"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("settings.wipeReplay"),
-        style: "destructive",
-        onPress: () => {
-          clearAllData();
-          void resetOnboardingSeen();
-          // A replay should feel like a real first launch, every choice
-          // included: logo question, free-read meter, Full Keel debug
-          // switch, and the app lock.
-          resetLogoConsent();
-          void resetEntitlement();
-          void persistLockEnabled(false);
-          void persistLockGrace(0);
-          router.push("/onboarding");
-        },
-      },
-    ]);
 
   return (
     <TabFade style={styles.screen}>
@@ -512,113 +414,7 @@ export default function SettingsScreen() {
           />
         </Card>
 
-        {/* Debug, for dogfooding and beta testers: collapsed by default so it
-            never clutters the list, but one tap away when a tester needs to
-            seed data or replay onboarding. GATED out of production builds
-            (§7.3 launch blocker h): the Full Keel switch inside is a one-tap
-            paywall bypass. Dev clients get it via __DEV__; TestFlight builds
-            via the `beta` EAS profile's EXPO_PUBLIC_DEBUG_TOOLS=1; the App
-            Store build has neither, so the drawer does not exist there. */}
-        {DEBUG_TOOLS && (
-          <Pressable style={styles.debugHeader} onPress={() => setDebugOpen((open) => !open)}>
-            {/* groupLabel's negative bottom margin (the card tuck) would lift
-              the text off the chevron's centerline inside this row; the row
-              carries the tuck instead. */}
-            <Text style={[styles.groupLabel, styles.debugLabel]}>{t("settings.groupDebug")}</Text>
-            <SymbolView
-              name={debugOpen ? "chevron.down" : "chevron.right"}
-              size={12}
-              tintColor={colors.mutedText}
-            />
-          </Pressable>
-        )}
-        {DEBUG_TOOLS && debugOpen && (
-          <Animated.View entering={foldIn} exiting={foldOut}>
-            <Card>
-              <SettingsRow
-                icon="tray.and.arrow.down.fill"
-                chipColor={CHIP.debug}
-                label={t("settings.snapshotSave")}
-                value={snapshotLabel}
-                onPress={confirmSnapshotSave}
-              />
-              {snapshotSavedAt !== null && (
-                <SettingsRow
-                  icon="tray.and.arrow.up.fill"
-                  chipColor={CHIP.debug}
-                  label={t("settings.snapshotRestore")}
-                  divider
-                  onPress={confirmSnapshotRestore}
-                />
-              )}
-              <SettingsRow
-                icon="wand.and.stars"
-                chipColor={CHIP.sample}
-                label={t("settings.loadSample")}
-                divider
-                onPress={confirmSample}
-              />
-              <SettingsRow
-                icon="arrow.counterclockwise"
-                chipColor={CHIP.debug}
-                label={t("settings.testOnboarding")}
-                divider
-                onPress={confirmOnboarding}
-              />
-              {/* The conversational assistant, parked here while it runs on
-                  the limited on-device model: reachable for beta testers,
-                  invisible to everyone else. Its tab returns when the model
-                  is worth headlining. */}
-              {!aiHidden && (
-                <SettingsRow
-                  icon="sparkles"
-                  chipColor={CHIP.importAI}
-                  label={t("settings.assistantDebug")}
-                  chevron
-                  divider
-                  onPress={() => router.push("/assistant")}
-                />
-              )}
-              <SettingsRow
-                icon="checkmark.seal.fill"
-                chipColor={CHIP.debug}
-                label={t("settings.fullkeelDebug")}
-                divider
-                right={
-                  <Switch
-                    value={entitlement.owned}
-                    onValueChange={(next) => void setFullKeel(next)}
-                    trackColor={{ true: colors.accent }}
-                  />
-                }
-              />
-              {/* Trial QA levers: bend the clock without waiting 45 days.
-                  Earliest-anchor-wins means these only move the clock
-                  FORWARD in urgency; the reset row is the rewind. */}
-              <SettingsRow
-                icon="clock.badge.exclamationmark"
-                chipColor={CHIP.debug}
-                label={t("settings.debugTrial6")}
-                divider
-                onPress={() => void debugSetTrialDaysLeft(6)}
-              />
-              <SettingsRow
-                icon="lock.fill"
-                chipColor={CHIP.debug}
-                label={t("settings.debugTrialExpire")}
-                divider
-                onPress={() => void debugSetTrialDaysLeft(0)}
-              />
-              <SettingsRow
-                icon="clock.arrow.circlepath"
-                chipColor={CHIP.debug}
-                label={t("settings.debugTrialReset")}
-                divider
-                onPress={() => void debugResetTrialClock()}
-              />
-            </Card>
-          </Animated.View>
-        )}
+        {DEBUG_TOOLS && <DebugDrawer />}
 
         <Text style={styles.footer}>
           {APP_NAME}
@@ -728,14 +524,6 @@ function createStyles(colors: ThemeColors) {
       paddingBottom: spacing.md,
       paddingTop: spacing.xs,
     },
-    debugHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.xs,
-      paddingVertical: spacing.xs,
-      marginBottom: -spacing.sm,
-    },
-    debugLabel: { marginBottom: 0 },
     footer: {
       ...typography.caption,
       color: colors.mutedText,
