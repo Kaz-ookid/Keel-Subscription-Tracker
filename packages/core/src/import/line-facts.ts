@@ -237,31 +237,36 @@ export function findSourceLine(material: string, name: string): string | null {
 // the payment mode. Legal boilerplate, links and blanked-out details go.
 const SIGNAL_WORDS =
   /\b(?:prime|premium|prämie|total|montant|betrag|amount|fréquence|frequency|zahlungsweise|mode de paiement|payment method|zahlungsart|début|start|beginn|échéance|echéance|expiry|ablauf|période|period|zeitraum|payable|due|fällig|renews?|renouvel\w*|verlängert|abonnement|subscription|abo|plan|facture|invoice|rechnung|receipt|reçu|police|policy|contrat|contract|vertrag|mensuel\w*|monthly|monatlich|annuel\w*|annual|yearly|jährlich|prélèvement|lastschrift|direct debit|carte|card|karte|order|commande|bestellung)\b/iu;
+// A link with a path is legal reading; a bare "www.green.ch" names the
+// brand and stays.
 const NOISE_LINES =
-  /https?:|www\.|\b(?:conditions|édition|edition|ausgabe)\b|^\W*(?:\[removed\]\W*)+$/iu;
+  /https?:\/\/\S+\/\S|\b(?:conditions|édition|edition|ausgabe)\b|^\W*(?:\[removed\]\W*)+$/iu;
 const DATE_LIKE = new RegExp(
   String.raw`${NUMERIC_DATE.source}|\b(?:${MONTH_WORD})\.?\s+\d{4}\b|\b\d{1,2}\s+(?:${MONTH_WORD})\b`,
   "iu",
 );
-const CONDENSE_KEEP_HEAD = 3;
-const CONDENSE_MAX_LINES = 14;
+const CONDENSE_KEEP_HEAD = 5;
+const CONDENSE_FROM_LINES = 15;
 
 /** A long document cut down to the lines that can matter to a reader
- *  (its first lines, then every line with money, a date or a signal
- *  word), so the model reads a short text, which it reads in full. A
- *  document that already fits comes back unchanged; so does a typed list. */
+ *  (its first lines, which name the issuer, then every line with money,
+ *  a date or a signal word), so the model reads a short text, which it
+ *  reads in full. Never cut from the end: an invoice's total is its last
+ *  line. A document that already fits comes back unchanged; so does a
+ *  typed list. */
 export function condenseDocument(text: string): string {
   const lines = text.split("\n").filter((l) => l.trim() !== "");
-  if (lines.length <= CONDENSE_MAX_LINES || isItemList(text)) return text;
-  const kept = lines.filter(
-    (line, i) =>
-      !NOISE_LINES.test(line) &&
-      (i < CONDENSE_KEEP_HEAD ||
-        MONEY.test(line) ||
-        DATE_LIKE.test(line) ||
-        SIGNAL_WORDS.test(line)),
-  );
-  return kept.slice(0, CONDENSE_MAX_LINES).join("\n");
+  if (lines.length < CONDENSE_FROM_LINES || isItemList(text)) return text;
+  return lines
+    .filter(
+      (line, i) =>
+        !NOISE_LINES.test(line) &&
+        (i < CONDENSE_KEEP_HEAD ||
+          MONEY.test(line) ||
+          DATE_LIKE.test(line) ||
+          SIGNAL_WORDS.test(line)),
+    )
+    .join("\n");
 }
 
 // The lines of a document that name its price, most specific first: the

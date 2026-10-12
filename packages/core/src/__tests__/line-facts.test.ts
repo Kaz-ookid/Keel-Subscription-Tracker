@@ -183,7 +183,8 @@ describe("condenseDocument", () => {
 
   it("keeps a policy's head, dates, frequency, mode and premium, drops the boilerplate", () => {
     const kept = condenseDocument(policy).split("\n");
-    expect(kept.length).toBeLessThanOrEqual(14);
+    expect(kept.length).toBeLessThan(policy.split("\n").length);
+    expect(kept).toContain("www.assurly.example");
     expect(kept).toContain("Home Assurance ménage - Police d'assurance HOME7310288");
     expect(kept).toContain("Début du contrat    01.10.2026");
     expect(kept).toContain("Fréquence de paiement    annuel");
@@ -193,6 +194,24 @@ describe("condenseDocument", () => {
     expect(kept.some((l) => l.includes("Conditions générales"))).toBe(false);
     expect(kept).not.toContain("[removed]");
     expect(kept).not.toContain("Droit de résiliation journalier    Non");
+  });
+
+  it("never cuts an invoice's total from the end", () => {
+    const filler = Array.from({ length: 30 }, (_, i) => `Remarque ${"x".repeat(i % 7)}`);
+    const invoice = [
+      "fibra.example AG    Industriestrasse 33    5242 Lupfig",
+      "www.fibra.example",
+      "Facture 9297585",
+      ...filler,
+      "Internet Home XL    01.09.2026 - 30.09.2026    46.16",
+      "Montant    23.13",
+      "Total CHF    25.00",
+    ].join("\n");
+    const kept = condenseDocument(invoice).split("\n");
+    expect(kept.at(-1)).toBe("Total CHF    25.00");
+    expect(kept).toContain("www.fibra.example");
+    // The head stays whole (two filler lines sit in it); the rest of the filler goes.
+    expect(kept.filter((l) => l.startsWith("Remarque"))).toHaveLength(2);
   });
 
   it("leaves a short document and a typed list alone", () => {
