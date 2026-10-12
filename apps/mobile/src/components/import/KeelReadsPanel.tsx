@@ -3,8 +3,7 @@
 // documents → preview, typed text → its screen); nothing stacks. Before
 // anything can be sent the page asks for consent in place (ai-cloud.ts),
 // and where the cloud model cannot run it says which wall and offers the
-// bring-your-own page instead. The allowance line at the bottom is the
-// curious person's window: where they stand on Apple's daily allowance.
+// bring-your-own page instead.
 
 import { useNetworkState } from "expo-network";
 import { useRouter } from "expo-router";
@@ -17,16 +16,10 @@ import { AiHero } from "../ai/AiHero";
 import { AiNotice, AiNoticeLink } from "../ai/AiNotice";
 import { AiPrivacyLine } from "../ai/AiPrivacyLine";
 import { AiUnavailableNotice } from "../ai/AiUnavailableNotice";
-import { InfoDot } from "../InfoDot";
 import { Button } from "../ui/Button";
 
 import { setAiCloudConsent, useAiCloudConsent } from "../../lib/ai-cloud";
-import {
-  cloudQuotaInfo,
-  keelReadsAvailability,
-  type CloudQuota,
-  type KeelReadsAvailability,
-} from "../../lib/apple-intelligence";
+import { keelReadsAvailability, type KeelReadsAvailability } from "../../lib/apple-intelligence";
 import { stageDocuments, stageScreenshots } from "../../lib/keel-material";
 import {
   radius,
@@ -40,16 +33,10 @@ import {
 
 type Busy = "screenshots" | "documents" | null;
 
-const QUOTA_KEYS: Record<Exclude<CloudQuota["state"], "unknown">, string> = {
-  below: "keelReads.quotaBelow",
-  approaching: "keelReads.quotaApproaching",
-  reached: "keelReads.quotaReached",
-};
-
 export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   const router = useRouter();
   const { colors } = useTheme();
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const consented = useAiCloudConsent();
   // No connection, no door: better a plain word here than a timeout later.
@@ -58,16 +45,12 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   const offline = network.isConnected === false || network.isInternetReachable === false;
 
   const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
-  const [quota, setQuota] = useState<CloudQuota | null>(null);
   const [busy, setBusy] = useState<Busy>(null);
   const [error, setError] = useState<"screenshots" | "documents" | null>(null);
 
   useEffect(() => {
     void keelReadsAvailability().then(setAvailability);
   }, []);
-  useEffect(() => {
-    if (availability === "available" && consented) void cloudQuotaInfo().then(setQuota);
-  }, [availability, consented]);
 
   const run = async (kind: "screenshots" | "documents") => {
     setBusy(kind);
@@ -118,23 +101,6 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
     );
   }
 
-  // Where the user stands, in one plain sentence; Apple gives no number,
-  // only a state and (once the limit is reached) when it resets. No state
-  // reported (older build, odd API answer): no line at all, nothing to say.
-  const quotaStanding =
-    quota && quota.state !== "unknown"
-      ? t(QUOTA_KEYS[quota.state]) +
-        (quota.resetDate
-          ? " " +
-            t("keelReads.quotaResets", {
-              when: new Date(quota.resetDate).toLocaleString(i18n.language, {
-                dateStyle: "medium",
-                timeStyle: "short",
-              }),
-            })
-          : "")
-      : null;
-
   return (
     <View style={styles.stack}>
       <AiHero text={t("keelReads.hero")} />
@@ -180,17 +146,6 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
       )}
 
       <AiPrivacyLine text={t("keelReads.privacy")} />
-      {/* The allowance, for the curious only: a quiet line plus an (i)
-          that says where the user stands on Apple's daily quota. */}
-      {quotaStanding && (
-        <View style={styles.footRow}>
-          <Text style={styles.footText}>{t("keelReads.quotaLabel")}</Text>
-          <InfoDot
-            title={t("keelReads.quotaInfoTitle")}
-            body={`${t("keelReads.quotaInfoBody")}\n\n${quotaStanding}`}
-          />
-        </View>
-      )}
     </View>
   );
 }
@@ -269,13 +224,6 @@ function createStyles(colors: ThemeColors) {
     rowTitle: { ...typography.label, color: colors.text },
     rowSub: { ...typography.caption, color: colors.mutedText, lineHeight: 17 },
     error: { ...typography.caption, color: colors.tones.danger, textAlign: "center" },
-    footRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.xs + 2,
-    },
-    footText: { ...typography.caption, color: colors.mutedText, flexShrink: 1 },
     consentButton: { alignSelf: "stretch", marginTop: spacing.sm },
   });
 }

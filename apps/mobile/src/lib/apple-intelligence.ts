@@ -140,32 +140,3 @@ export async function extractPdfText(uri: string): Promise<string> {
     throw toFailure(error);
   }
 }
-
-/** Apple's allowance object for the cloud model, as the framework describes
- *  it: property names and values stringified, plus a "description" line.
- *  Meant for an advanced info line, not for logic; empty when unknown. */
-export type CloudQuotaState = "below" | "approaching" | "reached" | "unknown";
-export interface CloudQuota {
-  state: CloudQuotaState;
-  /** ISO timestamp of the next reset, when Apple reports one. */
-  resetDate?: string;
-}
-
-/** Where the user stands on Apple's daily allowance for the cloud model;
- *  "unknown" when the framework reports nothing (older iOS, Expo Go). */
-export async function cloudQuotaInfo(): Promise<CloudQuota> {
-  try {
-    const raw = (await native()).cloudQuota() ?? {};
-    const state = raw.state;
-    return {
-      state:
-        state === "below" || state === "approaching" || state === "reached" ? state : "unknown",
-      // Only a real instant counts (an older native build sent "nil" as text).
-      ...(raw.resetDate && !Number.isNaN(Date.parse(raw.resetDate))
-        ? { resetDate: raw.resetDate }
-        : {}),
-    };
-  } catch {
-    return { state: "unknown" };
-  }
-}

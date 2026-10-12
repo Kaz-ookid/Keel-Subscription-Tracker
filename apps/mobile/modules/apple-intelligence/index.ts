@@ -22,9 +22,6 @@ export interface AppleIntelligenceNative {
   /** A PDF's file URI in, its text out (PDFKit, on the phone). Rejects with
    *  "image-unreadable" when the file has no readable text. */
   extractPdfText(uri: string): Promise<string>;
-  /** The cloud model's allowance, every property of Apple's quota object
-   *  stringified by name (plus "description"); empty below iOS 27. */
-  cloudQuota(): Record<string, string>;
 }
 
 export default requireNativeModule<AppleIntelligenceNative>("AppleIntelligence");

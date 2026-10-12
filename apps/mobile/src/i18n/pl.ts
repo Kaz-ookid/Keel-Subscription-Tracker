@@ -1027,18 +1027,9 @@ const translation = {
     methodText: "Wpisz lub wklej",
     methodTextSub: "Luźna lista własnymi słowami.",
     errDocument: "Nie udało się odczytać tekstu z tych plików.",
-    quotaLabel: "Limit Apple dla modelu chmurowego",
-    quotaInfoTitle: "Limit modelu chmurowego",
-    quotaInfoBody:
-      "Model chmurowy Apple ma dzienny limit na osobę (wyższy z iCloud+). Keel nie widzi liczby, tylko gdzie jesteś:",
     offlineTitle: "Jesteś offline",
     offlineBody:
       "Keel czyta za ciebie wymaga połączenia z internetem. Instrukcje dla twojej własnej AI nadal można skopiować.",
-    quotaBelow: "Mieścisz się w dzisiejszym limicie.",
-    quotaApproaching: "Zbliżasz się do dzisiejszego limitu.",
-    quotaReached: "Dzisiejszy limit został wykorzystany.",
-    quotaResets: "Odnowi się {{when}}.",
-    quotaUnknown: "Apple nie zgłosił stanu limitu na tym iPhonie.",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",

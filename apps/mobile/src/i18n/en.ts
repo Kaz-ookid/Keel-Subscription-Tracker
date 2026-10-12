@@ -975,18 +975,9 @@ export const en = {
     methodText: "Type or paste",
     methodTextSub: "A rough list in your own words.",
     errDocument: "Couldn't read any text from those files.",
-    quotaLabel: "Apple's allowance for the cloud model",
-    quotaInfoTitle: "Cloud model allowance",
-    quotaInfoBody:
-      "Apple's cloud model has a daily allowance per person (higher with iCloud+). Keel can't see the number, only where you stand:",
     offlineTitle: "You're offline",
     offlineBody:
       "Keel reads it needs an internet connection. Your own AI's instructions can still be copied.",
-    quotaBelow: "You're within today's allowance.",
-    quotaApproaching: "You're getting close to today's allowance.",
-    quotaReached: "Today's allowance is used up.",
-    quotaResets: "It resets {{when}}.",
-    quotaUnknown: "Apple didn't report an allowance state on this iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} due today",

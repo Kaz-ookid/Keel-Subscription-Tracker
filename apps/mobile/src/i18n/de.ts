@@ -985,18 +985,9 @@ export const de: typeof en = {
     methodText: "Tippen oder einfügen",
     methodTextSub: "Eine grobe Liste in deinen Worten.",
     errDocument: "In diesen Dateien war kein Text lesbar.",
-    quotaLabel: "Apples Kontingent für das Cloud-Modell",
-    quotaInfoTitle: "Kontingent des Cloud-Modells",
-    quotaInfoBody:
-      "Apples Cloud-Modell hat ein tägliches Kontingent pro Person (höher mit iCloud+). Keel sieht die Zahl nicht, nur wo du stehst:",
     offlineTitle: "Du bist offline",
     offlineBody:
       "Keel liest es braucht eine Internetverbindung. Die Anleitung für deine eigene KI lässt sich trotzdem kopieren.",
-    quotaBelow: "Du bist innerhalb des heutigen Kontingents.",
-    quotaApproaching: "Du näherst dich dem heutigen Kontingent.",
-    quotaReached: "Das heutige Kontingent ist aufgebraucht.",
-    quotaResets: "Es wird {{when}} zurückgesetzt.",
-    quotaUnknown: "Apple hat auf diesem iPhone keinen Kontingentstatus gemeldet.",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",

@@ -980,18 +980,9 @@ export const it: typeof en = {
     methodText: "Scrivi o incolla",
     methodTextSub: "Una lista alla buona, con parole tue.",
     errDocument: "Nessun testo leggibile in questi file.",
-    quotaLabel: "Limite Apple del modello cloud",
-    quotaInfoTitle: "Limite del modello cloud",
-    quotaInfoBody:
-      "Il modello cloud di Apple ha un limite giornaliero per persona (più alto con iCloud+). Keel non vede il numero, solo a che punto sei:",
     offlineTitle: "Sei offline",
     offlineBody:
       "Keel legge per te richiede una connessione internet. Le istruzioni per la tua IA restano copiabili.",
-    quotaBelow: "Sei entro il limite di oggi.",
-    quotaApproaching: "Ti stai avvicinando al limite di oggi.",
-    quotaReached: "Il limite di oggi è esaurito.",
-    quotaResets: "Si azzera {{when}}.",
-    quotaUnknown: "Apple non ha riportato uno stato del limite su questo iPhone.",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",
