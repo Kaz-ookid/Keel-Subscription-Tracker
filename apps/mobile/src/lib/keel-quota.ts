@@ -1,31 +1,24 @@
-// The day's cloud allowance, as far as the app can know it. Apple rations
-// Private Cloud Compute per user; the framework exposes the standing
-// (below, approaching, reached, with a reset instant once reached) and the
-// model answers "quota" when a read hits the limit. Two sources, one
-// store: the native probe is the truth whenever a build has it, refreshed
-// when a reading door opens; a "quota" answer marks the allowance out
-// until the reset instant, or until the next local day when no instant
-// is known. Every "Keel reads it" door reads this store and says so up
-// front instead of letting the user pick screenshots for a read that
-// cannot happen. Same external-store pattern as ai-cloud.
+// Where the cloud allowance stands, as Apple reports it. Apple rations
+// Private Cloud Compute per user and the framework exposes the standing
+// (below, approaching, reached, with a reset instant once reached). The
+// probe is asked whenever a reading door opens or a read fails on the
+// quota, and the doors say "used up" only on its word: a build without
+// the probe, or a probe that answers nothing, never closes a door, since
+// the app cannot know when the allowance actually comes back. Nothing is
+// persisted; the probe is the memory. Same external-store pattern as
+// ai-cloud, in memory only.
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useSyncExternalStore } from "react";
 
 import { cloudQuotaInfo } from "./apple-intelligence";
 
-const KEY = "keel.ai.cloud-quota-out-until.v1";
-
-/** ISO instant until which the allowance is known to be out, or null. */
+/** ISO instant until which Apple says the allowance is out, or null. */
 let outUntil: string | null = null;
 const listeners = new Set<() => void>();
 
 function emit(next: string | null): void {
   outUntil = next;
   listeners.forEach((listener) => listener());
-  void AsyncStorage.setItem(KEY, next ?? "").catch(() => {
-    // Best-effort: the in-memory mark already guards this session.
-  });
 }
 
 function subscribe(listener: () => void): () => void {
@@ -33,47 +26,22 @@ function subscribe(listener: () => void): () => void {
   return () => listeners.delete(listener);
 }
 
-/** Midnight at the start of the next local day. */
-function nextLocalMidnight(): string {
-  const next = new Date();
-  next.setHours(24, 0, 0, 0);
-  return next.toISOString();
-}
-
-let hydrating: Promise<void> | null = null;
-export function hydrateQuota(): Promise<void> {
-  if (!hydrating) {
-    hydrating = AsyncStorage.getItem(KEY)
-      .then((raw) => {
-        outUntil = raw || null;
-        listeners.forEach((listener) => listener());
-      })
-      .catch(() => undefined)
-      .then(() => refreshQuota());
-  }
-  return hydrating;
-}
-
-/** Ask the framework where the allowance stands; a build without the
- *  probe answers "unknown" and the stored mark stands. */
+/** Ask the framework where the allowance stands. "reached" without a
+ *  reset instant closes the doors only until the next probe; anything
+ *  unknown leaves them open. */
 export async function refreshQuota(): Promise<void> {
   const info = await cloudQuotaInfo();
-  if (info.state === "reached") emit(info.resetDate ?? nextLocalMidnight());
-  else if (info.state === "below" || info.state === "approaching") emit(null);
-}
-
-/** The model just answered "quota": the allowance is out until the next
- *  local day, unless the probe later names a reset instant. */
-export function recordQuotaHit(): void {
-  emit(nextLocalMidnight());
-  void refreshQuota();
+  if (info.state === "reached") emit(info.resetDate ?? "reached");
+  else emit(null);
 }
 
 function quotaOutNow(): boolean {
-  return outUntil !== null && Date.parse(outUntil) > Date.now();
+  if (outUntil === null) return false;
+  if (outUntil === "reached") return true;
+  return Date.parse(outUntil) > Date.now();
 }
 
-/** True while the allowance is known to be used up. */
+/** True while Apple says the allowance is used up. */
 export function useQuotaOut(): boolean {
   return useSyncExternalStore(subscribe, quotaOutNow);
 }

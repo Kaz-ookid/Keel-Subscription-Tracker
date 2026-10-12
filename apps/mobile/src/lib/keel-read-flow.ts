@@ -29,7 +29,7 @@ import {
   readWithInstructions,
   type KeelReadsFailure,
 } from "./apple-intelligence";
-import { recordQuotaHit } from "./keel-quota";
+import { refreshQuota } from "./keel-quota";
 
 export type KeelReadOutcome =
   | { ok: true; drafts: ImportDraft[]; skipped: number; skippedNames: string[]; raw: string[] }
@@ -102,8 +102,8 @@ export async function runKeelRead(
     return { ok: true, drafts, skipped, skippedNames, raw };
   } catch (failure) {
     const error = failure instanceof KeelReadsError ? failure.reason : "model-failed";
-    // The allowance is out: every reading door says so from now on.
-    if (error === "quota") recordQuotaHit();
+    // The allowance may be out: ask Apple, and the doors follow its word.
+    if (error === "quota") void refreshQuota();
     return { ok: false, error };
   }
 }
