@@ -4,20 +4,13 @@
 // filled anything, plus a fixture set scored in one tap. A prompt or schema
 // change is judged here, on evidence, never on review cards.
 
-import {
-  buildKeelReadsPrompt,
-  detectCurrencyHint,
-  expandAccountHeadings,
-  parseImportDocument,
-  today,
-} from "@keel/core";
+import { today } from "@keel/core";
 import * as Clipboard from "expo-clipboard";
 import { Stack } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
-import { readWithInstructions } from "../src/lib/apple-intelligence";
 import { runKeelRead, type KeelReadOptions } from "../src/lib/keel-read-flow";
 import { buildYesterdayPrompt } from "../src/lib/reader-lab-prompts";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
@@ -48,54 +41,46 @@ export default function ReaderLabScreen() {
   const [results, setResults] = useState<RunResult[]>([]);
   const [scores, setScores] = useState<(FixtureScore & { raw: string })[]>([]);
 
-  // The product's exact path: headings folded, the hint, the prompt.
+  // The product's exact path, sections, condensing and the line reader
+  // included: what the review screen would show, plus the raw answers.
   const runOne = async (): Promise<RunResult> => {
-    const label = "the product prompt";
-    const folded = expandAccountHeadings(material);
-    const defaultCurrency = detectCurrencyHint(folded) ?? displayCurrency;
-    const context = { today: today(), defaultCurrency };
-    const instructions = buildKeelReadsPrompt(context);
+    const label = "the product path";
     const started = Date.now();
-    try {
-      const json = await readWithInstructions(folded, instructions);
-      const ms = Date.now() - started;
-      let raw = json;
-      try {
-        raw = JSON.stringify(JSON.parse(json), null, 2);
-      } catch {
-        // Not JSON: shown as is.
-      }
-      const result = parseImportDocument(json, {
-        defaultCurrency,
-        today: today(),
-        accounts,
-        categories,
-        takenNames: [],
-      });
-      const lines = result.drafts.map((d) => {
-        const assumed = d.assumedFields.length ? ` · defaults: ${d.assumedFields.join(", ")}` : "";
-        const uncertain = d.uncertainFields.length
-          ? ` · uncertain: ${d.uncertainFields.join(", ")}`
-          : "";
-        const warnings = d.warnings.length
-          ? ` · warn: ${d.warnings.map((w) => w.code).join(", ")}`
-          : "";
-        return `- ${d.input.name}${assumed}${uncertain}${warnings}`;
-      });
-      return {
-        label,
-        meta: `${instructions.length} prompt chars · ${ms} ms`,
-        summary: `${result.drafts.length} items, ${result.skipped} skipped${result.error ? `, error ${result.error}` : ""}\n${lines.join("\n")}`,
-        raw,
-      };
-    } catch (failure) {
-      return {
-        label,
-        meta: `${instructions.length} prompt chars · failed after ${Date.now() - started} ms`,
-        summary: `failed: ${failure instanceof Error ? failure.message : String(failure)}`,
-        raw: "",
-      };
+    const outcome = await runKeelRead(material, {
+      displayCurrency,
+      items: [],
+      accounts,
+      categories,
+    });
+    const ms = Date.now() - started;
+    if (!outcome.ok) {
+      return { label, meta: `failed after ${ms} ms`, summary: `failed: ${outcome.error}`, raw: "" };
     }
+    const lines = outcome.drafts.map((d) => {
+      const assumed = d.assumedFields.length ? ` · defaults: ${d.assumedFields.join(", ")}` : "";
+      const uncertain = d.uncertainFields.length
+        ? ` · uncertain: ${d.uncertainFields.join(", ")}`
+        : "";
+      const warnings = d.warnings.length
+        ? ` · warn: ${d.warnings.map((w) => w.code).join(", ")}`
+        : "";
+      return `- ${d.input.name}${assumed}${uncertain}${warnings}`;
+    });
+    const raw = outcome.raw
+      .map((json) => {
+        try {
+          return JSON.stringify(JSON.parse(json), null, 2);
+        } catch {
+          return json;
+        }
+      })
+      .join("\n");
+    return {
+      label,
+      meta: `${outcome.raw.length} read(s) · ${ms} ms`,
+      summary: `${outcome.drafts.length} items, ${outcome.skipped} skipped${outcome.skippedNames.length ? ` (${outcome.skippedNames.join(", ")})` : ""}\n${lines.join("\n")}`,
+      raw,
+    };
   };
 
   const runAll = async () => {

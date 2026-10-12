@@ -7,6 +7,7 @@
 
 import {
   buildKeelReadsPrompt,
+  condenseDocument,
   detectCurrencyHint,
   splitAccountSections,
   parseImportDocument,
@@ -58,8 +59,11 @@ export async function runKeelRead(
     for (const section of sections) {
       const defaultCurrency =
         section.currency ?? detectCurrencyHint(section.text) ?? context.displayCurrency;
+      // A long document goes to the model condensed to the lines that can
+      // matter: the model reads a short text in full and a long one lazily.
+      // The parser still gets the whole section, for what it reads itself.
       const json = await readWithInstructions(
-        section.text,
+        condenseDocument(section.text),
         build({ today: today(), defaultCurrency }),
       );
       raw.push(json);

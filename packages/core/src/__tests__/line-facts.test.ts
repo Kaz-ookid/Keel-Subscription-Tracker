@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  condenseDocument,
   findSourceLine,
   isItemList,
   readDocumentAmount,
@@ -140,6 +141,60 @@ describe("isItemList", () => {
         "Début du contrat    01.10.2026\nPrime annuelle    CHF 164.15\nTaxes légales    CHF 7.80",
       ),
     ).toBe(false);
+  });
+});
+
+describe("condenseDocument", () => {
+  const policy = [
+    "assurly    5",
+    "[removed]",
+    "www.assurly.example",
+    "INS",
+    "Assurly Service Center",
+    "[removed]",
+    "Zurich, 17.09.2026",
+    "Home Assurance ménage - Police d'assurance HOME7310288",
+    "Données personnelles",
+    "Preneur d'assurance    Monsieur Jean Dupont",
+    "Adresse    Rue de la Gare 12, 1004 Lausanne",
+    "Email    [removed]",
+    "Date de naissance    03.07.1991",
+    "Contenu du contrat",
+    "Numéro de [removed]",
+    "Début du contrat    01.10.2026",
+    "Echéance du contrat    30.09.2027",
+    "Fréquence de paiement    annuel",
+    "Mode de paiement    facture",
+    "Droit de résiliation journalier    Non",
+    "Aperçu des primes",
+    "Prime annuelle    CHF 164.15",
+    "Sont inclus dans ce prix :",
+    "Taxes légales",
+    "Payable annuel",
+    "Bases contractuelles pour l'assurance ménage",
+    "Conditions générales (CG), édition Septembre 2026",
+    "https://doc.assurly.example/fr/conditions-generales/Septembre2026/",
+  ].join("\n");
+
+  it("keeps a policy's head, dates, frequency, mode and premium, drops the boilerplate", () => {
+    const kept = condenseDocument(policy).split("\n");
+    expect(kept.length).toBeLessThanOrEqual(14);
+    expect(kept).toContain("Home Assurance ménage - Police d'assurance HOME7310288");
+    expect(kept).toContain("Début du contrat    01.10.2026");
+    expect(kept).toContain("Fréquence de paiement    annuel");
+    expect(kept).toContain("Mode de paiement    facture");
+    expect(kept).toContain("Prime annuelle    CHF 164.15");
+    expect(kept.some((l) => l.includes("https://"))).toBe(false);
+    expect(kept.some((l) => l.includes("Conditions générales"))).toBe(false);
+    expect(kept).not.toContain("[removed]");
+    expect(kept).not.toContain("Droit de résiliation journalier    Non");
+  });
+
+  it("leaves a short document and a typed list alone", () => {
+    const receipt = "Receipt    Apple\nOrder ID    MLX9Q4T7K\nTotal    CHF 12.95";
+    expect(condenseDocument(receipt)).toBe(receipt);
+    const list = Array.from({ length: 16 }, (_, i) => `item ${i} 12.50 CHF monthly`).join("\n");
+    expect(condenseDocument(list)).toBe(list);
   });
 });
 
