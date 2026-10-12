@@ -781,6 +781,59 @@ describe("buildKeelReadsPrompt", () => {
     expect(policy.input.recurrence).toEqual({ unit: "year", interval: 1 });
   });
 
+  it("reads what the model left out off the item's own typed line", () => {
+    const material =
+      "spotify duo 17,6 CHF 13th of the month (account BCV, CHF)\nCSS assurance 372.95 CHF, manual, set it for 26th of the month, started in march 2026 (account BCV, CHF)\n- 6th of the month, 689,55€ car loan reimbursement (account Boursorama, EUR)";
+    const answer = {
+      items: [
+        { type: "subscription", name: "spotify duo", amount: 17.6, account: "BCV" },
+        { type: "subscription", name: "CSS assurance", amount: 372.95, account: "BCV" },
+        { type: "subscription", name: "car loan reimbursement", account: "Boursorama" },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(answer), {
+      ...ctx,
+      defaultCurrency: "USD",
+      today: calendarDate("2026-10-12"),
+      material,
+    });
+    expect(result.drafts).toHaveLength(3);
+    const [claude, css, loan] = result.drafts as RecurringImportDraft[];
+    expect(claude.input.amount).toEqual(fromMajor(17.6, "CHF"));
+    expect(claude.input.firstChargeDate).toBe("2026-10-13");
+    expect(claude.assumedFields).not.toContain("currency");
+    expect(claude.assumedFields).not.toContain("firstDate");
+    expect(css.input.settlementMode).toBe("manual");
+    expect(css.input.firstChargeDate).toBe("2026-03-26");
+    expect(css.assumedFields).not.toContain("settlement");
+    expect(loan.input.amount).toEqual(fromMajor(689.55, "EUR"));
+    expect(loan.uncertainFields).not.toContain("amount");
+  });
+
+  it("takes a document's premium line when the model dropped the amount, flagged", () => {
+    const material =
+      "Home Assurance ménage - Police d'assurance HOME7310288\nFréquence de paiement    annuel\nAperçu des primes\nPrime annuelle    CHF 164.15\nTaxes légales    CHF 7.80\nPayable annuel";
+    const answer = {
+      items: [
+        {
+          type: "subscription",
+          name: "Home Assurance ménage - Police d'assurance HOME7310288",
+          currency: "CHF",
+          settlement: "manual",
+          cadence: { unit: "year", interval: 1 },
+        },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(answer), {
+      ...ctx,
+      defaultCurrency: "CHF",
+      material,
+    });
+    const policy = result.drafts[0] as RecurringImportDraft;
+    expect(policy.input.amount).toEqual(fromMajor(164.15, "CHF"));
+    expect(policy.uncertainFields).toContain("amount");
+  });
+
   it("lands an insurance policy's answer as a yearly, manual insurance item", () => {
     // What the model should say for a Swiss home-insurance policy: yearly
     // premium, billed by invoice, contract 01.10.2026 to 30.09.2027.

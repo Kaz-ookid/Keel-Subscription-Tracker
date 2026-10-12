@@ -3,12 +3,11 @@
 // ready drafts out, with the same safety nets as the bring-your-own path.
 // The currency hint keeps a dollar receipt in dollars when the model leaves
 // the currency out (the parser would otherwise default to the display one).
+// Every read spends the user's cloud quota, so a section is one read.
 
 import {
   buildKeelReadsPrompt,
-  chunkLines,
   detectCurrencyHint,
-  isItemList,
   splitAccountSections,
   parseImportDocument,
   today,
@@ -28,9 +27,6 @@ export type KeelReadOutcome =
   | { ok: false; error: ImportParseError | KeelReadsFailure };
 
 export interface KeelReadOptions {
-  /** A typed list longer than this is read this many lines at a time
-   *  (documents stay whole). Omitted: every section is one read. */
-  maxLinesPerRead?: number;
   /** The reader lab's door: other instructions than the product's. */
   instructions?: (context: ImportPromptContext) => string;
 }
@@ -61,29 +57,25 @@ export async function runKeelRead(
     for (const section of sections) {
       const defaultCurrency =
         section.currency ?? detectCurrencyHint(section.text) ?? context.displayCurrency;
-      const prompt = build({ today: today(), defaultCurrency });
-      // A long typed list goes to the model in short slices, all at once:
-      // the slices are independent lines, and a short list is read in full
-      // where a long one comes back as names and amounts.
-      const slices =
-        options.maxLinesPerRead && isItemList(section.text)
-          ? chunkLines(section.text, options.maxLinesPerRead)
-          : [section.text];
-      const answers = await Promise.all(slices.map((slice) => readWithInstructions(slice, prompt)));
-      for (const json of answers) {
-        raw.push(json);
-        const result = parseImportDocument(json, {
-          defaultCurrency,
-          today: today(),
-          accounts: context.accounts,
-          categories: context.categories,
-          takenNames: taken,
-        });
-        drafts.push(...result.drafts);
-        skipped += result.skipped;
-        taken.push(...result.drafts.map((d) => d.input.name));
-        if (result.drafts.length === 0 && !firstError) firstError = result.error ?? "empty";
-      }
+      const json = await readWithInstructions(
+        section.text,
+        build({ today: today(), defaultCurrency }),
+      );
+      raw.push(json);
+      // The section's text goes to the parser too: whatever the model left
+      // out is read off the item's own line before any default applies.
+      const result = parseImportDocument(json, {
+        defaultCurrency,
+        today: today(),
+        accounts: context.accounts,
+        categories: context.categories,
+        takenNames: taken,
+        material: section.text,
+      });
+      drafts.push(...result.drafts);
+      skipped += result.skipped;
+      taken.push(...result.drafts.map((d) => d.input.name));
+      if (result.drafts.length === 0 && !firstError) firstError = result.error ?? "empty";
     }
     if (drafts.length === 0) return { ok: false, error: firstError ?? "empty" };
     return { ok: true, drafts, skipped, raw };

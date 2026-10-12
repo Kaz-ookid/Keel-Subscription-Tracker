@@ -24,17 +24,12 @@ import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/rea
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
 
-// The matrix: today's prompt against the one of the 11th (before the
-// document rules), each with sections read whole and read three lines at a
-// time. A variant that reads more on the fixtures becomes the product path.
-const MATRIX: { tag: string; options: KeelReadOptions }[] = [
+// The variants: today's prompt and the one of the 11th (before the
+// document rules). One variant per tap: the cloud quota is per user and
+// a fixture pass is a dozen reads, so a run has to be chosen.
+const VARIANTS: { tag: string; options: KeelReadOptions }[] = [
   { tag: "current", options: {} },
-  { tag: "current sliced", options: { maxLinesPerRead: 3 } },
   { tag: "yesterday", options: { instructions: (c) => buildYesterdayPrompt(c.today) } },
-  {
-    tag: "yesterday sliced",
-    options: { maxLinesPerRead: 3, instructions: (c) => buildYesterdayPrompt(c.today) },
-  },
 ];
 
 interface RunResult {
@@ -110,45 +105,34 @@ export default function ReaderLabScreen() {
     setBusy(null);
   };
 
-  // The fixture set through every variant of the matrix: one tap, one
-  // scorecard. Two questions at once: does the shorter prompt of the 11th
-  // read more than today's, and does a long list read better in slices.
-  const runFixtures = async () => {
+  // The fixture set through one variant: one tap, one scorecard.
+  const runFixtures = async (variant: (typeof VARIANTS)[number]) => {
     setScores([]);
     const collected: (FixtureScore & { raw: string })[] = [];
-    for (const variant of MATRIX) {
-      for (const fixture of READER_FIXTURES) {
-        setBusy(`${variant.tag} · ${fixture.id}…`);
-        const id = `${variant.tag} · ${fixture.id}`;
-        const started = Date.now();
-        try {
-          // The product's own path, sections and all.
-          const outcome = await runKeelRead(
-            fixture.material,
-            { displayCurrency, items: [], accounts, categories },
-            variant.options,
-          );
-          if (!outcome.ok) throw new Error(outcome.error);
-          const score = scoreFixture(fixture, outcome);
-          const timing = `  ${outcome.raw.length} read(s), ${Date.now() - started} ms`;
-          collected.push({
-            ...score,
-            id,
-            lines: [...score.lines, timing],
-            raw: outcome.raw.join("\n"),
-          });
-        } catch (failure) {
-          collected.push({
-            id,
-            passed: 0,
-            landed: 0,
-            total: fixture.expect.length,
-            lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
-            raw: "",
-          });
-        }
-        setScores([...collected]);
+    for (const fixture of READER_FIXTURES) {
+      setBusy(`${variant.tag} · ${fixture.id}…`);
+      const id = `${variant.tag} · ${fixture.id}`;
+      try {
+        // The product's own path, sections and all.
+        const outcome = await runKeelRead(
+          fixture.material,
+          { displayCurrency, items: [], accounts, categories },
+          variant.options,
+        );
+        if (!outcome.ok) throw new Error(outcome.error);
+        const score = scoreFixture(fixture, outcome);
+        collected.push({ ...score, id, raw: outcome.raw.join("\n") });
+      } catch (failure) {
+        collected.push({
+          id,
+          passed: 0,
+          landed: 0,
+          total: fixture.expect.length,
+          lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
+          raw: "",
+        });
       }
+      setScores([...collected]);
     }
     setBusy(null);
   };
@@ -161,7 +145,9 @@ export default function ReaderLabScreen() {
     };
     return [
       `## Reader fixtures · ${today()}`,
-      ...MATRIX.map((v) => `${v.tag}: ${tally(v.tag)}`),
+      ...VARIANTS.filter((v) => scores.some((s) => s.id.startsWith(`${v.tag} · `))).map(
+        (v) => `${v.tag}: ${tally(v.tag)}`,
+      ),
       ...scores.flatMap((s) => [
         "",
         `### ${s.id} · read ${s.passed}/${s.total} · lands right ${s.landed}/${s.total}`,
@@ -228,15 +214,16 @@ export default function ReaderLabScreen() {
         />
       </View>
       <View style={styles.actions}>
-        <Button
-          variant="secondary"
-          icon="checklist"
-          label={
-            busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures, ${MATRIX.length} ways`
-          }
-          onPress={() => void runFixtures()}
-          disabled={busy !== null}
-        />
+        {VARIANTS.map((variant) => (
+          <Button
+            key={variant.tag}
+            variant="secondary"
+            icon="checklist"
+            label={busy ? "Running…" : `${READER_FIXTURES.length} fixtures, ${variant.tag}`}
+            onPress={() => void runFixtures(variant)}
+            disabled={busy !== null}
+          />
+        ))}
       </View>
       {busy ? <Text style={styles.meta}>{busy}</Text> : null}
       {scores.map((s) => (
@@ -249,7 +236,7 @@ export default function ReaderLabScreen() {
           </Text>
         </View>
       ))}
-      {scores.length === READER_FIXTURES.length * MATRIX.length && !busy ? (
+      {scores.length === READER_FIXTURES.length && !busy ? (
         <Button
           icon="doc.on.doc"
           label="Copy the scorecard"

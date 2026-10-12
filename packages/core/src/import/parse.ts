@@ -16,6 +16,7 @@ import type { MonthlyAnchor, RecurrenceRule, TimeUnit } from "../primitives/recu
 import { RECURRENCE_PRESETS } from "../primitives/recurrence";
 import { calendarDate, isCalendarDate, type CalendarDate } from "../primitives/temporal";
 import { extractImportDocument } from "./extract";
+import { findSourceLine, isItemList, readDocumentAmount, readLineFacts } from "./line-facts";
 import { IMPORT_FIELD_NAMES } from "./types";
 import type {
   ImportDraft,
@@ -38,6 +39,11 @@ export interface ImportContext {
   /** Names of items already tracked — matches get a `duplicate` warning so a
    *  twice-pasted import can't silently double everything. */
   takenNames?: readonly string[];
+  /** The text the model read, when the app has it: a field the model left
+   *  out is then read off the item's own line by pattern (the price, its
+   *  currency, "manual", "yearly", "26th of the month", "started march
+   *  2026") before any default applies. A pasted answer has no material. */
+  material?: string;
 }
 
 // A name that reads like a description, not a name: starts with an article,
@@ -264,10 +270,14 @@ function parseItem(
     return null;
   }
 
+  // What the item's own line states, for every field the model left out.
+  const line = ctx.material ? findSourceLine(ctx.material, name) : null;
+  const facts = line ? readLineFacts(line) : {};
+
   const reader = new ItemReader(ctx);
   if (takenNames.has(name.toLowerCase())) reader.warn("duplicate", name);
-  const currency = reader.currency(item.currency);
-  const settlementMode = reader.settlement(item.settlement);
+  const currency = reader.currency(item.currency ?? facts.currency);
+  const settlementMode = reader.settlement(item.settlement ?? facts.settlement);
   let categoryId = reader.category(item.category);
   // A brand knows its own category better than a model that punted to (or
   // never stated) "other" — Amazon Prime is streaming. A bank-resolved
@@ -292,7 +302,10 @@ function parseItem(
     reminderDays !== undefined && reminderDays >= 0
       ? { daysBefore: Math.floor(reminderDays) }
       : undefined;
-  const firstDate = reader.firstDate(item.firstDate, item.billingDay);
+  const firstDate = reader.firstDate(
+    item.firstDate ?? facts.firstDate,
+    item.billingDay ?? facts.billingDay,
+  );
   // Assume the user paid what was due so far, unless the input said otherwise.
   const settlePast = item.backlogUnpaid !== true;
   // The review report. Assumptions are COMPUTED (each absent field the
@@ -327,11 +340,11 @@ function parseItem(
   } as const;
 
   if (isSplit) {
-    const total = asFiniteNumber(item.total);
+    const total = asFiniteNumber(item.total) ?? facts.amount;
     const installments = asFiniteNumber(item.installments);
     if (total === undefined || total <= 0) return null;
     if (installments === undefined || installments < 1) return null;
-    const cadence = reader.cadence(item.cadence);
+    const cadence = reader.cadence(item.cadence ?? facts.cadence);
     const input: NewInstallmentInput = {
       ...common,
       totalAmount: fromMajor(total, currency),
@@ -355,16 +368,29 @@ function parseItem(
 
   // No amount at all is not a reason to drop everything else the model read
   // (a policy came back with its cadence, dates and settlement and no
-  // premium): it lands at 0 with the amount flagged, for the user to type.
-  // A stated negative amount is nonsense and is skipped.
+  // premium). A typed line's own figure fills it; a document's total or
+  // premium line fills it, flagged for a check; failing both it lands at 0
+  // with the amount flagged, for the user to type. A stated negative
+  // amount is nonsense and is skipped.
   const statedAmount = asFiniteNumber(item.amount);
   if (statedAmount !== undefined && statedAmount < 0) return null;
-  const amount = statedAmount ?? 0;
-  if (statedAmount === undefined && !uncertainFields.includes("amount")) {
+  let amount = statedAmount;
+  if (amount === undefined && ctx.material) {
+    if (isItemList(ctx.material)) amount = facts.amount;
+    else {
+      const fromDocument = readDocumentAmount(ctx.material);
+      if (fromDocument) {
+        amount = fromDocument.amount;
+        if (!uncertainFields.includes("amount")) uncertainFields = [...uncertainFields, "amount"];
+      }
+    }
+  }
+  if (amount === undefined && !uncertainFields.includes("amount")) {
     uncertainFields = [...uncertainFields, "amount"];
   }
+  amount ??= 0;
   const anchor = reader.anchor(item.anchor);
-  const baseCadence = reader.cadence(item.cadence, brand?.unit);
+  const baseCadence = reader.cadence(item.cadence ?? facts.cadence, brand?.unit);
   const recurrence: RecurrenceRule =
     anchor && baseCadence.unit === "month" ? { ...baseCadence, anchor } : baseCadence;
 
