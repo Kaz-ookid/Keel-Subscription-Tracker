@@ -142,11 +142,6 @@ export default function KeelReadsPreviewScreen() {
           />
         )}
       </View>
-
-      <View style={styles.privacyRow}>
-        <SymbolView name="lock.shield" size={14} tintColor={colors.mutedText} />
-        <Text style={styles.privacyText}>{t("keelReads.privacy")}</Text>
-      </View>
     </ScrollView>
   );
 }
@@ -194,12 +189,5 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm,
     },
     busyText: { ...typography.label, color: colors.mutedText },
-    privacyRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.xs + 2,
-    },
-    privacyText: { ...typography.caption, color: colors.mutedText, flex: 1 },
   });
 }

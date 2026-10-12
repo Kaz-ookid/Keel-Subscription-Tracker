@@ -924,7 +924,7 @@ export const en = {
       "Assistant actions can be reverted while their safety backup is kept (Keel keeps the last 10 backups).",
   },
   keelReads: {
-    hero: "Apple's cloud model reads your list for you. Rough text, long lists, mixed languages: all fine. Every line lands on a review screen before anything is saved.",
+    hero: "Hand Keel something to read: it comes back as entries for you to review. Nothing is saved on its own.",
     hint: "Type or paste your subscriptions, rough is fine: name, price, when it hits, which account.",
     inputPlaceholder: "Netflix 12.99 on the 6th, gym 40 a month, Spotify since May…",
     reading: "Reading your list…",

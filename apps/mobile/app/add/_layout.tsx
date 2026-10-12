@@ -37,9 +37,8 @@ export default function AddLayout() {
         <Stack.Screen name="index" options={{ title: t("titles.newCommitment") }} />
         <Stack.Screen name="form" options={{ title: t("titles.newSubscription") }} />
         <Stack.Screen name="import" options={{ title: t("titles.importAI") }} />
-        {/* The on-device Apple Intelligence path (linked from the import hub
-          and the AI tab) — see modules/apple-intelligence/README.md. */}
-        <Stack.Screen name="import-keel" options={{ title: t("importAI.methodKeel") }} />
+        {/* "Keel reads it" ways in: the typed box and the capture preview. */}
+        <Stack.Screen name="import-keel" options={{ title: t("keelReads.methodText") }} />
         <Stack.Screen name="import-keel-preview" options={{ title: t("keelReads.previewTitle") }} />
         <Stack.Screen name="import-review" options={{ title: t("titles.importReview") }} />
       </Stack>

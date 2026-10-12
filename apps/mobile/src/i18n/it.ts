@@ -929,7 +929,7 @@ export const it: typeof en = {
       "Le azioni dell'assistente restano annullabili finché esiste il loro backup (Keel tiene gli ultimi 10).",
   },
   keelReads: {
-    hero: "Il modello cloud di Apple legge la tua lista per te. Testo alla buona, liste lunghe, lingue miste: va tutto bene. Ogni riga arriva su una schermata di verifica prima di essere salvata.",
+    hero: "Dai a Keel qualcosa da leggere: torna come voci da verificare. Nulla si salva da solo.",
     hint: "Scrivi o incolla i tuoi abbonamenti, va bene alla buona: nome, prezzo, quando parte, quale conto.",
     inputPlaceholder: "Netflix 12,99 il 6, palestra 40 al mese, Spotify da maggio…",
     reading: "Sto leggendo la tua lista…",

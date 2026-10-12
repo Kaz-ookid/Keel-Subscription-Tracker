@@ -930,7 +930,7 @@ export const fr: typeof en = {
       "Les actions de l'assistant restent annulables tant que leur sauvegarde existe (Keel garde les 10 dernières).",
   },
   keelReads: {
-    hero: "Le modèle cloud d'Apple lit votre liste pour vous. Texte en vrac, longues listes, langues mélangées : tout passe. Chaque ligne arrive sur un écran de vérification avant tout enregistrement.",
+    hero: "Confiez quelque chose à lire à Keel : cela revient sous forme d'entrées à vérifier. Rien ne s'enregistre tout seul.",
     hint: "Tapez ou collez vos abonnements, même en vrac : nom, prix, date, compte.",
     inputPlaceholder: "Netflix 12,99 le 6, salle de sport 40 par mois, Spotify depuis mai…",
     reading: "Lecture de votre liste…",

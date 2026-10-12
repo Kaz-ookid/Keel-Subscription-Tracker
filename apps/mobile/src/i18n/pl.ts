@@ -976,7 +976,7 @@ const translation = {
       "Akcje asystenta można cofać, dopóki istnieje ich kopia zapasowa (Keel trzyma 10 ostatnich).",
   },
   keelReads: {
-    hero: "Model chmurowy Apple czyta twoją listę za ciebie. Luźny tekst, długie listy, mieszane języki: wszystko w porządku. Każda pozycja trafia na ekran sprawdzania, zanim cokolwiek zostanie zapisane.",
+    hero: "Daj Keel coś do przeczytania: wróci jako wpisy do sprawdzenia. Nic nie zapisuje się samo.",
     hint: "Wpisz lub wklej swoje subskrypcje, z grubsza wystarczy: nazwa, cena, kiedy schodzi, które konto.",
     inputPlaceholder: "Netflix 12,99 6. dnia, siłownia 40 miesięcznie, Spotify od maja…",
     reading: "Czytam twoją listę…",

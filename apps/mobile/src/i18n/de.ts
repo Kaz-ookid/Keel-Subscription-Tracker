@@ -932,7 +932,7 @@ export const de: typeof en = {
       "Assistent-Aktionen bleiben zurücknehmbar, solange ihre Sicherung existiert (Keel behält die letzten 10 Backups).",
   },
   keelReads: {
-    hero: "Apples Cloud-Modell liest deine Liste für dich. Grober Text, lange Listen, gemischte Sprachen: alles in Ordnung. Jede Zeile landet vor dem Speichern auf einem Prüfbildschirm.",
+    hero: "Gib Keel etwas zu lesen: es kommt als Einträge zum Prüfen zurück. Nichts wird von allein gespeichert.",
     hint: "Tippe oder füge deine Abos ein, grob reicht: Name, Preis, wann es abgeht, welches Konto.",
     inputPlaceholder: "Netflix 12,99 am 6., Fitness 40 im Monat, Spotify seit Mai…",
     reading: "Deine Liste wird gelesen …",

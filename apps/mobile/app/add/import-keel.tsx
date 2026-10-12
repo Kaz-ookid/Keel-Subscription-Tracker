@@ -1,10 +1,11 @@
 // "Keel reads it for you", the typed-text way in (PROJECT_BRIEF §6.1): a
 // rough list goes to Apple's Private Cloud Compute model and comes back
 // through the exact same parse + review pipeline as the bring-your-own-AI
-// path. The hub's panel is the only door here and it has already checked
-// availability, connection and consent, so this screen is just the box; a
-// read that still fails (offline, allowance, service) says so in place and
-// points at the user's own AI, one step back.
+// path. The hub's panel is the only door here: it has already checked
+// availability, connection and consent and carries the one explanation and
+// the privacy line, so this screen is just the box. A read that still
+// fails (offline, allowance, service) says so in place and points at the
+// user's own AI, one step back.
 
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
@@ -19,8 +20,6 @@ import {
   View,
 } from "react-native";
 
-import { AiHero } from "../../src/components/ai/AiHero";
-import { AiPrivacyLine } from "../../src/components/ai/AiPrivacyLine";
 import { Button } from "../../src/components/ui/Button";
 import { runKeelRead, type KeelReadOutcome } from "../../src/lib/keel-read-flow";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
@@ -86,9 +85,7 @@ export default function KeelReadsImportScreen() {
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
     >
-      <Stack.Screen options={{ title: t("importAI.methodKeel") }} />
-
-      <AiHero text={t("keelReads.hero")} />
+      <Stack.Screen options={{ title: t("keelReads.methodText") }} />
 
       <View style={styles.card}>
         <Text style={styles.hint}>{t("keelReads.hint")}</Text>
@@ -125,8 +122,6 @@ export default function KeelReadsImportScreen() {
           />
         )}
       </View>
-
-      <AiPrivacyLine text={t("keelReads.privacy")} />
     </ScrollView>
   );
 }
