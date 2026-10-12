@@ -58,6 +58,11 @@ export function readMoneyFigure(line: string): { amount: number; currency?: Curr
   return currency ? { amount, currency } : { amount };
 }
 
+// A typed line's price with no decimals and no currency ("Loyer 1470
+// manual"): a bare number of two to six digits that is not part of a date,
+// a reference or an ordinal ("the 26th").
+const BARE_AMOUNT = /(?<![\d.,/:-])\d{2,6}(?![\d.,/:-]|(?:st|nd|rd|th|er)\b)/;
+
 // Words a document carries and a typed list does not.
 const DOCUMENT_WORDS =
   /\b(?:total|subtotal|sous-total|tva|vat|mwst|receipt|reçu|invoice|facture|rechnung|statement|relevé|prime|premium|police|policy|contrat|contract|vertrag|order|commande|bestellung)\b/i;
@@ -67,7 +72,7 @@ const DOCUMENT_WORDS =
 export function isItemList(text: string): boolean {
   const lines = text.split("\n").filter((l) => l.trim() !== "");
   if (lines.length < 2 || DOCUMENT_WORDS.test(text)) return false;
-  const priced = lines.filter((l) => MONEY.test(l)).length;
+  const priced = lines.filter((l) => MONEY.test(l) || BARE_AMOUNT.test(l)).length;
   return priced / lines.length >= 0.6;
 }
 

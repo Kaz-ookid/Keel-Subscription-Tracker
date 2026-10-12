@@ -135,6 +135,11 @@ describe("findSourceLine", () => {
 describe("isItemList", () => {
   it("tells a typed list from a document", () => {
     expect(isItemList("spotify duo 17,6 CHF\nLoyer, 1470 CHF manual\n99chf AG night")).toBe(true);
+    expect(
+      isItemList(
+        "spotify duo 17.6 on the 13th (account BCV, CHF)\nLoyer 1470 manual on the 26th (account BCV, CHF)",
+      ),
+    ).toBe(true);
     expect(isItemList("Receipt from Acme    $108.10\nReceipt #2372\nTotal    $108.10")).toBe(false);
     expect(
       isItemList(
