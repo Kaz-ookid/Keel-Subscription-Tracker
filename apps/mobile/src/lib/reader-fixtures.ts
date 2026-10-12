@@ -216,24 +216,36 @@ export function scoreFixture(
     if (!draft) continue;
     passed += 1;
     const got = read(draft);
+    // A field the parser had to default was NOT read, whatever it defaulted to.
+    const assumed = new Set<string>(draft.assumedFields);
+    const shown = (field: string, value: unknown) =>
+      assumed.has(field) ? `${String(value)} (defaulted)` : value;
     if (want.amount !== undefined)
       check("amount", got.amount === want.amount, got.amount, want.amount);
-    if (want.currency)
-      check("currency", got.currency === want.currency, got.currency, want.currency);
+    if (want.currency) {
+      const ok = got.currency === want.currency && !assumed.has("currency");
+      check("currency", ok, shown("currency", got.currency), want.currency);
+    }
     if (want.cadence) {
       const ok =
-        got.cadence?.unit === want.cadence.unit && got.cadence?.interval === want.cadence.interval;
+        !assumed.has("cadence") &&
+        got.cadence?.unit === want.cadence.unit &&
+        got.cadence?.interval === want.cadence.interval;
       check(
         "cadence",
         ok,
-        got.cadence ? `${got.cadence.interval} ${got.cadence.unit}` : "none",
+        shown("cadence", got.cadence ? `${got.cadence.interval} ${got.cadence.unit}` : "none"),
         `${want.cadence.interval} ${want.cadence.unit}`,
       );
     }
-    if (want.firstDate)
-      check("firstDate", got.firstDate === want.firstDate, got.firstDate, want.firstDate);
-    if (want.settlement)
-      check("settlement", got.settlement === want.settlement, got.settlement, want.settlement);
+    if (want.firstDate) {
+      const ok = got.firstDate === want.firstDate && !assumed.has("firstDate");
+      check("firstDate", ok, shown("firstDate", got.firstDate), want.firstDate);
+    }
+    if (want.settlement) {
+      const ok = got.settlement === want.settlement && !assumed.has("settlement");
+      check("settlement", ok, shown("settlement", got.settlement), want.settlement);
+    }
     if (want.installments !== undefined)
       check(
         "installments",
