@@ -140,6 +140,7 @@ export default function ReaderLabScreen() {
           collected.push({
             id,
             passed: 0,
+            landed: 0,
             total: fixture.expect.length,
             lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
             raw: "",
@@ -154,13 +155,14 @@ export default function ReaderLabScreen() {
   const scorecard = () => {
     const tally = (tag: string) => {
       const mine = scores.filter((s) => s.id.startsWith(`${tag} · `));
-      return `${mine.reduce((n, s) => n + s.passed, 0)}/${mine.reduce((n, s) => n + s.total, 0)}`;
+      const total = mine.reduce((n, s) => n + s.total, 0);
+      return `read ${mine.reduce((n, s) => n + s.passed, 0)}/${total}, lands right ${mine.reduce((n, s) => n + s.landed, 0)}/${total}`;
     };
     return [
       `## Reader fixtures · ${today()} · current ${tally("current")} · mid ${tally("mid")}`,
       ...scores.flatMap((s) => [
         "",
-        `### ${s.id} · ${s.passed}/${s.total}`,
+        `### ${s.id} · read ${s.passed}/${s.total} · lands right ${s.landed}/${s.total}`,
         ...s.lines,
         "",
         "Raw:",
@@ -236,7 +238,7 @@ export default function ReaderLabScreen() {
       {scores.map((s) => (
         <View key={s.id} style={styles.card}>
           <Text style={styles.cardTitle}>
-            {s.id} · {s.passed}/{s.total}
+            {s.id} · read {s.passed}/{s.total} · right {s.landed}/{s.total}
           </Text>
           <Text style={styles.mono} selectable>
             {s.lines.join("\n")}

@@ -176,7 +176,10 @@ export const READER_FIXTURES: Fixture[] = [
 
 export interface FixtureScore {
   id: string;
+  /** Checks the model READ (a defaulted field is a miss). */
   passed: number;
+  /** Checks whose final value is right, defaults included: what the user sees. */
+  landed: number;
   total: number;
   lines: string[];
 }
@@ -201,11 +204,14 @@ export function scoreFixture(
   });
   const lines: string[] = [];
   let passed = 0;
+  let landed = 0;
   let total = 0;
-  const check = (label: string, ok: boolean, got: unknown, want: unknown) => {
+  const check = (label: string, ok: boolean, got: unknown, want: unknown, right = ok) => {
     total += 1;
     if (ok) passed += 1;
-    lines.push(`  ${ok ? "ok " : "NO "}${label}: want ${String(want)}, got ${String(got)}`);
+    if (right) landed += 1;
+    const mark = ok ? "ok " : right ? "def" : "NO ";
+    lines.push(`  ${mark} ${label}: want ${String(want)}, got ${String(got)}`);
   };
   for (const want of fixture.expect) {
     const draft = result.drafts.find((d) =>
@@ -215,6 +221,7 @@ export function scoreFixture(
     total += 1;
     if (!draft) continue;
     passed += 1;
+    landed += 1;
     const got = read(draft);
     // A field the parser had to default was NOT read, whatever it defaulted to.
     const assumed = new Set<string>(draft.assumedFields);
@@ -223,28 +230,45 @@ export function scoreFixture(
     if (want.amount !== undefined)
       check("amount", got.amount === want.amount, got.amount, want.amount);
     if (want.currency) {
-      const ok = got.currency === want.currency && !assumed.has("currency");
-      check("currency", ok, shown("currency", got.currency), want.currency);
+      const right = got.currency === want.currency;
+      check(
+        "currency",
+        right && !assumed.has("currency"),
+        shown("currency", got.currency),
+        want.currency,
+        right,
+      );
     }
     if (want.cadence) {
-      const ok =
-        !assumed.has("cadence") &&
-        got.cadence?.unit === want.cadence.unit &&
-        got.cadence?.interval === want.cadence.interval;
+      const right =
+        got.cadence?.unit === want.cadence.unit && got.cadence?.interval === want.cadence.interval;
       check(
         "cadence",
-        ok,
+        right && !assumed.has("cadence"),
         shown("cadence", got.cadence ? `${got.cadence.interval} ${got.cadence.unit}` : "none"),
         `${want.cadence.interval} ${want.cadence.unit}`,
+        right,
       );
     }
     if (want.firstDate) {
-      const ok = got.firstDate === want.firstDate && !assumed.has("firstDate");
-      check("firstDate", ok, shown("firstDate", got.firstDate), want.firstDate);
+      const right = got.firstDate === want.firstDate;
+      check(
+        "firstDate",
+        right && !assumed.has("firstDate"),
+        shown("firstDate", got.firstDate),
+        want.firstDate,
+        right,
+      );
     }
     if (want.settlement) {
-      const ok = got.settlement === want.settlement && !assumed.has("settlement");
-      check("settlement", ok, shown("settlement", got.settlement), want.settlement);
+      const right = got.settlement === want.settlement;
+      check(
+        "settlement",
+        right && !assumed.has("settlement"),
+        shown("settlement", got.settlement),
+        want.settlement,
+        right,
+      );
     }
     if (want.installments !== undefined)
       check(
@@ -259,7 +283,7 @@ export function scoreFixture(
     if (defaulted.length) lines.push(`  (defaulted: ${defaulted.join(", ")})`);
   }
   if (result.skipped) lines.push(`  ${result.skipped} skipped by the parser`);
-  return { id: fixture.id, passed, total, lines };
+  return { id: fixture.id, passed, landed, total, lines };
 }
 
 function read(draft: ImportDraft): {
