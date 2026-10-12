@@ -102,7 +102,7 @@ export default function KeelReadsPreviewScreen() {
     >
       <Stack.Screen options={{ title: t("keelReads.previewTitle") }} />
 
-      <AiHero icon="eye" text={t("keelReads.previewHint", { count: draft.screenshots })} />
+      <AiHero icon="eye" text={t("keelReads.previewHint")} />
 
       {/* What the scrubber took out, by kind: the user knows what is
           already gone and what remains their call (names, addresses). */}

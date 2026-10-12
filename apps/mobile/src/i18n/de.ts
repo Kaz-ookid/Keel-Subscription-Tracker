@@ -496,7 +496,7 @@ export const de: typeof en = {
     changedAt: "geändert",
     emptyTitle: "Noch keine Preisänderungen",
     emptyHint:
-      "Wird der Preis eines Postens geändert, landet sein Verlauf hier, und du siehst genau, wie weit er sich vom Abschlusspreis entfernt hat.",
+      "Wird der Preis eines Eintrags bearbeitet, landet sein Verlauf hier, und du siehst, wie weit er vom Startpreis abgewichen ist.",
   },
   accounts: {
     archiveTitle: "Konto archivieren",
@@ -541,14 +541,13 @@ export const de: typeof en = {
     graceNow: "Sofort",
     grace1: "Nach 1 Minute",
     grace5: "Nach 5 Minuten",
-    footer:
-      "Nutzt Face ID und den Code deines Geräts. Nichts zu merken, und nichts verlässt dein iPhone.",
+    footer: "Nutzt Face ID und den Code deines Geräts. Nichts Neues zu merken.",
     prompt: "Keel entsperren",
     confirmPrompt: "Bestätige, dass du es bist, um die Sperre einzuschalten",
     disablePrompt: "Bestätige, dass du es bist, um die Sperre auszuschalten",
     lockedSub: "Deine Abos bleiben privat.",
     lockedSubCode: "Entsperre mit deinem Gerätecode.",
-    failedSub: "Hat nicht geklappt. Versuch es einfach nochmal.",
+    failedSub: "Nicht erkannt. Versuch es noch einmal.",
     unlock: "Entsperren",
   },
   logos: {
@@ -584,7 +583,7 @@ export const de: typeof en = {
   settings: {
     aiFeatures: "KI-Funktionen",
     aiFeaturesFooter:
-      "Aus entfernt jede KI-Funktion und jeden Einstieg aus der App. Deine Daten und der KI-Verlauf bleiben unberührt.",
+      "Aus entfernt jede KI-Funktion und jeden Einstieg aus der App. Deine Daten und der KI-Verlauf bleiben.",
     groupGeneral: "Allgemein",
     groupPrivacy: "Privatsphäre",
     groupBackup: "Backup",
@@ -609,8 +608,7 @@ export const de: typeof en = {
     importAI: "Mit KI importieren",
     exportBackup: "Backup exportieren",
     restoreBackup: "Backup wiederherstellen",
-    backupFooter:
-      "Eine einfache Datei, die dir gehört. Nichts verlässt dein iPhone, außer du teilst sie.",
+    backupFooter: "Eine einfache Datei. Sie verlässt dein iPhone nur, wenn du sie teilst.",
     snapshotSave: "Daten-Snapshot sichern",
     snapshotRestore: "Daten-Snapshot wiederherstellen",
     snapshotOverwriteMsg:
@@ -655,7 +653,7 @@ export const de: typeof en = {
       "Wähle aus bekannten Diensten, oder lass KI eine grobe Liste, Screenshots oder den Export deines alten Trackers lesen. Alles kommt vorausgefüllt an.",
     tour5Title: "45 Tage lang gratis",
     tour5Body:
-      "Alles ist freigeschaltet, und die Uhr startet erst mit deinem ersten Eintrag. Nach 45 Tagen zeigt Keel weiter alles: deine Liste, deine Diagramme, deinen Verlauf, und deine Daten bleiben jederzeit exportierbar. Hinzufügen, Bearbeiten, Erinnerungen und Widgets brauchen dann Full Keel. Ein Kauf, nichts verlängert sich. Und die Familienfreigabe deckt bis zu 5 Personen ab.",
+      "Alles ist 45 Tage lang offen, gezählt ab deinem ersten Eintrag. Danach siehst du weiter alles und kannst es exportieren. Hinzufügen, Bearbeiten, Erinnerungen und Widgets brauchen Full Keel: ein einmaliger Kauf, geteilt mit deiner Apple-Familie.",
     skip: "Überspringen",
     next: "Weiter",
     continue: "Fortfahren",
@@ -704,17 +702,17 @@ export const de: typeof en = {
   },
   fullkeel: {
     title: "Full Keel",
-    subtitle: "Ein Kauf. Nichts verlängert sich.",
-    priceTag: "Testpreis, für immer deiner",
-    priceNote: "Wer während der Testzeit kauft, sichert sich diesen Preis. Danach {{later}}.",
+    subtitle: "Ein einmaliger Kauf, kein Abo.",
+    priceTag: "Testpreis",
+    priceNote: "Dieser Preis gilt, solange deine Testzeit läuft. Danach sind es {{later}}.",
     priceTagLater: "Einmaliger Kauf",
-    priceNoteLater: "Für immer deins. Kein Abo, nichts zu kündigen.",
+    priceNoteLater: "Kein Abo, nichts zu kündigen.",
     includeTools: "Hinzufügen, Bearbeiten, Erinnerungen und Widgets",
     includeAi: "Alle Importe und KI-Werkzeuge",
-    includeFuture: "Jede Premium-Funktion, die Keel je bekommt",
-    includeFamily: "Geteilt mit deiner Apple-Familie, bis zu 5 Personen",
+    includeFuture: "Jede später hinzugefügte Bezahlfunktion",
+    includeFamily: "Geteilt mit deiner Apple-Familie, bis zu sechs Personen",
     honesty:
-      "Deine Daten, deine Diagramme, Bezahlt-Markieren und Exporte bleiben für immer gratis, mit oder ohne Kauf. Full Keel bringt die Werkzeuge zurück, und es ist auch das Dankeschön.",
+      "Ansehen, Diagramme, Bezahlt-Markieren und Export bleiben gratis, mit oder ohne Kauf. Full Keel bringt die Bearbeitungswerkzeuge, und so wird Keel bezahlt.",
     cta: "Full Keel holen",
     restore: "Kauf wiederherstellen",
     buyFailTitle: "Das hat nicht geklappt",
@@ -738,26 +736,25 @@ export const de: typeof en = {
   trial: {
     startedTitle: "Deine 45 Tage starten heute",
     startedBody:
-      "Keel gehört dir komplett bis zum {{date}}. Danach siehst du weiter alles, kannst als bezahlt markieren und deine Daten jederzeit exportieren. Hinzufügen und Bearbeiten brauchen dann Full Keel, einen einmaligen Kauf. Nichts verlängert sich, nichts zu kündigen.",
+      "Alles ist offen bis {{date}}. Danach siehst du weiter alles, markierst bezahlt und exportierst deine Daten. Hinzufügen und Bearbeiten brauchen dann Full Keel, einen einmaligen Kauf.",
     warnBody:
-      "Danach wird Keel schreibgeschützt. Ein Kauf behält alle Werkzeuge, zum Testpreis solange deine Uhr noch läuft.",
+      "Danach wird Keel schreibgeschützt. Full Keel behält jedes Werkzeug, bis dahin zum Testpreis.",
     daysLeft_one: "Noch {{count}} Testtag",
     daysLeft_other: "Noch {{count}} Testtage",
-    disclosure:
-      "Keel ist 45 Tage lang komplett gratis, ab deinem ersten Eintrag. Danach ein einziger Kauf, nichts verlängert sich.",
+    disclosure: "45 Tage gratis ab deinem ersten Eintrag, danach ein einmaliger Kauf.",
     lockedTitle: "Deine Testzeit ist vorbei",
     lockedBody:
-      "Keel ist jetzt schreibgeschützt. Alles bleibt erhalten, und ein einziger Kauf bringt die Werkzeuge zurück. Nichts verlängert sich, nie.",
-    keepsTitle: "Für immer deins, gratis",
+      "Keel ist jetzt schreibgeschützt. Alles, was du erfasst hast, ist noch da; Full Keel bringt die Werkzeuge zurück.",
+    keepsTitle: "Bleibt gratis",
     keeps1: "Alles sehen: Liste, Kalender und Verlauf",
-    keeps2: "Analysen und Diagramme, immer aktuell",
-    keeps3: "Als bezahlt markieren und aussetzen, damit die Daten stimmen",
+    keeps2: "Analysen und Diagramme",
+    keeps3: "Bezahlt markieren und überspringen",
     keeps4: "Daten exportieren und sichern",
     unlocksTitle: "Zurück mit Full Keel",
     unlocks1: "Hinzufügen, Bearbeiten und Löschen",
     unlocks2: "Erinnerungen und Widgets",
     unlocks3: "Alle Importe und KI-Werkzeuge",
-    lockedFootnote: "Ein Kauf, für immer. Familienfreigabe inklusive.",
+    lockedFootnote: "Ein einmaliger Kauf. Familienfreigabe inklusive.",
   },
   widgets: {
     locked: "Keel ist gesperrt",
@@ -766,7 +763,7 @@ export const de: typeof en = {
     title: "Über Keel",
     helloTitle: "Hi, ich bin Maxime 👋",
     helloBody:
-      "Ich baue Keel, weil ich einen ruhigen Ort wollte, an dem sich jedes Abo, jede Rechnung und jede Ratenzahlung benimmt. Eine Person, mit Sorgfalt: kein Konto, keine Werbung, kein Tracking. Wenn Keel dir hilft, oder wenn sich etwas falsch anfühlt, will ich das ehrlich gern hören.",
+      "Ich baue Keel, weil ich einen ruhigen Ort wollte, an dem jedes Abo, jede Rechnung und jede Ratenzahlung ihren Platz hat. Keel kommt von einer Person: kein Konto, keine Werbung, kein Tracking. Wenn Keel dir hilft oder sich etwas falsch anfühlt, will ich es wissen.",
     nameDef:
       "der Kiel: das Rückgrat am Rumpf eines Boots, das es aufrecht und ruhig hält, bei jedem Wetter. Genau das ist die Aufgabe hier.",
     groupWeb: "Im Netz",
@@ -777,13 +774,13 @@ export const de: typeof en = {
     ideaSubject: "Keel: Idee",
     writeFooter: "Beides öffnet eine E-Mail an {{email}}. Ich lese alles.",
     translationsNote:
-      "Nur Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind vorerst automatische KI-Übersetzungen. Wenn etwas schief klingt, freue ich mich ehrlich über jeden Hinweis: jede Korrektur macht Keel für alle besser.",
+      "Nur Englisch und Französisch sind von Hand geschrieben; Deutsch, Italienisch und Polnisch sind vorerst automatische KI-Übersetzungen. Wenn eine Formulierung schief klingt, sag es mir: jede Korrektur hilft.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Keel unterstützen",
     rate: "Keel im App Store bewerten",
     share: "Keel weiterempfehlen",
     shareMessage: "Ich verwalte meine Abos und Ratenzahlungen mit Keel:",
-    supportFooter: "Eine Bewertung dauert eine Minute und hilft mehr, als man denkt.",
+    supportFooter: "Eine Bewertung dauert eine Minute und hilft sehr.",
     groupLegal: "Rechtliches",
     privacy: "Datenschutzerklärung",
     terms: "Nutzungsbedingungen",
@@ -839,7 +836,7 @@ export const de: typeof en = {
       "Monatsverlauf und Prognose, Ausgaben nach Kategorie und Konto, und jede erfasste Preisänderung.",
     smoothingTitle: "Jährliches, monatlich portioniert",
     smoothingBody:
-      "Jahreskosten werden in deine Monatszahl eingerechnet, damit dich Jahresrechnungen nie überfallen.",
+      "Jahreskosten werden in deine Monatszahl eingerechnet, damit eine Jahresverlängerung keinen Monat überrascht.",
     groupSetup: "Einrichten & schützen",
     aiTitle: "Mit KI importieren",
     aiBody:
@@ -911,8 +908,7 @@ export const de: typeof en = {
   },
   aiHistory: {
     title: "KI-Verlauf",
-    empty:
-      "Alles, was KI hinzufügt oder ändert, erscheint hier: so behältst du immer den Überblick.",
+    empty: "Alles, was die KI hinzufügt oder ändert, erscheint hier.",
     toolAssistant: "Assistent",
     toolImport: "Import mit eigener KI",
     toolOnDevice: "Von Keel gelesen",
@@ -959,16 +955,12 @@ export const de: typeof en = {
     ownAi: "Stattdessen deine eigene KI verwenden",
     errImage: "In diesem Bild war kein Text lesbar. Versuch einen schärferen Screenshot.",
     previewTitle: "Was Keel gelesen hat",
-    previewHint_one:
-      "Von {{count}} Screenshot gelesen, auf diesem iPhone. Prüfen, Privates entfernen, dann senden.",
-    previewHint_other:
-      "Von {{count}} Screenshots gelesen, auf diesem iPhone. Prüfen, Privates entfernen, dann senden.",
     scrubbed_one:
-      "{{count}} persönliche Angabe automatisch entfernt ({{kinds}}). Namen und Adressen entfernst du selbst.",
+      "{{count}} persönliche Angabe automatisch entfernt ({{kinds}}). Namen und Adressen werden nicht erkannt, entferne sie selbst.",
     scrubbed_other:
-      "{{count}} persönliche Angaben automatisch entfernt ({{kinds}}). Namen und Adressen entfernst du selbst.",
+      "{{count}} persönliche Angaben automatisch entfernt ({{kinds}}). Namen und Adressen werden nicht erkannt, entferne sie selbst.",
     scrubbedNone:
-      "Keine Kartennummern, E-Mails oder Referenzen gefunden. Namen und Adressen entfernst du selbst.",
+      "Keine Kartennummern, E-Mails oder Referenzen gefunden. Namen und Adressen werden nicht erkannt, entferne sie selbst.",
     readPreview: "Senden und lesen",
     kindCard: "Kartennummern",
     kindEmail: "E-Mails",
@@ -988,6 +980,7 @@ export const de: typeof en = {
     offlineTitle: "Du bist offline",
     offlineBody:
       "Keel liest es braucht eine Internetverbindung. Die Anleitung für deine eigene KI lässt sich trotzdem kopieren.",
+    previewHint: "Hier ist der Text aus deiner Auswahl. Prüfe ihn, entferne Privates, dann senden.",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",
@@ -1029,7 +1022,7 @@ export const de: typeof en = {
     digestDay: "Tag",
     digestDayN: "am {{day}}.",
     digestFooter:
-      "Ein Überblick über wartende Zahlungen, zur Erinnerungszeit. Er kommt nur, wenn wirklich etwas überfällig ist.",
+      "Eine Übersicht der noch offenen Zahlungen, zu deiner Erinnerungszeit. Sie kommt nur, wenn etwas überfällig ist.",
   },
   data: {
     title: "iCloud & Daten",

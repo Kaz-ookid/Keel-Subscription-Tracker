@@ -527,7 +527,7 @@ const translation = {
     changedAt: "zmiana",
     emptyTitle: "Jeszcze brak zmian cen",
     emptyHint:
-      "Gdy cena pozycji zostaje zmieniona, jej historia trafia tutaj i widzisz dokładnie, jak daleko odpłynęła od ceny z początku.",
+      "Gdy cena zobowiązania zostanie zmieniona, jej historia trafia tutaj, więc widzisz, jak daleko odeszła od ceny początkowej.",
   },
   accounts: {
     archiveTitle: "Archiwizuj konto",
@@ -572,14 +572,13 @@ const translation = {
     graceNow: "Natychmiast",
     grace1: "Po 1 minucie",
     grace5: "Po 5 minutach",
-    footer:
-      "Używa Face ID i kodu twojego urządzenia. Nic do zapamiętania i nic nie opuszcza telefonu.",
+    footer: "Używa Face ID i kodu twojego urządzenia. Nic nowego do zapamiętania.",
     prompt: "Odblokuj Keel",
     confirmPrompt: "Potwierdź, że to ty, aby włączyć blokadę",
     disablePrompt: "Potwierdź, że to ty, aby wyłączyć blokadę",
     lockedSub: "Twoje subskrypcje pozostają prywatne.",
     lockedSubCode: "Odblokuj kodem urządzenia.",
-    failedSub: "Nie udało się. Spróbuj, kiedy zechcesz.",
+    failedSub: "Nie rozpoznano. Spróbuj ponownie.",
     unlock: "Odblokuj",
   },
   logos: {
@@ -615,7 +614,7 @@ const translation = {
   settings: {
     aiFeatures: "Funkcje AI",
     aiFeaturesFooter:
-      "Wyłączenie usuwa z aplikacji każdą funkcję i wejście AI. Twoje dane i historia AI zostają nietknięte.",
+      "Wyłączone usuwa z aplikacji każdą funkcję AI i każde wejście do niej. Twoje dane i historia AI zostają.",
     groupGeneral: "Ogólne",
     groupPrivacy: "Prywatność",
     groupBackup: "Kopie zapasowe",
@@ -640,8 +639,7 @@ const translation = {
     importAI: "Import z AI",
     exportBackup: "Eksportuj kopię zapasową",
     restoreBackup: "Przywróć kopię zapasową",
-    backupFooter:
-      "Jeden zwykły plik, który należy do ciebie. Nic nie opuszcza telefonu, chyba że sam go udostępnisz.",
+    backupFooter: "Zwykły plik. Opuszcza twój telefon tylko wtedy, gdy go udostępnisz.",
     snapshotSave: "Zapisz migawkę danych",
     snapshotRestore: "Przywróć migawkę danych",
     snapshotOverwriteMsg: "Zastępuje migawkę zapisaną {{date}} danymi, które są teraz w aplikacji.",
@@ -684,7 +682,7 @@ const translation = {
       "Wybierz ze znanych usług, albo daj AI przeczytać listę z grubsza, zrzuty ekranu lub eksport starej aplikacji. Wszystko przyjdzie wypełnione.",
     tour5Title: "Za darmo przez 45 dni",
     tour5Body:
-      "Wszystko jest odblokowane, a zegar rusza dopiero przy pierwszym dodanym zobowiązaniu. Po 45 dniach Keel dalej pokazuje wszystko: listę, wykresy, historię, a dane zawsze można wyeksportować. Dodawanie, edycja, przypomnienia i widżety wymagają wtedy Full Keel. Jeden zakup, nic się nie odnawia. A udostępnianie rodzinne obejmuje do 5 osób.",
+      "Wszystko jest otwarte przez 45 dni, liczonych od pierwszego zobowiązania. Potem nadal widzisz wszystko i możesz to wyeksportować. Dodawanie, edycja, przypomnienia i widżety wymagają Full Keel: jednorazowy zakup, współdzielony z rodziną Apple.",
     skip: "Pomiń",
     next: "Dalej",
     continue: "Kontynuuj",
@@ -735,17 +733,17 @@ const translation = {
   },
   fullkeel: {
     title: "Full Keel",
-    subtitle: "Jeden zakup. Nic się nie odnawia.",
-    priceTag: "Cena z okresu próbnego, na zawsze",
-    priceNote: "Kupując w trakcie okresu próbnego, zatrzymujesz tę cenę. Potem {{later}}.",
+    subtitle: "Jednorazowy zakup, żadnej subskrypcji.",
+    priceTag: "Cena próbna",
+    priceNote: "Ta cena obowiązuje, dopóki trwa okres próbny. Potem to {{later}}.",
     priceTagLater: "Zakup jednorazowy",
-    priceNoteLater: "Twoje na zawsze. Bez subskrypcji, nic do anulowania.",
+    priceNoteLater: "Żadnej subskrypcji, nic do anulowania.",
     includeTools: "Dodawanie, edycja, przypomnienia i widżety",
     includeAi: "Wszystkie importy i narzędzia AI",
-    includeFuture: "Każda przyszła funkcja premium Keel",
-    includeFamily: "Współdzielone z rodziną Apple, do 5 osób",
+    includeFuture: "Każda płatna funkcja dodana później",
+    includeFamily: "Współdzielone z rodziną Apple, do sześciu osób",
     honesty:
-      "Twoje dane, wykresy, oznaczanie jako zapłacone i eksport pozostają darmowe na zawsze, z zakupem czy bez. Full Keel przywraca narzędzia i jest też sposobem, by podziękować.",
+      "Przeglądanie, wykresy, oznaczanie jako opłacone i eksport pozostają darmowe, z zakupem czy bez. Full Keel dodaje narzędzia edycji i tak Keel na siebie zarabia.",
     cta: "Weź Full Keel",
     restore: "Przywróć zakup",
     buyFailTitle: "Nie udało się",
@@ -769,28 +767,27 @@ const translation = {
   trial: {
     startedTitle: "Twoje 45 dni zaczyna się dziś",
     startedBody:
-      "Keel jest w pełni twój do {{date}}. Potem nadal wszystko widzisz, możesz oznaczać jako zapłacone i zawsze eksportować dane. Dodawanie i edycja będą wymagać Full Keel, jednorazowego zakupu. Nic się nie odnawia, nic do anulowania.",
+      "Wszystko jest otwarte do {{date}}. Potem nadal wszystko zobaczysz, oznaczysz jako opłacone i wyeksportujesz dane. Dodawanie i edycja będą wymagać Full Keel, jednorazowego zakupu.",
     warnBody:
-      "Potem Keel przejdzie w tryb tylko do odczytu. Jeden zakup zachowuje wszystkie narzędzia, w cenie próbnej, póki zegar jeszcze tyka.",
+      "Potem Keel przechodzi w tryb tylko do odczytu. Full Keel zachowuje każde narzędzie, do tego czasu w cenie próbnej.",
     daysLeft_one: "Został {{count}} dzień próbny",
     daysLeft_few: "Zostały {{count}} dni próbne",
     daysLeft_many: "Zostało {{count}} dni próbnych",
     daysLeft_other: "Zostało {{count}} dnia próbnego",
-    disclosure:
-      "Keel jest w pełni darmowy przez 45 dni od pierwszego zobowiązania. Potem jeden zakup, nic się nie odnawia.",
+    disclosure: "45 dni za darmo od pierwszego zobowiązania, potem jednorazowy zakup.",
     lockedTitle: "Okres próbny się skończył",
     lockedBody:
-      "Keel jest teraz tylko do odczytu. Wszystko, co śledzisz, wciąż tu jest, a jeden zakup przywraca narzędzia. Nic się nie odnawia, nigdy.",
-    keepsTitle: "Twoje na zawsze, za darmo",
+      "Keel jest teraz tylko do odczytu. Wszystko, co śledzisz, nadal tu jest; Full Keel przywraca narzędzia.",
+    keepsTitle: "Nadal za darmo",
     keeps1: "Widzisz wszystko: listę, kalendarz i historię",
-    keeps2: "Analizy i wykresy, zawsze aktualne",
-    keeps3: "Oznaczanie jako zapłacone i pomijanie, by dane były uczciwe",
+    keeps2: "Analizy i wykresy",
+    keeps3: "Oznaczanie jako opłacone i pomijanie",
     keeps4: "Eksport i kopie zapasowe danych",
     unlocksTitle: "Wraca z Full Keel",
     unlocks1: "Dodawanie, edycja i usuwanie",
     unlocks2: "Przypomnienia i widżety",
     unlocks3: "Wszystkie importy i narzędzia AI",
-    lockedFootnote: "Jeden zakup, na zawsze. Udostępnianie rodzinne w zestawie.",
+    lockedFootnote: "Jednorazowy zakup. Chmura rodzinna w cenie.",
   },
   widgets: {
     locked: "Keel jest zablokowany",
@@ -799,7 +796,7 @@ const translation = {
     title: "O Keel",
     helloTitle: "Cześć, jestem Maxime 👋",
     helloBody:
-      "Buduję Keel, bo chciałem jednego spokojnego miejsca, w którym każda subskrypcja, rachunek i rata zachowują się jak należy. Robi to jedna osoba, starannie: bez konta, bez reklam, bez śledzenia. Jeśli Keel ci pomaga, albo coś tu zgrzyta, naprawdę chcę o tym usłyszeć.",
+      "Tworzę Keel, bo chciałem jednego spokojnego miejsca, w którym każda subskrypcja, rachunek i płatność ratalna są pod kontrolą. Keel robi jedna osoba: bez konta, bez reklam, bez śledzenia. Jeśli Keel ci pomaga albo coś nie gra, chcę o tym wiedzieć.",
     nameDef:
       "kil: kręgosłup na dnie łodzi, ta część, która trzyma ją prosto i stabilnie w każdą pogodę. Dokładnie to jest tu zadaniem.",
     groupWeb: "W sieci",
@@ -810,13 +807,13 @@ const translation = {
     ideaSubject: "Keel: pomysł",
     writeFooter: "Oba otwierają e-mail do {{email}}. Czytam wszystko.",
     translationsNote:
-      "Tylko angielski i francuski powstają ręcznie; niemiecki, włoski i polski to na razie automatyczne tłumaczenia AI. Jeśli coś brzmi nie tak, szczerze docenię każdą uwagę: każda poprawka czyni Keel lepszym dla wszystkich.",
+      "Tylko angielski i francuski są pisane ręcznie; niemiecki, włoski i polski to na razie automatyczne tłumaczenia AI. Jeśli jakieś sformułowanie brzmi źle, napisz: każda poprawka pomaga.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Wesprzyj Keel",
     rate: "Oceń Keel w App Store",
     share: "Poleć Keel znajomym",
     shareMessage: "Subskrypcje i raty ogarniam w Keel:",
-    supportFooter: "Ocena zajmuje minutę, a pomaga bardziej, niż myślisz.",
+    supportFooter: "Ocena zajmuje minutę i bardzo pomaga.",
     groupLegal: "Informacje prawne",
     privacy: "Polityka prywatności",
     terms: "Warunki korzystania",
@@ -872,7 +869,7 @@ const translation = {
       "Historia miesięczna i prognoza, wydatki według kategorii i konta, i każda zapisana zmiana ceny.",
     smoothingTitle: "Roczne, w miesięcznym rozmiarze",
     smoothingBody:
-      "Koszty roczne są wygładzane do twojej liczby miesięcznej, żeby żadne odnowienie nie zaskoczyło żadnego miesiąca.",
+      "Koszty roczne są rozłożone na twoją kwotę miesięczną, więc roczne odnowienie nigdy nie zaskakuje w żadnym miesiącu.",
     groupSetup: "Konfiguracja i ochrona",
     aiTitle: "Import z AI",
     aiBody:
@@ -949,8 +946,7 @@ const translation = {
   },
   aiHistory: {
     title: "Historia AI",
-    empty:
-      "Wszystko, co AI doda lub zmieni, pojawia się tutaj, więc nigdy nie tracisz pełnego obrazu.",
+    empty: "Wszystko, co AI dodaje lub zmienia, pojawia się tutaj.",
     toolAssistant: "Asystent",
     toolImport: "Import z twoją AI",
     toolOnDevice: "Przeczytane przez Keel",
@@ -1001,16 +997,12 @@ const translation = {
     ownAi: "Użyj zamiast tego własnej AI",
     errImage: "Nie udało się odczytać tekstu z tego obrazu. Spróbuj ostrzejszego zrzutu.",
     previewTitle: "Co odczytał Keel",
-    previewHint_one:
-      "Odczytane z {{count}} zrzutu ekranu, na tym iPhonie. Sprawdź, usuń to, co wolisz zachować dla siebie, i wyślij.",
-    previewHint_other:
-      "Odczytane z {{count}} zrzutów ekranu, na tym iPhonie. Sprawdź, usuń to, co wolisz zachować dla siebie, i wyślij.",
     scrubbed_one:
-      "{{count}} dana osobowa usunięta automatycznie ({{kinds}}). Imiona i adresy usuwasz sam.",
+      "{{count}} dana osobowa usunięta automatycznie ({{kinds}}). Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
     scrubbed_other:
-      "{{count}} danych osobowych usuniętych automatycznie ({{kinds}}). Imiona i adresy usuwasz sam.",
+      "{{count}} danych osobowych usuniętych automatycznie ({{kinds}}). Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
     scrubbedNone:
-      "Nie znaleziono numerów kart, e-maili ani numerów referencyjnych. Imiona i adresy usuwasz sam.",
+      "Nie znaleziono numerów kart, e-maili ani numerów referencyjnych. Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
     readPreview: "Wyślij i odczytaj",
     kindCard: "numery kart",
     kindEmail: "e-maile",
@@ -1030,6 +1022,12 @@ const translation = {
     offlineTitle: "Jesteś offline",
     offlineBody:
       "Keel czyta za ciebie wymaga połączenia z internetem. Instrukcje dla twojej własnej AI nadal można skopiować.",
+    previewHint:
+      "Oto tekst odczytany z tego, co wybrano. Sprawdź go, usuń to, co prywatne, i wyślij.",
+    scrubbed_few:
+      "{{count}} dane osobowe usunięte automatycznie ({{kinds}}). Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
+    scrubbed_many:
+      "{{count}} danych osobowych usuniętych automatycznie ({{kinds}}). Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
   },
   notifications: {
     bodyToday: "{{amount}} do zapłaty dziś",
@@ -1076,7 +1074,7 @@ const translation = {
     digestDay: "Dzień",
     digestDayN: "{{day}}. dnia",
     digestFooter:
-      "Podsumowanie czekających płatności, o godzinie przypomnień. Przychodzi tylko wtedy, gdy coś naprawdę zalega.",
+      "Podsumowanie wciąż oczekujących płatności, o porze twoich przypomnień. Przychodzi tylko wtedy, gdy coś jest zaległe.",
   },
   data: {
     title: "iCloud i dane",

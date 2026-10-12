@@ -492,7 +492,7 @@ export const en = {
     changedAt: "changed",
     emptyTitle: "No price changes yet",
     emptyHint:
-      "When a commitment's price is edited, its history lands here, and you'll see exactly how far it drifted from what you signed up for.",
+      "When a commitment's price is edited, its history lands here, so you can see how far it drifted from the signup price.",
   },
   accounts: {
     archiveTitle: "Archive account",
@@ -537,14 +537,13 @@ export const en = {
     graceNow: "Immediately",
     grace1: "After 1 minute",
     grace5: "After 5 minutes",
-    footer:
-      "Uses your device's Face ID and passcode. Nothing to remember, and nothing leaves your phone.",
+    footer: "Uses your device's Face ID and passcode. Nothing new to remember.",
     prompt: "Unlock Keel",
     confirmPrompt: "Confirm it's you to turn on the lock",
     disablePrompt: "Confirm it's you to turn off the lock",
     lockedSub: "Your subscriptions stay private.",
     lockedSubCode: "Unlock with your device code.",
-    failedSub: "Didn't match. Try again whenever you're ready.",
+    failedSub: "Didn't match. Try again.",
     unlock: "Unlock",
   },
   logos: {
@@ -580,7 +579,7 @@ export const en = {
   settings: {
     aiFeatures: "AI features",
     aiFeaturesFooter:
-      "Off removes every AI feature and entry point from the app. Your data and AI history stay untouched.",
+      "Off removes every AI feature and entry point from the app. Your data and AI history stay.",
     groupGeneral: "General",
     groupPrivacy: "Privacy",
     groupBackup: "Backup",
@@ -605,7 +604,7 @@ export const en = {
     importAI: "Import with AI",
     exportBackup: "Export backup",
     restoreBackup: "Restore backup",
-    backupFooter: "One plain file you keep. Nothing leaves your phone unless you share it.",
+    backupFooter: "A plain file. It leaves your phone only when you share it.",
     snapshotSave: "Save data snapshot",
     snapshotRestore: "Restore data snapshot",
     snapshotOverwriteMsg:
@@ -650,7 +649,7 @@ export const en = {
       "Pick from known services, or let AI read a rough list, screenshots, or your old tracker's export. Everything arrives pre-filled.",
     tour5Title: "Free for 45 days",
     tour5Body:
-      "Everything is unlocked, and the clock only starts when you add your first commitment. After 45 days Keel keeps showing everything: your list, your charts, your history, and your data can always be exported. Adding, editing, reminders and widgets then need Full Keel. One purchase, nothing renews. And Family Sharing covers up to 5 people.",
+      "Everything is open for 45 days, counted from your first commitment. After that you still see everything and can export it. Adding, editing, reminders and widgets need Full Keel: a one-time purchase, shared with your Apple Family.",
     skip: "Skip",
     next: "Next",
     continue: "Continue",
@@ -699,17 +698,17 @@ export const en = {
   },
   fullkeel: {
     title: "Full Keel",
-    subtitle: "One purchase. Nothing renews.",
-    priceTag: "Trial price, yours to keep",
-    priceNote: "Buying while your trial runs locks this price. It is {{later}} after.",
+    subtitle: "A one-time purchase, no subscription.",
+    priceTag: "Trial price",
+    priceNote: "This price holds while your trial runs. It is {{later}} after.",
     priceTagLater: "One-time purchase",
-    priceNoteLater: "Yours for good. No subscription, nothing to cancel.",
+    priceNoteLater: "No subscription, nothing to cancel.",
     includeTools: "Adding, editing, reminders and widgets",
     includeAi: "Every import and AI tool",
-    includeFuture: "Every premium feature Keel ever adds",
-    includeFamily: "Shared with your Apple Family, up to 5 people",
+    includeFuture: "Every paid feature added later",
+    includeFamily: "Shared with your Apple Family, up to six people",
     honesty:
-      "Your data, your charts, marking paid and exports stay free forever, purchase or not. Full Keel brings the working tools, and it is also the way to say thanks.",
+      "Viewing, charts, marking paid and exports stay free, purchase or not. Full Keel adds the editing tools, and it is how Keel gets paid.",
     cta: "Get Full Keel",
     restore: "Restore purchase",
     buyFailTitle: "That didn't go through",
@@ -733,26 +732,25 @@ export const en = {
   trial: {
     startedTitle: "Your 45 days start today",
     startedBody:
-      "Keel is fully yours until {{date}}. After that you will still see everything, mark things paid and export your data anytime. Adding and editing will need Full Keel, a one-time purchase. Nothing renews, nothing to cancel.",
+      "Everything is open until {{date}}. After that you can still see everything, mark things paid and export your data. Adding and editing will need Full Keel, a one-time purchase.",
     warnBody:
-      "After that, Keel goes read-only. One purchase keeps every tool, at the trial price while your clock still runs.",
+      "After that, Keel goes read-only. Full Keel keeps every tool, at the trial price until then.",
     daysLeft_one: "{{count}} trial day left",
     daysLeft_other: "{{count}} trial days left",
-    disclosure:
-      "Keel is free in full for 45 days from your first commitment. One purchase after, nothing renews.",
+    disclosure: "Free for 45 days from your first commitment, then a one-time purchase.",
     lockedTitle: "Your trial has ended",
     lockedBody:
-      "Keel went read-only. Everything you tracked is still here, and one purchase brings the tools back. Nothing renews, ever.",
-    keepsTitle: "Yours forever, free",
+      "Keel is read-only now. Everything you tracked is still here; Full Keel brings the tools back.",
+    keepsTitle: "Still free",
     keeps1: "Seeing everything: your list, calendar and history",
-    keeps2: "Insights and charts, always current",
-    keeps3: "Marking paid and skipping, so your data stays honest",
+    keeps2: "Insights and charts",
+    keeps3: "Marking paid and skipping",
     keeps4: "Exporting and backing up your data",
     unlocksTitle: "Back with Full Keel",
     unlocks1: "Adding, editing and deleting commitments",
     unlocks2: "Reminders and widgets",
     unlocks3: "Every import and AI tool",
-    lockedFootnote: "One purchase, yours for good. Family Sharing included.",
+    lockedFootnote: "A one-time purchase. Family Sharing included.",
   },
   widgets: {
     locked: "Keel is locked",
@@ -761,7 +759,7 @@ export const en = {
     title: "About Keel",
     helloTitle: "Hi, I'm Maxime 👋",
     helloBody:
-      "I build Keel because I wanted one calm place where every subscription, bill and split payment behaves. It's made by one person, with care: no account, no ads, no tracking. If Keel helps you, or if something feels off, I genuinely want to hear it.",
+      "I build Keel because I wanted one calm place where every subscription, bill and split payment behaves. It's made by one person: no account, no ads, no tracking. If Keel helps you, or if something feels off, I want to hear it.",
     nameDef:
       "the spine along the bottom of a boat: the part that keeps it steady and upright, whatever the weather. That's the job here.",
     groupWeb: "On the web",
@@ -772,13 +770,13 @@ export const en = {
     ideaSubject: "Keel: idea",
     writeFooter: "Both open an email to {{email}}. I read everything.",
     translationsNote:
-      "Only English and French are written by hand; German, Italian and Polish are automatic AI translations for now. If a wording feels off, I'd honestly appreciate hearing it: every correction makes Keel better for everyone.",
+      "Only English and French are written by hand; German, Italian and Polish are automatic AI translations for now. If a wording feels off, tell me: every correction helps.",
     mailDetails: "Keel {{version}}, {{os}}",
     groupSupport: "Support Keel",
     rate: "Rate Keel on the App Store",
     share: "Recommend Keel to a friend",
     shareMessage: "I track my subscriptions and split payments with Keel:",
-    supportFooter: "A rating takes a minute and helps more than you'd think.",
+    supportFooter: "A rating takes a minute and helps a lot.",
     groupLegal: "Legal",
     privacy: "Privacy policy",
     terms: "Terms of use",
@@ -833,7 +831,7 @@ export const en = {
       "Monthly history and forecast, spending by category and by account, and every price change on record.",
     smoothingTitle: "Yearly, monthly-sized",
     smoothingBody:
-      "Annual costs are smoothed into your monthly number, so the yearly renewals never ambush a month.",
+      "Annual costs are smoothed into your monthly number, so a yearly renewal never surprises a month.",
     groupSetup: "Set up & protect",
     aiTitle: "Import with AI",
     aiBody:
@@ -904,7 +902,7 @@ export const en = {
   },
   aiHistory: {
     title: "AI history",
-    empty: "Everything AI adds or changes shows up here, so you always keep the full picture.",
+    empty: "Everything AI adds or changes shows up here.",
     toolAssistant: "Assistant",
     toolImport: "Your AI import",
     toolOnDevice: "Keel read it",
@@ -949,16 +947,12 @@ export const en = {
     ownAi: "Use your own AI instead",
     errImage: "Couldn't read any text from that image. Try a sharper screenshot.",
     previewTitle: "What Keel read",
-    previewHint_one:
-      "Read off {{count}} screenshot, on this iPhone. Check it, remove anything you'd rather keep private, then send.",
-    previewHint_other:
-      "Read off {{count}} screenshots, on this iPhone. Check it, remove anything you'd rather keep private, then send.",
     scrubbed_one:
-      "{{count}} personal detail removed automatically ({{kinds}}). Names and addresses are yours to remove.",
+      "{{count}} personal detail removed automatically ({{kinds}}). Names and addresses are not detected, so remove them yourself.",
     scrubbed_other:
-      "{{count}} personal details removed automatically ({{kinds}}). Names and addresses are yours to remove.",
+      "{{count}} personal details removed automatically ({{kinds}}). Names and addresses are not detected, so remove them yourself.",
     scrubbedNone:
-      "No card numbers, emails or references found. Names and addresses are yours to remove.",
+      "No card numbers, emails or references found. Names and addresses are not detected, so remove them yourself.",
     readPreview: "Send and read",
     kindCard: "card numbers",
     kindEmail: "emails",
@@ -978,6 +972,8 @@ export const en = {
     offlineTitle: "You're offline",
     offlineBody:
       "Keel reads it needs an internet connection. Your own AI's instructions can still be copied.",
+    previewHint:
+      "Here is the text from what you picked. Check it, remove anything private, then send.",
   },
   notifications: {
     bodyToday: "{{amount}} due today",
@@ -1019,7 +1015,7 @@ export const en = {
     digestDay: "Day",
     digestDayN: "the {{day}}.",
     digestFooter:
-      "A recap of payments still waiting, at your reminder time. It only fires when something is actually overdue.",
+      "A recap of payments still waiting, at your reminder time. It fires only when something is overdue.",
   },
   data: {
     title: "iCloud & data",
