@@ -55,6 +55,11 @@ const NAME_AMOUNT = /\d+(?:[.,]\d+)?\s*(?:€|\$|£|chf|eur|usd|gbp|hkd|cad|aud|
 const NAME_ARTICLE = /^(?:a|an|un|une)\s/i;
 const NAME_PLACEHOLDER = /\b(?:payment|purchase|paiement|achat|unknown|inconnu)\b/i;
 
+// The words a person uses when they are behind; without one of them in the
+// material, a model's "unpaid" flag is its own invention.
+const UNPAID_WORDS =
+  /(?<![\p{L}\p{N}])(?:unpaid|not paid|overdue|behind|late|outstanding|arrears|impay[ée]e?s?|pas pay[ée]e?s?|non pay[ée]e?s?|en retard|nicht bezahlt|unbezahlt|offen|überfällig|rückstand|non pagat[oi]|in ritardo|arretrat[oi]|nieop[łl]acon[ey]|zaleg[łl][eyao]*)(?![\p{L}\p{N}])/iu;
+
 function isSuspectName(name: string): boolean {
   // Length FIRST: it is a verdict on its own, and it caps what the regexes
   // ever see (NAME_AMOUNT backtracks quadratically on long digit runs — a
@@ -306,8 +311,14 @@ function parseItem(
     item.firstDate ?? facts.firstDate,
     item.billingDay ?? facts.billingDay,
   );
-  // Assume the user paid what was due so far, unless the input said otherwise.
-  const settlePast = item.backlogUnpaid !== true;
+  // Assume the user paid what was due so far, unless the input said
+  // otherwise. The model sets the flag on documents that say nothing of the
+  // kind (an invoice came back "unpaid"), so with the material at hand the
+  // flag counts only when the text itself speaks of unpaid or overdue.
+  const settlePast = !(
+    item.backlogUnpaid === true &&
+    (!ctx.material || UNPAID_WORDS.test(ctx.material))
+  );
   // The review report. Assumptions are COMPUTED (each absent field the
   // reader defaulted), merged with anything a v1 reply self-declared, in
   // stable field order — assembled at RETURN time, after the branches have
@@ -495,8 +506,8 @@ function foldPriceChangeSplits(drafts: ImportDraft[]): ImportDraft[] {
 export function parseImportDocument(raw: string, ctx: ImportContext): ImportParseResult {
   const document = asRecord(extractImportDocument(raw));
   const items = document && Array.isArray(document.items) ? document.items : null;
-  if (!items) return { drafts: [], skipped: 0, error: "no-json" };
-  if (items.length === 0) return { drafts: [], skipped: 0, error: "empty" };
+  if (!items) return { drafts: [], skipped: 0, skippedNames: [], error: "no-json" };
+  if (items.length === 0) return { drafts: [], skipped: 0, skippedNames: [], error: "empty" };
 
   const takenNames = new Set((ctx.takenNames ?? []).map((n) => n.trim().toLowerCase()));
   const drafts: ImportDraft[] = [];
@@ -504,10 +515,15 @@ export function parseImportDocument(raw: string, ctx: ImportContext): ImportPars
   // unbounded pasted document must not allocate without limit.
   const bounded = items.slice(0, 500);
   let skipped = items.length - bounded.length;
+  const skippedNames: string[] = [];
   for (const value of bounded) {
     const draft = parseItem(value, `draft-${drafts.length + 1}`, ctx, takenNames);
     if (draft) drafts.push(draft);
-    else skipped++;
+    else {
+      skipped++;
+      const name = asTrimmedString(asRecord(value)?.name);
+      if (name) skippedNames.push(name);
+    }
   }
-  return { drafts: foldPriceChangeSplits(drafts), skipped };
+  return { drafts: foldPriceChangeSplits(drafts), skipped, skippedNames };
 }

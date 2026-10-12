@@ -170,6 +170,8 @@ export interface ImportParseResult {
   drafts: ImportDraft[];
   /** Items present in the document that were too broken to become drafts. */
   skipped: number;
+  /** Their names, when they had one, so the review can say what was lost. */
+  skippedNames: string[];
   /** Set only when the whole paste yielded nothing usable. */
   error?: ImportParseError;
 }

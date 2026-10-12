@@ -72,7 +72,7 @@ export default function KeelReadsImportScreen() {
       setError(outcome.error);
       return;
     }
-    startSession(outcome.drafts, outcome.skipped, "ondevice_import");
+    startSession(outcome.drafts, outcome.skipped, "ondevice_import", outcome.skippedNames);
     router.push("/add/import-review");
   };
 

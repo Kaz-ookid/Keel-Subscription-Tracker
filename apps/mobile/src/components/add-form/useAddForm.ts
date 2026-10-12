@@ -382,6 +382,11 @@ export function useAddForm(prefill?: SuggestionPrefill) {
   // manual ones associate by default (so it shows in per-account analytics).
   const isAutomatic = settlementMode === "automatic";
   const selectedAccount = accounts.find((a) => a.id === accountId);
+  // An import draft can name an account that does not exist yet: it is
+  // created when the review confirms, so the form shows it as pending
+  // instead of asking the user to choose one. Picking a real account
+  // replaces it.
+  const pendingAccountName = !accountId ? draft?.accountName : undefined;
   // Selecting an account DEFAULTS the currency to the account's (see
   // selectAccount) but never locks it — a CHF card can pay a USD
   // subscription; the charge is stored in what the merchant bills.
@@ -653,6 +658,7 @@ export function useAddForm(prefill?: SuggestionPrefill) {
     endDateOptions,
     selectedCategory,
     selectedAccount,
+    pendingAccountName,
     effectiveCurrency,
     installmentPreview,
     // Unsaved-changes guard

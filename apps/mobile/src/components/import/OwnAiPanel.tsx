@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { AiHero } from "../ai/AiHero";
 import { InfoPopup } from "../InfoPopup";
 import { Button } from "../ui/Button";
 import { useAppData } from "../../state/app-state";
@@ -71,7 +72,7 @@ export function OwnAiPanel() {
       return;
     }
     setError(null);
-    startSession(result.drafts, result.skipped);
+    startSession(result.drafts, result.skipped, "byo_import", result.skippedNames);
     router.push("/add/import-review");
   };
 
@@ -100,6 +101,7 @@ export function OwnAiPanel() {
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
     >
+      <AiHero text={t("importAI.ownAiHero")} />
       {/* The three steps — short, numbered, nothing else on the main path. */}
       <View style={styles.card}>
         <StepRow n={1} text={t("importAI.step1")} styles={styles} />

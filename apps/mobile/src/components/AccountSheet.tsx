@@ -226,10 +226,13 @@ interface EditProps {
   onClose: () => void;
   /** Edit this account; omit to create a new one. */
   account?: Account;
+  /** Called with the account just created (the review screen puts the
+   *  draft on it); not called on an edit. */
+  onCreated?: (account: Account) => void;
 }
 
 /** Create/edit sheet used by the Accounts tab. */
-export function AccountEditSheet({ visible, onClose, account }: EditProps) {
+export function AccountEditSheet({ visible, onClose, account, onCreated }: EditProps) {
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { addAccount, updateAccount } = useAppActions();
@@ -246,7 +249,7 @@ export function AccountEditSheet({ visible, onClose, account }: EditProps) {
           submitLabel={account ? t("common.save") : t("accounts.addAccount")}
           onSubmit={(input) => {
             if (account) updateAccount(account.id, input);
-            else addAccount(input);
+            else onCreated?.(addAccount(input));
             onClose();
           }}
         />

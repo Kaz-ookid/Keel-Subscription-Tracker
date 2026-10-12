@@ -23,7 +23,7 @@ import {
 import { KeelReadsError, readWithInstructions, type KeelReadsFailure } from "./apple-intelligence";
 
 export type KeelReadOutcome =
-  | { ok: true; drafts: ImportDraft[]; skipped: number; raw: string[] }
+  | { ok: true; drafts: ImportDraft[]; skipped: number; skippedNames: string[]; raw: string[] }
   | { ok: false; error: ImportParseError | KeelReadsFailure };
 
 export interface KeelReadOptions {
@@ -52,6 +52,7 @@ export async function runKeelRead(
     const drafts: ImportDraft[] = [];
     const raw: string[] = [];
     let skipped = 0;
+    const skippedNames: string[] = [];
     let firstError: ImportParseError | undefined;
     const taken = context.items.map((i) => i.name);
     for (const section of sections) {
@@ -74,11 +75,12 @@ export async function runKeelRead(
       });
       drafts.push(...result.drafts);
       skipped += result.skipped;
+      skippedNames.push(...result.skippedNames);
       taken.push(...result.drafts.map((d) => d.input.name));
       if (result.drafts.length === 0 && !firstError) firstError = result.error ?? "empty";
     }
     if (drafts.length === 0) return { ok: false, error: firstError ?? "empty" };
-    return { ok: true, drafts, skipped, raw };
+    return { ok: true, drafts, skipped, skippedNames, raw };
   } catch (failure) {
     return {
       ok: false,

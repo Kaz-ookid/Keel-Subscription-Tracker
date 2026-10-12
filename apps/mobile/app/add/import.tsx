@@ -37,7 +37,7 @@ function ImportHub({ initialPage }: { initialPage: number }) {
   // Write screen: a locked mount bounces to the locked sheet (deep links
   // and stale stacks included).
   const locked = useLockedRedirect();
-  // Settings and onboarding open the import directly (?direct=1): it is then
+  // Onboarding opens the import directly (?direct=1): it is then
   // the sheet's first screen and needs its own leave affordance.
   const { direct } = useLocalSearchParams<{ direct?: string }>();
   const { t } = useTranslation();

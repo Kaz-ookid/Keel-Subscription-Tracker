@@ -301,7 +301,7 @@ describe("parseImportDocument — tolerance and recovery", () => {
 
   it("rejects a paste with no JSON at all as no-json", () => {
     const result = parseImportDocument("netflix 12.99 monthly\nspotify 9.99", ctx);
-    expect(result).toEqual({ drafts: [], skipped: 0, error: "no-json" });
+    expect(result).toEqual({ drafts: [], skipped: 0, skippedNames: [], error: "no-json" });
   });
 
   it('treats {"items":[]} as empty', () => {
@@ -808,6 +808,41 @@ describe("buildKeelReadsPrompt", () => {
     expect(css.assumedFields).not.toContain("settlement");
     expect(loan.input.amount).toEqual(fromMajor(689.55, "EUR"));
     expect(loan.uncertainFields).not.toContain("amount");
+  });
+
+  it("believes an unpaid-backlog flag only when the material speaks of it", () => {
+    const answer = {
+      items: [{ type: "subscription", name: "Internet Home XL", amount: 25, backlogUnpaid: true }],
+    };
+    const invoice = "Facture 9297585\nInternet Home XL\nTotal CHF 25.00";
+    const invented = parseImportDocument(JSON.stringify(answer), { ...ctx, material: invoice });
+    expect(invented.drafts[0]?.settlePast).toBe(true);
+    const behind = parseImportDocument(JSON.stringify(answer), {
+      ...ctx,
+      material: "Internet Home XL 25 CHF, I'm behind, last two unpaid",
+    });
+    expect(behind.drafts[0]?.settlePast).toBe(false);
+    const enRetard = parseImportDocument(JSON.stringify(answer), {
+      ...ctx,
+      material: "Internet Home XL 25 CHF, deux factures impayées",
+    });
+    expect(enRetard.drafts[0]?.settlePast).toBe(false);
+    // A pasted answer has no material: the flag stands as the user's own AI wrote it.
+    expect(parseImportDocument(JSON.stringify(answer), ctx).drafts[0]?.settlePast).toBe(false);
+  });
+
+  it("names what it could not read", () => {
+    const answer = {
+      items: [
+        { type: "subscription", name: "Netflix", amount: 12.99 },
+        { type: "split_payment", name: "Sofa", total: 720 },
+        { type: "subscription", amount: 5 },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(answer), ctx);
+    expect(result.drafts).toHaveLength(1);
+    expect(result.skipped).toBe(2);
+    expect(result.skippedNames).toEqual(["Sofa"]);
   });
 
   it("takes a document's premium line when the model dropped the amount, flagged", () => {

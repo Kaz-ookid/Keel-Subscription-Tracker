@@ -301,18 +301,6 @@ export default function SettingsScreen() {
             divider
             onPress={() => router.push({ pathname: "/onboarding", params: { mode: "browse" } })}
           />
-          {/* The deliberate home of the AI import (§6.1) — the Add flow only
-              hints. Gone entirely under the AI lock. */}
-          {!aiHidden && (
-            <SettingsRow
-              icon="sparkles"
-              chipColor={CHIP.importAI}
-              label={t("settings.importAI")}
-              chevron
-              divider
-              onPress={() => router.push({ pathname: "/add/import", params: { direct: "1" } })}
-            />
-          )}
           <SettingsRow
             icon="lightbulb.fill"
             chipColor={CHIP.guide}

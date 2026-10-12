@@ -55,9 +55,13 @@ export function AmountSection({ form }: { form: AddForm }) {
           info={{ title: t("add.infoAccountTitle"), body: t("add.infoAccountBody") }}
           value={
             form.selectedAccount?.name ??
-            (form.accountId ? t("add.archivedAccount") : t("add.choose"))
+            (form.pendingAccountName
+              ? t("add.accountPending", { name: form.pendingAccountName })
+              : form.accountId
+                ? t("add.archivedAccount")
+                : t("add.choose"))
           }
-          hint={form.isAutomatic && !form.selectedAccount}
+          hint={form.isAutomatic && !form.selectedAccount && !form.pendingAccountName}
           accessory={
             form.selectedAccount ? (
               <View style={[styles.dot, { backgroundColor: form.selectedAccount.color }]} />
