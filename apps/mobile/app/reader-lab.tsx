@@ -20,7 +20,11 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
-import { buildMorningPrompt, buildYesterdayPrompt } from "../src/lib/reader-lab-prompts";
+import {
+  buildExamplesPrompt,
+  buildMorningPrompt,
+  buildYesterdayPrompt,
+} from "../src/lib/reader-lab-prompts";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
 
@@ -117,33 +121,43 @@ export default function ReaderLabScreen() {
   const runFixtures = async () => {
     setScores([]);
     const collected: (FixtureScore & { raw: string })[] = [];
-    for (const fixture of READER_FIXTURES) {
-      setBusy(`fixture ${fixture.id}…`);
-      const defaultCurrency = detectCurrencyHint(fixture.material) ?? displayCurrency;
-      const context = { today: today(), defaultCurrency };
-      try {
-        const json = await readWithInstructions(fixture.material, buildKeelReadsPrompt(context));
-        const score = scoreFixture(fixture, json, { ...context, accounts, categories });
-        collected.push({ ...score, raw: json });
-      } catch (failure) {
-        collected.push({
-          id: fixture.id,
-          passed: 0,
-          total: fixture.expect.length,
-          lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
-          raw: "",
-        });
+    const variants: { tag: string; build: (current: string) => string }[] = [
+      { tag: "current", build: (current) => current },
+      { tag: "examples", build: buildExamplesPrompt },
+    ];
+    for (const variant of variants) {
+      for (const fixture of READER_FIXTURES) {
+        setBusy(`${variant.tag} · ${fixture.id}…`);
+        const defaultCurrency = detectCurrencyHint(fixture.material) ?? displayCurrency;
+        const context = { today: today(), defaultCurrency };
+        const id = `${variant.tag} · ${fixture.id}`;
+        try {
+          const instructions = variant.build(buildKeelReadsPrompt(context));
+          const json = await readWithInstructions(fixture.material, instructions);
+          const score = scoreFixture(fixture, json, { ...context, accounts, categories });
+          collected.push({ ...score, id, raw: json });
+        } catch (failure) {
+          collected.push({
+            id,
+            passed: 0,
+            total: fixture.expect.length,
+            lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
+            raw: "",
+          });
+        }
+        setScores([...collected]);
       }
-      setScores([...collected]);
     }
     setBusy(null);
   };
 
   const scorecard = () => {
-    const passed = scores.reduce((n, s) => n + s.passed, 0);
-    const total = scores.reduce((n, s) => n + s.total, 0);
+    const tally = (tag: string) => {
+      const mine = scores.filter((s) => s.id.startsWith(`${tag} · `));
+      return `${mine.reduce((n, s) => n + s.passed, 0)}/${mine.reduce((n, s) => n + s.total, 0)}`;
+    };
     return [
-      `## Reader fixtures · ${today()} · ${passed}/${total} checks`,
+      `## Reader fixtures · ${today()} · current ${tally("current")} · examples ${tally("examples")}`,
       ...scores.flatMap((s) => [
         "",
         `### ${s.id} · ${s.passed}/${s.total}`,
@@ -213,7 +227,7 @@ export default function ReaderLabScreen() {
         <Button
           variant="secondary"
           icon="checklist"
-          label={busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures`}
+          label={busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures, two prompts`}
           onPress={() => void runFixtures()}
           disabled={busy !== null}
         />
@@ -229,7 +243,7 @@ export default function ReaderLabScreen() {
           </Text>
         </View>
       ))}
-      {scores.length === READER_FIXTURES.length && !busy ? (
+      {scores.length === READER_FIXTURES.length * 2 && !busy ? (
         <Button
           icon="doc.on.doc"
           label="Copy the scorecard"

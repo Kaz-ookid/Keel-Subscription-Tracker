@@ -109,3 +109,23 @@ export function buildYesterdayPrompt(today: CalendarDate): string {
 
 ${RULES_YESTERDAY(today)}`;
 }
+
+/** The current prompt plus three worked items: a typed line, a policy and
+ *  an invoice, each with the full set of fields a correct read gives. The
+ *  bet: the model's structured mode is primed by seeing one answer. */
+export function buildExamplesPrompt(current: string): string {
+  return `${current}
+
+EXAMPLES, each a complete item for the material before it:
+
+Material: "BCV in CHF: Loyer 1470 CHF manual, 26th of the month, started March 2026"
+Item: {"type":"subscription","name":"Loyer","amount":1470,"currency":"CHF","settlement":"manual","category":"housing","cadence":{"unit":"month","interval":1},"firstDate":"2026-03-26","account":"BCV"}
+
+Material: "Home Assurance ménage    Début du contrat 01.10.2026    Echéance du contrat 30.09.2027    Fréquence de paiement annuel    Mode de paiement facture    Prime annuelle CHF 164.15"
+Item: {"type":"subscription","name":"Assurly Home Assurance ménage","amount":164.15,"currency":"CHF","settlement":"manual","category":"insurance","cadence":{"unit":"year","interval":1},"firstDate":"2026-10-01","endDate":"2027-09-30","domain":"assurly.example"}
+
+Material: "Facture 9297585    Payable à 14.10.2026    Période 01.09.2026 - 30.09.2026    Internet Home XL    Montant 23.13    T.V.A. 1.87    Total CHF 25.00"
+Item: {"type":"subscription","name":"fibra.example Internet Home XL","amount":25,"currency":"CHF","settlement":"manual","category":"communications","cadence":{"unit":"month","interval":1},"firstDate":"2026-10-14"}
+
+Now the real material follows.`;
+}
