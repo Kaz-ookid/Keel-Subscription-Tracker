@@ -209,23 +209,12 @@ public class AppleIntelligenceModule: Module {
         }
         do {
           let session = makeSession(engine: engine, instructions: instructions)
-          // "cloud-lean" is the reader lab's schema twin (one-line guides).
-          let data: Data
-          if engine == "cloud-lean" {
-            let response = try await session.respond(
-              to: input,
-              generating: ImportedDocumentLean.self,
-              options: extractionOptions
-            )
-            data = try JSONEncoder().encode(response.content)
-          } else {
-            let response = try await session.respond(
-              to: input,
-              generating: ImportedDocument.self,
-              options: extractionOptions
-            )
-            data = try JSONEncoder().encode(response.content)
-          }
+          let response = try await session.respond(
+            to: input,
+            generating: ImportedDocument.self,
+            options: extractionOptions
+          )
+          let data = try JSONEncoder().encode(response.content)
           return String(data: data, encoding: .utf8) ?? #"{"items":[]}"#
         } catch let known as AppleIntelligenceError {
           throw known

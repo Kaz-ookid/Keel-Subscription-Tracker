@@ -46,9 +46,9 @@ import Foundation
   @available(iOS 26.0, *)
   @Generable
   struct ImportedItem: Codable {
-    @Guide(description: "subscription for anything recurring, a loan repayment included; split_payment only for a purchase paid in a stated number of instalments (pay in 4, 3x, Klarna)")
+    @Guide(description: "subscription for anything recurring; split_payment for pay-in-X or BNPL")
     var type: String
-    @Guide(description: "What the payment is for, in the user's own words and language; for a document, the issuer plus the product (Simpego assurance ménage), never the document's title line")
+    @Guide(description: "What the payment is for, in the user's own words and language")
     var name: String
     @Guide(
       description:
@@ -57,7 +57,7 @@ import Foundation
     var currency: String?
     @Guide(
       description:
-        "manual when the user pays it themselves or a document says invoice, facture, Rechnung, QR-facture; automatic when it is debited, prélèvement, LSV, Lastschrift, direct debit, card; omit when nothing says"
+        "manual only when the user says they pay it themselves; automatic when they say it is debited; omit when the input does not say"
     )
     var settlement: String?
     @Guide(
@@ -65,11 +65,11 @@ import Foundation
         "Best-fit category id: streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other"
     )
     var category: String?
-    @Guide(description: "The billing cycle whenever the input states it in any words: monthly, yearly, per year, annuel, jährlich, Fréquence de paiement annuel, a period like Oct 9 to Nov 9 or an invoice period of one month (monthly); omit only when nothing says")
+    @Guide(description: "Only when the input states the billing cycle; omit otherwise")
     var cadence: ImportCadence?
     @Guide(
       description:
-        "The first charge, first instalment, contract or policy start, or an invoice's due date (Payable à, Fällig am), YYYY-MM-DD. A day and a month given separately (the 26th, started March 2026) make the full date 2026-03-26, never the 1st; omit when no full date can be read"
+        "A FULL stated date only, YYYY-MM-DD (first charge or first instalment); omit when the input gives no full date"
     )
     var firstDate: String?
     @Guide(
@@ -77,9 +77,9 @@ import Foundation
         "A bare stated day of the month, 1 to 31 (the 22nd is 22), when no full date is given; omit when no day appears"
     )
     var billingDay: Int?
-    @Guide(description: "The recurring price in main units; for an invoice its final total including taxes (Total CHF 25.00), never a subtotal, a line item or a tax line; a free trial uses 0. Subscriptions only")
+    @Guide(description: "The recurring price in main units; a free trial uses 0. Subscriptions only")
     var amount: Double?
-    @Guide(description: "The last charge, contract end or expiry date YYYY-MM-DD, subscriptions only")
+    @Guide(description: "Known last charge date YYYY-MM-DD, subscriptions only")
     var endDate: String?
     @Guide(description: "Only for dates like 'first Thursday of the month'")
     var anchor: ImportAnchor?
@@ -106,7 +106,7 @@ import Foundation
     var notes: String?
     @Guide(
       description:
-        "Only fields you INVENTED: a name made up from a brand or a description. A name copied from the input, however rough, is not uncertain. Never list amount, total, currency or dates: omit those instead"
+        "Names of fields you inferred rather than read, name above all; never list amount, total, currency or dates: omit those instead"
     )
     var uncertain: [String]?
     @Guide(description: "Only when the user asks to be reminded: days before")
@@ -120,64 +120,5 @@ import Foundation
   struct ImportedDocument: Codable {
     @Guide(description: "Every subscription or split payment found; empty if none")
     var items: [ImportedItem]
-  }
-
-  // The reader lab's twin: the same shape with one-line guides, so the
-  // effect of guide length on the cloud model can be measured on a phone.
-  // Selected by engine "cloud-lean"; the app itself uses ImportedDocument.
-  @available(iOS 26.0, *)
-  @Generable
-  struct ImportedItemLean: Codable {
-    @Guide(description: "subscription or split_payment")
-    var type: String
-    @Guide(description: "What the payment is for, in the user's words")
-    var name: String
-    @Guide(description: "ISO currency code shown with the amount; omit when none shows")
-    var currency: String?
-    @Guide(description: "manual or automatic; omit when the input does not say")
-    var settlement: String?
-    @Guide(description: "Category id: streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other")
-    var category: String?
-    @Guide(description: "Billing cycle when stated")
-    var cadence: ImportCadence?
-    @Guide(description: "First charge date YYYY-MM-DD when a full date is given")
-    var firstDate: String?
-    @Guide(description: "Day of the month 1 to 31 when only a day is given")
-    var billingDay: Int?
-    @Guide(description: "Recurring price in main units; subscriptions only")
-    var amount: Double?
-    @Guide(description: "Last charge date YYYY-MM-DD when known")
-    var endDate: String?
-    @Guide(description: "Only for first-Thursday style rules")
-    var anchor: ImportAnchor?
-    @Guide(description: "A future price change or a trial converting")
-    var priceChange: ImportPriceChange?
-    @Guide(description: "Full price, split payments only")
-    var total: Double?
-    @Guide(description: "Number of payments, split payments only")
-    var installments: Int?
-    @Guide(description: "paypal_pay_in_x klarna afterpay alma oney cb_nx other; split payments only")
-    var provider: String?
-    @Guide(description: "Bank account name as written")
-    var account: String?
-    @Guide(description: "Bare brand website when sure")
-    var domain: String?
-    @Guide(description: "before or after, only when the bank skips weekends")
-    var weekendShift: String?
-    @Guide(description: "Anything that fits no field")
-    var notes: String?
-    @Guide(description: "Fields you invented, never amounts or dates")
-    var uncertain: [String]?
-    @Guide(description: "Days before, only when a reminder is asked for")
-    var reminderDaysBefore: Int?
-    @Guide(description: "true only when past payments were not made")
-    var backlogUnpaid: Bool?
-  }
-
-  @available(iOS 26.0, *)
-  @Generable
-  struct ImportedDocumentLean: Codable {
-    @Guide(description: "Every subscription or split payment found; empty if none")
-    var items: [ImportedItemLean]
   }
 #endif

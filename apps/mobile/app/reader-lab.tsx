@@ -24,15 +24,10 @@ import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
 
 type Variant = "current" | "morning" | "yesterday" | "lean";
-type Schema = "full" | "lean";
-// The first lab run showed guide length changes nothing and the lean prompt
-// loses the field semantics; this run bisects the PROMPT, on the full schema.
-const MATRIX: { prompt: Variant; schema: Schema }[] = [
-  { prompt: "current", schema: "full" },
-  { prompt: "morning", schema: "full" },
-  { prompt: "yesterday", schema: "full" },
-  { prompt: "lean", schema: "full" },
-];
+// Lab runs so far: guide length changed nothing, the lean prompt loses the
+// field semantics, and the three real prompts answer alike on today's
+// schema. The matrix now runs the prompts against the restored schema.
+const MATRIX: Variant[] = ["current", "morning", "yesterday", "lean"];
 
 interface RunResult {
   label: string;
@@ -49,8 +44,8 @@ export default function ReaderLabScreen() {
   const [busy, setBusy] = useState<string | null>(null);
   const [results, setResults] = useState<RunResult[]>([]);
 
-  const runOne = async (prompt: Variant, schema: Schema): Promise<RunResult> => {
-    const label = `prompt ${prompt} · schema ${schema}`;
+  const runOne = async (prompt: Variant): Promise<RunResult> => {
+    const label = `prompt ${prompt}`;
     const defaultCurrency = detectCurrencyHint(material) ?? displayCurrency;
     const context = { today: today(), defaultCurrency };
     const instructions =
@@ -63,11 +58,7 @@ export default function ReaderLabScreen() {
             : buildKeelReadsPrompt(context);
     const started = Date.now();
     try {
-      const json = await readWithInstructions(
-        material,
-        instructions,
-        schema === "lean" ? "cloud-lean" : "cloud",
-      );
+      const json = await readWithInstructions(material, instructions);
       const ms = Date.now() - started;
       let raw = json;
       try {
@@ -111,9 +102,9 @@ export default function ReaderLabScreen() {
   const runAll = async () => {
     setResults([]);
     const collected: RunResult[] = [];
-    for (const combo of MATRIX) {
-      setBusy(`${combo.prompt} prompt, ${combo.schema} schema…`);
-      const result = await runOne(combo.prompt, combo.schema);
+    for (const prompt of MATRIX) {
+      setBusy(`${prompt} prompt…`);
+      const result = await runOne(prompt);
       collected.push(result);
       setResults([...collected]);
     }

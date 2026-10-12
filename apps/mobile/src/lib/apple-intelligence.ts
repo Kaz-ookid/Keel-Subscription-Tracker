@@ -106,16 +106,11 @@ export async function readWithKeel(
   }
 }
 
-/** The reader lab's door: material plus the exact instructions, against the
- *  full schema ("cloud") or the lean-guide one ("cloud-lean"). Throws
+/** The reader lab's door: material plus the exact instructions. Throws
  *  KeelReadsError like readWithKeel. */
-export async function readWithInstructions(
-  input: string,
-  instructions: string,
-  engine: "cloud" | "cloud-lean" = "cloud",
-): Promise<string> {
+export async function readWithInstructions(input: string, instructions: string): Promise<string> {
   try {
-    return await (await native()).parseSubscriptions(input, instructions, engine);
+    return await (await native()).parseSubscriptions(input, instructions, "cloud");
   } catch (error) {
     throw toFailure(error);
   }
