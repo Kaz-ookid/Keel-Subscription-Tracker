@@ -7,6 +7,7 @@ import { useTheme } from "../../theme";
 import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
+import { SegmentedPills } from "../ui/SegmentedPills";
 import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
@@ -34,7 +35,7 @@ function RepeatsOnRow({ form }: { form: AddForm }) {
         <InfoDot title={t("add.infoRepeatsTitle")} body={t("add.infoRepeatsBody")} />
       </View>
       <View style={styles.rowControl}>
-        <Segmented
+        <SegmentedPills
           options={[
             { value: "date", label: form.dayLabel },
             { value: "weekday", label: form.anchorLabel },
@@ -92,7 +93,7 @@ function TrialRow({ form, freeTrial }: { form: AddForm; freeTrial: boolean }) {
           <InfoDot title={t("add.infoTrialTitle")} body={t("add.infoTrialBody")} />
         </View>
         <View style={styles.rowControl}>
-          <Segmented
+          <SegmentedPills
             options={[
               { value: "off", label: t("common.no") },
               { value: "on", label: t("common.yes") },

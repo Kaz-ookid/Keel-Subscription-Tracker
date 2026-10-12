@@ -1,7 +1,6 @@
-import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../theme";
+import { spacing, type ThemeColors, typography, useStyles, withAlpha } from "../theme";
 
 export interface SegmentedOption<T> {
   value: T;
@@ -14,10 +13,10 @@ interface Props<T> {
   onChange: (value: T) => void;
 }
 
-/** A simple wrap-around pill selector — no native picker, no dependency. */
+/** The WRAP-AROUND pill picker for lists that do not fit one track (the
+ *  day/week/month/year unit). Two-way switches use ui/SegmentedPills. */
 export function Segmented<T extends string | number>({ options, value, onChange }: Props<T>) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.row}>
       {options.map((opt) => {

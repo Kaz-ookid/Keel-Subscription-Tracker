@@ -28,11 +28,11 @@ import { setFullKeel } from "./entitlement";
 export const FULL_KEEL_EARLY_PRODUCT_ID = "ch.keelapp.keel.full.early";
 export const FULL_KEEL_PRODUCT_ID = "ch.keelapp.keel.full";
 
-export type PurchaseOutcome = "purchased" | "pending" | "cancelled" | "failed" | "unavailable";
-export type RestoreOutcome = "restored" | "none" | "failed" | "unavailable";
+type PurchaseOutcome = "purchased" | "pending" | "cancelled" | "failed" | "unavailable";
+type RestoreOutcome = "restored" | "none" | "failed" | "unavailable";
 
 /** Which product a buyer in `state` may purchase. */
-export function fullKeelSku(state: TrialState): string {
+function fullKeelSku(state: TrialState): string {
   return state === "trial" || state === "fresh" ? FULL_KEEL_EARLY_PRODUCT_ID : FULL_KEEL_PRODUCT_ID;
 }
 
@@ -64,7 +64,7 @@ async function connected(): Promise<typeof import("expo-iap") | null> {
  *  offline / before the products exist. The paywall prefers these over the
  *  hardcoded fallbacks — and strikes the full price through next to the
  *  early one, so the trial discount reads as real in every country. */
-export async function fullKeelPrices(): Promise<{
+async function fullKeelPrices(): Promise<{
   early: string | null;
   full: string | null;
 }> {

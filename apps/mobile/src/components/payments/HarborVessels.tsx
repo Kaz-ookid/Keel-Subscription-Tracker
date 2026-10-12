@@ -119,7 +119,7 @@ export function vesselKind(cargoCount: number, share: number): VesselKind {
 }
 
 /** A piece of cargo on the sprite; the badge sits centered on its face. */
-export interface CargoRect {
+interface CargoRect {
   x: number;
   y: number;
   w: number;

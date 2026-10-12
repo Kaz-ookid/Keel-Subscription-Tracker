@@ -29,9 +29,9 @@ import { brandBleed } from "./brand";
 import { entitlementSnapshot } from "./entitlement";
 
 /** Must match SharedStore.appGroup in targets/widgets/Shared.swift. */
-export const WIDGET_APP_GROUP = "group.ch.keelapp.keel";
+const WIDGET_APP_GROUP = "group.ch.keelapp.keel";
 /** Must match SharedStore.key in targets/widgets/Shared.swift. */
-export const WIDGET_SNAPSHOT_KEY = "keel.widget.snapshot.v1";
+const WIDGET_SNAPSHOT_KEY = "keel.widget.snapshot.v1";
 
 // A full year, so the widget always knows the NEXT payment even when it is
 // months out: "All clear" must mean "nothing ahead at all", never "nothing

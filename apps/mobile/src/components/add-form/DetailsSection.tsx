@@ -11,7 +11,7 @@ import { radius, spacing, typography, useTheme, type ThemeColors } from "../../t
 import { BrandBadge } from "../BrandBadge";
 import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
-import { Segmented, type SegmentedOption } from "../Segmented";
+import { SegmentedPills } from "../ui/SegmentedPills";
 import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
@@ -233,7 +233,7 @@ export function MetaSection({ form }: { form: AddForm }) {
   const { t } = useTranslation();
   const styles = useFormStyles();
 
-  const settlementOptions: SegmentedOption<SettlementMode>[] = [
+  const settlementOptions: { value: SettlementMode; label: string }[] = [
     { value: "automatic", label: t("row.automatic") },
     { value: "manual", label: t("row.manual") },
   ];
@@ -249,7 +249,7 @@ export function MetaSection({ form }: { form: AddForm }) {
             <InfoDot title={t("add.infoSettlementTitle")} body={t("add.infoSettlementBody")} />
           </View>
           <View style={styles.rowControl}>
-            <Segmented
+            <SegmentedPills
               options={settlementOptions}
               value={form.settlementMode}
               onChange={form.setSettlementMode}

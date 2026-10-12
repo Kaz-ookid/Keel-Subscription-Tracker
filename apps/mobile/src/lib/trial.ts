@@ -133,15 +133,14 @@ export async function loadTrialAnchor(): Promise<CalendarDate | null> {
   return anchor;
 }
 
-/** Stamp the anchor into all three legs. */
-export async function saveTrialAnchor(anchor: CalendarDate): Promise<void> {
+/** Stamp the anchor into all three legs (null forgets it everywhere). */
+async function writeAnchor(anchor: CalendarDate | null): Promise<void> {
   writeCloud(anchor);
   await Promise.all([writeLocal(anchor), writeKeychain(anchor)]);
 }
 
+export const saveTrialAnchor = (anchor: CalendarDate): Promise<void> => writeAnchor(anchor);
+
 /** Forget the anchor everywhere — the debug replay's factory reset. A real
  *  user never reaches this; it exists so testers can relive the first run. */
-export async function clearTrialAnchor(): Promise<void> {
-  writeCloud(null);
-  await Promise.all([writeLocal(null), writeKeychain(null)]);
-}
+export const clearTrialAnchor = (): Promise<void> => writeAnchor(null);

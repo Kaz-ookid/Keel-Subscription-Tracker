@@ -179,14 +179,14 @@ export async function setFullKeel(next: boolean): Promise<void> {
 /** Back to the factory state (debug onboarding replay): not owned, no
  *  anchor on ANY leg — the next first commitment starts a fresh trial. */
 export async function resetEntitlement(): Promise<void> {
+  await debugResetTrialClock();
   state = derive(false, null, true);
   emit();
   try {
-    await AsyncStorage.multiRemove([FULL_KEY, LOCK_SHOWN_KEY, WARN_KEY]);
+    await AsyncStorage.removeItem(FULL_KEY);
   } catch {
     // Best-effort.
   }
-  await clearTrialAnchor();
 }
 
 // ---------------------------------------------------------------------------

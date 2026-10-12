@@ -41,7 +41,7 @@ interface Props {
 
 /** An `icon` value that is an emoji, not an SF Symbol token. Symbol names
  *  are plain ASCII ("tv.fill"); anything beyond is a mark to draw as text. */
-export function isEmojiMark(icon: string): boolean {
+function isEmojiMark(icon: string): boolean {
   return /[^\x20-\x7E]/.test(icon);
 }
 

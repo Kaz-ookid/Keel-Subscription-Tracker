@@ -5,7 +5,7 @@ import { Pressable, Text, TextInput, View } from "react-native";
 import { useTheme } from "../../theme";
 import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
-import { Segmented, type SegmentedOption } from "../Segmented";
+import { SegmentedPills } from "../ui/SegmentedPills";
 import { Card } from "../ui/Card";
 import { useFormStyles } from "./styles";
 import type { AddForm, AmountMode } from "./useAddForm";
@@ -16,7 +16,7 @@ export function AmountSection({ form }: { form: AddForm }) {
   const { t } = useTranslation();
   const styles = useFormStyles();
 
-  const amountModeOptions: SegmentedOption<AmountMode>[] = [
+  const amountModeOptions: { value: AmountMode; label: string }[] = [
     { value: "total", label: t("add.total") },
     { value: "perPayment", label: t("add.perPayment") },
   ];
@@ -74,7 +74,7 @@ export function AmountSection({ form }: { form: AddForm }) {
                 <InfoDot title={t("add.infoAmountIsTitle")} body={t("add.infoAmountIsBody")} />
               </View>
               <View style={styles.rowControl}>
-                <Segmented
+                <SegmentedPills
                   options={amountModeOptions}
                   value={form.amountMode}
                   onChange={form.setAmountMode}

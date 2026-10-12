@@ -78,23 +78,20 @@ export async function loadAppLockConfig(): Promise<AppLockConfig> {
   }
 }
 
-export async function setAppLockEnabled(enabled: boolean): Promise<void> {
+async function writeConfig(key: string, value: string): Promise<void> {
   try {
-    await AsyncStorage.setItem(ENABLED_KEY, enabled ? "yes" : "no");
+    await AsyncStorage.setItem(key, value);
   } catch {
     // best-effort
   }
   notify(await loadAppLockConfig());
 }
 
-export async function setAppLockGrace(graceSeconds: number): Promise<void> {
-  try {
-    await AsyncStorage.setItem(GRACE_KEY, String(graceSeconds));
-  } catch {
-    // best-effort
-  }
-  notify(await loadAppLockConfig());
-}
+export const setAppLockEnabled = (enabled: boolean): Promise<void> =>
+  writeConfig(ENABLED_KEY, enabled ? "yes" : "no");
+
+export const setAppLockGrace = (graceSeconds: number): Promise<void> =>
+  writeConfig(GRACE_KEY, String(graceSeconds));
 
 export type AuthKind = "faceId" | "touchId" | "generic" | "unavailable";
 
