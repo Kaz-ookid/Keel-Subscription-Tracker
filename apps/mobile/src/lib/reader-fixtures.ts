@@ -60,7 +60,7 @@ export const READER_FIXTURES: Fixture[] = [
   {
     id: "typed-mixed-currencies",
     material:
-      "Boursorama in euro:\nApple iCloud 1 on the 4th\ncar loan 689.55 on the 6th\n\nBCV in CHF:\nspotify duo 17.6 on the 13th\nLoyer 1470 manual on the 26th",
+      "Boursorama in euro:\nApple iCloud 1€ on the 4th\ncar loan 689.55 on the 6th\n\nBCV in CHF:\nspotify duo 17.6 on the 13th\nLoyer 1470 manual on the 26th",
     expect: [
       { name: "icloud", amount: 1, currency: "EUR" },
       { name: "car loan", amount: 689.55, currency: "EUR" },
