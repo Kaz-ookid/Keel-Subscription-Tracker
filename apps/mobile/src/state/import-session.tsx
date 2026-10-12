@@ -38,10 +38,10 @@ interface ImportSessionValue {
    *  so parse warnings retire; the unmatched account name survives only while
    *  no account is actually selected. */
   updateDraft: (id: string, patch: DraftPatch) => void;
-  /** Put a draft on an existing account straight from the review screen.
-   *  The pending "new account" name retires; the account warnings are
-   *  recomputed for the chosen account; nothing else changes. */
-  assignAccount: (id: string, account: Account) => void;
+  /** Put a draft on an existing account straight from the review screen,
+   *  or take it off one (null). The pending "new account" name retires;
+   *  the account warnings are recomputed; nothing else changes. */
+  assignAccount: (id: string, account: Account | null) => void;
   removeDraft: (id: string) => void;
   clear: () => void;
 }
@@ -95,12 +95,12 @@ export function ImportSessionProvider({ children }: { children: ReactNode }) {
             const warnings = d.warnings.filter(
               (w) => w.code !== "account-unmatched" && w.code !== "currency-mismatch",
             );
-            if (account.currency !== currency) {
+            if (account && account.currency !== currency) {
               warnings.push({ code: "currency-mismatch", detail: account.name });
             }
             return {
               ...d,
-              input: { ...d.input, accountId: account.id },
+              input: { ...d.input, accountId: account?.id },
               accountName: undefined,
               assumedFields: d.assumedFields.filter((f) => f !== "account"),
               warnings,

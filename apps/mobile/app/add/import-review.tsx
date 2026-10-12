@@ -284,8 +284,10 @@ export default function ImportReviewScreen() {
       uncertainLines.length > 0 ||
       (!account && !!draft.accountName) ||
       !draft.settlePast;
-    // No account at all: the chips place it in one tap, "+" creates one.
-    const placeable = !account && !draft.accountName;
+    // The chips place the item on an account in one tap and stay: the lit
+    // one taps off again, another one switches, "+" creates one. A draft
+    // bound for a new account keeps its line instead.
+    const placeable = !draft.accountName;
 
     return (
       <View style={[styles.card, flagged && styles.cardFlagged]}>
@@ -362,8 +364,10 @@ export default function ImportReviewScreen() {
                 key={candidate.id}
                 label={candidate.name}
                 dot={candidate.color}
-                selected={false}
-                onPress={() => assignAccount(draft.id, candidate)}
+                selected={candidate.id === input.accountId}
+                onPress={() =>
+                  assignAccount(draft.id, candidate.id === input.accountId ? null : candidate)
+                }
               />
             ))}
             <Chip
