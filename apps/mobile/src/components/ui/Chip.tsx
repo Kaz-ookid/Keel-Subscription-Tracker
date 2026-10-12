@@ -3,10 +3,9 @@
 // wash with accent text, readable in both schemes, instead of the heavy
 // navy fill the audit found copy-pasted across screens.
 
-import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, withAlpha } from "../../theme";
 
 interface Props {
   label: string;
@@ -19,8 +18,7 @@ interface Props {
 }
 
 export function Chip({ label, selected, onPress, onLongPress, dot }: Props) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <Pressable
       style={[styles.chip, selected && styles.chipSelected]}

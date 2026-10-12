@@ -4,10 +4,10 @@
 // aligned and lets the screen read as a declarative list.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 
 // The one implementation lives in ui/; re-exported for existing importers.
 import { IconChip } from "../ui/IconChip";
@@ -40,7 +40,7 @@ export function SettingsRow({
   right,
 }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const content = (
     <>
       <IconChip icon={icon} color={chipColor} />

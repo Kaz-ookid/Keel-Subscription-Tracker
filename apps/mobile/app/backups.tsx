@@ -5,7 +5,7 @@
 import { formatCalendarDate, calendarDate } from "@keel/core";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -20,7 +20,7 @@ import {
 } from "../src/lib/backups";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { useAppActions } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 function entryDateLabel(entry: BackupEntry): string {
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -35,7 +35,7 @@ function entryDateLabel(entry: BackupEntry): string {
 export default function BackupsScreen() {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { exportData, importData } = useAppActions();
   const [entries, setEntries] = useState<BackupEntry[]>(() => listBackups());
 

@@ -3,14 +3,13 @@
 // makes it usable. No walkthrough chrome, no screenshots; the app itself is
 // one tab away.
 
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "../src/components/ui/Card";
 import { IconChip } from "../src/components/ui/IconChip";
 import { useAiHidden } from "../src/lib/ai-visibility";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles } from "../src/theme";
 
 // One row per capability: chip icon + color, then title/body i18n keys
 // (guide.<key>Title / guide.<key>Body).
@@ -60,9 +59,8 @@ const GROUPS: {
 ];
 
 export default function GuideScreen() {
-  const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   // The hard AI lock hides the guide's AI chapter along with the feature.
   const aiHidden = useAiHidden();
 

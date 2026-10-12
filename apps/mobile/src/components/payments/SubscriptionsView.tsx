@@ -17,7 +17,7 @@ import {
 import { Picker as RNPicker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 // The gesture-handler FlatList registers its scroll with the gesture system,
@@ -30,9 +30,10 @@ import {
   dockClearance,
   radius,
   spacing,
-  typography,
-  useTheme,
   type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
 } from "../../theme";
 import { AccountChipsRow } from "./AccountChipsRow";
 import { BrandBadge } from "../BrandBadge";
@@ -107,7 +108,7 @@ export function SubscriptionsView() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, pending, accounts, displayCurrency, rates, loading } = useAppData();
   const { removeSubscription, removePendingSuggestion } = useAppActions();
   // Open by default — the whole point of the list is to be acted on.

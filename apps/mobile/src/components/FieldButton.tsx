@@ -1,9 +1,9 @@
 import { SymbolView } from "expo-symbols";
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { InfoDot } from "./InfoDot";
-import { spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../theme";
 
 interface Props {
   label: string;
@@ -25,7 +25,7 @@ interface Props {
  *  affordance used by currency, category, colour, reminder and date. */
 export function FieldButton({ label, value, accessory, hint, first, info, onPress }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <Pressable onPress={onPress} style={[styles.row, first && styles.rowFirst]}>
       <View style={styles.labelWrap}>

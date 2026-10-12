@@ -11,7 +11,7 @@ import {
   type PaymentItem,
 } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
@@ -23,10 +23,11 @@ import {
   emphasis,
   radius,
   spacing,
+  type ThemeColors,
   typography,
+  useStyles,
   useTheme,
   withAlpha,
-  type ThemeColors,
 } from "../theme";
 import { SwipeRow } from "./ui/SwipeRow";
 import { BrandBadge } from "./BrandBadge";
@@ -41,7 +42,7 @@ interface Props {
 export const SubscriptionRow = memo(function SubscriptionRow({ item, onPress, onDelete }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { categories, accounts } = useAppData();
   const category = categories.find((c) => c.id === item.categoryId);
   const account = accounts.find((a) => a.id === item.accountId);

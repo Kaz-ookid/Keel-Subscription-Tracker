@@ -4,10 +4,10 @@
 // field's label; it stays quiet until asked.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
 
-import { typography, useTheme, type ThemeColors } from "../theme";
+import { type ThemeColors, typography, useStyles, useTheme } from "../theme";
 import { InfoPopup } from "./InfoPopup";
 
 interface Props {
@@ -19,7 +19,7 @@ interface Props {
 
 export function InfoDot({ title, body, a11yLabel }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const [open, setOpen] = useState(false);
 
   return (

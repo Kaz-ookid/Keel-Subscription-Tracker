@@ -14,7 +14,6 @@ import {
 } from "@keel/core";
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -25,7 +24,7 @@ import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticImportConfirm } from "../src/lib/haptics";
 import { useAppActions } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 import { useLockedRedirect } from "../src/lib/lock-gate";
 const OP_LABEL_KEYS: Record<AssistantOperation["kind"], string> = {
@@ -59,7 +58,7 @@ export default function AssistantReviewScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { plan, excluded, toggleExcluded, clear } = useAssistantSession();
   const { applyAssistantPlan } = useAppActions();

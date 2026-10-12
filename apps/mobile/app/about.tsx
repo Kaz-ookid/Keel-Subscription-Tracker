@@ -8,14 +8,13 @@
 
 import Constants from "expo-constants";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text } from "react-native";
 
 import { APP_STORE_ID, SUPPORT_EMAIL, WEBSITE_URL } from "../src/constants";
 import { IconChip } from "../src/components/ui/IconChip";
 import { Card } from "../src/components/ui/Card";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 const CHIP = {
   bug: "#FF3B30",
@@ -32,7 +31,7 @@ const APP_STORE_URL = `https://apps.apple.com/app/id${APP_STORE_ID}`;
 export default function AboutScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   const version = Constants.expoConfig?.version ?? "";
   // The bare host reads as the link itself, kept in sync with the constant.

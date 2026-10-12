@@ -29,7 +29,7 @@ import { Card } from "../src/components/ui/Card";
 import { EmptyState } from "../src/components/ui/EmptyState";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 export default function ByCategoryScreen() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function ByCategoryScreen() {
   const PALETTE = colors.chart;
   const TAIL_COLOR = colors.mutedText;
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, occurrences, categories, displayCurrency, rates } = useAppData();
   // The expanded category (its id, or "none" for the uncategorised bucket).
   const [expanded, setExpanded] = useState<string | null>(null);

@@ -21,7 +21,6 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -34,7 +33,14 @@ import { formatHour } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
 import { useAppActions, useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
+import {
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+} from "../src/theme";
 
 import { useLockGuard } from "../src/lib/lock-gate";
 function InfoRow({
@@ -65,7 +71,7 @@ export default function ItemScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   // Repaint when a logo's extracted tint lands (dev builds).
   useBrandTints();
   const { items, occurrences, accounts, categories } = useAppData();

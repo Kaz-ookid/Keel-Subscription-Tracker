@@ -4,10 +4,9 @@
 // caller (centered screen, list ListEmptyComponent, ...) via `style`.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 import { Button, type ButtonVariant } from "./Button";
 
 interface Props {
@@ -22,7 +21,7 @@ interface Props {
 
 export function EmptyState({ icon, title, hint, cta, style }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <View style={[styles.container, style]}>
       <SymbolView name={icon as never} size={36} tintColor={colors.mutedText} />

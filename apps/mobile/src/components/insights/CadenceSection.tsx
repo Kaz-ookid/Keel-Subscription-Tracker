@@ -22,7 +22,7 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
@@ -30,7 +30,15 @@ import Animated from "react-native-reanimated";
 import { localizedRecurrence } from "../../i18n/recurrence";
 import { totalInDisplay } from "../../lib/money-display";
 import { foldIn, foldLayout, foldOut } from "../../lib/motion";
-import { radius, spacing, typography, useTheme, type ThemeColors, withAlpha } from "../../theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+} from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 
 function capitalize(s: string): string {
@@ -49,7 +57,7 @@ export function CadenceSection({ items, categories, asOf, displayCurrency, rates
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   // The expanded billing-cycle card ("interval-unit", or "bnpl").
   const [expanded, setExpanded] = useState<string | null>(null);
 

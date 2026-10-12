@@ -19,14 +19,14 @@ import {
 } from "../src/lib/ai-activity-display";
 import { listBackupStamps } from "../src/lib/backups";
 import { useAppActions, useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 const NAMES_SHOWN = 4;
 
 export default function AiHistoryScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { aiActivity } = useAppData();
   const { revertAiBackup } = useAppActions();
   const summarize = useActivitySummary();

@@ -6,7 +6,7 @@ import {
   type NewAccountInput,
 } from "@keel/core";
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -16,10 +16,11 @@ import {
   contrastText,
   radius,
   spacing,
+  type ThemeColors,
   typography,
+  useStyles,
   useTheme,
   withAlpha,
-  type ThemeColors,
 } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 import { Sheet } from "./Sheet";
@@ -50,7 +51,7 @@ interface FormProps {
 function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const [name, setName] = useState(initial?.name ?? "");
   const [institution, setInstitution] = useState(initial?.institution ?? "");
   const [icon, setIcon] = useState(initial?.icon ?? ICON_CHOICES[0]);
@@ -142,8 +143,8 @@ function AccountForm({ initial, submitLabel, onSubmit }: FormProps) {
 }
 
 /** A row rendering of one account, reused by the picker. */
-function AccountLine({ account, colors }: { account: Account; colors: ThemeColors }) {
-  const styles = useMemo(() => createStyles(colors), [colors]);
+function AccountLine({ account }: { account: Account }) {
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.left}>
       <BrandBadge icon={account.icon} color={account.color} size={32} />
@@ -166,7 +167,7 @@ interface PickerProps {
 export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: PickerProps) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { accounts } = useAppData();
   const { addAccount } = useAppActions();
   const [adding, setAdding] = useState(false);
@@ -186,7 +187,7 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
 
         {accounts.map((a) => (
           <Pressable key={a.id} style={[styles.row, styles.rowDivider]} onPress={() => pick(a.id)}>
-            <AccountLine account={a} colors={colors} />
+            <AccountLine account={a} />
             <View style={styles.right}>
               <Text style={styles.rowSub}>{currencyLabel(a.currency)}</Text>
               {selectedId === a.id && (
@@ -229,9 +230,8 @@ interface EditProps {
 
 /** Create/edit sheet used by the Accounts tab. */
 export function AccountEditSheet({ visible, onClose, account }: EditProps) {
-  const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { addAccount, updateAccount } = useAppActions();
 
   return (

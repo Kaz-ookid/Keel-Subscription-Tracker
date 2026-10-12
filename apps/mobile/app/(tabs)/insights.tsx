@@ -39,7 +39,14 @@ import { foldLayout } from "../../src/lib/motion";
 import { TabFade } from "../../src/components/TabFade";
 import { useTabReset } from "../../src/lib/tabReset";
 import { useAppData } from "../../src/state/app-state";
-import { dockClearance, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import {
+  dockClearance,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+} from "../../src/theme";
 
 // The chart's slide range: two years back, two years ahead. Plenty of runway
 // in both directions while staying a cheap, plain-View render.
@@ -56,7 +63,7 @@ export default function InsightsScreen() {
   useEffect(() => {
     if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
   }, [resetSignal]);
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, occurrences, categories, displayCurrency, rates, loading } = useAppData();
   // null = nothing selected (tapping the selected bar again deselects it).
   // Nothing is pre-selected: the chart opens clean, and its readout invites

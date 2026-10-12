@@ -23,10 +23,11 @@ import {
   emphasis,
   radius,
   spacing,
+  type ThemeColors,
   typography,
+  useStyles,
   useTheme,
   withAlpha,
-  type ThemeColors,
 } from "../theme";
 import { BrandBadge } from "./BrandBadge";
 import { LogoConsentGate } from "./LogoConsentGate";
@@ -55,7 +56,7 @@ const CATEGORY_ICONS = new Map(DEFAULT_CATEGORIES.map((c) => [c.id, c.icon]));
 export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreate }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [checked, setChecked] = useState<Set<string>>(new Set());

@@ -40,7 +40,7 @@ import { useLocked } from "../src/lib/lock-gate";
 import { markOnboardingSeen } from "../src/lib/onboarding";
 import { requestPaymentsView } from "../src/lib/tabReset";
 import { useAppActions, useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
 
@@ -64,7 +64,7 @@ export default function OnboardingScreen() {
   const { t, i18n } = useTranslation();
   const insets = useSafeAreaInsets();
   const aiHidden = useAiHidden();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, pending } = useAppData();
   const { addPendingSuggestions } = useAppActions();
 

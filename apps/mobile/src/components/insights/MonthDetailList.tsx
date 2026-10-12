@@ -19,13 +19,12 @@ import { SymbolView } from "expo-symbols";
 
 import { brandBleed } from "../../lib/brand";
 import { BrandBadge } from "../BrandBadge";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { foldIn, foldLayout, foldOut } from "../../lib/motion";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 
 interface MonthDetail {
   key: string;
@@ -54,7 +53,7 @@ export function MonthDetailList({ items, occurrences, projected, selectedKey, as
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   const itemNames = new Map(items.map((i) => [i.id, i.name]));
   const itemsById = new Map(items.map((i) => [i.id, i]));

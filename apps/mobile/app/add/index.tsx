@@ -17,7 +17,14 @@ import { SuggestionPicker } from "../../src/components/SuggestionPicker";
 import { useCustomBank } from "../../src/lib/custom-bank";
 import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useAppData } from "../../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+} from "../../src/theme";
 
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 export default function AddChooserScreen() {
@@ -29,7 +36,7 @@ export default function AddChooserScreen() {
   const { t } = useTranslation();
   // Not a scroll view, so the transparent glass header needs manual clearance.
   const headerHeight = useHeaderHeight();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items } = useAppData();
   const aiHidden = useAiHidden();
   // The bank plus the services the user created themselves (custom-bank).

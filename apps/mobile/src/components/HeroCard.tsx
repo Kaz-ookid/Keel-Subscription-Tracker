@@ -1,9 +1,17 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
-import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import {
+  emphasis,
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+} from "../theme";
 import { LivingNumber } from "./ui/LivingNumber";
 import { Waterline } from "./Waterline";
 
@@ -22,7 +30,7 @@ interface Props {
  *  (dogfood round 2: it looked like a gauge without saying of what). */
 export function HeroCard({ label, amount, sub }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const [width, setWidth] = useState(0);
 
   return (

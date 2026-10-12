@@ -1,6 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SemanticTone } from "@keel/core";
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Appearance, useColorScheme } from "react-native";
 
 // Keel's palette (DESIGN.md §3.1): navy is the hull, sea glass the waterline.
@@ -211,6 +211,13 @@ export function ThemePreferenceProvider({ children }: { children: ReactNode }) {
   return (
     <ThemeModeContext.Provider value={{ mode, setMode }}>{children}</ThemeModeContext.Provider>
   );
+}
+
+/** The themed-styles boilerplate, once: `const styles = useStyles(createStyles)`
+ *  where createStyles is a module-level `(colors) => StyleSheet.create(...)`. */
+export function useStyles<T>(create: (colors: ThemeColors) => T): T {
+  const { colors } = useTheme();
+  return useMemo(() => create(colors), [colors, create]);
 }
 
 /** Read/write the appearance preference (the Settings screen's hook). */

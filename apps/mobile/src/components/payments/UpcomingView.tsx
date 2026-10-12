@@ -28,7 +28,14 @@ import { AccountChipsRow } from "./AccountChipsRow";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
 import { useAppActions, useAppData } from "../../state/app-state";
-import { dockClearance, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import {
+  dockClearance,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+} from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { UpcomingRow } from "../UpcomingRow";
 
@@ -57,7 +64,7 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   }, [resetSignal]);
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, occurrences, accounts, displayCurrency, rates, loading } = useAppData();
   const { markPaid, markInstallmentPaid, undoPaid, undoInstallmentPaid } = useAppActions();
   // Big numbers merge into the display currency.

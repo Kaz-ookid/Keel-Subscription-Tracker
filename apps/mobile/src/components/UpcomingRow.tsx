@@ -1,7 +1,7 @@
 import { formatCalendarDate, formatMoney, type ProjectedCharge } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView } from "expo-symbols";
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -12,10 +12,11 @@ import {
   emphasis,
   radius,
   spacing,
+  type ThemeColors,
   typography,
+  useStyles,
   useTheme,
   withAlpha,
-  type ThemeColors,
 } from "../theme";
 import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
@@ -52,7 +53,7 @@ export const UpcomingRow = memo(function UpcomingRow({
 }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { categories, accounts } = useAppData();
 
   const category = categories.find((c) => c.id === charge.categoryId);

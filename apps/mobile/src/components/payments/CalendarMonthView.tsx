@@ -19,7 +19,7 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { memo, useCallback, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import PagerView from "react-native-pager-view";
@@ -33,9 +33,10 @@ import {
   emphasis,
   radius,
   spacing,
-  typography,
-  useTheme,
   type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
 } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
 import { Card } from "../ui/Card";
@@ -52,7 +53,7 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
   const { colors } = useTheme();
   // Also subscribes the view to language changes for the date helpers.
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, occurrences, categories, displayCurrency, rates } = useAppData();
   const asOf = today();
   const [offset, setOffset] = useState(0);
@@ -242,7 +243,7 @@ const MonthGrid = memo(function MonthGrid({
   onSelectDay: (date: CalendarDate) => void;
 }) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, occurrences, categories } = useAppData();
 
   const monthStart = monthShifted(asOf, offset);

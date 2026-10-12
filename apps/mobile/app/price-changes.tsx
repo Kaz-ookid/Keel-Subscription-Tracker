@@ -14,7 +14,6 @@ import {
   type CalendarDate,
 } from "@keel/core";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -23,12 +22,12 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { Card } from "../src/components/ui/Card";
 import { EmptyState } from "../src/components/ui/EmptyState";
 import { useAppActions, useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 export default function PriceChangesScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, categories, displayCurrency, rates } = useAppData();
   const { revertPriceChange } = useAppActions();
 

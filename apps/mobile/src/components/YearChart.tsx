@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -9,7 +9,15 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-import { emphasis, radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import {
+  emphasis,
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+} from "../theme";
 
 export interface YearChartMonth {
   /** Short label under the bar, e.g. "Jun". */
@@ -113,7 +121,7 @@ export function YearChart({
   // orange; dark keeps the vivid one.
   const spikeFill = scheme === "dark" ? colors.tones.warning : colors.chart[2];
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   const max = Math.max(scaleMax ?? 0, average, ...months.map((m) => m.amount), 1);
   const averageY = (average / max) * BAR_MAX;

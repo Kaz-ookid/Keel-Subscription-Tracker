@@ -4,7 +4,7 @@
 // overline says why this card is here; it never blocks the exit.
 
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -15,13 +15,13 @@ import {
   useAppLockConfig,
   type AuthKind,
 } from "../../lib/app-lock";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 import { Button } from "../ui/Button";
 
 export function LockNudge() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   const [kind, setKind] = useState<AuthKind | null>(null);
   const { enabled: on } = useAppLockConfig();

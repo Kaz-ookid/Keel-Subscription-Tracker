@@ -9,7 +9,7 @@
 // switch stays the tester escape hatch.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -18,12 +18,20 @@ import { Sheen } from "../src/components/ui/Sheen";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
 import { buyFullKeel, restoreFullKeel, useFullKeelPrices } from "../src/lib/purchases";
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+} from "../src/theme";
 
 export default function FullKeelScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const entitlement = useEntitlement();
   const full = entitlement.owned;
   const [cardWidth, setCardWidth] = useState(0);

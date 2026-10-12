@@ -5,10 +5,9 @@
 // quiet = text-only accent; destructive = text-only danger.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from "react-native";
 
-import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme, withAlpha } from "../../theme";
 
 export type ButtonVariant = "primary" | "secondary" | "quiet" | "destructive";
 export type ButtonSize = "lg" | "sm";
@@ -36,7 +35,7 @@ export function Button({
   accessibilityLabel,
 }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   // Press feedback (DESIGN.md §3.6): a slight settle, one look everywhere.
   const container = ({ pressed }: { pressed: boolean }) => [

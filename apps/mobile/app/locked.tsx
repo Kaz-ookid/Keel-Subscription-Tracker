@@ -9,7 +9,7 @@ import { File, Paths } from "expo-file-system";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
-import { useCallback, useMemo } from "react";
+import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -17,13 +17,21 @@ import { Button } from "../src/components/ui/Button";
 import { useEntitlement } from "../src/lib/entitlement";
 import { useFullKeelPrices } from "../src/lib/purchases";
 import { useAppActions } from "../src/state/app-state";
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+} from "../src/theme";
 
 export default function LockedScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { exportData } = useAppActions();
   const prices = useFullKeelPrices();
 

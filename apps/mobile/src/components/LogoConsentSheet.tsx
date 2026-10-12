@@ -10,12 +10,11 @@
 // not undercut the offline promise the OTHER option makes.
 
 import { Image } from "expo-image";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, Text, View } from "react-native";
 
 import { logoUrl } from "../lib/logos";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../theme";
 import { InfoPopup } from "./InfoPopup";
 import { Button } from "./ui/Button";
 
@@ -35,7 +34,7 @@ interface Props {
 export function LogoConsentSheet({ visible, onChoose, onDismiss }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const badge = 52;
 
   return (

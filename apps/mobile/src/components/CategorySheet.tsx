@@ -1,11 +1,19 @@
 import { SymbolView, type SymbolViewProps } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { ICON_POOL } from "../constants";
 import { useAppActions, useAppData } from "../state/app-state";
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+} from "../theme";
 import { Sheet } from "./Sheet";
 import { Button } from "./ui/Button";
 
@@ -25,7 +33,7 @@ interface Props {
 export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { categories } = useAppData();
   const { addCategory } = useAppActions();
   const [adding, setAdding] = useState(false);

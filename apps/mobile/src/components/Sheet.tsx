@@ -1,8 +1,8 @@
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { spacing, type ThemeColors, typography, useStyles } from "../theme";
 
 interface Props {
   visible: boolean;
@@ -17,9 +17,8 @@ interface Props {
 /** A secondary "card" window using the native iOS page sheet (stops short of the
  *  top — no full-screen claustrophobia). Used for category + colour pickers. */
 export function Sheet({ visible, title, onClose, closeLabel, children }: Props) {
-  const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <Modal
       visible={visible}

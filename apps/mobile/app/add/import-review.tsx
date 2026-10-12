@@ -16,7 +16,6 @@ import {
 } from "@keel/core";
 import { useNavigation, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -30,7 +29,14 @@ import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { Button } from "../../src/components/ui/Button";
 import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useImportSession } from "../../src/state/import-session";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+} from "../../src/theme";
 
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 /** Warnings that get their own line; account-unmatched is the account chip. */
@@ -64,7 +70,7 @@ export default function ImportReviewScreen() {
   const navigation = useNavigation();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { drafts, skipped, source, removeDraft, clear } = useImportSession();
   const { accounts, categories } = useAppData();

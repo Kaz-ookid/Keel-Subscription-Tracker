@@ -2,10 +2,9 @@
 // a chevron. The doors are the step; each just points somewhere else.
 
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 
 interface Props {
   icon: string;
@@ -16,7 +15,7 @@ interface Props {
 
 export function MethodDoor({ icon, title, sub, onPress }: Props) {
   const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <SymbolView name={icon as never} size={24} tintColor={colors.accent} />

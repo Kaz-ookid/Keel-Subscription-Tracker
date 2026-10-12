@@ -2,10 +2,10 @@
 // hairlines — the "light but unmistakable" boundary the Upcoming timeline uses
 // for month breaks. `trailing` slots a chevron when the divider is tappable.
 
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
-import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles } from "../../theme";
 
 interface Props {
   label: string;
@@ -15,8 +15,7 @@ interface Props {
 }
 
 export function SectionDivider({ label, trailing, style }: Props) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <View style={[styles.row, style]}>
       <View style={styles.line} />

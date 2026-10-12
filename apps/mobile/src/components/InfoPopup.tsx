@@ -5,7 +5,7 @@
 // the `tall` variant. It never contains navigation.
 
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
 import Animated, {
@@ -18,7 +18,7 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../theme";
 
 interface Props {
   visible: boolean;
@@ -33,7 +33,7 @@ interface Props {
 export function InfoPopup({ visible, title, onClose, tall, children }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   // Drag-to-dismiss on the WHOLE card. The pan runs alongside the body
   // ScrollView: it only accumulates while the scroll sits at its top, and it

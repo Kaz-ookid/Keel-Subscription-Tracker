@@ -9,7 +9,7 @@ import { buildImportPrompt, parseImportDocument, today, type ImportParseError } 
 import * as Clipboard from "expo-clipboard";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
@@ -17,7 +17,15 @@ import { InfoPopup } from "../InfoPopup";
 import { Button } from "../ui/Button";
 import { useAppData } from "../../state/app-state";
 import { useImportSession } from "../../state/import-session";
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
+import {
+  radius,
+  spacing,
+  type ThemeColors,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+} from "../../theme";
 
 type OpenPopup = "instructions" | "where" | "example" | "privacy" | null;
 type PasteError = ImportParseError | "clipboard-empty";
@@ -26,7 +34,7 @@ export function OwnAiPanel() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, accounts, categories, displayCurrency } = useAppData();
   const { startSession } = useImportSession();
 

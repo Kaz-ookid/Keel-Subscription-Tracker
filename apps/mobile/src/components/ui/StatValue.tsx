@@ -1,10 +1,9 @@
 // A labelled stat (DESIGN.md §3.4): micro overline, value-size number, quiet
 // hint — the pattern the Insights stat cards hand-rolled. Lives inside a Card.
 
-import { useMemo } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { typography, useTheme, type ThemeColors } from "../../theme";
+import { type ThemeColors, typography, useStyles } from "../../theme";
 import { LivingNumber } from "./LivingNumber";
 
 interface Props {
@@ -16,8 +15,7 @@ interface Props {
 }
 
 export function StatValue({ label, value, hint, color }: Props) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>

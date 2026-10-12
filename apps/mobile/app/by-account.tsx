@@ -23,7 +23,7 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -36,7 +36,7 @@ import { monthFull, monthShort } from "../src/i18n/dates";
 import { monthShifted } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { useAppData } from "../src/state/app-state";
-import { spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 const MONTHS_BACK = 12;
 const MONTHS_AHEAD = 12;
@@ -45,7 +45,7 @@ export default function ByAccountScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, occurrences, accounts, categories, displayCurrency, rates } = useAppData();
   // An account id, or "none" for commitments not tied to any account.
   const [selected, setSelected] = useState<string>(accounts[0]?.id ?? "none");

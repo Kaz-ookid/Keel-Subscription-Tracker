@@ -15,13 +15,12 @@ import {
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Text } from "react-native";
 import Animated from "react-native-reanimated";
 
 import { foldLayout } from "../../lib/motion";
-import { spacing, typography, useTheme, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 import { Card } from "../ui/Card";
 
 interface Props {
@@ -35,7 +34,7 @@ export function ExploreSection({ items, asOf, displayCurrency, rates }: Props) {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
 
   // The teaser: how much more per month than at signup.
   const priceChanges = summarizePriceChanges(items, asOf);

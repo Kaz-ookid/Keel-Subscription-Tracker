@@ -8,7 +8,7 @@
 // No screen hand-rolls this capsule again (the hub did once, 2026-10-12, and
 // Payments kept a copy for three months: this component now covers both).
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import { hapticSelection } from "../../lib/haptics";
@@ -19,7 +19,7 @@ import Animated, {
   type SharedValue,
 } from "react-native-reanimated";
 
-import { spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, withAlpha } from "../../theme";
 
 interface Option<T extends string> {
   value: T;
@@ -49,8 +49,7 @@ export function SegmentedPills<T extends string>({
   washOpacity,
   style,
 }: Props<T>) {
-  const { colors } = useTheme();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const [trackWidth, setTrackWidth] = useState(0);
   // Track padding 3 + 1px borders; gaps of 3 between pills.
   const pillWidth =

@@ -1,6 +1,6 @@
 import { currencyLabel, type Account } from "@keel/core";
 import { Stack } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -9,14 +9,13 @@ import { AccountEditSheet } from "../src/components/AccountSheet";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { EmptyState } from "../src/components/ui/EmptyState";
 import { useAppActions, useAppData } from "../src/state/app-state";
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../src/theme";
+import { radius, spacing, type ThemeColors, typography, useStyles } from "../src/theme";
 
 import { useLockGuard } from "../src/lib/lock-gate";
 export default function AccountsScreen() {
-  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { accounts } = useAppData();
   const { archiveAccount } = useAppActions();
   const [editing, setEditing] = useState<Account | undefined>();

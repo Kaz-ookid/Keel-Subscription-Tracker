@@ -1,9 +1,9 @@
-import { useMemo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, { SlideInDown } from "react-native-reanimated";
 
-import { radius, spacing, typography, useTheme, type ThemeColors } from "../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles } from "../theme";
 
 interface Props {
   visible: boolean;
@@ -16,9 +16,8 @@ interface Props {
 /** Bottom-anchored sheet hosting a native wheel picker, with a "Done" bar —
  *  the classic iOS "tap field → wheel slides up" pattern. */
 export function WheelSheet({ visible, title, onClose, children }: Props) {
-  const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   return (
     // Fade the MODAL (the scrim) and slide only the tray: sliding the whole
     // modal made the backdrop rise as a visible rectangle.

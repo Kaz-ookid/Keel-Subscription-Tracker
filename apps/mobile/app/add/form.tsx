@@ -7,7 +7,7 @@
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
 import { usePreventRemove } from "expo-router/react-navigation";
 import { Stack, useLocalSearchParams, useNavigation } from "expo-router";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -22,7 +22,7 @@ import { ScheduleSection } from "../../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../../src/components/add-form/useAddForm";
 import { ModalClose } from "../../src/components/ModalClose";
 import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
-import { spacing, typography, useTheme, type ThemeColors } from "../../src/theme";
+import { spacing, type ThemeColors, typography, useStyles } from "../../src/theme";
 
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 const PLAN_TYPES: { value: PlanType; labelKey: string }[] = [
@@ -44,9 +44,8 @@ export default function AddFormScreen() {
   const direct = !!id || !!suggestionId || !!draftId;
   const prefill = pick ? SUGGESTED_COMMITMENTS.find((s) => s.id === pick) : undefined;
 
-  const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const form = useAddForm(prefill);
 
   // Leaving a dirty form (✕ or back) asks first; saving passes through via
