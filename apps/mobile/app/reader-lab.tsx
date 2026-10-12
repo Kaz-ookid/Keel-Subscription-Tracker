@@ -1,9 +1,9 @@
 // The reader lab (dev builds only, behind the debug drawer): the cloud
 // reader run by hand, with what we cannot see from the review screen, the
-// RAW answer the model gave before the parser filled anything. Material in,
-// a prompt variant (full or lean) and a schema variant (full or lean
-// guides), the raw JSON and the parser's summary out, all copyable, so a
-// prompt can be judged on evidence instead of on review cards.
+// RAW answer the model gave before the parser filled anything. One tap runs
+// the same material through all four combinations (full or lean prompt,
+// full or lean-guide schema) and builds one report to copy, so a prompt is
+// judged on evidence across the matrix instead of on review cards.
 
 import {
   buildKeelReadsPrompt,
@@ -18,33 +18,39 @@ import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
-import { SegmentedPills } from "../src/components/ui/SegmentedPills";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
 
 type Variant = "full" | "lean";
+const MATRIX: { prompt: Variant; schema: Variant }[] = [
+  { prompt: "full", schema: "full" },
+  { prompt: "full", schema: "lean" },
+  { prompt: "lean", schema: "full" },
+  { prompt: "lean", schema: "lean" },
+];
+
+interface RunResult {
+  label: string;
+  meta: string;
+  summary: string;
+  raw: string;
+}
 
 export default function ReaderLabScreen() {
   const { colors } = useTheme();
   const styles = useStyles(createStyles);
   const { accounts, categories, displayCurrency } = useAppData();
   const [material, setMaterial] = useState("");
-  const [prompt, setPrompt] = useState<Variant>("full");
-  const [schema, setSchema] = useState<Variant>("full");
-  const [busy, setBusy] = useState(false);
-  const [raw, setRaw] = useState("");
-  const [summary, setSummary] = useState("");
-  const [meta, setMeta] = useState("");
+  const [busy, setBusy] = useState<string | null>(null);
+  const [results, setResults] = useState<RunResult[]>([]);
 
-  const run = async () => {
+  const runOne = async (prompt: Variant, schema: Variant): Promise<RunResult> => {
+    const label = `prompt ${prompt} · schema ${schema}`;
     const defaultCurrency = detectCurrencyHint(material) ?? displayCurrency;
     const context = { today: today(), defaultCurrency };
     const instructions =
       prompt === "lean" ? buildKeelReadsPromptLean(context) : buildKeelReadsPrompt(context);
-    setBusy(true);
-    setRaw("");
-    setSummary("");
     const started = Date.now();
     try {
       const json = await readWithInstructions(
@@ -53,13 +59,12 @@ export default function ReaderLabScreen() {
         schema === "lean" ? "cloud-lean" : "cloud",
       );
       const ms = Date.now() - started;
-      let pretty = json;
+      let raw = json;
       try {
-        pretty = JSON.stringify(JSON.parse(json), null, 2);
+        raw = JSON.stringify(JSON.parse(json), null, 2);
       } catch {
         // Not JSON: shown as is.
       }
-      setRaw(pretty);
       const result = parseImportDocument(json, {
         defaultCurrency,
         today: today(),
@@ -77,24 +82,53 @@ export default function ReaderLabScreen() {
           : "";
         return `- ${d.input.name}${assumed}${uncertain}${warnings}`;
       });
-      setSummary(
-        `${result.drafts.length} items, ${result.skipped} skipped${result.error ? `, error ${result.error}` : ""}\n${lines.join("\n")}`,
-      );
-      setMeta(
-        `prompt ${prompt} (${instructions.length} chars) · schema ${schema} · material ${material.length} chars · ${ms} ms`,
-      );
+      return {
+        label,
+        meta: `${instructions.length} prompt chars · ${ms} ms`,
+        summary: `${result.drafts.length} items, ${result.skipped} skipped${result.error ? `, error ${result.error}` : ""}\n${lines.join("\n")}`,
+        raw,
+      };
     } catch (failure) {
-      setSummary(`failed: ${failure instanceof Error ? failure.message : String(failure)}`);
-      setMeta(`prompt ${prompt} (${instructions.length} chars) · schema ${schema}`);
-    } finally {
-      setBusy(false);
+      return {
+        label,
+        meta: `${instructions.length} prompt chars · failed after ${Date.now() - started} ms`,
+        summary: `failed: ${failure instanceof Error ? failure.message : String(failure)}`,
+        raw: "",
+      };
     }
   };
 
-  const copyReport = () =>
-    void Clipboard.setStringAsync(
-      `## Reader lab\n${meta}\n\n### Material\n${material}\n\n### Raw answer\n${raw}\n\n### Parsed\n${summary}\n`,
-    );
+  const runAll = async () => {
+    setResults([]);
+    const collected: RunResult[] = [];
+    for (const combo of MATRIX) {
+      setBusy(`${combo.prompt} prompt, ${combo.schema} schema…`);
+      const result = await runOne(combo.prompt, combo.schema);
+      collected.push(result);
+      setResults([...collected]);
+    }
+    setBusy(null);
+  };
+
+  const report = () =>
+    [
+      `## Reader lab · ${today()} · ${material.length} material chars`,
+      "",
+      "### Material",
+      material,
+      ...results.flatMap((r) => [
+        "",
+        `### ${r.label}`,
+        r.meta,
+        "",
+        "Parsed:",
+        r.summary,
+        "",
+        "Raw:",
+        r.raw,
+      ]),
+      "",
+    ].join("\n");
 
   return (
     <ScrollView
@@ -115,30 +149,6 @@ export default function ReaderLabScreen() {
         autoCorrect={false}
         autoCapitalize="none"
       />
-      <View style={styles.row}>
-        <Text style={styles.label}>Prompt</Text>
-        <SegmentedPills
-          options={[
-            { value: "full", label: "Full" },
-            { value: "lean", label: "Lean" },
-          ]}
-          value={prompt}
-          onChange={setPrompt}
-          style={styles.pills}
-        />
-      </View>
-      <View style={styles.row}>
-        <Text style={styles.label}>Schema</Text>
-        <SegmentedPills
-          options={[
-            { value: "full", label: "Full guides" },
-            { value: "lean", label: "Lean guides" },
-          ]}
-          value={schema}
-          onChange={setSchema}
-          style={styles.pills}
-        />
-      </View>
       <View style={styles.actions}>
         <Button
           variant="secondary"
@@ -148,30 +158,27 @@ export default function ReaderLabScreen() {
         />
         <Button
           icon="sparkles"
-          label={busy ? "Reading…" : "Run"}
-          onPress={() => void run()}
-          disabled={busy || material.trim() === ""}
+          label={busy ? "Running…" : "Run all four"}
+          onPress={() => void runAll()}
+          disabled={busy !== null || material.trim() === ""}
         />
       </View>
-      {meta ? <Text style={styles.meta}>{meta}</Text> : null}
-      {summary ? (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Parsed</Text>
+      {busy ? <Text style={styles.meta}>{busy}</Text> : null}
+      {results.map((r) => (
+        <View key={r.label} style={styles.card}>
+          <Text style={styles.cardTitle}>{r.label}</Text>
+          <Text style={styles.meta}>{r.meta}</Text>
           <Text style={styles.mono} selectable>
-            {summary}
+            {r.summary}
           </Text>
         </View>
-      ) : null}
-      {raw ? (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Raw answer</Text>
-          <Text style={styles.mono} selectable>
-            {raw}
-          </Text>
-        </View>
-      ) : null}
-      {raw || summary ? (
-        <Button variant="secondary" icon="doc.on.doc" label="Copy report" onPress={copyReport} />
+      ))}
+      {results.length === MATRIX.length && !busy ? (
+        <Button
+          icon="doc.on.doc"
+          label="Copy the full report"
+          onPress={() => void Clipboard.setStringAsync(report())}
+        />
       ) : null}
     </ScrollView>
   );
@@ -193,9 +200,6 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       textAlignVertical: "top",
     },
-    row: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
-    label: { ...typography.label, color: colors.text, width: 64 },
-    pills: { flex: 1 },
     actions: { flexDirection: "row", gap: spacing.sm, justifyContent: "flex-end" },
     meta: { ...typography.caption, color: colors.mutedText },
     card: {
