@@ -796,6 +796,7 @@ describe("buildKeelReadsPrompt", () => {
     expect(prompt).toContain("loan or credit repayment included");
     expect(prompt).toContain("HK$ means HKD");
     expect(prompt).toContain("use the listed equivalent");
+    expect(prompt).toContain("final TOTAL including taxes");
   });
 
   it("is one-shot: no conversation protocol, same rules", () => {

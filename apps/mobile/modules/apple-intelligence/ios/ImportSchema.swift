@@ -65,11 +65,11 @@ import Foundation
         "Best-fit category id: streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other"
     )
     var category: String?
-    @Guide(description: "The billing cycle whenever the input states it in any words: monthly, yearly, per year, annuel, jährlich, Fréquence de paiement annuel, a period like Oct 9 to Nov 9 (monthly); omit only when nothing says")
+    @Guide(description: "The billing cycle whenever the input states it in any words: monthly, yearly, per year, annuel, jährlich, Fréquence de paiement annuel, a period like Oct 9 to Nov 9 or an invoice period of one month (monthly); omit only when nothing says")
     var cadence: ImportCadence?
     @Guide(
       description:
-        "The first charge, first instalment, contract or policy start, YYYY-MM-DD. A day and a month given separately (the 26th, started March 2026) make the full date 2026-03-26, never the 1st; omit when no full date can be read"
+        "The first charge, first instalment, contract or policy start, or an invoice's due date (Payable à, Fällig am), YYYY-MM-DD. A day and a month given separately (the 26th, started March 2026) make the full date 2026-03-26, never the 1st; omit when no full date can be read"
     )
     var firstDate: String?
     @Guide(
@@ -77,7 +77,7 @@ import Foundation
         "A bare stated day of the month, 1 to 31 (the 22nd is 22), when no full date is given; omit when no day appears"
     )
     var billingDay: Int?
-    @Guide(description: "The recurring price in main units; a free trial uses 0. Subscriptions only")
+    @Guide(description: "The recurring price in main units; for an invoice its final total including taxes (Total CHF 25.00), never a subtotal, a line item or a tax line; a free trial uses 0. Subscriptions only")
     var amount: Double?
     @Guide(description: "The last charge, contract end or expiry date YYYY-MM-DD, subscriptions only")
     var endDate: String?
