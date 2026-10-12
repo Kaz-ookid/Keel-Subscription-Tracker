@@ -972,7 +972,7 @@ export const it: typeof en = {
     kindTaxId: "partite IVA",
     methodScreenshots: "Screenshot",
     methodScreenshotsSub:
-      "Ricevute, email di conferma, l'app della banca. Acquisiti su questo iPhone, poi un'anteprima prima dell'invio.",
+      "Ricevute, email di conferma, l'app della banca. Ritaglia la parte che conta, meno testo si legge meglio. Acquisiti su questo iPhone, poi un'anteprima prima dell'invio.",
     methodDocuments: "Documenti",
     methodDocumentsSub:
       "Estratti PDF (anche scansionati), export CSV o di testo. Acquisiti su questo iPhone, poi un'anteprima.",
@@ -983,7 +983,7 @@ export const it: typeof en = {
     offlineBody:
       "Keel legge per te richiede una connessione internet. Le istruzioni per la tua IA restano copiabili.",
     previewHint:
-      "Ecco il testo letto da ciò che hai scelto. Controllalo, togli ciò che è privato, poi invia.",
+      "Ecco il testo letto da ciò che hai scelto. Controllalo, togli ciò che non conta e ciò che è privato, poi invia: meno testo si legge meglio.",
   },
   notifications: {
     bodyToday: "{{amount}} in scadenza oggi",

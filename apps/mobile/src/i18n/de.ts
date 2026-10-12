@@ -977,7 +977,7 @@ export const de: typeof en = {
     kindTaxId: "Steuernummern",
     methodScreenshots: "Screenshots",
     methodScreenshotsSub:
-      "Belege, Bestätigungs-Mails, deine Banking-App. Auf diesem iPhone erfasst, dann Vorschau vor dem Senden.",
+      "Belege, Bestätigungs-Mails, deine Banking-App. Schneide auf das Wesentliche zu, weniger Text liest sich besser. Auf diesem iPhone erfasst, dann Vorschau vor dem Senden.",
     methodDocuments: "Dokumente",
     methodDocumentsSub:
       "PDF-Auszüge (auch gescannt), CSV- oder Textexporte. Auf diesem iPhone erfasst, dann Vorschau.",
@@ -987,7 +987,8 @@ export const de: typeof en = {
     offlineTitle: "Du bist offline",
     offlineBody:
       "Keel liest es braucht eine Internetverbindung. Die Anleitung für deine eigene KI lässt sich trotzdem kopieren.",
-    previewHint: "Hier ist der Text aus deiner Auswahl. Prüfe ihn, entferne Privates, dann senden.",
+    previewHint:
+      "Hier ist der Text aus deiner Auswahl. Prüfe ihn, streiche Unwichtiges und Privates, dann senden: weniger Text liest sich besser.",
   },
   notifications: {
     bodyToday: "{{amount}} heute fällig",

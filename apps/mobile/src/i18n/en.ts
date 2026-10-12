@@ -969,7 +969,7 @@ export const en = {
     kindTaxId: "tax ids",
     methodScreenshots: "Screenshots",
     methodScreenshotsSub:
-      "Receipts, confirmation emails, your banking app. Captured on this iPhone, then previewed before anything is sent.",
+      "Receipts, confirmation emails, your banking app. Crop to the part that matters, less text reads better. Captured on this iPhone, then previewed before anything is sent.",
     methodDocuments: "Documents",
     methodDocumentsSub:
       "PDF statements (scanned too), CSV or text exports. Captured on this iPhone, then previewed.",
@@ -980,7 +980,7 @@ export const en = {
     offlineBody:
       "Keel reads it needs an internet connection. Your own AI's instructions can still be copied.",
     previewHint:
-      "Here is the text from what you picked. Check it, remove anything private, then send.",
+      "Here is the text from what you picked. Check it, cut what doesn't matter and anything private, then send: less text reads better.",
   },
   notifications: {
     bodyToday: "{{amount}} due today",

@@ -973,7 +973,7 @@ export const fr: typeof en = {
     kindTaxId: "numéros de TVA",
     methodScreenshots: "Captures d'écran",
     methodScreenshotsSub:
-      "Reçus, e-mails de confirmation, votre app bancaire. Capturés sur cet iPhone, puis un aperçu avant tout envoi.",
+      "Reçus, e-mails de confirmation, votre app bancaire. Recadrez sur ce qui compte, moins de texte se lit mieux. Capturés sur cet iPhone, puis un aperçu avant tout envoi.",
     methodDocuments: "Documents",
     methodDocumentsSub:
       "Relevés PDF (même scannés), exports CSV ou texte. Capturés sur cet iPhone, puis un aperçu.",
@@ -984,7 +984,7 @@ export const fr: typeof en = {
     offlineBody:
       "Keel lit pour vous nécessite une connexion internet. Les instructions pour votre propre IA restent copiables.",
     previewHint:
-      "Voici le texte lu dans ce que vous avez choisi. Vérifiez-le, retirez ce qui est privé, puis envoyez.",
+      "Voici le texte lu dans ce que vous avez choisi. Vérifiez-le, retirez ce qui ne compte pas et ce qui est privé, puis envoyez : moins de texte se lit mieux.",
   },
   notifications: {
     bodyToday: "{{amount}} à payer aujourd'hui",

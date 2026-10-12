@@ -1019,7 +1019,7 @@ const translation = {
     kindTaxId: "numery NIP",
     methodScreenshots: "Zrzuty ekranu",
     methodScreenshotsSub:
-      "Paragony, e-maile z potwierdzeniem, aplikacja banku. Przechwycone na tym iPhonie, potem podgląd przed wysłaniem.",
+      "Paragony, e-maile z potwierdzeniem, aplikacja banku. Przytnij do tego, co istotne, mniej tekstu czyta się lepiej. Przechwycone na tym iPhonie, potem podgląd przed wysłaniem.",
     methodDocuments: "Dokumenty",
     methodDocumentsSub:
       "Wyciągi PDF (także skany), eksporty CSV lub tekstowe. Przechwycone na tym iPhonie, potem podgląd.",
@@ -1030,7 +1030,7 @@ const translation = {
     offlineBody:
       "Keel czyta za ciebie wymaga połączenia z internetem. Instrukcje dla twojej własnej AI nadal można skopiować.",
     previewHint:
-      "Oto tekst odczytany z tego, co wybrano. Sprawdź go, usuń to, co prywatne, i wyślij.",
+      "Oto tekst odczytany z tego, co wybrano. Sprawdź go, usuń to, co nieistotne i prywatne, i wyślij: mniej tekstu czyta się lepiej.",
     scrubbed_few:
       "{{count}} dane osobowe usunięte automatycznie ({{kinds}}). Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
     scrubbed_many:
