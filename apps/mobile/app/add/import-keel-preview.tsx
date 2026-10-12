@@ -6,10 +6,11 @@
 
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { AiHero } from "../../src/components/ai/AiHero";
 import { Button } from "../../src/components/ui/Button";
 import { runKeelRead, type KeelReadOutcome } from "../../src/lib/keel-read-flow";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
@@ -19,10 +20,11 @@ import { editKeelReadsDraftText, useKeelReadsDraft } from "../../src/state/keel-
 import {
   radius,
   spacing,
+  type ThemeColors,
   typography,
+  useStyles,
   useTheme,
   withAlpha,
-  type ThemeColors,
 } from "../../src/theme";
 
 type ReadError = Extract<KeelReadOutcome, { ok: false }>["error"];
@@ -52,7 +54,7 @@ export default function KeelReadsPreviewScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, accounts, categories, displayCurrency } = useAppData();
   const { startSession } = useImportSession();
   const draft = useKeelReadsDraft();
@@ -100,12 +102,7 @@ export default function KeelReadsPreviewScreen() {
     >
       <Stack.Screen options={{ title: t("keelReads.previewTitle") }} />
 
-      <View style={styles.heroCard}>
-        <SymbolView name="eye" size={22} tintColor={colors.accent} />
-        <Text style={styles.heroText}>
-          {t("keelReads.previewHint", { count: draft.screenshots })}
-        </Text>
-      </View>
+      <AiHero icon="eye" text={t("keelReads.previewHint", { count: draft.screenshots })} />
 
       {/* What the scrubber took out, by kind: the user knows what is
           already gone and what remains their call (names, addresses). */}
@@ -158,17 +155,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
-    heroCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: withAlpha(colors.accent, 0.12),
-      borderWidth: 1,
-      borderColor: withAlpha(colors.accent, 0.45),
-      borderRadius: radius.xl,
-      padding: spacing.md,
-    },
-    heroText: { ...typography.body, color: colors.text, flex: 1 },
     scrubCard: {
       flexDirection: "row",
       alignItems: "flex-start",

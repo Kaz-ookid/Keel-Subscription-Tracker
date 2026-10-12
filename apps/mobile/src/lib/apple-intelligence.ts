@@ -32,6 +32,15 @@ export type KeelReadsAvailability =
   /** Native module missing (Expo Go) or probe failed. */
   | "unavailable";
 
+/** The one sentence per wall, for every screen that explains it. */
+export const REASON_KEYS: Record<Exclude<KeelReadsAvailability, "available">, string> = {
+  "unsupported-os": "keelReads.reasonOs",
+  device: "keelReads.reasonDevice",
+  disabled: "keelReads.reasonDisabled",
+  "not-ready": "keelReads.reasonNotReady",
+  unavailable: "keelReads.reasonBuild",
+};
+
 /** Why a read failed, in the bridge's contract (see AppleIntelligenceError
  *  in the native module). The screens have a message for each. */
 export type KeelReadsFailure =

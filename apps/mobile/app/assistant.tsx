@@ -7,20 +7,14 @@
 
 import { parseAssistantPlan, today } from "@keel/core";
 import { Stack, useRouter } from "expo-router";
-import { SymbolView } from "expo-symbols";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { AiHero } from "../src/components/ai/AiHero";
+import { AiNotice } from "../src/components/ai/AiNotice";
+import { AiPrivacyLine } from "../src/components/ai/AiPrivacyLine";
+import { AiUnavailableNotice } from "../src/components/ai/AiUnavailableNotice";
 import { Button } from "../src/components/ui/Button";
 import {
   assistWithKeel,
@@ -29,7 +23,7 @@ import {
 } from "../src/lib/apple-intelligence";
 import { useAppData } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../src/theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 import { useLockedRedirect } from "../src/lib/lock-gate";
 type AssistError = "model-failed" | "no-json" | "empty";
@@ -41,7 +35,7 @@ export default function AssistantScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const { items, accounts, categories, displayCurrency } = useAppData();
   const { startPlan } = useAssistantSession();
 
@@ -97,18 +91,11 @@ export default function AssistantScreen() {
       <Stack.Screen options={{ title: "" }} />
       <Text style={styles.largeTitle}>{t("assistant.title")}</Text>
 
-      {availability === "checking" && (
-        <View style={styles.centerCard}>
-          <ActivityIndicator color={colors.accent} />
-        </View>
-      )}
+      {availability === "checking" && <AiNotice busy />}
 
       {availability === "available" && (
         <>
-          <View style={styles.heroCard}>
-            <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
-            <Text style={styles.heroText}>{t("assistant.hero")}</Text>
-          </View>
+          <AiHero text={t("assistant.hero")} />
 
           <View style={styles.card}>
             <Text style={styles.hint}>{t("assistant.hint")}</Text>
@@ -143,36 +130,12 @@ export default function AssistantScreen() {
             )}
           </View>
 
-          <View style={styles.privacyRow}>
-            <SymbolView name="lock.shield" size={14} tintColor={colors.mutedText} />
-            <Text style={styles.privacyText}>{t("assistant.safety")}</Text>
-          </View>
+          <AiPrivacyLine text={t("assistant.safety")} />
         </>
       )}
 
       {availability !== "checking" && availability !== "available" && (
-        <View style={styles.centerCard}>
-          <SymbolView name="sparkles" size={28} tintColor={colors.mutedText} />
-          <Text style={styles.unavailableTitle}>{t("keelReads.unavailableTitle")}</Text>
-          <Text style={styles.unavailableBody}>
-            {t(
-              availability === "unsupported-os"
-                ? "keelReads.reasonOs"
-                : availability === "device"
-                  ? "keelReads.reasonDevice"
-                  : availability === "disabled"
-                    ? "keelReads.reasonDisabled"
-                    : availability === "not-ready"
-                      ? "keelReads.reasonNotReady"
-                      : "keelReads.reasonBuild",
-            )}
-          </Text>
-          {availability === "disabled" && (
-            <Pressable onPress={() => void Linking.openSettings()} hitSlop={8}>
-              <Text style={styles.settingsLink}>{t("keelReads.openSettings")}</Text>
-            </Pressable>
-          )}
-        </View>
+        <AiUnavailableNotice availability={availability} />
       )}
     </ScrollView>
   );
@@ -183,17 +146,6 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
     largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
-    heroCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: withAlpha(colors.accent, 0.12),
-      borderWidth: 1,
-      borderColor: withAlpha(colors.accent, 0.45),
-      borderRadius: radius.xl,
-      padding: spacing.md,
-    },
-    heroText: { ...typography.body, color: colors.text, flex: 1 },
     card: {
       backgroundColor: colors.material,
       borderWidth: 1,
@@ -223,30 +175,5 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.sm,
     },
     busyText: { ...typography.label, color: colors.mutedText },
-    privacyRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: spacing.xs + 2,
-    },
-    privacyText: { ...typography.caption, color: colors.mutedText },
-    centerCard: {
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: colors.material,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      borderRadius: radius.xl,
-      padding: spacing.xl,
-      marginTop: spacing.xl,
-    },
-    unavailableTitle: { ...typography.label, color: colors.text, textAlign: "center" },
-    unavailableBody: {
-      ...typography.caption,
-      color: colors.mutedText,
-      textAlign: "center",
-      lineHeight: 18,
-    },
-    settingsLink: { ...typography.caption, fontWeight: "600", color: colors.accent },
   });
 }

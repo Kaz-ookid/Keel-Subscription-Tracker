@@ -9,10 +9,14 @@
 import { useNetworkState } from "expo-network";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { type ComponentProps, useEffect, useMemo, useState } from "react";
+import { type ComponentProps, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 
+import { AiHero } from "../ai/AiHero";
+import { AiNotice, AiNoticeLink } from "../ai/AiNotice";
+import { AiPrivacyLine } from "../ai/AiPrivacyLine";
+import { AiUnavailableNotice } from "../ai/AiUnavailableNotice";
 import { InfoDot } from "../InfoDot";
 import { Button } from "../ui/Button";
 
@@ -24,7 +28,15 @@ import {
   type KeelReadsAvailability,
 } from "../../lib/apple-intelligence";
 import { stageDocuments, stageScreenshots } from "../../lib/keel-material";
-import { radius, spacing, typography, useTheme, withAlpha, type ThemeColors } from "../../theme";
+import {
+  radius,
+  spacing,
+  typography,
+  useStyles,
+  useTheme,
+  withAlpha,
+  type ThemeColors,
+} from "../../theme";
 
 type Busy = "screenshots" | "documents" | null;
 
@@ -39,7 +51,7 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   const router = useRouter();
   const { colors } = useTheme();
   const { t, i18n } = useTranslation();
-  const styles = useMemo(() => createStyles(colors), [colors]);
+  const styles = useStyles(createStyles);
   const consented = useAiCloudConsent();
   // No connection, no door: better a plain word here than a timeout later.
   // Only an explicit "no" counts; an unknown state must not block anyone.
@@ -70,73 +82,40 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
     }
   };
 
-  if (availability === "checking") {
-    return (
-      <View style={styles.centerCard}>
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
-  }
+  if (availability === "checking") return <AiNotice busy />;
 
   if (availability !== "available") {
-    return (
-      <View style={styles.centerCard}>
-        <SymbolView name="sparkles" size={28} tintColor={colors.mutedText} />
-        <Text style={styles.centerTitle}>{t("keelReads.unavailableTitle")}</Text>
-        <Text style={styles.centerBody}>
-          {t(
-            availability === "unsupported-os"
-              ? "keelReads.reasonOs"
-              : availability === "device"
-                ? "keelReads.reasonDevice"
-                : availability === "disabled"
-                  ? "keelReads.reasonDisabled"
-                  : availability === "not-ready"
-                    ? "keelReads.reasonNotReady"
-                    : "keelReads.reasonBuild",
-          )}
-        </Text>
-        {availability === "disabled" && (
-          <Pressable onPress={() => void Linking.openSettings()} hitSlop={8}>
-            <Text style={styles.link}>{t("keelReads.openSettings")}</Text>
-          </Pressable>
-        )}
-        <Pressable onPress={onUseOwnAi} hitSlop={8}>
-          <Text style={styles.link}>{t("keelReads.ownAi")}</Text>
-        </Pressable>
-      </View>
-    );
+    return <AiUnavailableNotice availability={availability} onUseOwnAi={onUseOwnAi} />;
   }
 
   if (offline) {
     return (
-      <View style={styles.centerCard}>
-        <SymbolView name="wifi.slash" size={28} tintColor={colors.mutedText} />
-        <Text style={styles.centerTitle}>{t("keelReads.offlineTitle")}</Text>
-        <Text style={styles.centerBody}>{t("keelReads.offlineBody")}</Text>
-        <Pressable onPress={onUseOwnAi} hitSlop={8}>
-          <Text style={styles.link}>{t("keelReads.ownAi")}</Text>
-        </Pressable>
-      </View>
+      <AiNotice
+        icon="wifi.slash"
+        tint={colors.mutedText}
+        title={t("keelReads.offlineTitle")}
+        body={t("keelReads.offlineBody")}
+      >
+        <AiNoticeLink label={t("keelReads.ownAi")} onPress={onUseOwnAi} />
+      </AiNotice>
     );
   }
 
   if (!consented) {
     return (
-      <View style={styles.centerCard}>
-        <SymbolView name="cloud.fill" size={28} tintColor={colors.accent} />
-        <Text style={styles.centerTitle}>{t("keelReads.consentTitle")}</Text>
-        <Text style={styles.centerBody}>{t("keelReads.consentBody")}</Text>
+      <AiNotice
+        icon="cloud.fill"
+        title={t("keelReads.consentTitle")}
+        body={t("keelReads.consentBody")}
+      >
         <Button
           icon="checkmark"
           label={t("keelReads.consentGo")}
           onPress={() => setAiCloudConsent(true)}
           style={styles.consentButton}
         />
-        <Pressable onPress={onUseOwnAi} hitSlop={8}>
-          <Text style={styles.link}>{t("keelReads.consentAlt")}</Text>
-        </Pressable>
-      </View>
+        <AiNoticeLink label={t("keelReads.consentAlt")} onPress={onUseOwnAi} />
+      </AiNotice>
     );
   }
 
@@ -158,10 +137,7 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
 
   return (
     <View style={styles.stack}>
-      <View style={styles.heroCard}>
-        <SymbolView name="sparkles" size={22} tintColor={colors.accent} />
-        <Text style={styles.heroText}>{t("keelReads.hero")}</Text>
-      </View>
+      <AiHero text={t("keelReads.hero")} />
 
       <View style={styles.list}>
         <MethodRow
@@ -203,10 +179,7 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
         </Text>
       )}
 
-      <View style={styles.footRow}>
-        <SymbolView name="lock.shield" size={14} tintColor={colors.mutedText} />
-        <Text style={styles.footText}>{t("keelReads.privacy")}</Text>
-      </View>
+      <AiPrivacyLine text={t("keelReads.privacy")} />
       {/* The allowance, for the curious only: a quiet line plus an (i)
           that says where the user stands on Apple's daily quota. */}
       <View style={styles.footRow}>
@@ -264,17 +237,6 @@ function MethodRow({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     stack: { gap: spacing.md },
-    heroCard: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: withAlpha(colors.accent, 0.12),
-      borderWidth: 1,
-      borderColor: withAlpha(colors.accent, 0.45),
-      borderRadius: radius.xl,
-      padding: spacing.md,
-    },
-    heroText: { ...typography.body, color: colors.text, flex: 1 },
     list: {
       backgroundColor: colors.material,
       borderWidth: 1,
@@ -309,24 +271,6 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.xs + 2,
     },
     footText: { ...typography.caption, color: colors.mutedText, flexShrink: 1 },
-    centerCard: {
-      alignItems: "center",
-      gap: spacing.sm,
-      backgroundColor: colors.material,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      borderRadius: radius.xl,
-      padding: spacing.xl,
-      marginTop: spacing.md,
-    },
-    centerTitle: { ...typography.label, color: colors.text, textAlign: "center" },
-    centerBody: {
-      ...typography.caption,
-      color: colors.mutedText,
-      textAlign: "center",
-      lineHeight: 18,
-    },
     consentButton: { alignSelf: "stretch", marginTop: spacing.sm },
-    link: { ...typography.caption, fontWeight: "600", color: colors.accent },
   });
 }
