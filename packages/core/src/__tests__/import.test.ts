@@ -344,8 +344,11 @@ describe("parseImportDocument — tolerance and recovery", () => {
       ],
     };
     const result = parseImportDocument(JSON.stringify(doc), ctx);
-    expect(result.drafts).toHaveLength(1);
-    expect(result.skipped).toBe(3);
+    // The nameless one and the non-object are skipped; the one without an
+    // amount is kept at 0 with its amount flagged (the review screen asks).
+    expect(result.drafts).toHaveLength(2);
+    expect(result.skipped).toBe(2);
+    expect(result.drafts[1].uncertainFields).toContain("amount");
   });
 
   it("infers the type when it's missing", () => {
@@ -754,6 +757,28 @@ describe("buildKeelReadsPrompt", () => {
     expect(prompt).toContain("READING A DOCUMENT");
     expect(prompt).toContain("Prime annuelle");
     expect(prompt).toContain('"QR-facture" mean "manual"');
+  });
+
+  it("keeps an item whose amount the model dropped, flagged for the user to type", () => {
+    const answer = {
+      items: [
+        {
+          type: "subscription",
+          name: "Assurly Home Assurance ménage",
+          currency: "CHF",
+          settlement: "manual",
+          category: "insurance",
+          cadence: { unit: "year", interval: 1 },
+          firstDate: "2026-10-01",
+        },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(answer), { ...ctx, defaultCurrency: "CHF" });
+    expect(result.drafts).toHaveLength(1);
+    const policy = result.drafts[0] as RecurringImportDraft;
+    expect(policy.input.amount).toEqual(fromMajor(0, "CHF"));
+    expect(policy.uncertainFields).toContain("amount");
+    expect(policy.input.recurrence).toEqual({ unit: "year", interval: 1 });
   });
 
   it("lands an insurance policy's answer as a yearly, manual insurance item", () => {

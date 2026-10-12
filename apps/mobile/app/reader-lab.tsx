@@ -18,6 +18,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
+import { runKeelRead } from "../src/lib/keel-read-flow";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
@@ -103,14 +104,18 @@ export default function ReaderLabScreen() {
     for (const variant of variants) {
       for (const fixture of READER_FIXTURES) {
         setBusy(`${variant.tag} · ${fixture.id}…`);
-        const folded = expandAccountHeadings(fixture.material);
-        const defaultCurrency = detectCurrencyHint(folded) ?? displayCurrency;
-        const context = { today: today(), defaultCurrency };
         const id = `${variant.tag} · ${fixture.id}`;
         try {
-          const json = await readWithInstructions(folded, buildKeelReadsPrompt(context));
-          const score = scoreFixture(fixture, json, { ...context, accounts, categories });
-          collected.push({ ...score, id, raw: json });
+          // The product's own path, sections and all.
+          const outcome = await runKeelRead(fixture.material, {
+            displayCurrency,
+            items: [],
+            accounts,
+            categories,
+          });
+          if (!outcome.ok) throw new Error(outcome.error);
+          const score = scoreFixture(fixture, outcome);
+          collected.push({ ...score, id, raw: outcome.raw.join("\n") });
         } catch (failure) {
           collected.push({
             id,

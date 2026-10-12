@@ -353,8 +353,16 @@ function parseItem(
     };
   }
 
-  const amount = asFiniteNumber(item.amount);
-  if (amount === undefined || amount < 0) return null;
+  // No amount at all is not a reason to drop everything else the model read
+  // (a policy came back with its cadence, dates and settlement and no
+  // premium): it lands at 0 with the amount flagged, for the user to type.
+  // A stated negative amount is nonsense and is skipped.
+  const statedAmount = asFiniteNumber(item.amount);
+  if (statedAmount !== undefined && statedAmount < 0) return null;
+  const amount = statedAmount ?? 0;
+  if (statedAmount === undefined && !uncertainFields.includes("amount")) {
+    uncertainFields = [...uncertainFields, "amount"];
+  }
   const anchor = reader.anchor(item.anchor);
   const baseCadence = reader.cadence(item.cadence, brand?.unit);
   const recurrence: RecurrenceRule =

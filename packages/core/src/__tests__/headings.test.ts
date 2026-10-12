@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { expandAccountHeadings, parseAccountHeading } from "../import/headings";
+import {
+  expandAccountHeadings,
+  parseAccountHeading,
+  splitAccountSections,
+} from "../import/headings";
 
 describe("parseAccountHeading", () => {
   it("reads the account and the currency in several spellings", () => {
@@ -47,5 +51,27 @@ describe("expandAccountHeadings", () => {
     const policy = "Aperçu des primes\nSont inclus dans ce prix :\nTaxes légales    CHF 7.80";
     expect(expandAccountHeadings(policy)).toBe(policy);
     expect(expandAccountHeadings("Netflix 13.99 monthly")).toBe("Netflix 13.99 monthly");
+  });
+});
+
+describe("splitAccountSections", () => {
+  it("cuts the material at its headings and carries each heading's account and currency", () => {
+    const material =
+      "intro line\nCIC in euro :\nApple iCloud 1 on the 4th\nBCV in CHF:\nLoyer 1470 manual\n\nSERAFE 329.25";
+    expect(splitAccountSections(material)).toEqual([
+      { text: "intro line" },
+      { account: "Boursorama", currency: "EUR", text: "Apple iCloud 1 on the 4th (account Boursorama, EUR)" },
+      {
+        account: "BCV",
+        currency: "CHF",
+        text: "Loyer 1470 manual (account BCV, CHF)\n\nSERAFE 329.25 (account BCV, CHF)",
+      },
+    ]);
+  });
+
+  it("is one section when there is no heading", () => {
+    expect(splitAccountSections("Netflix 13.99 monthly")).toEqual([
+      { text: "Netflix 13.99 monthly" },
+    ]);
   });
 });

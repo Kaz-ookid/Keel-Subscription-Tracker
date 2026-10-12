@@ -6,7 +6,7 @@
 
 import {
   detectCurrencyHint,
-  expandAccountHeadings,
+  splitAccountSections,
   parseImportDocument,
   today,
   type Account,
@@ -20,7 +20,7 @@ import {
 import { KeelReadsError, readWithKeel, type KeelReadsFailure } from "./apple-intelligence";
 
 export type KeelReadOutcome =
-  | { ok: true; drafts: ImportDraft[]; skipped: number }
+  | { ok: true; drafts: ImportDraft[]; skipped: number; raw: string[] }
   | { ok: false; error: ImportParseError | KeelReadsFailure };
 
 export async function runKeelRead(
@@ -32,22 +32,37 @@ export async function runKeelRead(
     categories: readonly Category[];
   },
 ): Promise<KeelReadOutcome> {
-  // Account headings ("BCV in CHF:") are folded into their lines first: the
-  // model applies a heading to the lines below it only sometimes, a CHF
-  // list then lands in euros, and this is a job for code, not for luck.
-  const material = expandAccountHeadings(rawMaterial);
-  const defaultCurrency = detectCurrencyHint(material) ?? context.displayCurrency;
+  // A list grouped under account headings ("BCV in CHF:") is read one
+  // section at a time, with the heading's currency as the parser's default
+  // and its account folded into every line: the model applies a heading to
+  // the lines below it only sometimes, and a CHF list must never land in
+  // euros because of that. Material without headings is one read.
+  const sections = splitAccountSections(rawMaterial);
   try {
-    const json = await readWithKeel(material, { today: today(), defaultCurrency });
-    const result = parseImportDocument(json, {
-      defaultCurrency,
-      today: today(),
-      accounts: context.accounts,
-      categories: context.categories,
-      takenNames: context.items.map((i) => i.name),
-    });
-    if (result.drafts.length === 0) return { ok: false, error: result.error ?? "empty" };
-    return { ok: true, drafts: result.drafts, skipped: result.skipped };
+    const drafts: ImportDraft[] = [];
+    const raw: string[] = [];
+    let skipped = 0;
+    let firstError: ImportParseError | undefined;
+    const taken = context.items.map((i) => i.name);
+    for (const section of sections) {
+      const defaultCurrency =
+        section.currency ?? detectCurrencyHint(section.text) ?? context.displayCurrency;
+      const json = await readWithKeel(section.text, { today: today(), defaultCurrency });
+      raw.push(json);
+      const result = parseImportDocument(json, {
+        defaultCurrency,
+        today: today(),
+        accounts: context.accounts,
+        categories: context.categories,
+        takenNames: taken,
+      });
+      drafts.push(...result.drafts);
+      skipped += result.skipped;
+      taken.push(...result.drafts.map((d) => d.input.name));
+      if (result.drafts.length === 0 && !firstError) firstError = result.error ?? "empty";
+    }
+    if (drafts.length === 0) return { ok: false, error: firstError ?? "empty" };
+    return { ok: true, drafts, skipped, raw };
   } catch (failure) {
     return {
       ok: false,

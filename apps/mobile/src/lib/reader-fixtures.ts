@@ -4,15 +4,7 @@
 // and numbers throughout; the layouts are the real ones. A prompt or schema
 // change is judged on this scorecard, never on one screenshot.
 
-import {
-  parseImportDocument,
-  toMajor,
-  type Account,
-  type Category,
-  type CurrencyCode,
-  type ImportDraft,
-  type RecurrenceRule,
-} from "@keel/core";
+import { toMajor, type CurrencyCode, type ImportDraft, type RecurrenceRule } from "@keel/core";
 
 export interface ExpectedItem {
   /** Case-insensitive substring of the draft's name. */
@@ -63,6 +55,17 @@ export const READER_FIXTURES: Fixture[] = [
         cadence: { unit: "month", interval: 1 },
       },
       { name: "css", amount: 372.95, currency: "CHF", firstDate: "2026-03-26" },
+    ],
+  },
+  {
+    id: "typed-mixed-currencies",
+    material:
+      "Boursorama in euro:\nApple iCloud 1 on the 4th\ncar loan 689.55 on the 6th\n\nBCV in CHF:\nspotify duo 17.6 on the 13th\nLoyer 1470 manual on the 26th",
+    expect: [
+      { name: "icloud", amount: 1, currency: "EUR" },
+      { name: "car loan", amount: 689.55, currency: "EUR" },
+      { name: "claude", amount: 17.6, currency: "CHF" },
+      { name: "loyer", amount: 1470, currency: "CHF", settlement: "manual" },
     ],
   },
   {
@@ -187,21 +190,8 @@ export interface FixtureScore {
 /** Score one fixture's parsed drafts against its expectations. */
 export function scoreFixture(
   fixture: Fixture,
-  json: string,
-  context: {
-    defaultCurrency: CurrencyCode;
-    today: Parameters<typeof parseImportDocument>[1]["today"];
-    accounts: readonly Account[];
-    categories: readonly Category[];
-  },
+  result: { drafts: ImportDraft[]; skipped: number },
 ): FixtureScore {
-  const result = parseImportDocument(json, {
-    defaultCurrency: context.defaultCurrency,
-    today: context.today,
-    accounts: context.accounts,
-    categories: context.categories,
-    takenNames: [],
-  });
   const lines: string[] = [];
   let passed = 0;
   let landed = 0;

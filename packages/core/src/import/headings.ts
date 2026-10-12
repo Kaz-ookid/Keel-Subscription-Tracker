@@ -75,3 +75,40 @@ export function expandAccountHeadings(material: string): string {
   }
   return out.join("\n");
 }
+
+export interface AccountSection {
+  account?: string;
+  currency?: CurrencyCode;
+  /** The section's lines, headings folded in. */
+  text: string;
+}
+
+/** The material cut at its account headings, each section carrying the
+ *  heading's account and currency so the READER's default currency can be
+ *  the section's own, whatever the model echoes. Material without headings
+ *  is one section with neither. */
+export function splitAccountSections(material: string): AccountSection[] {
+  const lines = material.split("\n");
+  if (!lines.some((l) => parseAccountHeading(l))) return [{ text: material }];
+  const sections: AccountSection[] = [];
+  let current: AccountSection | null = null;
+  const leading: string[] = [];
+  for (const line of lines) {
+    const heading = parseAccountHeading(line);
+    if (heading) {
+      current = { account: heading.account, currency: heading.currency, text: "" };
+      sections.push(current);
+      continue;
+    }
+    if (!current) {
+      leading.push(line);
+      continue;
+    }
+    const folded =
+      line.trim() === "" ? line : `${line.trimEnd()} (account ${current.account}, ${current.currency})`;
+    current.text = current.text ? `${current.text}\n${folded}` : folded;
+  }
+  const head = leading.join("\n").trim();
+  if (head) sections.unshift({ text: head });
+  return sections.filter((s) => s.text.trim() !== "");
+}
