@@ -110,22 +110,34 @@ export function buildYesterdayPrompt(today: CalendarDate): string {
 ${RULES_YESTERDAY(today)}`;
 }
 
-/** The current prompt plus three worked items: a typed line, a policy and
- *  an invoice, each with the full set of fields a correct read gives. The
- *  bet: the model's structured mode is primed by seeing one answer. */
-export function buildExamplesPrompt(current: string): string {
-  return `${current}
+/** The MID prompt: every field's meaning, no example, no document essay,
+ *  the currency table cut to the symbols that appear in practice. About
+ *  half of today's prompt. The bet: the model structures when the
+ *  instructions fit its attention, and goes lazy past that. */
+export function buildMidPrompt(today: CalendarDate): string {
+  return `You are reading material someone handed to the Keel app so it can import their recurring payments. Everything arrives at once: typed notes, or text read off screenshots and documents (receipts, emails, banking apps, statements, policies, invoices). The text can come from OCR: a label and its value may sit on separate lines, words may be misspelled, and "[removed]" marks a detail blanked on purpose. Produce the items; do not ask, do not explain.
 
-EXAMPLES, each a complete item for the material before it:
+What counts: recurring commitments (subscriptions, bills, rent, insurance, loan repayments) and fixed instalment plans (pay in 4, Klarna). Skip one-time spending. A heading like "Revolut CHF:" names the account and currency of the lines under it and is not an item.
 
-Material: "BCV in CHF: Loyer 1470 CHF manual, 26th of the month, started March 2026"
-Item: {"type":"subscription","name":"Loyer","amount":1470,"currency":"CHF","settlement":"manual","category":"housing","cadence":{"unit":"month","interval":1},"firstDate":"2026-03-26","account":"BCV"}
+Fill EVERY field the material supports. An item with only a name and an amount is a read half done: the cycle, the day or date, the currency, the payment mode and the category are there in the text more often than not. Omit a field only when nothing in the text supports it; never invent amounts, dates or currencies.
 
-Material: "Home Assurance ménage    Début du contrat 01.10.2026    Echéance du contrat 30.09.2027    Fréquence de paiement annuel    Mode de paiement facture    Prime annuelle CHF 164.15"
-Item: {"type":"subscription","name":"Assurly Home Assurance ménage","amount":164.15,"currency":"CHF","settlement":"manual","category":"insurance","cadence":{"unit":"year","interval":1},"firstDate":"2026-10-01","endDate":"2027-09-30","domain":"assurly.example"}
-
-Material: "Facture 9297585    Payable à 14.10.2026    Période 01.09.2026 - 30.09.2026    Internet Home XL    Montant 23.13    T.V.A. 1.87    Total CHF 25.00"
-Item: {"type":"subscription","name":"fibra.example Internet Home XL","amount":25,"currency":"CHF","settlement":"manual","category":"communications","cadence":{"unit":"month","interval":1},"firstDate":"2026-10-14"}
-
-Now the real material follows.`;
+Fields of each item:
+- "type": "subscription" for anything recurring (a loan repayment too); "split_payment" only for a purchase paid in a stated number of instalments (pay in 4, 3x). A receipt with a billing period is a subscription even if its plan is called "5x".
+- "name": what it is for, in the user's own words; for a document, the issuer plus the product ("Simpego assurance ménage"), never the document's title line.
+- "amount" (subscription) or "total" (split_payment): a decimal in main units, 17.6 means 17.60. For an invoice, the final total including taxes, never a subtotal or a line. A free trial is 0.
+- "currency": the ISO code shown as a code or a symbol: € EUR, £ GBP, CHF or Fr. CHF, a plain $ USD, zł PLN, HK$ HKD. A heading, a total line or a column header ("in CHF") counts. Omit only when nothing shows one.
+- "settlement": "manual" when they pay it themselves or a document says invoice, facture, Rechnung, QR-facture; "automatic" when debited, prélèvement, LSV, Lastschrift, card; omit when nothing says.
+- "category": one of streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other.
+- "cadence": {"unit":"day"|"week"|"month"|"year","interval":N}: monthly is {"unit":"month","interval":1}, yearly {"unit":"year","interval":1}, every 2 months {"unit":"month","interval":2}. Any wording counts: "per month", "annuel", "jährlich", "Fréquence de paiement annuel", a one-month billing period, a yearly premium.
+- "firstDate": "YYYY-MM-DD", the first charge, first instalment, contract or policy start, or an invoice's due date. A day and a month given separately ("the 26th, started March 2026") make 2026-03-26, never the 1st. No date math beyond that.
+- "billingDay": 1 to 31, when only a day is given ("the 6th", "le 26 du mois").
+- "endDate": "YYYY-MM-DD", a last charge or contract end.
+- "account": the bank or account name as written ("BCV", "Revolut").
+- "installments" and "provider" (paypal_pay_in_x, klarna, afterpay, alma, oney, cb_nx, other): split payments only.
+- "priceChange": {"newAmount":N,"on":"YYYY-MM-DD"} for a future price or a trial converting: one item, never two.
+- "anchor": {"week":1-5,"weekday":0-6} only for "first Thursday" rules. "weekendShift": "before" or "after" only when the bank skips weekends. "reminderDaysBefore": only when a reminder is asked for. "backlogUnpaid": true only when past payments were not made.
+- "domain": the brand's bare website when you know it ("netflix.com"); omit rather than guess.
+- "notes": only what fits no field above; a cycle, a day, a date, a currency or a payment mode is never a note.
+- "uncertain": only the fields you invented, "name" when you made one up; a name copied from the input is never uncertain. Never list amounts or dates: omit them instead.
+Today is ${today}.`;
 }

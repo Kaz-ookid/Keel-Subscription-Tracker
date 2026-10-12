@@ -21,7 +21,7 @@ import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
 import {
-  buildExamplesPrompt,
+  buildMidPrompt,
   buildMorningPrompt,
   buildYesterdayPrompt,
 } from "../src/lib/reader-lab-prompts";
@@ -123,7 +123,7 @@ export default function ReaderLabScreen() {
     const collected: (FixtureScore & { raw: string })[] = [];
     const variants: { tag: string; build: (current: string) => string }[] = [
       { tag: "current", build: (current) => current },
-      { tag: "examples", build: buildExamplesPrompt },
+      { tag: "mid", build: () => buildMidPrompt(today()) },
     ];
     for (const variant of variants) {
       for (const fixture of READER_FIXTURES) {
@@ -157,7 +157,7 @@ export default function ReaderLabScreen() {
       return `${mine.reduce((n, s) => n + s.passed, 0)}/${mine.reduce((n, s) => n + s.total, 0)}`;
     };
     return [
-      `## Reader fixtures · ${today()} · current ${tally("current")} · examples ${tally("examples")}`,
+      `## Reader fixtures · ${today()} · current ${tally("current")} · mid ${tally("mid")}`,
       ...scores.flatMap((s) => [
         "",
         `### ${s.id} · ${s.passed}/${s.total}`,
