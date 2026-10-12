@@ -16,6 +16,10 @@ export interface AppleIntelligenceNative {
   /** A natural-language request in, assistant plan JSON out
    *  ({"actions":[...],"additions":[...]}, guided generation). */
   assist(input: string, instructions: string, engine: string): Promise<string>;
+  /** Free text in, free text out (no schema): a document condensed by the
+   *  model before the structured read. Same rejections as parseSubscriptions.
+   *  Optional: builds before 2026-10-12 lack it. */
+  condense?(input: string, instructions: string): Promise<string>;
   /** A screenshot's file URI in, its text out (Vision OCR, on the phone).
    *  Rejects with "image-unreadable". */
   recognizeText(uri: string): Promise<string>;

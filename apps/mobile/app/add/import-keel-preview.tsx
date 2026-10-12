@@ -11,7 +11,9 @@ import { useTranslation } from "react-i18next";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { AiHero } from "../../src/components/ai/AiHero";
+import { AiQuotaNotice } from "../../src/components/ai/AiQuotaNotice";
 import { Button } from "../../src/components/ui/Button";
+import { useQuotaOut } from "../../src/lib/keel-quota";
 import { runKeelRead, type KeelReadOutcome } from "../../src/lib/keel-read-flow";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 import { useAppData } from "../../src/state/app-state";
@@ -61,6 +63,8 @@ export default function KeelReadsPreviewScreen() {
 
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
+  // Today's allowance used up: the read button gives way to the word.
+  const quotaOut = useQuotaOut();
 
   // Opened without a draft (a stale stack): nothing to preview, step back.
   useEffect(() => {
@@ -128,7 +132,9 @@ export default function KeelReadsPreviewScreen() {
           autoCapitalize="none"
         />
         {error && <Text style={styles.error}>{t(ERROR_KEYS[error])}</Text>}
-        {busy ? (
+        {quotaOut ? (
+          <AiQuotaNotice />
+        ) : busy ? (
           <View style={styles.busyRow}>
             <ActivityIndicator color={colors.accent} />
             <Text style={styles.busyText}>{t("keelReads.reading")}</Text>

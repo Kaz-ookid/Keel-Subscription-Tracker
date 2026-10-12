@@ -101,6 +101,13 @@ Rules for the final answer:
 - A price that changes over time is ONE item with a priceChange, never two items with the same name.`;
 }
 
+/** The two-pass experiment's first pass: the model keeps the lines of a
+ *  document that a reader of recurring payments needs, verbatim, and drops
+ *  the rest. Free text in, free text out; the structured read follows. */
+export function buildCondensePrompt(): string {
+  return `You receive the text of one document (an insurance policy, a contract, an invoice, a receipt, a statement), as read by OCR, in any language. Keep ONLY the lines that help identify a recurring payment: the issuer and the product, every price, every date, the billing period, the payment frequency, the payment mode, the total. Drop addresses, personal details, legal conditions, links and anything else. Copy the kept lines exactly as they are, one per line, in their original order. Output the kept lines and nothing else: no heading, no explanation, no numbering.`;
+}
+
 /**
  * The on-device variant, for the small (~3B) Apple Intelligence model. The
  * output SHAPE is already forced by the Swift @Generable schema, so this

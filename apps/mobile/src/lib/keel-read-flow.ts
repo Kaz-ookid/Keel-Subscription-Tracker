@@ -6,9 +6,11 @@
 // Every read spends the user's cloud quota, so a section is one read.
 
 import {
+  buildCondensePrompt,
   buildKeelReadsPrompt,
   condenseDocument,
   detectCurrencyHint,
+  isItemList,
   splitAccountSections,
   parseImportDocument,
   today,
@@ -21,7 +23,12 @@ import {
   type PaymentItem,
 } from "@keel/core";
 
-import { KeelReadsError, readWithInstructions, type KeelReadsFailure } from "./apple-intelligence";
+import {
+  condenseWithKeel,
+  KeelReadsError,
+  readWithInstructions,
+  type KeelReadsFailure,
+} from "./apple-intelligence";
 
 export type KeelReadOutcome =
   | { ok: true; drafts: ImportDraft[]; skipped: number; skippedNames: string[]; raw: string[] }
@@ -30,6 +37,9 @@ export type KeelReadOutcome =
 export interface KeelReadOptions {
   /** The reader lab's door: other instructions than the product's. */
   instructions?: (context: ImportPromptContext) => string;
+  /** Who condenses a long document before the read: code (the product)
+   *  or the cloud model itself, a second read per document (lab). */
+  condense?: "code" | "cloud";
 }
 
 export async function runKeelRead(
@@ -62,8 +72,12 @@ export async function runKeelRead(
       // A long document goes to the model condensed to the lines that can
       // matter: the model reads a short text in full and a long one lazily.
       // The parser still gets the whole section, for what it reads itself.
+      const condensed =
+        options.condense === "cloud" && !isItemList(section.text)
+          ? await condenseWithKeel(section.text, buildCondensePrompt())
+          : condenseDocument(section.text);
       const json = await readWithInstructions(
-        condenseDocument(section.text),
+        condensed,
         build({ today: today(), defaultCurrency }),
       );
       raw.push(json);

@@ -11,6 +11,7 @@ import { Ambient } from "../src/components/Ambient";
 import { AppLockGate } from "../src/components/AppLockGate";
 import { LockPresenter } from "../src/components/LockPresenter";
 import { SheetShield } from "../src/components/SheetShield";
+import { hydrateQuota } from "../src/lib/keel-quota";
 import { hydrateAiCloud } from "../src/lib/ai-cloud";
 import { hydrateAiVisibility } from "../src/lib/ai-visibility";
 import { hydrateAppLock } from "../src/lib/app-lock";
@@ -44,6 +45,7 @@ function RootNavigator() {
     void hydrateLogoConsent();
     void hydrateAiVisibility();
     void hydrateAiCloud();
+    void hydrateQuota();
     void hydrateAppLock();
     void hydrateBrandTints();
     void hydrateCustomBank();

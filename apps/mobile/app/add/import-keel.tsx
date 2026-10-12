@@ -20,7 +20,9 @@ import {
   View,
 } from "react-native";
 
+import { AiQuotaNotice } from "../../src/components/ai/AiQuotaNotice";
 import { Button } from "../../src/components/ui/Button";
+import { useQuotaOut } from "../../src/lib/keel-quota";
 import { runKeelRead, type KeelReadOutcome } from "../../src/lib/keel-read-flow";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 import { useAppData } from "../../src/state/app-state";
@@ -62,6 +64,8 @@ export default function KeelReadsImportScreen() {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ReadError | null>(null);
+  // Today's allowance used up: the read button gives way to the word.
+  const quotaOut = useQuotaOut();
 
   const read = async (material: string) => {
     setBusy(true);
@@ -108,7 +112,9 @@ export default function KeelReadsImportScreen() {
             <Text style={styles.link}>{t("keelReads.ownAi")}</Text>
           </Pressable>
         )}
-        {busy ? (
+        {quotaOut ? (
+          <AiQuotaNotice onUseOwnAi={() => router.back()} />
+        ) : busy ? (
           <View style={styles.busyRow}>
             <ActivityIndicator color={colors.accent} />
             <Text style={styles.busyText}>{t("keelReads.reading")}</Text>

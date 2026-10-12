@@ -23,6 +23,9 @@ import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } fr
 const VARIANTS: { tag: string; options: KeelReadOptions }[] = [
   { tag: "current", options: {} },
   { tag: "yesterday", options: { instructions: (c) => buildYesterdayPrompt(c.today) } },
+  // Documents condensed by the cloud model itself before the read: two
+  // reads per document. Needs a build with the condense door.
+  { tag: "cloud condensed", options: { condense: "cloud" } },
 ];
 
 interface RunResult {
@@ -91,34 +94,35 @@ export default function ReaderLabScreen() {
   };
 
   // The fixture set through one variant: one tap, one scorecard.
-  const runFixtures = async (variant: (typeof VARIANTS)[number]) => {
+  const runFixtures = async (variants: readonly (typeof VARIANTS)[number][]) => {
     setScores([]);
     const collected: (FixtureScore & { raw: string })[] = [];
-    for (const fixture of READER_FIXTURES) {
-      setBusy(`${variant.tag} · ${fixture.id}…`);
-      const id = `${variant.tag} · ${fixture.id}`;
-      try {
-        // The product's own path, sections and all.
-        const outcome = await runKeelRead(
-          fixture.material,
-          { displayCurrency, items: [], accounts, categories },
-          variant.options,
-        );
-        if (!outcome.ok) throw new Error(outcome.error);
-        const score = scoreFixture(fixture, outcome);
-        collected.push({ ...score, id, raw: outcome.raw.join("\n") });
-      } catch (failure) {
-        collected.push({
-          id,
-          passed: 0,
-          landed: 0,
-          total: fixture.expect.length,
-          lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
-          raw: "",
-        });
+    for (const variant of variants)
+      for (const fixture of READER_FIXTURES) {
+        setBusy(`${variant.tag} · ${fixture.id}…`);
+        const id = `${variant.tag} · ${fixture.id}`;
+        try {
+          // The product's own path, sections and all.
+          const outcome = await runKeelRead(
+            fixture.material,
+            { displayCurrency, items: [], accounts, categories },
+            variant.options,
+          );
+          if (!outcome.ok) throw new Error(outcome.error);
+          const score = scoreFixture(fixture, outcome);
+          collected.push({ ...score, id, raw: outcome.raw.join("\n") });
+        } catch (failure) {
+          collected.push({
+            id,
+            passed: 0,
+            landed: 0,
+            total: fixture.expect.length,
+            lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
+            raw: "",
+          });
+        }
+        setScores([...collected]);
       }
-      setScores([...collected]);
-    }
     setBusy(null);
   };
 
@@ -205,10 +209,16 @@ export default function ReaderLabScreen() {
             variant="secondary"
             icon="checklist"
             label={busy ? "Running…" : `${READER_FIXTURES.length} fixtures, ${variant.tag}`}
-            onPress={() => void runFixtures(variant)}
+            onPress={() => void runFixtures([variant])}
             disabled={busy !== null}
           />
         ))}
+        <Button
+          icon="checklist"
+          label={busy ? "Running…" : "Everything"}
+          onPress={() => void runFixtures(VARIANTS)}
+          disabled={busy !== null}
+        />
       </View>
       {busy ? <Text style={styles.meta}>{busy}</Text> : null}
       {scores.map((s) => (
@@ -221,7 +231,7 @@ export default function ReaderLabScreen() {
           </Text>
         </View>
       ))}
-      {scores.length === READER_FIXTURES.length && !busy ? (
+      {scores.length > 0 && !busy ? (
         <Button
           icon="doc.on.doc"
           label="Copy the scorecard"

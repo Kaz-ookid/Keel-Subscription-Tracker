@@ -203,6 +203,24 @@ export const READER_FIXTURES: Fixture[] = [
     ],
   },
   {
+    // The same policy as the OCR of a photographed page gives it: thirty
+    // lines, labels and values joined per row, personal details blanked,
+    // legal links at the end. The condenser earns its keep here.
+    id: "policy-fr-ocr",
+    material:
+      "assurly    5\n[removed]\nwww.assurly.example\nINS\nAssurly Service Center\n[removed]\n[removed]\nZurich, 17.09.2026\nHome Assurance ménage - Police d'ossurance HOME[removed]\nDonnées personnelles\nPreneur d'assurance    Monsieur Jean Dupont\nAdresse    Rue de la Gare 12, 1004 Lausanne\nEmail    [removed]\nDate de naissance    03.07.1991\nContenu du contrat\nNuméro de [removed]\nNuméro de version    [removed]\nDébut du contrat    01.10.2026\nEchéance du contrat    30.09.2027\nFréquence de paiement    annuel\nMode de paiement    facture\nDroit de résiliation journlier    Non\nAperçu des primes\nPrime annuelle    CHF 164.15\nSont inclus dans ce prix :\nTaxes légales\nPayable annuel\nBases contractuelles pour l'assurance ménage\nConditions générales (CG), édition Septembre 2026\nhttps://doc.assurly.example/fr/conditions-generales/Septembre2026/\nConditions généroles d'ossuronce (CGA), édition Septembre 2026\nhttps://doc.assurly.example/fr/conditions-generales-assurance/assurance-menage_Septembre2026/",
+    expect: [
+      {
+        name: "assur",
+        amount: 164.15,
+        currency: "CHF",
+        cadence: { unit: "year", interval: 1 },
+        firstDate: "2026-10-01",
+        settlement: "manual",
+      },
+    ],
+  },
+  {
     id: "invoice-fr",
     material:
       "fibra.example AG    Industriestrasse 33    5242 Lupfig\nFacture 9297585\nDate du document    14.09.2026\nPayable à    14.10.2026\nPériode    01.09.2026 - 30.09.2026\nPos.    Activité    Quantité    Prix    Total\n1    Internet\n1.1    PROMO26    1 pces    -23.03    -23.03\n1.2    Internet Home XL    01.09.2026 - 30.09.2026    1 pces    46.16    46.16\nMontant    23.13\nT.V.A. 8.1 % incl.    1.87\nTotal CHF    25.00",

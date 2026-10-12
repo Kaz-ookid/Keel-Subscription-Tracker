@@ -256,9 +256,34 @@ public class AppleIntelligenceModule: Module {
         throw AppleIntelligenceError.unavailable
       #endif
     }
+
+    // The reader lab's two-pass experiment: the model condenses a document
+    // to the lines that matter (free text, no schema) before the structured
+    // read. Same session, same walls.
+    AsyncFunction("condense") {
+      (input: String, instructions: String) async throws -> String in
+      #if canImport(FoundationModels)
+        guard #available(iOS 27.0, *) else {
+          throw AppleIntelligenceError.unavailable
+        }
+        guard cloudAvailability() == "available" else {
+          throw AppleIntelligenceError.unavailable
+        }
+        do {
+          let session = makeSession(engine: "cloud", instructions: instructions)
+          let response = try await session.respond(to: input, options: extractionOptions)
+          return response.content
+        } catch let known as AppleIntelligenceError {
+          throw known
+        } catch {
+          throw classify(error)
+        }
+      #else
+        throw AppleIntelligenceError.unavailable
+      #endif
+    }
   }
 }
-
 /// The failure contract the JS side reads off `error.message`.
 enum AppleIntelligenceError: Error, LocalizedError {
   /// Cannot run here: OS, device, Apple Intelligence off, or model not ready.

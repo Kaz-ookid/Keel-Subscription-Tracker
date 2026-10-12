@@ -15,11 +15,13 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { AiHero } from "../ai/AiHero";
 import { AiNotice, AiNoticeLink } from "../ai/AiNotice";
 import { AiPrivacyLine } from "../ai/AiPrivacyLine";
+import { AiQuotaNotice } from "../ai/AiQuotaNotice";
 import { AiUnavailableNotice } from "../ai/AiUnavailableNotice";
 import { Button } from "../ui/Button";
 
 import { setAiCloudConsent, useAiCloudConsent } from "../../lib/ai-cloud";
 import { keelReadsAvailability, type KeelReadsAvailability } from "../../lib/apple-intelligence";
+import { useQuotaOut } from "../../lib/keel-quota";
 import { stageDocuments, stageScreenshots } from "../../lib/keel-material";
 import {
   radius,
@@ -43,6 +45,8 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
   // Only an explicit "no" counts; an unknown state must not block anyone.
   const network = useNetworkState();
   const offline = network.isConnected === false || network.isInternetReachable === false;
+  // Today's allowance already used up: say so here, not after a pick.
+  const quotaOut = useQuotaOut();
 
   const [availability, setAvailability] = useState<KeelReadsAvailability | "checking">("checking");
   const [busy, setBusy] = useState<Busy>(null);
@@ -82,6 +86,8 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
       </AiNotice>
     );
   }
+
+  if (quotaOut) return <AiQuotaNotice onUseOwnAi={onUseOwnAi} />;
 
   if (!consented) {
     return (

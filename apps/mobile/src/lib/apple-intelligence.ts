@@ -12,6 +12,8 @@
 
 import { buildAssistantPrompt, type AssistantPromptContext } from "@keel/core";
 
+import { recordQuotaHit } from "./keel-quota";
+
 export type KeelReadsAvailability =
   /** Ready to read. */
   | "available"
@@ -84,6 +86,7 @@ function toFailure(error: unknown): KeelReadsError {
     "image-unreadable",
   ];
   const hit = reasons.find((reason) => message.includes(reason));
+  if (hit === "quota") recordQuotaHit();
   return new KeelReadsError(hit ?? "model-failed");
 }
 
@@ -95,6 +98,19 @@ export async function readWithInstructions(input: string, instructions: string):
     return await (await native()).parseSubscriptions(input, instructions, "cloud");
   } catch (error) {
     throw toFailure(error);
+  }
+}
+
+/** Free text in, free text out: the reader lab's two-pass experiment, where
+ *  the cloud model condenses a document before the structured read. Needs
+ *  a build that has the door. Throws KeelReadsError. */
+export async function condenseWithKeel(input: string, instructions: string): Promise<string> {
+  try {
+    const module = await native();
+    if (typeof module.condense !== "function") throw new KeelReadsError("unavailable");
+    return await module.condense(input, instructions);
+  } catch (error) {
+    throw error instanceof KeelReadsError ? error : toFailure(error);
   }
 }
 
