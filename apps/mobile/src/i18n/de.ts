@@ -119,7 +119,7 @@ export const de: typeof en = {
     warnDuplicate: "„{{detail}}“ ist schon in Keel, das gäbe ein Duplikat",
     assumedLine: "Mit Standardwerten ergänzt: {{fields}}",
     backlogLine: "Vergangene Zahlungen kommen unbezahlt an, wie angegeben",
-    uncertainName: "Kein echter Name angegeben, setz einen",
+    uncertainName: "Name von der KI abgeleitet, prüfe ihn",
     uncertainGeneric: "{{field}} braucht einen Blick",
     fieldName: "Name",
     fieldAmount: "Betrag",

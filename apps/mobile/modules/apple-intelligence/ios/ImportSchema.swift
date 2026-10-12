@@ -46,9 +46,9 @@ import Foundation
   @available(iOS 26.0, *)
   @Generable
   struct ImportedItem: Codable {
-    @Guide(description: "subscription for anything recurring; split_payment for pay-in-X or BNPL")
+    @Guide(description: "subscription for anything recurring, a loan repayment included; split_payment only for a purchase paid in a stated number of instalments (pay in 4, 3x, Klarna)")
     var type: String
-    @Guide(description: "What the payment is for, in the user's own words and language")
+    @Guide(description: "What the payment is for, in the user's own words and language; for a document, the issuer plus the product (Simpego assurance ménage), never the document's title line")
     var name: String
     @Guide(
       description:
@@ -57,7 +57,7 @@ import Foundation
     var currency: String?
     @Guide(
       description:
-        "manual only when the user says they pay it themselves; automatic when they say it is debited; omit when the input does not say"
+        "manual when the user pays it themselves or a document says invoice, facture, Rechnung, QR-facture; automatic when it is debited, prélèvement, LSV, Lastschrift, direct debit, card; omit when nothing says"
     )
     var settlement: String?
     @Guide(
@@ -65,11 +65,11 @@ import Foundation
         "Best-fit category id: streaming music gaming communications utilities education software insurance housing transport health finance news food memberships social shopping other"
     )
     var category: String?
-    @Guide(description: "Only when the input states the billing cycle; omit otherwise")
+    @Guide(description: "The billing cycle whenever the input states it in any words: monthly, yearly, per year, annuel, jährlich, Fréquence de paiement annuel, a period like Oct 9 to Nov 9 (monthly); omit only when nothing says")
     var cadence: ImportCadence?
     @Guide(
       description:
-        "A FULL stated date only, YYYY-MM-DD (first charge or first instalment); omit when the input gives no full date"
+        "The first charge, first instalment, contract or policy start, YYYY-MM-DD. A day and a month given separately (the 26th, started March 2026) make the full date 2026-03-26, never the 1st; omit when no full date can be read"
     )
     var firstDate: String?
     @Guide(
@@ -79,7 +79,7 @@ import Foundation
     var billingDay: Int?
     @Guide(description: "The recurring price in main units; a free trial uses 0. Subscriptions only")
     var amount: Double?
-    @Guide(description: "Known last charge date YYYY-MM-DD, subscriptions only")
+    @Guide(description: "The last charge, contract end or expiry date YYYY-MM-DD, subscriptions only")
     var endDate: String?
     @Guide(description: "Only for dates like 'first Thursday of the month'")
     var anchor: ImportAnchor?
@@ -106,7 +106,7 @@ import Foundation
     var notes: String?
     @Guide(
       description:
-        "Names of fields you inferred rather than read, name above all; never list amount, total, currency or dates: omit those instead"
+        "Only fields you INVENTED: a name made up from a brand or a description. A name copied from the input, however rough, is not uncertain. Never list amount, total, currency or dates: omit those instead"
     )
     var uncertain: [String]?
     @Guide(description: "Only when the user asks to be reminded: days before")

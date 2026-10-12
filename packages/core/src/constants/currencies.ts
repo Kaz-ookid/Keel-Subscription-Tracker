@@ -43,6 +43,7 @@ export const CURRENCIES = {
   MXN: { code: "MXN", name: "Mexican Peso", symbol: "$", decimalDigits: 2, flag: "🇲🇽" },
   KRW: { code: "KRW", name: "South Korean Won", symbol: "₩", decimalDigits: 0, flag: "🇰🇷" },
   SGD: { code: "SGD", name: "Singapore Dollar", symbol: "$", decimalDigits: 2, flag: "🇸🇬" },
+  HKD: { code: "HKD", name: "Hong Kong Dollar", symbol: "HK$", decimalDigits: 2, flag: "🇭🇰" },
   NZD: { code: "NZD", name: "New Zealand Dollar", symbol: "$", decimalDigits: 2, flag: "🇳🇿" },
 } as const satisfies Record<string, CurrencyInfo>;
 

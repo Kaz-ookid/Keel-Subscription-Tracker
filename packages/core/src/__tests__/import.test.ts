@@ -365,7 +365,7 @@ describe("parseImportDocument — tolerance and recovery", () => {
         {
           type: "subscription",
           name: "Messy",
-          currency: "HKD",
+          currency: "IDR",
           amount: 12,
           category: "gadgets",
           firstDate: "sometime in june",
@@ -788,6 +788,14 @@ describe("buildKeelReadsPrompt", () => {
     expect(policy.input.firstChargeDate).toBe("2026-10-01");
     expect(policy.input.endDate).toBe("2027-09-30");
     expect(policy.input.settlementMode).toBe("manual");
+  });
+
+  it("states the lessons from real reads: split dates, copied names, loans, foreign currencies", () => {
+    expect(prompt).toContain("never the 1st");
+    expect(prompt).toContain("is NOT uncertain");
+    expect(prompt).toContain("loan or credit repayment included");
+    expect(prompt).toContain("HK$ means HKD");
+    expect(prompt).toContain("use the listed equivalent");
   });
 
   it("is one-shot: no conversation protocol, same rules", () => {

@@ -117,7 +117,7 @@ export const fr: typeof en = {
     warnDuplicate: "« {{detail}} » est déjà dans Keel, ceci créerait un doublon",
     assumedLine: "Complété par défaut : {{fields}}",
     backlogLine: "Les paiements passés arrivent impayés, comme indiqué",
-    uncertainName: "Aucun vrai nom n'a été donné, choisissez-en un",
+    uncertainName: "Nom déduit par l'IA, vérifiez-le",
     uncertainGeneric: "À vérifier : {{field}}",
     fieldName: "nom",
     fieldAmount: "montant",

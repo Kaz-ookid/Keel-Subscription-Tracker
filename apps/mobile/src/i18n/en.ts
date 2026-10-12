@@ -117,7 +117,7 @@ export const en = {
     warnDuplicate: "“{{detail}}” is already in Keel, this would add a duplicate",
     assumedLine: "Filled with defaults: {{fields}}",
     backlogLine: "Past payments arrive unpaid, as you stated",
-    uncertainName: "No real name was given, set one",
+    uncertainName: "Name inferred by the AI, check it",
     uncertainGeneric: "The {{field}} needs checking",
     fieldName: "name",
     fieldAmount: "amount",

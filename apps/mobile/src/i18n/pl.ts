@@ -131,7 +131,7 @@ const translation = {
     warnDuplicate: "„{{detail}}” już jest w Keel, powstałby duplikat",
     assumedLine: "Uzupełniono domyślnie: {{fields}}",
     backlogLine: "Przeszłe płatności przychodzą jako nieopłacone, zgodnie z opisem",
-    uncertainName: "Brak prawdziwej nazwy, ustaw jakąś",
+    uncertainName: "Nazwa wywnioskowana przez AI, sprawdź ją",
     uncertainGeneric: "{{field}} wymaga sprawdzenia",
     fieldName: "nazwa",
     fieldAmount: "kwota",
