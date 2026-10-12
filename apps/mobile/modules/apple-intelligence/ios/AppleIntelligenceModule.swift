@@ -72,7 +72,10 @@ import Vision
 #endif
 
 /// Screenshot text, read on the phone by Vision (nothing leaves the device
-/// for this step). Lines come back top to bottom so a list reads as a list.
+/// for this step). Lines come back top to bottom so a list reads as a list,
+/// and text blocks that sit on the SAME visual row are joined into one line:
+/// Vision returns a policy's "Prime annuelle" and its "CHF 164.15" as two
+/// blocks, and a model handed them three lines apart cannot pair them.
 /// `perform` is synchronous and the request keeps its results, so there is
 /// no continuation to resume (one resumed from both the completion handler
 /// and the catch was a double-resume trap waiting for a bad bitmap). The
@@ -86,15 +89,27 @@ private func recognizeText(in image: UIImage) throws -> String {
   request.recognitionLanguages = ["en-US", "fr-FR", "de-DE", "it-IT", "pl-PL"]
   let handler = VNImageRequestHandler(cgImage: cgImage, orientation: orientation, options: [:])
   try handler.perform([request])
-  let lines = (request.results ?? [])
-    .sorted { a, b in
-      // Vision's origin is bottom-left: higher minY = higher on screen.
-      if abs(a.boundingBox.minY - b.boundingBox.minY) > 0.01 {
-        return a.boundingBox.minY > b.boundingBox.minY
-      }
-      return a.boundingBox.minX < b.boundingBox.minX
+  // Vision's origin is bottom-left: a higher midY is higher on the page.
+  // Blocks whose vertical centers sit within ~1% of the page height share a
+  // row (a dense A4 line is about 1.5%); rows read top to bottom, blocks
+  // within a row left to right, joined by a wide gap so a label and its
+  // value stay distinguishable.
+  let rowTolerance: CGFloat = 0.011
+  let sorted = (request.results ?? []).sorted { $0.boundingBox.midY > $1.boundingBox.midY }
+  var rows: [[VNRecognizedTextObservation]] = []
+  for observation in sorted {
+    if let first = rows.last?.first, abs(first.boundingBox.midY - observation.boundingBox.midY) <= rowTolerance {
+      rows[rows.count - 1].append(observation)
+    } else {
+      rows.append([observation])
     }
-    .compactMap { $0.topCandidates(1).first?.string }
+  }
+  let lines = rows.map { row in
+    row
+      .sorted { $0.boundingBox.minX < $1.boundingBox.minX }
+      .compactMap { $0.topCandidates(1).first?.string }
+      .joined(separator: "    ")
+  }
   return lines.joined(separator: "\n")
 }
 

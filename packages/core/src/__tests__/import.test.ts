@@ -748,6 +748,48 @@ describe("buildKeelReadsPrompt", () => {
     ).toContain("a plain $ means USD");
   });
 
+  it("teaches documents: policies, OCR layout, the blanked-out marker", () => {
+    expect(prompt).toContain("insurance policies, contracts, invoices");
+    expect(prompt).toContain('"[removed]" marks a personal detail');
+    expect(prompt).toContain("READING A DOCUMENT");
+    expect(prompt).toContain("Prime annuelle");
+    expect(prompt).toContain('"QR-facture" mean "manual"');
+  });
+
+  it("lands an insurance policy's answer as a yearly, manual insurance item", () => {
+    // What the model should say for a Swiss home-insurance policy: yearly
+    // premium, billed by invoice, contract 01.10.2026 to 30.09.2027.
+    const answer = {
+      items: [
+        {
+          type: "subscription",
+          name: "Simpego assurance ménage",
+          amount: 164.15,
+          currency: "CHF",
+          settlement: "manual",
+          category: "insurance",
+          cadence: { unit: "year", interval: 1 },
+          firstDate: "2026-10-01",
+          endDate: "2027-09-30",
+          domain: "simpego.ch",
+        },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(answer), {
+      ...ctx,
+      defaultCurrency: "CHF",
+      today: calendarDate("2026-10-12"),
+    });
+    expect(result.error).toBeUndefined();
+    expect(result.drafts).toHaveLength(1);
+    const policy = result.drafts[0] as RecurringImportDraft;
+    expect(policy.input.amount).toEqual(fromMajor(164.15, "CHF"));
+    expect(policy.input.recurrence).toEqual({ unit: "year", interval: 1 });
+    expect(policy.input.firstChargeDate).toBe("2026-10-01");
+    expect(policy.input.endDate).toBe("2027-09-30");
+    expect(policy.input.settlementMode).toBe("manual");
+  });
+
   it("is one-shot: no conversation protocol, same rules", () => {
     expect(prompt).not.toContain("Do NOT reply with the JSON right away");
     expect(prompt).not.toContain("code block");

@@ -53,13 +53,20 @@ HOW THE CONVERSATION GOES (important):
 - Do NOT reply with the JSON right away. First, briefly list what you found so far (name and price per item, one line each), mention anything you were unsure about, and ask whether they want to add more before you produce the import file. People often have several screenshots to send one by one; keep collecting across messages and update your running list.
 - Only when they say they are done (any wording: "done", "that's all", "give me the file"...), reply with ONLY the JSON object of the form {"items":[ ... ]}, presented inside a single code block so it is easy to copy at once - no prose around it in that final message. If in the end nothing was parseable, output {"items":[]}.`;
 
-const KEEL_READS_HEADER = `You are reading material someone handed to the Keel app so it can import their recurring payments (import format v${IMPORT_FORMAT_VERSION}). Everything arrives at once: typed notes and the text read off screenshots (receipts, confirmation emails, app subscription pages, banking apps, monthly statements, an export from another tracker). Read all of it and produce the items; do not ask questions, do not explain.`;
+const KEEL_READS_HEADER = `You are reading material someone handed to the Keel app so it can import their recurring payments (import format v${IMPORT_FORMAT_VERSION}). Everything arrives at once: typed notes and the text read off screenshots and documents (receipts, confirmation emails, app subscription pages, banking apps, monthly statements, insurance policies, contracts, invoices, an export from another tracker, sometimes a photographed paper). That text comes from OCR: a label and its value can land on separate lines, words can be misspelled, and "[removed]" marks a personal detail the app blanked out on purpose (it is never part of a name). Read all of it and produce the items; do not ask questions, do not explain.`;
 
 function rules(today: CalendarDate): string {
   return `WHAT COUNTS AS AN ITEM - reason about it, especially in bank statements:
 - Keel tracks RECURRING commitments (subscriptions, bills, rent, insurance) and fixed instalment plans (pay in 4, BNPL). One-time spending does not belong: groceries, restaurants, shops, a single transfer.
 - A monthly bank or card statement mixes both. Take what recurs: a known subscription brand (Netflix, a gym, an insurer, a telecom), the same merchant with the same amount at a steady rhythm, anything labelled as a direct debit or standing order. Leave out the one-offs.
 - When you genuinely cannot tell whether a line recurs, either leave it out or include it with a short "notes" saying you are unsure - never present a guess as certain.
+
+READING A DOCUMENT (an insurance policy, a contract, an invoice, a receipt), in any language:
+- The item is what the document bills, named after the issuer and the product in the document's own words ("Simpego assurance ménage", "Swisscom blue M", "Allianz Hausratversicherung").
+- The price is the one on the line that names the period: "Prime annuelle", "Jahresprämie", "annual premium", "Total par mois", "monthly total". A yearly premium or an annual fee is a subscription with a yearly cadence; taxes listed as "included" are part of that price, not an item.
+- The payment frequency line gives the cadence ("Fréquence de paiement: annuel", "Zahlungsweise: monatlich", "billed every 3 months"); the contract, policy or coverage start date gives "firstDate"; a stated contract end or expiry gives "endDate".
+- The payment mode tells the settlement: "facture", "Rechnung", "invoice", "bulletin de versement", "QR-facture" mean "manual"; "prélèvement", "LSV", "Lastschrift", "direct debit", "carte" mean "automatic".
+- A document that bills nothing recurring (a one-time receipt, a quote) yields no item.
 
 You are a READER first: report what the input states and OMIT any field it does not state. The app fills sensible defaults for omitted fields and tells the user exactly what it defaulted, so an omission is more useful than a silent guess. Where a field is about identity rather than money (the name, the category, the brand's website) you may use what you know about the brand, as long as an inferred name is declared in "uncertain".
 

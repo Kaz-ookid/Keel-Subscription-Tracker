@@ -77,6 +77,19 @@ const FIXTURES: Fixture[] = [
     kept: ["Google Workspace", "Business Starter", "$7.20", "1 Oct 2026"],
   },
   {
+    name: "Swiss home-insurance policy (OCR, row-joined)",
+    text: "simpego    service@simpego.ch\nwww.simpego.ch\nSimpego Service Center\n+41 58 521 11 11\nservice@simpego.ch\nZurich, 17.09.2026\nHome Assurance ménage - Police d'assurance HOME7310288\nDonnées personnelles\nPreneur d'assurance    Monsieur Jean Dupont\nAdresse    Rue de la Gare 12, 1003 Lausanne\nEmail    jean.dupont@proton.me\nDate de naissance    03.07.1991\nContenu du contrat\nNuméro de contrat    7310288\nNuméro de version    7310288\nDébut du contrat    01.10.2026\nEchéance du contrat    30.09.2027\nFréquence de paiement    annuel\nMode de paiement    facture\nAperçu des primes\nPrime annuelle    CHF 164.15\nTaxes légales    CHF 7.80\nPayable annuel    CHF 164.15",
+    gone: ["service@simpego.ch", "jean.dupont@proton.me", "+41 58 521 11 11", "7310288"],
+    kept: [
+      "Prime annuelle    CHF 164.15",
+      "Début du contrat    01.10.2026",
+      "Echéance du contrat    30.09.2027",
+      "Fréquence de paiement    annuel",
+      "Mode de paiement    facture",
+      "Home Assurance ménage",
+    ],
+  },
+  {
     name: "Plain typed list stays untouched",
     text: "netflix 13.99 le 6, salle de sport 24.99 je paie moi-même, disney+ gratuit jusqu'au 14 juillet puis 8.99, canapé klarna 3x 240 premier le 10 juin",
     gone: [],
