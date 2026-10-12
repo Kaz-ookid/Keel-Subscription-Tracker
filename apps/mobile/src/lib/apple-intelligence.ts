@@ -160,7 +160,10 @@ export async function cloudQuotaInfo(): Promise<CloudQuota> {
     return {
       state:
         state === "below" || state === "approaching" || state === "reached" ? state : "unknown",
-      ...(raw.resetDate ? { resetDate: raw.resetDate } : {}),
+      // Only a real instant counts (an older native build sent "nil" as text).
+      ...(raw.resetDate && !Number.isNaN(Date.parse(raw.resetDate))
+        ? { resetDate: raw.resetDate }
+        : {}),
     };
   } catch {
     return { state: "unknown" };
