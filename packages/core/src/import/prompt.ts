@@ -55,25 +55,6 @@ HOW THE CONVERSATION GOES (important):
 
 const KEEL_READS_HEADER = `You are reading material someone handed to the Keel app so it can import their recurring payments (import format v${IMPORT_FORMAT_VERSION}). Everything arrives at once: typed notes and the text read off screenshots and documents (receipts, confirmation emails, app subscription pages, banking apps, monthly statements, insurance policies, contracts, invoices, an export from another tracker, sometimes a photographed paper). That text comes from OCR: a label and its value can land on separate lines, words can be misspelled, and "[removed]" marks a personal detail the app blanked out on purpose (it is never part of a name). Read all of it and produce the items; do not ask questions, do not explain.`;
 
-/** The LEAN "Keel reads it" prompt: the same header, the essentials in a
- *  dozen lines. Exists so the reader lab can A/B it against the full rules
- *  on a mid-size model, which a long rule list can make literal. */
-export function buildKeelReadsPromptLean({ today }: ImportPromptContext): string {
-  return `${KEEL_READS_HEADER}
-
-Rules:
-- One item per recurring commitment (subscriptions, bills, rent, insurance, loan repayments) or fixed instalment plan (pay in 4, Klarna). Skip one-time spending.
-- Report ONLY what the input states; omit a field it does not state. Never invent amounts, dates or currencies.
-- "amount" in main units (17.6 is 17.60); for an invoice the final total including taxes. "currency" as the code shown next to the amount: CHF or Fr. means CHF, a euro sign means EUR, a plain dollar sign means USD.
-- "settlement": "manual" when they pay it themselves or a document says invoice, facture or Rechnung; "automatic" when it is debited; omit otherwise.
-- "cadence": monthly is {"unit":"month","interval":1}, yearly {"unit":"year","interval":1}, every 2 months {"unit":"month","interval":2}, whenever the cycle is stated in any words (annuel, jährlich, a one-month billing period).
-- Dates as stated, no date math: a full date goes in "firstDate" as YYYY-MM-DD; a day given with a month ("the 26th, started March 2026") is the full date 2026-03-26; a bare day goes in "billingDay"; a last charge or contract end in "endDate".
-- "account": the bank name as written. "category": the closest of streaming, music, gaming, communications, utilities, education, software, insurance, housing, transport, health, finance, news, food, memberships, social, shopping, other.
-- "priceChange" {"newAmount":N,"on":"YYYY-MM-DD"} for a future price or a trial converting: ONE item, never two.
-- "uncertain": only a name you made up; a name copied from the input is never uncertain.
-Today is ${today}.`;
-}
-
 function rules(today: CalendarDate): string {
   return `WHAT COUNTS AS AN ITEM - reason about it, especially in bank statements:
 - Keel tracks RECURRING commitments (subscriptions, bills, rent, insurance) and fixed instalment plans (pay in 4, BNPL). One-time spending does not belong: groceries, restaurants, shops, a single transfer.

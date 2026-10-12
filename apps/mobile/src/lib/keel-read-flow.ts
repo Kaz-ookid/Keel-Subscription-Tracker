@@ -6,6 +6,7 @@
 
 import {
   detectCurrencyHint,
+  expandAccountHeadings,
   parseImportDocument,
   today,
   type Account,
@@ -23,7 +24,7 @@ export type KeelReadOutcome =
   | { ok: false; error: ImportParseError | KeelReadsFailure };
 
 export async function runKeelRead(
-  material: string,
+  rawMaterial: string,
   context: {
     displayCurrency: CurrencyCode;
     items: readonly PaymentItem[];
@@ -31,6 +32,10 @@ export async function runKeelRead(
     categories: readonly Category[];
   },
 ): Promise<KeelReadOutcome> {
+  // Account headings ("BCV in CHF:") are folded into their lines first: the
+  // model applies a heading to the lines below it only sometimes, a CHF
+  // list then lands in euros, and this is a job for code, not for luck.
+  const material = expandAccountHeadings(rawMaterial);
   const defaultCurrency = detectCurrencyHint(material) ?? context.displayCurrency;
   try {
     const json = await readWithKeel(material, { today: today(), defaultCurrency });

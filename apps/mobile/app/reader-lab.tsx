@@ -1,14 +1,13 @@
 // The reader lab (dev builds only, behind the debug drawer): the cloud
-// reader run by hand, with what we cannot see from the review screen, the
-// RAW answer the model gave before the parser filled anything. One tap runs
-// the same material through all four combinations (full or lean prompt,
-// full or lean-guide schema) and builds one report to copy, so a prompt is
-// judged on evidence across the matrix instead of on review cards.
+// reader run by hand on the product's exact path, with what the review
+// screen cannot show, the RAW answer the model gave before the parser
+// filled anything, plus a fixture set scored in one tap. A prompt or schema
+// change is judged here, on evidence, never on review cards.
 
 import {
   buildKeelReadsPrompt,
-  buildKeelReadsPromptLean,
   detectCurrencyHint,
+  expandAccountHeadings,
   parseImportDocument,
   today,
 } from "@keel/core";
@@ -20,19 +19,8 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
-import {
-  buildMidPrompt,
-  buildMorningPrompt,
-  buildYesterdayPrompt,
-} from "../src/lib/reader-lab-prompts";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
-
-type Variant = "current" | "morning" | "yesterday" | "lean";
-// Lab runs so far: guide length changed nothing, the lean prompt loses the
-// field semantics, and the three real prompts answer alike on today's
-// schema. The matrix now runs the prompts against the restored schema.
-const MATRIX: Variant[] = ["current", "morning", "yesterday", "lean"];
 
 interface RunResult {
   label: string;
@@ -50,21 +38,16 @@ export default function ReaderLabScreen() {
   const [results, setResults] = useState<RunResult[]>([]);
   const [scores, setScores] = useState<(FixtureScore & { raw: string })[]>([]);
 
-  const runOne = async (prompt: Variant): Promise<RunResult> => {
-    const label = `prompt ${prompt}`;
-    const defaultCurrency = detectCurrencyHint(material) ?? displayCurrency;
+  // The product's exact path: headings folded, the hint, the prompt.
+  const runOne = async (): Promise<RunResult> => {
+    const label = "the product prompt";
+    const folded = expandAccountHeadings(material);
+    const defaultCurrency = detectCurrencyHint(folded) ?? displayCurrency;
     const context = { today: today(), defaultCurrency };
-    const instructions =
-      prompt === "lean"
-        ? buildKeelReadsPromptLean(context)
-        : prompt === "morning"
-          ? buildMorningPrompt(context.today)
-          : prompt === "yesterday"
-            ? buildYesterdayPrompt(context.today)
-            : buildKeelReadsPrompt(context);
+    const instructions = buildKeelReadsPrompt(context);
     const started = Date.now();
     try {
-      const json = await readWithInstructions(material, instructions);
+      const json = await readWithInstructions(folded, instructions);
       const ms = Date.now() - started;
       let raw = json;
       try {
@@ -107,13 +90,8 @@ export default function ReaderLabScreen() {
 
   const runAll = async () => {
     setResults([]);
-    const collected: RunResult[] = [];
-    for (const prompt of MATRIX) {
-      setBusy(`${prompt} prompt…`);
-      const result = await runOne(prompt);
-      collected.push(result);
-      setResults([...collected]);
-    }
+    setBusy("reading…");
+    setResults([await runOne()]);
     setBusy(null);
   };
 
@@ -121,19 +99,16 @@ export default function ReaderLabScreen() {
   const runFixtures = async () => {
     setScores([]);
     const collected: (FixtureScore & { raw: string })[] = [];
-    const variants: { tag: string; build: (current: string) => string }[] = [
-      { tag: "current", build: (current) => current },
-      { tag: "mid", build: () => buildMidPrompt(today()) },
-    ];
+    const variants: { tag: string }[] = [{ tag: "current" }];
     for (const variant of variants) {
       for (const fixture of READER_FIXTURES) {
         setBusy(`${variant.tag} · ${fixture.id}…`);
-        const defaultCurrency = detectCurrencyHint(fixture.material) ?? displayCurrency;
+        const folded = expandAccountHeadings(fixture.material);
+        const defaultCurrency = detectCurrencyHint(folded) ?? displayCurrency;
         const context = { today: today(), defaultCurrency };
         const id = `${variant.tag} · ${fixture.id}`;
         try {
-          const instructions = variant.build(buildKeelReadsPrompt(context));
-          const json = await readWithInstructions(fixture.material, instructions);
+          const json = await readWithInstructions(folded, buildKeelReadsPrompt(context));
           const score = scoreFixture(fixture, json, { ...context, accounts, categories });
           collected.push({ ...score, id, raw: json });
         } catch (failure) {
@@ -159,7 +134,7 @@ export default function ReaderLabScreen() {
       return `read ${mine.reduce((n, s) => n + s.passed, 0)}/${total}, lands right ${mine.reduce((n, s) => n + s.landed, 0)}/${total}`;
     };
     return [
-      `## Reader fixtures · ${today()} · current ${tally("current")} · mid ${tally("mid")}`,
+      `## Reader fixtures · ${today()} · ${tally("current")}`,
       ...scores.flatMap((s) => [
         "",
         `### ${s.id} · read ${s.passed}/${s.total} · lands right ${s.landed}/${s.total}`,
@@ -220,7 +195,7 @@ export default function ReaderLabScreen() {
         />
         <Button
           icon="sparkles"
-          label={busy ? "Running…" : "Run all four"}
+          label={busy ? "Running…" : "Run"}
           onPress={() => void runAll()}
           disabled={busy !== null || material.trim() === ""}
         />
@@ -229,7 +204,7 @@ export default function ReaderLabScreen() {
         <Button
           variant="secondary"
           icon="checklist"
-          label={busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures, two prompts`}
+          label={busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures`}
           onPress={() => void runFixtures()}
           disabled={busy !== null}
         />
@@ -245,7 +220,7 @@ export default function ReaderLabScreen() {
           </Text>
         </View>
       ))}
-      {scores.length === READER_FIXTURES.length * 2 && !busy ? (
+      {scores.length === READER_FIXTURES.length && !busy ? (
         <Button
           icon="doc.on.doc"
           label="Copy the scorecard"
@@ -261,7 +236,7 @@ export default function ReaderLabScreen() {
           </Text>
         </View>
       ))}
-      {results.length === MATRIX.length && !busy ? (
+      {results.length > 0 && !busy ? (
         <Button
           icon="doc.on.doc"
           label="Copy the full report"
