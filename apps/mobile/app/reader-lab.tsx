@@ -19,6 +19,7 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
+import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
 import { buildMorningPrompt, buildYesterdayPrompt } from "../src/lib/reader-lab-prompts";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
@@ -43,6 +44,7 @@ export default function ReaderLabScreen() {
   const [material, setMaterial] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [results, setResults] = useState<RunResult[]>([]);
+  const [scores, setScores] = useState<(FixtureScore & { raw: string })[]>([]);
 
   const runOne = async (prompt: Variant): Promise<RunResult> => {
     const label = `prompt ${prompt}`;
@@ -111,6 +113,49 @@ export default function ReaderLabScreen() {
     setBusy(null);
   };
 
+  // The fixture set through the CURRENT prompt: one tap, one scorecard.
+  const runFixtures = async () => {
+    setScores([]);
+    const collected: (FixtureScore & { raw: string })[] = [];
+    for (const fixture of READER_FIXTURES) {
+      setBusy(`fixture ${fixture.id}…`);
+      const defaultCurrency = detectCurrencyHint(fixture.material) ?? displayCurrency;
+      const context = { today: today(), defaultCurrency };
+      try {
+        const json = await readWithInstructions(fixture.material, buildKeelReadsPrompt(context));
+        const score = scoreFixture(fixture, json, { ...context, accounts, categories });
+        collected.push({ ...score, raw: json });
+      } catch (failure) {
+        collected.push({
+          id: fixture.id,
+          passed: 0,
+          total: fixture.expect.length,
+          lines: [`  failed: ${failure instanceof Error ? failure.message : String(failure)}`],
+          raw: "",
+        });
+      }
+      setScores([...collected]);
+    }
+    setBusy(null);
+  };
+
+  const scorecard = () => {
+    const passed = scores.reduce((n, s) => n + s.passed, 0);
+    const total = scores.reduce((n, s) => n + s.total, 0);
+    return [
+      `## Reader fixtures · ${today()} · ${passed}/${total} checks`,
+      ...scores.flatMap((s) => [
+        "",
+        `### ${s.id} · ${s.passed}/${s.total}`,
+        ...s.lines,
+        "",
+        "Raw:",
+        s.raw,
+      ]),
+      "",
+    ].join("\n");
+  };
+
   const report = () =>
     [
       `## Reader lab · ${today()} · ${material.length} material chars`,
@@ -164,7 +209,33 @@ export default function ReaderLabScreen() {
           disabled={busy !== null || material.trim() === ""}
         />
       </View>
+      <View style={styles.actions}>
+        <Button
+          variant="secondary"
+          icon="checklist"
+          label={busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures`}
+          onPress={() => void runFixtures()}
+          disabled={busy !== null}
+        />
+      </View>
       {busy ? <Text style={styles.meta}>{busy}</Text> : null}
+      {scores.map((s) => (
+        <View key={s.id} style={styles.card}>
+          <Text style={styles.cardTitle}>
+            {s.id} · {s.passed}/{s.total}
+          </Text>
+          <Text style={styles.mono} selectable>
+            {s.lines.join("\n")}
+          </Text>
+        </View>
+      ))}
+      {scores.length === READER_FIXTURES.length && !busy ? (
+        <Button
+          icon="doc.on.doc"
+          label="Copy the scorecard"
+          onPress={() => void Clipboard.setStringAsync(scorecard())}
+        />
+      ) : null}
       {results.map((r) => (
         <View key={r.label} style={styles.card}>
           <Text style={styles.cardTitle}>{r.label}</Text>
