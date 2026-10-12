@@ -10,13 +10,7 @@
 // exist, every probe lands on "unavailable", and the screens explain
 // themselves.
 
-import {
-  buildAssistantPrompt,
-  buildKeelReadsPrompt,
-  type AssistantPromptContext,
-  type CalendarDate,
-  type CurrencyCode,
-} from "@keel/core";
+import { buildAssistantPrompt, type AssistantPromptContext } from "@keel/core";
 
 export type KeelReadsAvailability =
   /** Ready to read. */
@@ -93,21 +87,9 @@ function toFailure(error: unknown): KeelReadsError {
   return new KeelReadsError(hit ?? "model-failed");
 }
 
-/** Rough notes in, import-format JSON out; feed it to core's
- *  parseImportDocument like any pasted answer. Throws KeelReadsError. */
-export async function readWithKeel(
-  input: string,
-  context: { today: CalendarDate; defaultCurrency: CurrencyCode },
-): Promise<string> {
-  try {
-    return await (await native()).parseSubscriptions(input, buildKeelReadsPrompt(context), "cloud");
-  } catch (error) {
-    throw toFailure(error);
-  }
-}
-
-/** The reader lab's door: material plus the exact instructions. Throws
- *  KeelReadsError like readWithKeel. */
+/** Material plus instructions in, import-format JSON out; feed it to
+ *  core's parseImportDocument like any pasted answer. The flow in
+ *  keel-read-flow builds the instructions. Throws KeelReadsError. */
 export async function readWithInstructions(input: string, instructions: string): Promise<string> {
   try {
     return await (await native()).parseSubscriptions(input, instructions, "cloud");

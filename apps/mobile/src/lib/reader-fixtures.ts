@@ -69,6 +69,88 @@ export const READER_FIXTURES: Fixture[] = [
     ],
   },
   {
+    // The euro sign glued to the number, as people type it; all three
+    // amounts came back missing on the phone.
+    id: "typed-euro-glued",
+    material:
+      "Boursorama in euro:\n- 1st thursday of the month 2€ Frais de compte\n- 6th of the month, 689,55€ car loan reimbursement\n- 4th of the month Apple iCloud 1€",
+    expect: [
+      { name: "frais", amount: 2, currency: "EUR" },
+      { name: "car loan", amount: 689.55, currency: "EUR" },
+      { name: "icloud", amount: 1, currency: "EUR" },
+    ],
+  },
+  {
+    // Eleven lines in one section: the same lines read in full three at a
+    // time came back as names and amounts only when read together.
+    id: "typed-long-list",
+    material:
+      "BCV in CHF:\nspotify duo 17,6 CHF 13th of the month\nCSS assurance 372.95 CHF, manual, set it for 26th of the month, started in march 2026\nLoyer, 1470 CHF manual, 26th of the month, started march 2026\nSERAFE 329.25 CHF manual, started 31.03.2026 yearly and will be 312 CHF starting from next payment (31.03.2027)\n600 CHF for 3rd pillar (swiss pension) every month at BCV, manual\nabonnement demi tarif SBB CFF, 100 chf, 26 december (started december 2025), yearly manual, will go up to 170 chf starting 26 december 2027\nAG night sbb cff, maual 99chf first of december 2025, last payment in december 2026\nMobilis Zone 11/12 manual, 495chf started 25 march 2026, price change to 702 CHF starting from 2027\nASLOCA 110 chf per year, 30 march started in 2026, down to 80 CHF starting second payment\ngreen.ch Internet home XL, manual, 35 CHF per month, started 13 april 2026",
+    expect: [
+      { name: "claude", amount: 17.6, currency: "CHF" },
+      {
+        name: "css",
+        amount: 372.95,
+        currency: "CHF",
+        settlement: "manual",
+        firstDate: "2026-03-26",
+      },
+      {
+        name: "loyer",
+        amount: 1470,
+        currency: "CHF",
+        settlement: "manual",
+        firstDate: "2026-03-26",
+      },
+      {
+        name: "serafe",
+        amount: 329.25,
+        currency: "CHF",
+        cadence: { unit: "year", interval: 1 },
+        firstDate: "2026-03-31",
+        settlement: "manual",
+      },
+      {
+        name: "pillar",
+        amount: 600,
+        currency: "CHF",
+        cadence: { unit: "month", interval: 1 },
+        settlement: "manual",
+      },
+      {
+        name: "demi tarif",
+        amount: 100,
+        currency: "CHF",
+        cadence: { unit: "year", interval: 1 },
+        firstDate: "2025-12-26",
+        settlement: "manual",
+      },
+      { name: "ag night", amount: 99, currency: "CHF", firstDate: "2025-12-01" },
+      {
+        name: "mobilis",
+        amount: 495,
+        currency: "CHF",
+        settlement: "manual",
+        firstDate: "2026-03-25",
+      },
+      {
+        name: "asloca",
+        amount: 110,
+        currency: "CHF",
+        cadence: { unit: "year", interval: 1 },
+        firstDate: "2026-03-30",
+      },
+      {
+        name: "green.ch",
+        amount: 35,
+        currency: "CHF",
+        cadence: { unit: "month", interval: 1 },
+        settlement: "manual",
+        firstDate: "2026-04-13",
+      },
+    ],
+  },
+  {
     id: "typed-price-change",
     material:
       "SERAFE 329.25 CHF manual, started 31.03.2026 yearly and will be 312 CHF from the next payment (31.03.2027)\nhalf-fare SBB 100 CHF yearly on 26 December, started December 2025, goes up to 170 CHF on 26 December 2027",

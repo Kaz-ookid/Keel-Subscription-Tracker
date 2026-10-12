@@ -26,6 +26,7 @@ export * from "./import/parse";
 export * from "./import/prompt";
 export * from "./import/scrub";
 export * from "./import/headings";
+export * from "./import/chunks";
 export * from "./import/types";
 
 // The assistant (PROJECT_BRIEF §6.1): the model proposes a typed plan, this

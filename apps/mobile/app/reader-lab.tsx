@@ -18,10 +18,24 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
-import { runKeelRead } from "../src/lib/keel-read-flow";
+import { runKeelRead, type KeelReadOptions } from "../src/lib/keel-read-flow";
+import { buildYesterdayPrompt } from "../src/lib/reader-lab-prompts";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
+
+// The matrix: today's prompt against the one of the 11th (before the
+// document rules), each with sections read whole and read three lines at a
+// time. A variant that reads more on the fixtures becomes the product path.
+const MATRIX: { tag: string; options: KeelReadOptions }[] = [
+  { tag: "current", options: {} },
+  { tag: "current sliced", options: { maxLinesPerRead: 3 } },
+  { tag: "yesterday", options: { instructions: (c) => buildYesterdayPrompt(c.today) } },
+  {
+    tag: "yesterday sliced",
+    options: { maxLinesPerRead: 3, instructions: (c) => buildYesterdayPrompt(c.today) },
+  },
+];
 
 interface RunResult {
   label: string;
@@ -96,26 +110,33 @@ export default function ReaderLabScreen() {
     setBusy(null);
   };
 
-  // The fixture set through the CURRENT prompt: one tap, one scorecard.
+  // The fixture set through every variant of the matrix: one tap, one
+  // scorecard. Two questions at once: does the shorter prompt of the 11th
+  // read more than today's, and does a long list read better in slices.
   const runFixtures = async () => {
     setScores([]);
     const collected: (FixtureScore & { raw: string })[] = [];
-    const variants: { tag: string }[] = [{ tag: "current" }];
-    for (const variant of variants) {
+    for (const variant of MATRIX) {
       for (const fixture of READER_FIXTURES) {
         setBusy(`${variant.tag} · ${fixture.id}…`);
         const id = `${variant.tag} · ${fixture.id}`;
+        const started = Date.now();
         try {
           // The product's own path, sections and all.
-          const outcome = await runKeelRead(fixture.material, {
-            displayCurrency,
-            items: [],
-            accounts,
-            categories,
-          });
+          const outcome = await runKeelRead(
+            fixture.material,
+            { displayCurrency, items: [], accounts, categories },
+            variant.options,
+          );
           if (!outcome.ok) throw new Error(outcome.error);
           const score = scoreFixture(fixture, outcome);
-          collected.push({ ...score, id, raw: outcome.raw.join("\n") });
+          const timing = `  ${outcome.raw.length} read(s), ${Date.now() - started} ms`;
+          collected.push({
+            ...score,
+            id,
+            lines: [...score.lines, timing],
+            raw: outcome.raw.join("\n"),
+          });
         } catch (failure) {
           collected.push({
             id,
@@ -139,7 +160,8 @@ export default function ReaderLabScreen() {
       return `read ${mine.reduce((n, s) => n + s.passed, 0)}/${total}, lands right ${mine.reduce((n, s) => n + s.landed, 0)}/${total}`;
     };
     return [
-      `## Reader fixtures · ${today()} · ${tally("current")}`,
+      `## Reader fixtures · ${today()}`,
+      ...MATRIX.map((v) => `${v.tag}: ${tally(v.tag)}`),
       ...scores.flatMap((s) => [
         "",
         `### ${s.id} · read ${s.passed}/${s.total} · lands right ${s.landed}/${s.total}`,
@@ -209,7 +231,9 @@ export default function ReaderLabScreen() {
         <Button
           variant="secondary"
           icon="checklist"
-          label={busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures`}
+          label={
+            busy ? "Running…" : `Run the ${READER_FIXTURES.length} fixtures, ${MATRIX.length} ways`
+          }
           onPress={() => void runFixtures()}
           disabled={busy !== null}
         />
@@ -225,7 +249,7 @@ export default function ReaderLabScreen() {
           </Text>
         </View>
       ))}
-      {scores.length === READER_FIXTURES.length && !busy ? (
+      {scores.length === READER_FIXTURES.length * MATRIX.length && !busy ? (
         <Button
           icon="doc.on.doc"
           label="Copy the scorecard"
