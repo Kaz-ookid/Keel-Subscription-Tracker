@@ -12,8 +12,6 @@
 
 import { buildAssistantPrompt, type AssistantPromptContext } from "@keel/core";
 
-import { recordQuotaHit } from "./keel-quota";
-
 export type KeelReadsAvailability =
   /** Ready to read. */
   | "available"
@@ -86,7 +84,6 @@ function toFailure(error: unknown): KeelReadsError {
     "image-unreadable",
   ];
   const hit = reasons.find((reason) => message.includes(reason));
-  if (hit === "quota") recordQuotaHit();
   return new KeelReadsError(hit ?? "model-failed");
 }
 
@@ -98,6 +95,34 @@ export async function readWithInstructions(input: string, instructions: string):
     return await (await native()).parseSubscriptions(input, instructions, "cloud");
   } catch (error) {
     throw toFailure(error);
+  }
+}
+
+export type CloudQuotaState = "below" | "approaching" | "reached" | "unknown";
+export interface CloudQuota {
+  state: CloudQuotaState;
+  /** ISO instant of the next reset, when Apple reports one. */
+  resetDate?: string;
+}
+
+/** Where the user stands on Apple's allowance for the cloud model;
+ *  "unknown" when the framework reports nothing (older iOS, Expo Go, a
+ *  build without the probe). */
+export async function cloudQuotaInfo(): Promise<CloudQuota> {
+  try {
+    const module = await native();
+    const raw = typeof module.cloudQuota === "function" ? module.cloudQuota() : {};
+    const state = raw.state;
+    return {
+      state:
+        state === "below" || state === "approaching" || state === "reached" ? state : "unknown",
+      // Only a real instant counts (an older native build sent "nil" as text).
+      ...(raw.resetDate && !Number.isNaN(Date.parse(raw.resetDate))
+        ? { resetDate: raw.resetDate }
+        : {}),
+    };
+  } catch {
+    return { state: "unknown" };
   }
 }
 

@@ -257,6 +257,39 @@ public class AppleIntelligenceModule: Module {
       #endif
     }
 
+    // Where the user stands on the cloud model's allowance. The framework's
+    // quota object is read by REFLECTION so the bridge names no field it
+    // cannot be sure of on a young API; what comes back is a small, stable
+    // contract: state = below | approaching | reached | unknown, resetDate
+    // (ISO) when Apple gives one. Observed on iOS 27.0: status .belowLimit(
+    // isApproachingLimit:), resetDate nil while below the limit. The reading
+    // doors read it before offering anything.
+    Function("cloudQuota") { () -> [String: String] in
+      #if canImport(FoundationModels)
+        guard #available(iOS 27.0, *) else { return [:] }
+        let usage = PrivateCloudComputeLanguageModel().quotaUsage
+        var out: [String: String] = ["state": "unknown"]
+        for child in Mirror(reflecting: usage).children {
+          guard let label = child.label else { continue }
+          let text = String(describing: child.value)
+          if label == "status" {
+            if text.contains("limitReached") {
+              out["state"] = "reached"
+            } else if text.contains("isApproachingLimit: true") {
+              out["state"] = "approaching"
+            } else if text.contains("belowLimit") {
+              out["state"] = "below"
+            }
+          } else if label == "resetDate", let date = child.value as? Date {
+            out["resetDate"] = ISO8601DateFormatter().string(from: date)
+          }
+        }
+        return out
+      #else
+        return [:]
+      #endif
+    }
+
     // The reader lab's two-pass experiment: the model condenses a document
     // to the lines that matter (free text, no schema) before the structured
     // read. Same session, same walls.

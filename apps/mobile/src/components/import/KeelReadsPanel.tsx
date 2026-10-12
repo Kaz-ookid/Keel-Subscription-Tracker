@@ -21,7 +21,7 @@ import { Button } from "../ui/Button";
 
 import { setAiCloudConsent, useAiCloudConsent } from "../../lib/ai-cloud";
 import { keelReadsAvailability, type KeelReadsAvailability } from "../../lib/apple-intelligence";
-import { useQuotaOut } from "../../lib/keel-quota";
+import { refreshQuota, useQuotaOut } from "../../lib/keel-quota";
 import { stageDocuments, stageScreenshots } from "../../lib/keel-material";
 import {
   radius,
@@ -54,6 +54,7 @@ export function KeelReadsPanel({ onUseOwnAi }: { onUseOwnAi: () => void }) {
 
   useEffect(() => {
     void keelReadsAvailability().then(setAvailability);
+    void refreshQuota();
   }, []);
 
   const run = async (kind: "screenshots" | "documents") => {
