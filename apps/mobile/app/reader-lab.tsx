@@ -19,15 +19,19 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
 import { readWithInstructions } from "../src/lib/apple-intelligence";
+import { buildMorningPrompt, buildYesterdayPrompt } from "../src/lib/reader-lab-prompts";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
 
-type Variant = "full" | "lean";
-const MATRIX: { prompt: Variant; schema: Variant }[] = [
-  { prompt: "full", schema: "full" },
-  { prompt: "full", schema: "lean" },
+type Variant = "current" | "morning" | "yesterday" | "lean";
+type Schema = "full" | "lean";
+// The first lab run showed guide length changes nothing and the lean prompt
+// loses the field semantics; this run bisects the PROMPT, on the full schema.
+const MATRIX: { prompt: Variant; schema: Schema }[] = [
+  { prompt: "current", schema: "full" },
+  { prompt: "morning", schema: "full" },
+  { prompt: "yesterday", schema: "full" },
   { prompt: "lean", schema: "full" },
-  { prompt: "lean", schema: "lean" },
 ];
 
 interface RunResult {
@@ -45,12 +49,18 @@ export default function ReaderLabScreen() {
   const [busy, setBusy] = useState<string | null>(null);
   const [results, setResults] = useState<RunResult[]>([]);
 
-  const runOne = async (prompt: Variant, schema: Variant): Promise<RunResult> => {
+  const runOne = async (prompt: Variant, schema: Schema): Promise<RunResult> => {
     const label = `prompt ${prompt} · schema ${schema}`;
     const defaultCurrency = detectCurrencyHint(material) ?? displayCurrency;
     const context = { today: today(), defaultCurrency };
     const instructions =
-      prompt === "lean" ? buildKeelReadsPromptLean(context) : buildKeelReadsPrompt(context);
+      prompt === "lean"
+        ? buildKeelReadsPromptLean(context)
+        : prompt === "morning"
+          ? buildMorningPrompt(context.today)
+          : prompt === "yesterday"
+            ? buildYesterdayPrompt(context.today)
+            : buildKeelReadsPrompt(context);
     const started = Date.now();
     try {
       const json = await readWithInstructions(
