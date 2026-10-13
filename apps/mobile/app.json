@@ -2,7 +2,7 @@
   "expo": {
     "name": "Keel",
     "slug": "keel",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "scheme": "keel",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
