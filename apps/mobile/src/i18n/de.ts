@@ -995,6 +995,7 @@ export const de: typeof en = {
     bodyToday: "{{amount}} heute fällig",
     bodyTomorrow: "{{amount}} morgen fällig",
     bodyInDays: "{{amount}} fällig in {{count}} Tagen ({{date}})",
+    lockedBody: "Eine Zahlung ist fällig. Öffne Keel, um zu sehen, welche.",
     trialBody: "Probephase endet am {{date}}, danach werden {{amount}} abgebucht",
     priceChangeBody: "Preis ändert sich am {{date}} auf {{amount}}",
     previewName: "Keel",
@@ -1047,6 +1048,14 @@ export const de: typeof en = {
       "iCloud hält bereits ein Keel-Backup vom {{date}}. Auf diesem iPhone verwenden, oder durch den Stand dieses iPhones ersetzen?",
     icloudUseCloud: "Cloud-Kopie verwenden",
     icloudReplaceCloud: "Durch dieses iPhone ersetzen",
+    icloudOffTitle: "Auch die iCloud-Kopie entfernen?",
+    icloudOffMsg:
+      "Deine Daten bleiben so oder so auf diesem iPhone. Die Kopie in deiner iCloud kann für ein anderes Gerät bleiben oder jetzt weg.",
+    icloudKeepCopy: "Behalten",
+    icloudDeleteCopy: "Löschen",
+    icloudDeleteFailTitle: "Die iCloud-Kopie liess sich nicht entfernen",
+    icloudDeleteFailMsg:
+      "iCloud hat nicht geantwortet. Versuche es später mit dem Schalter noch einmal oder entferne Keels Daten in den iOS-Einstellungen unter iCloud.",
     groupLocal: "Lokale Backups",
     backupHistory: "Backup-Verlauf",
     clearFooter:

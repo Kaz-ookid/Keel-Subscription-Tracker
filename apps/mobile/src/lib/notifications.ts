@@ -24,6 +24,7 @@ import { AppState } from "react-native";
 import i18n from "../i18n";
 import { daysUntil } from "../i18n/dates";
 import { fromCalendarDate } from "./dates";
+import { appLockConfigSnapshot } from "./app-lock";
 import { entitlementSnapshot } from "./entitlement";
 
 Notifications.setNotificationHandler({
@@ -269,11 +270,15 @@ async function runSync(items: readonly PaymentItem[]): Promise<void> {
       // fire day) would fire immediately — the in-app overdue views cover it.
       if (date.getTime() <= cutoff) continue;
       budget -= 1;
+      // With the app lock on, the lock screen must not read a name and an
+      // amount over a bystander's shoulder: the tap still opens the item.
+      const discreet = appLockConfigSnapshot().enabled;
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: reminder.name,
-          body:
-            reminder.kind === "trialEnd" || reminder.kind === "priceChange"
+          title: discreet ? "Keel" : reminder.name,
+          body: discreet
+            ? i18n.t("notifications.lockedBody")
+            : reminder.kind === "trialEnd" || reminder.kind === "priceChange"
               ? i18n.t(
                   reminder.kind === "trialEnd"
                     ? "notifications.trialBody"

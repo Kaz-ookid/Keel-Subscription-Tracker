@@ -987,6 +987,7 @@ export const en = {
     bodyToday: "{{amount}} due today",
     bodyTomorrow: "{{amount}} due tomorrow",
     bodyInDays: "{{amount}} due in {{count}} days ({{date}})",
+    lockedBody: "A payment is due. Open Keel to see which.",
     trialBody: "Trial ends {{date}}, then you'll be charged {{amount}}",
     priceChangeBody: "Price changes to {{amount}} on {{date}}",
     previewName: "Keel",
@@ -1039,6 +1040,14 @@ export const en = {
       "iCloud already holds a Keel backup from {{date}}. Use it on this iPhone, or replace it with what this iPhone has now?",
     icloudUseCloud: "Use the cloud copy",
     icloudReplaceCloud: "Replace with this iPhone",
+    icloudOffTitle: "Remove the iCloud copy too?",
+    icloudOffMsg:
+      "Your data stays on this iPhone either way. The copy in your iCloud can stay for another device, or go now.",
+    icloudKeepCopy: "Keep it",
+    icloudDeleteCopy: "Delete it",
+    icloudDeleteFailTitle: "The iCloud copy could not be removed",
+    icloudDeleteFailMsg:
+      "iCloud did not answer. Turn the switch on and off again later, or remove Keel's data in iOS Settings, iCloud.",
     groupLocal: "Local backups",
     backupHistory: "Backup history",
     clearFooter: "This permanently deletes every commitment, account and record. There is no undo.",

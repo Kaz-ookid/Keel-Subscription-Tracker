@@ -1041,6 +1041,7 @@ const translation = {
     bodyToday: "{{amount}} do zapłaty dziś",
     bodyTomorrow: "{{amount}} do zapłaty jutro",
     bodyInDays: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
+    lockedBody: "Zbliża się płatność. Otwórz Keel, aby zobaczyć którą.",
     bodyInDays_few: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
     bodyInDays_many: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
     bodyInDays_other: "{{amount}} do zapłaty za {{count}} dni ({{date}})",
@@ -1098,6 +1099,14 @@ const translation = {
       "iCloud ma już kopię Keela z {{date}}. Użyć jej na tym iPhonie, czy zastąpić ją tym, co jest teraz na tym iPhonie?",
     icloudUseCloud: "Użyj kopii z chmury",
     icloudReplaceCloud: "Zastąp danymi z tego iPhone'a",
+    icloudOffTitle: "Usunąć też kopię w iCloud?",
+    icloudOffMsg:
+      "Twoje dane i tak zostają na tym iPhonie. Kopia w twoim iCloud może zostać dla innego urządzenia albo zniknąć teraz.",
+    icloudKeepCopy: "Zostaw",
+    icloudDeleteCopy: "Usuń",
+    icloudDeleteFailTitle: "Nie udało się usunąć kopii w iCloud",
+    icloudDeleteFailMsg:
+      "iCloud nie odpowiedział. Spróbuj później przełącznikiem albo usuń dane Keel w Ustawieniach iOS, iCloud.",
     groupLocal: "Lokalne kopie zapasowe",
     backupHistory: "Historia kopii",
     clearFooter: "To trwale usuwa każdą pozycję, konto i zapis. Nie ma odwrotu.",

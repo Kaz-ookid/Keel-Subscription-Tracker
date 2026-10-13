@@ -990,6 +990,7 @@ export const it: typeof en = {
     bodyToday: "{{amount}} in scadenza oggi",
     bodyTomorrow: "{{amount}} in scadenza domani",
     bodyInDays: "{{amount}} in scadenza tra {{count}} giorni ({{date}})",
+    lockedBody: "Un pagamento è in scadenza. Apri Keel per vedere quale.",
     trialBody: "La prova finisce il {{date}}, poi ti verranno addebitati {{amount}}",
     priceChangeBody: "Il prezzo cambia a {{amount}} il {{date}}",
     previewName: "Keel",
@@ -1042,6 +1043,14 @@ export const it: typeof en = {
       "iCloud contiene già un backup di Keel del {{date}}. Usarlo su questo iPhone, o sostituirlo con ciò che contiene questo iPhone?",
     icloudUseCloud: "Usa la copia cloud",
     icloudReplaceCloud: "Sostituisci con questo iPhone",
+    icloudOffTitle: "Rimuovere anche la copia iCloud?",
+    icloudOffMsg:
+      "I tuoi dati restano su questo iPhone in ogni caso. La copia nel tuo iCloud può restare per un altro dispositivo, o sparire ora.",
+    icloudKeepCopy: "Tienila",
+    icloudDeleteCopy: "Eliminala",
+    icloudDeleteFailTitle: "La copia iCloud non è stata rimossa",
+    icloudDeleteFailMsg:
+      "iCloud non ha risposto. Riprova più tardi con l'interruttore, o rimuovi i dati di Keel in Impostazioni iOS, iCloud.",
     groupLocal: "Backup locali",
     backupHistory: "Cronologia dei backup",
     clearFooter: "Elimina definitivamente ogni voce, conto e registrazione. Non si può annullare.",

@@ -33,6 +33,7 @@ async function cloud(): Promise<{
   writeFile(path: string, content: string): Promise<void>;
   readFile(path: string): Promise<string>;
   exists(path: string): Promise<boolean>;
+  unlink(path: string): Promise<void>;
 } | null> {
   try {
     // Lazy so the native module is only touched where it exists.
@@ -42,6 +43,7 @@ async function cloud(): Promise<{
         writeFile(path: string, content: string): Promise<void>;
         readFile(path: string): Promise<string>;
         exists(path: string): Promise<boolean>;
+        unlink(path: string): Promise<void>;
       };
     };
     return lib.CloudStorage;
@@ -72,6 +74,21 @@ export async function uploadToICloud(state: PersistedState): Promise<boolean> {
     };
     await store.writeFile(CLOUD_FILE_PATH, JSON.stringify(envelope));
     await AsyncStorage.setItem(LAST_UPLOAD_KEY, envelope.savedAt);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Remove the cloud copy: the switch going off must be able to take the
+ *  data with it, or "delete the app to erase its data" is false. False when
+ *  iCloud is unreachable (the copy then stays, and the user is told). */
+export async function deleteFromICloud(): Promise<boolean> {
+  try {
+    const store = await cloud();
+    if (!store) return false;
+    if (await store.exists(CLOUD_FILE_PATH)) await store.unlink(CLOUD_FILE_PATH);
+    await AsyncStorage.removeItem(LAST_UPLOAD_KEY);
     return true;
   } catch {
     return false;

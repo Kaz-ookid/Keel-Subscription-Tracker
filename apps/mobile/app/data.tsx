@@ -21,6 +21,7 @@ import { IconChip } from "../src/components/ui/IconChip";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
 import {
+  deleteFromICloud,
   downloadFromICloud,
   ICLOUD_ENABLED_KEY,
   isICloudAvailable,
@@ -76,6 +77,21 @@ export default function DataScreen() {
     if (!next) {
       setIcloud(false);
       void AsyncStorage.setItem(ICLOUD_ENABLED_KEY, "false");
+      // Off is off: the copy in iCloud goes too unless the user keeps it.
+      Alert.alert(t("data.icloudOffTitle"), t("data.icloudOffMsg"), [
+        { text: t("data.icloudKeepCopy"), style: "cancel" },
+        {
+          text: t("data.icloudDeleteCopy"),
+          style: "destructive",
+          onPress: () => {
+            void deleteFromICloud().then((done) => {
+              refreshCloudStatus();
+              if (!done)
+                Alert.alert(t("data.icloudDeleteFailTitle"), t("data.icloudDeleteFailMsg"));
+            });
+          },
+        },
+      ]);
       return;
     }
     // Turning it on must NEVER silently clobber an existing cloud copy: a
