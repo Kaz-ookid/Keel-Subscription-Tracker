@@ -59,6 +59,14 @@ export async function stageScreenshots(): Promise<MaterialOutcome> {
       if (read) chunks.push(read);
     } catch {
       // One unreadable picture must not sink the others.
+    } finally {
+      // The picker's cache copy of a banking screenshot: not kept.
+      try {
+        const file = new File(asset.uri);
+        if (file.exists) file.delete();
+      } catch {
+        // Best-effort cleanup.
+      }
     }
   }
   return stageDraft(chunks, picked.assets.length);

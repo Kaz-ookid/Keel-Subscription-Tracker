@@ -1,4 +1,4 @@
-// The assistant's instructions for the on-device model: the grounding
+// The assistant's instructions for the cloud model: the grounding
 // snapshot (what the user tracks, by name), the op contract, and the output
 // shape. Lives in core, like buildImportPrompt, so the Swift bridge only
 // carries text back and forth and every platform asks the same way.

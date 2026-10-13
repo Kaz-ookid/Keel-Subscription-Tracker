@@ -45,7 +45,8 @@ export function parseAccountHeading(
     const bare = word.replace(/[(),.;]/g, "");
     const upper = bare.toUpperCase();
     if (upper in CURRENCIES) currency = upper as CurrencyCode;
-    else if (bare.toLowerCase() in CURRENCY_WORDS) currency = CURRENCY_WORDS[bare.toLowerCase()];
+    else if (Object.prototype.hasOwnProperty.call(CURRENCY_WORDS, bare.toLowerCase()))
+      currency = CURRENCY_WORDS[bare.toLowerCase()];
     else if (!CONNECTORS.test(bare)) rest.push(bare);
   }
   if (!currency || rest.length === 0) return null;
@@ -105,7 +106,9 @@ export function splitAccountSections(material: string): AccountSection[] {
       continue;
     }
     const folded =
-      line.trim() === "" ? line : `${line.trimEnd()} (account ${current.account}, ${current.currency})`;
+      line.trim() === ""
+        ? line
+        : `${line.trimEnd()} (account ${current.account}, ${current.currency})`;
     current.text = current.text ? `${current.text}\n${folded}` : folded;
   }
   const head = leading.join("\n").trim();

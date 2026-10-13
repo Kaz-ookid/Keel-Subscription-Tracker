@@ -9,7 +9,7 @@
 
 import * as Clipboard from "expo-clipboard";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
@@ -23,6 +23,8 @@ import {
 
 import { AiQuotaNotice } from "../../src/components/ai/AiQuotaNotice";
 import { Button } from "../../src/components/ui/Button";
+import { useAiCloudConsent } from "../../src/lib/ai-cloud";
+import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useQuotaOut } from "../../src/lib/keel-quota";
 import { runKeelRead, type KeelReadOutcome } from "../../src/lib/keel-read-flow";
 import { useLockedRedirect } from "../../src/lib/lock-gate";
@@ -67,6 +69,13 @@ export default function KeelReadsImportScreen() {
   const [error, setError] = useState<ReadError | null>(null);
   // Today's allowance used up: the read button gives way to the word.
   const quotaOut = useQuotaOut();
+  // The hub asks for consent before showing this door; a deep link skips
+  // the hub, so the door checks again and steps back.
+  const consented = useAiCloudConsent();
+  const aiHidden = useAiHidden();
+  useEffect(() => {
+    if (!consented || aiHidden) router.back();
+  }, [consented, aiHidden, router]);
 
   const read = async (material: string) => {
     setBusy(true);
@@ -81,7 +90,7 @@ export default function KeelReadsImportScreen() {
     router.push("/add/import-review");
   };
 
-  if (locked) return null;
+  if (locked || !consented || aiHidden) return null;
   return (
     <ScrollView
       style={styles.screen}

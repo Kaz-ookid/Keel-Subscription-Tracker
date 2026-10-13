@@ -13,6 +13,7 @@ import {
   isItemList,
   splitAccountSections,
   parseImportDocument,
+  scrubPersonalData,
   today,
   type Account,
   type Category,
@@ -58,7 +59,18 @@ export async function runKeelRead(
   // and its account folded into every line: the model applies a heading to
   // the lines below it only sometimes, and a CHF list must never land in
   // euros because of that. Material without headings is one read.
-  const sections = splitAccountSections(rawMaterial);
+  // Scrubbed here as well as in the preview (a typed list and a paste over
+  // the preview never passed it), bounded so a pasted novel cannot stall
+  // the line readers. shortcut: lines over 2000 chars are dropped whole,
+  // revisit if a real document ever puts a table on one line.
+  const material = scrubPersonalData(
+    rawMaterial
+      .slice(0, 200_000)
+      .split("\n")
+      .filter((line) => line.length <= 2000)
+      .join("\n"),
+  ).text;
+  const sections = splitAccountSections(material);
   const build = options.instructions ?? buildKeelReadsPrompt;
   try {
     const drafts: ImportDraft[] = [];

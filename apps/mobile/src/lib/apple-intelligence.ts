@@ -12,6 +12,8 @@
 
 import { buildAssistantPrompt, type AssistantPromptContext } from "@keel/core";
 
+import { aiCloudConsentSnapshot } from "./ai-cloud";
+
 export type KeelReadsAvailability =
   /** Ready to read. */
   | "available"
@@ -87,10 +89,17 @@ function toFailure(error: unknown): KeelReadsError {
   return new KeelReadsError(hit ?? "model-failed");
 }
 
+// The one place every cloud call passes: no consent, no bytes, whatever
+// screen asked (a deep link can open a screen the hub never showed).
+function requireConsent(): void {
+  if (!aiCloudConsentSnapshot()) throw new KeelReadsError("unavailable");
+}
+
 /** Material plus instructions in, import-format JSON out; feed it to
  *  core's parseImportDocument like any pasted answer. The flow in
  *  keel-read-flow builds the instructions. Throws KeelReadsError. */
 export async function readWithInstructions(input: string, instructions: string): Promise<string> {
+  requireConsent();
   try {
     return await (await native()).parseSubscriptions(input, instructions, "cloud");
   } catch (error) {
@@ -130,6 +139,7 @@ export async function cloudQuotaInfo(): Promise<CloudQuota> {
  *  the cloud model condenses a document before the structured read. Needs
  *  a build that has the door. Throws KeelReadsError. */
 export async function condenseWithKeel(input: string, instructions: string): Promise<string> {
+  requireConsent();
   try {
     const module = await native();
     if (typeof module.condense !== "function") throw new KeelReadsError("unavailable");
@@ -145,6 +155,7 @@ export async function assistWithKeel(
   input: string,
   context: AssistantPromptContext,
 ): Promise<string> {
+  requireConsent();
   try {
     return await (await native()).assist(input, buildAssistantPrompt(context), "cloud");
   } catch (error) {

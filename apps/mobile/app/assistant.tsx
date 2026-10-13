@@ -1,11 +1,13 @@
-// The assistant: describe what changed in plain words and the on-device model
-// turns it into a typed plan — pause this, move that, add the new one. The
-// model NEVER touches data: core resolves and validates its reply, and every
-// operation goes through the review screen before anything is applied.
-// Availability follows the same probe as the on-device import; in Expo Go the
-// screen explains itself instead of working.
+// The assistant (debug builds only): describe what changed in plain words
+// and the cloud model turns it into a typed plan — pause this, move that,
+// add the new one. The model NEVER touches data: core resolves and
+// validates its reply, and every operation goes through the review screen
+// before anything is applied. The request carries the user's whole list, so
+// it passes the same consent gate as every cloud read.
 
 import { parseAssistantPlan, today } from "@keel/core";
+
+import { DEBUG_TOOLS } from "../src/components/settings/DebugDrawer";
 import { Stack, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -79,7 +81,7 @@ export default function AssistantScreen() {
     }
   };
 
-  if (locked) return null;
+  if (locked || !DEBUG_TOOLS) return null;
   return (
     <ScrollView
       style={styles.screen}

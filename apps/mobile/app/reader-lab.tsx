@@ -10,6 +10,7 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
+import { DEBUG_TOOLS } from "../src/components/settings/DebugDrawer";
 import { Button } from "../src/components/ui/Button";
 import { runKeelRead, type KeelReadOptions } from "../src/lib/keel-read-flow";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
@@ -167,6 +168,8 @@ export default function ReaderLabScreen() {
       "",
     ].join("\n");
 
+  // A registered route is a deep link: the lab exists in debug builds only.
+  if (!DEBUG_TOOLS) return null;
   return (
     <ScrollView
       style={styles.screen}

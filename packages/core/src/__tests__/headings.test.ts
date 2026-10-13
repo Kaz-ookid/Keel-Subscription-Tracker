@@ -18,6 +18,8 @@ describe("parseAccountHeading", () => {
     expect(parseAccountHeading("Sont inclus dans ce prix :")).toBeNull();
     expect(parseAccountHeading("Netflix 13.99 CHF monthly")).toBeNull();
     expect(parseAccountHeading("CHF:")).toBeNull();
+    // A prototype name is not a currency word.
+    expect(parseAccountHeading("BCV constructor:")).toBeNull();
     expect(
       parseAccountHeading("my very long account heading that goes on and on in CHF:"),
     ).toBeNull();
