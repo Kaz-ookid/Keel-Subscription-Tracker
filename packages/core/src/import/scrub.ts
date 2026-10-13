@@ -68,6 +68,9 @@ export function scrubPersonalData(input: string): ScrubResult {
     text = text.replace(pattern, (fragment) => {
       if (kind === "phone" && !looksLikePhone(fragment)) return fragment;
       removed[kind] = (removed[kind] ?? 0) + 1;
+      // An email's domain names the issuer ("@spotify.com" is how the
+      // model finds the logo); only the part before the @ is the person.
+      if (kind === "email") return `${MARK}${fragment.slice(fragment.indexOf("@"))}`;
       return MARK;
     });
   }

@@ -24,6 +24,8 @@ describe("scrubPersonalData", () => {
       "Billed to max@example.com, IBAN CH93 0076 2011 6238 5295 7, tel +41 79 123 45 67, UID CHE-123.456.789",
     );
     expect(text).not.toContain("max@example.com");
+    // The domain stays: it names the issuer, not the person.
+    expect(text).toContain("[removed]@example.com");
     expect(text).not.toContain("0076 2011");
     expect(text).not.toContain("79 123 45 67");
     expect(text).not.toContain("CHE-123.456.789");
