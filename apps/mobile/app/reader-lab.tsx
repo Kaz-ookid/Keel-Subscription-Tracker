@@ -12,17 +12,15 @@ import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
 import { runKeelRead, type KeelReadOptions } from "../src/lib/keel-read-flow";
-import { buildYesterdayPrompt } from "../src/lib/reader-lab-prompts";
 import { READER_FIXTURES, scoreFixture, type FixtureScore } from "../src/lib/reader-fixtures";
 import { useAppData } from "../src/state/app-state";
 import { radius, spacing, typography, useStyles, useTheme, type ThemeColors } from "../src/theme";
 
-// The variants: today's prompt and the one of the 11th (before the
-// document rules). One variant per tap: the cloud quota is per user and
-// a fixture pass is a dozen reads, so a run has to be chosen.
+// The variants, one per tap or all at once: the cloud quota is per user
+// and a fixture pass is a dozen reads. (The prompt of the 11th lost to
+// today's on 2026-10-13, 94/116 against 151/159, and left the matrix.)
 const VARIANTS: { tag: string; options: KeelReadOptions }[] = [
   { tag: "current", options: {} },
-  { tag: "yesterday", options: { instructions: (c) => buildYesterdayPrompt(c.today) } },
   // Documents condensed by the cloud model itself before the read: two
   // reads per document. Needs a build with the condense door.
   { tag: "cloud condensed", options: { condense: "cloud" } },
@@ -274,7 +272,12 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       textAlignVertical: "top",
     },
-    actions: { flexDirection: "row", gap: spacing.sm, justifyContent: "flex-end" },
+    actions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: spacing.sm,
+      justifyContent: "flex-end",
+    },
     meta: { ...typography.caption, color: colors.mutedText },
     card: {
       backgroundColor: colors.material,

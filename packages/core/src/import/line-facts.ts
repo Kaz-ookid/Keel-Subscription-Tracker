@@ -278,6 +278,34 @@ const PRICE_LINES: readonly RegExp[] = [
   /\b(?:annuel|annual|yearly|jährlich|mensuel|monthly|monatlich|per month|par mois|pro monat)\b/i,
 ];
 
+// A document's payment mode and due date sit on label lines, not on the
+// item's line: "Mode de paiement    facture", "Payable à    14.10.2026".
+const MANUAL_MODE =
+  /\b(?:facture|invoice|rechnung|bulletin de versement|qr-facture|bank transfer|virement|überweisung)\b/i;
+const AUTOMATIC_MODE =
+  /\b(?:prélèvement|prelevement|lsv|lastschrift|direct debit|debit card|credit card|carte de crédit|kreditkarte|paypal)\b/i;
+const DUE_LINE =
+  /(?<![\p{L}])(?:payable (?:à|le|jusqu'au|avant|by|on)|due (?:on|date|by)|à payer (?:avant|le|jusqu'au)|fällig (?:am|bis)|zahlbar bis|scadenza|termin płatności)(?![\p{L}])/iu;
+
+/** What a document states about how and when it is paid, for a reader
+ *  that left those out. */
+export function readDocumentFacts(material: string): Pick<LineFacts, "settlement" | "firstDate"> {
+  const facts: Pick<LineFacts, "settlement" | "firstDate"> = {};
+  const lines = material.split("\n");
+  const modeLine = lines.find((l) =>
+    /\b(?:mode de paiement|payment method|zahlungsart|zahlungsweise|modalità di pagamento|sposób płatności)\b/i.test(
+      l,
+    ),
+  );
+  const modeText = modeLine ?? material;
+  if (MANUAL_MODE.test(modeText) && !AUTOMATIC_MODE.test(modeText)) facts.settlement = "manual";
+  else if (AUTOMATIC_MODE.test(modeText)) facts.settlement = "automatic";
+  const dueLine = lines.find((l) => DUE_LINE.test(l));
+  const due = dueLine ? readFirstDate(dueLine, undefined) : undefined;
+  if (due) facts.firstDate = due;
+  return facts;
+}
+
 /** A document's price when the model omitted it: the money figure on the
  *  first line that names a total, a premium or a periodic amount. */
 export function readDocumentAmount(

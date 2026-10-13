@@ -16,7 +16,14 @@ import type { MonthlyAnchor, RecurrenceRule, TimeUnit } from "../primitives/recu
 import { RECURRENCE_PRESETS } from "../primitives/recurrence";
 import { calendarDate, isCalendarDate, type CalendarDate } from "../primitives/temporal";
 import { extractImportDocument } from "./extract";
-import { findSourceLine, isItemList, readDocumentAmount, readLineFacts } from "./line-facts";
+import {
+  findSourceLine,
+  isItemList,
+  readDocumentAmount,
+  readDocumentFacts,
+  readLineFacts,
+  type LineFacts,
+} from "./line-facts";
 import { IMPORT_FIELD_NAMES } from "./types";
 import type {
   ImportDraft,
@@ -277,7 +284,11 @@ function parseItem(
 
   // What the item's own line states, for every field the model left out.
   const line = ctx.material ? findSourceLine(ctx.material, name) : null;
-  const facts = line ? readLineFacts(line) : {};
+  // A document's payment mode and due date live on label lines, not on
+  // the item's own; the item's line still wins where both speak.
+  const documentFacts =
+    ctx.material && !isItemList(ctx.material) ? readDocumentFacts(ctx.material) : {};
+  const facts: LineFacts = { ...documentFacts, ...(line ? readLineFacts(line) : {}) };
 
   const reader = new ItemReader(ctx);
   if (takenNames.has(name.toLowerCase())) reader.warn("duplicate", name);

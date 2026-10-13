@@ -5,6 +5,7 @@ import {
   findSourceLine,
   isItemList,
   readDocumentAmount,
+  readDocumentFacts,
   readLineFacts,
   readMoneyFigure,
 } from "../import/line-facts";
@@ -219,6 +220,21 @@ describe("condenseDocument", () => {
     expect(condenseDocument(receipt)).toBe(receipt);
     const list = Array.from({ length: 16 }, (_, i) => `item ${i} 12.50 CHF monthly`).join("\n");
     expect(condenseDocument(list)).toBe(list);
+  });
+});
+
+describe("readDocumentFacts", () => {
+  it("reads an invoice's payment mode and due date off their label lines", () => {
+    const invoice =
+      "Facture 9297585\nDate du document    14.09.2026\nPayable à    14.10.2026\nPériode    01.09.2026 - 30.09.2026\nTotal CHF    25.00";
+    expect(readDocumentFacts(invoice)).toEqual({ settlement: "manual", firstDate: "2026-10-14" });
+  });
+
+  it("reads a policy's mode line and says nothing without one", () => {
+    expect(
+      readDocumentFacts("Fréquence de paiement    annuel\nMode de paiement    prélèvement LSV"),
+    ).toEqual({ settlement: "automatic" });
+    expect(readDocumentFacts("Receipt    Apple\nTotal    CHF 12.95")).toEqual({});
   });
 });
 
