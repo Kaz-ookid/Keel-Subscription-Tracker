@@ -3,10 +3,11 @@
 The "Keel reads it for you" path: the AI import (and the debug-only
 assistant) run on Apple's **Private Cloud Compute** model
 (`PrivateCloudComputeLanguageModel`, iOS 27), through this local Expo
-module. Opt-in: nothing is sent until the user turns it on (the import
-screen asks in place; Settings keeps the switch). The native half needs a
-dev build; in Expo Go every availability probe answers "unavailable" and
-the screens explain themselves instead of working.
+module. Opt-in: nothing is sent until the user turns it on (the import hub
+asks in place; the "AI features" switch in Settings removes every AI
+surface). The native half needs a development build; without it every
+availability probe answers "unavailable" and the screens explain themselves
+instead of working.
 
 Two jobs share this module:
 - **The reader** (`parseSubscriptions`): rough notes in, import-format v2
@@ -19,7 +20,7 @@ Two jobs share this module:
 
 Cloud-or-nothing (decided 2026-10-11): the on-device model was tried
 (device QA 2026-07-20) and could not carry the feature; it is not offered.
-When the cloud model cannot run (OS, device, offline, daily allowance
+When the cloud model cannot run (OS, device, offline, per-user allowance
 spent) the screens say which wall it hit and point at bring-your-own AI.
 
 ## What Apple Intelligence offers apps, and what Keel uses
@@ -33,9 +34,9 @@ spent) the screens say which wall it hit and point at bring-your-own AI.
 
 Requirements at runtime: iOS 27+, the `com.apple.developer.private-cloud-compute`
 entitlement (managed capability, granted 2026-10-11), a network connection,
-and whatever device eligibility Apple applies to the cloud model (being
-verified on an iPhone 14 Plus, which is not Apple Intelligence-capable).
-The `availability()` probe reports each state and the screen explains it.
+and an Apple Intelligence device: the cloud model is device-gated like the
+on-device one (verified 2026-10-12, an iPhone 14 Plus is refused). The
+`availability()` probe reports each state and the screen explains it.
 
 ## Architecture (same philosophy as the widgets)
 
@@ -48,19 +49,33 @@ The `availability()` probe reports each state and the screen explains it.
   through core's `parseImportDocument` (same validation, same warnings), and
   everything still lands on the review screen. One format, one parser, two
   model providers.
+- **Code does the deterministic part around the model.** Before the read,
+  core splits a typed list at account headings and reads each section with
+  its own currency (`headings.ts`), and condenses a long document to the
+  lines that matter (`condenseDocument`, `line-facts.ts`). After the model
+  answers, core reads off each typed line whatever the model left out
+  (price, currency, manual/automatic, cycle, day, start date) and a
+  document's total, payment mode and due date off their label lines
+  (`readLineFacts`, `readDocumentFacts`), before any default applies.
 - `src/lib/apple-intelligence.ts` is the guarded JS door (lazy import,
-  "unavailable" on any failure). `app/add/import-ondevice.tsx` is the
-  finished screen: availability states, input, busy state, errors, then the
-  normal review flow.
+  "unavailable" on any failure). `app/add/import-keel.tsx` is the screen
+  (Screenshots and Documents, read on the device by the Vision framework,
+  then Type or paste; availability states, busy state, errors) and
+  `app/add/import-keel-preview.tsx` the editable preview with the automatic
+  privacy scrub (card numbers, IBANs, phone numbers, references, tax ids and
+  the personal part of emails removed, the domain kept because it names the
+  issuer), then the normal review flow grouped by account.
 
 ## QA checklist (dev build on iOS 27)
 
 Local Expo modules under `modules/` are autolinked at prebuild; the UI
-entry points are the import hub card and the assistant (Settings, debug).
+entry points are the import hub in the Add sheet and the assistant (debug
+drawer, dev and beta builds only).
 
 1. Consent: first open of "Keel reads it for you" asks before sending;
-   declining leads to the bring-your-own path; the Settings switch
-   mirrors the choice both ways.
+   declining leads to the bring-your-own path; there is no separate
+   Settings consent switch, the "AI features" switch removes the whole
+   path.
 2. Reader: rough FR + EN lists, screenshot-derived text, trials, split
    payments; the review screen flags exactly like the external path.
 3. Walls, each with its own message: airplane mode (offline), allowance
@@ -76,9 +91,9 @@ The on-device era's claim ("nothing leaves the phone") no longer describes
 this path, and the copy must never pretend it does. The honest statement,
 used everywhere (app, site, policy):
 
-- **Opt-in.** Off until the user turns it on; the import screen asks in
-  place before the first byte leaves, Settings keeps the switch, and the
-  AI hard switch above it removes every AI surface.
+- **Opt-in.** Off until the user turns it on; the import hub asks in
+  place before the first byte leaves, and the "AI features" switch in
+  Settings removes every AI surface.
 - **Where it goes, in Apple's terms.** The text is processed on Apple's
   Private Cloud Compute. Apple states that data sent there is not stored
   and is not accessible to Apple, and PCC is externally inspectable by
@@ -87,8 +102,10 @@ used everywhere (app, site, policy):
 - **What Keel itself does.** No server, no account; the app sends the
   text to Apple's model and reads the answer back on the phone; every
   item stops at the review screen before anything is saved.
-- **The allowance and the cap.** PCC has a per-user daily allowance (the
-  "quota" failure maps to its own message), and app-level access is free
+- **The allowance and the cap.** Apple applies a per-user allowance that
+  behaves like a rolling window, not a daily reset; the app trusts only
+  Apple's own probe about it (the "quota" failure maps to its own
+  message), and app-level access is free
   under the Small Business Program for apps under 2M first-time
   downloads, with a 6-month migration window if that is ever crossed.
   That is why PCC stays an engine behind this bridge: swappable.
@@ -101,6 +118,6 @@ used everywhere (app, site, policy):
 - `@Generable` + `Codable` on the same structs is intentional (encode the
   decoded value straight back to JSON); if the macros clash at compile time,
   add small mirror structs for encoding instead.
-- Images: the current module takes TEXT only. Vision-framework OCR of
-  screenshots feeding the same pipeline is the natural v2 (PROJECT_BRIEF
-  §6.1 already plans it).
+- Images: this module takes TEXT only. Screenshots and scanned PDFs are
+  read on the device by the Vision framework first, shown in the editable
+  preview, and the resulting text goes through the same pipeline.
