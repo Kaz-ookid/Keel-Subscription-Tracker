@@ -47,13 +47,15 @@ Italian, Polish
 
 - Type a rough list, or hand Keel screenshots and documents (PDF
   statements, scanned or not, CSV and text exports). Text is captured on
-  the phone, personal details such as card numbers, IBANs, emails and
-  reference numbers are removed automatically, and you preview what is
-  left before anything is sent.
+  the phone, personal details such as card numbers, IBANs, phone numbers,
+  reference numbers and the personal part of email addresses are removed
+  automatically, and you preview what is left before anything is sent.
 - The reading itself is done either by Apple's cloud model (Private Cloud
   Compute, opt-in, iOS 27) or by an AI you already use, with instructions
-  Keel generates. Every result lands on a review screen before it is
-  saved. AI is optional and switches off completely.
+  Keel generates. What the model leaves out, Keel reads off your own
+  lines: prices, currencies, cycles, dates, payment mode. Every result
+  lands on a review screen, grouped by account, before it is saved. AI is
+  optional and switches off completely.
 
 **Keep it yours**
 
