@@ -4,6 +4,7 @@
 // strike anything else before a byte leaves the phone. The read itself is
 // the shared pipeline; the review screen follows.
 
+import * as Clipboard from "expo-clipboard";
 import { Stack, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
@@ -131,6 +132,22 @@ export default function KeelReadsPreviewScreen() {
           autoCorrect={false}
           autoCapitalize="none"
         />
+        <View style={styles.tools}>
+          <Button
+            variant="secondary"
+            icon="doc.on.clipboard"
+            label={t("importAI.paste")}
+            onPress={() => void Clipboard.getStringAsync().then((s) => editKeelReadsDraftText(s))}
+          />
+          {draft.text.trim() !== "" ? (
+            <Button
+              variant="secondary"
+              icon="xmark"
+              label={t("importAI.clear")}
+              onPress={() => editKeelReadsDraftText("")}
+            />
+          ) : null}
+        </View>
         {error && <Text style={styles.error}>{t(ERROR_KEYS[error])}</Text>}
         {quotaOut ? (
           <AiQuotaNotice />
@@ -187,6 +204,7 @@ function createStyles(colors: ThemeColors) {
       textAlignVertical: "top",
     },
     error: { ...typography.caption, color: colors.tones.danger },
+    tools: { flexDirection: "row", gap: spacing.sm },
     busyRow: {
       flexDirection: "row",
       alignItems: "center",

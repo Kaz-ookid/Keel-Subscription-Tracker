@@ -99,7 +99,15 @@ export async function runKeelRead(
       if (result.drafts.length === 0 && !firstError) firstError = result.error ?? "empty";
     }
     if (drafts.length === 0) return { ok: false, error: firstError ?? "empty" };
-    return { ok: true, drafts, skipped, skippedNames, raw };
+    // Each section's parse numbers its drafts from 1: renumber across the
+    // merge, or two sections give the review list the same key.
+    return {
+      ok: true,
+      drafts: drafts.map((d, i) => ({ ...d, id: `draft-${i + 1}` })),
+      skipped,
+      skippedNames,
+      raw,
+    };
   } catch (failure) {
     const error = failure instanceof KeelReadsError ? failure.reason : "model-failed";
     // The allowance may be out: ask Apple, and the doors follow its word.

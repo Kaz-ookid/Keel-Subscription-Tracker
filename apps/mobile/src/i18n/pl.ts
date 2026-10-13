@@ -85,6 +85,7 @@ const translation = {
     example5Sub: "23,99 zł / mies. · 25-go · Revolut",
     exampleNote:
       "Półzdania, wymieszane waluty, zrzuty ekranu: wszystko przejdzie. Wszystko sprawdzasz i poprawiasz, zanim cokolwiek się zapisze.",
+    paste: "Wklej",
     pasteButton: "Wklej odpowiedź",
     typeManually: "Wpisz ręcznie",
     clear: "Wyczyść",

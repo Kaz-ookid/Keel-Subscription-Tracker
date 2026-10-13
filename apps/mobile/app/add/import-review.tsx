@@ -318,7 +318,7 @@ export default function ImportReviewScreen() {
             {/* What the AI wrote in "notes": conversions, assumptions, caveats. */}
             {input.notes && <Text style={styles.notes}>“{input.notes}”</Text>}
             {!draft.settlePast && <Text style={styles.warn}>⚠ {t("importAI.backlogLine")}</Text>}
-            {account && (
+            {account && !placeable && (
               <View style={styles.accountRow}>
                 <View style={[styles.accountDot, { backgroundColor: account.color }]} />
                 <Text style={styles.sub}>{account.name}</Text>

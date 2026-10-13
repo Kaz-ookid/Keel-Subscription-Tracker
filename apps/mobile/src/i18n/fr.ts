@@ -79,6 +79,7 @@ export const fr: typeof en = {
     example5Sub: "11,99 € / mois · le 25 · Revolut",
     exampleNote:
       "Des bouts de phrases, des devises mélangées, des captures : tout passe. Vous vérifiez et corrigez tout avant l'enregistrement.",
+    paste: "Coller",
     pasteButton: "Coller la réponse",
     typeManually: "Saisir à la main",
     clear: "Effacer",

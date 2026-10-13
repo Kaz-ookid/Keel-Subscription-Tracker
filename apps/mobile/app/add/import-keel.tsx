@@ -7,6 +7,7 @@
 // fails (offline, allowance, service) says so in place and points at the
 // user's own AI, one step back.
 
+import * as Clipboard from "expo-clipboard";
 import { Stack, useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -106,6 +107,22 @@ export default function KeelReadsImportScreen() {
           autoCorrect={false}
           autoCapitalize="none"
         />
+        <View style={styles.tools}>
+          <Button
+            variant="secondary"
+            icon="doc.on.clipboard"
+            label={t("importAI.paste")}
+            onPress={() => void Clipboard.getStringAsync().then((s) => setText(s))}
+          />
+          {text.trim() !== "" ? (
+            <Button
+              variant="secondary"
+              icon="xmark"
+              label={t("importAI.clear")}
+              onPress={() => setText("")}
+            />
+          ) : null}
+        </View>
         {error && <Text style={styles.error}>{t(ERROR_KEYS[error])}</Text>}
         {error && error !== "no-json" && error !== "empty" && error !== "model-failed" && (
           <Pressable onPress={() => router.back()} hitSlop={8}>
@@ -157,6 +174,7 @@ function createStyles(colors: ThemeColors) {
       textAlignVertical: "top",
     },
     error: { ...typography.caption, color: colors.tones.danger },
+    tools: { flexDirection: "row", gap: spacing.sm },
     busyRow: {
       flexDirection: "row",
       alignItems: "center",

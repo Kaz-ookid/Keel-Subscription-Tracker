@@ -79,6 +79,7 @@ export const en = {
     example5Sub: "£11.99 / month · the 25th · Revolut",
     exampleNote:
       "Half sentences, mixed currencies, screenshots: all fine. You check and fix everything before it's saved.",
+    paste: "Paste",
     pasteButton: "Paste the answer",
     typeManually: "Type it in manually",
     clear: "Clear",

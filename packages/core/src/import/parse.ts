@@ -342,7 +342,11 @@ function parseItem(
       (f) => reader.assumed.has(f) || v1Assumed.includes(f),
     ) as ImportFieldName[];
   let uncertainFields = asFieldList(item.uncertain);
-  if (brand) {
+  // A name that sits word for word in the material was copied, not
+  // inferred, whatever the model declared ("spotify duo 17 CHF manual" came
+  // back flagged every time); so was a known brand's.
+  const copied = !!ctx.material && ctx.material.toLowerCase().includes(name.toLowerCase());
+  if (brand || copied) {
     uncertainFields = uncertainFields.filter((f) => f !== "name");
   } else if (isSuspectName(name) && !uncertainFields.includes("name")) {
     uncertainFields = ["name", ...uncertainFields];

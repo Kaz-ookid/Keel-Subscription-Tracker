@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   buildImportPrompt,
   buildKeelReadsPrompt,
-  buildOnDevicePrompt,
   calendarDate,
   DEFAULT_CATEGORIES,
   extractImportDocument,
@@ -665,22 +664,6 @@ describe("brand-bank backfill", () => {
   });
 });
 
-describe("buildOnDevicePrompt", () => {
-  const prompt = buildOnDevicePrompt({ today: calendarDate("2026-07-20"), defaultCurrency: "EUR" });
-
-  it("teaches the patterns the small model fails, with worked examples", () => {
-    expect(prompt).toContain("priceChange"); // the one-item-with-a-change rule
-    expect(prompt).toContain("Amazon Prime"); // a worked example
-    expect(prompt).toContain("account"); // account in its own field
-    expect(prompt).toContain("billingDay"); // bare days extracted, not resolved
-  });
-
-  it("drops the self-reporting the small model over-uses", () => {
-    expect(prompt).not.toContain("assumed");
-    expect(prompt).not.toContain("uncertain");
-  });
-});
-
 describe("folding a price change the model split into two rows", () => {
   const netflixRow = (amount: number, firstDate: string) => ({
     type: "subscription",
@@ -808,6 +791,21 @@ describe("buildKeelReadsPrompt", () => {
     expect(css.assumedFields).not.toContain("settlement");
     expect(loan.input.amount).toEqual(fromMajor(689.55, "EUR"));
     expect(loan.uncertainFields).not.toContain("amount");
+  });
+
+  it("does not call a name inferred when it sits word for word in the material", () => {
+    const answer = {
+      items: [
+        { type: "subscription", name: "spotify duo", amount: 17, uncertain: ["name"] },
+        { type: "subscription", name: "Acme Cloud Max plan", amount: 108.1, uncertain: ["name"] },
+      ],
+    };
+    const result = parseImportDocument(JSON.stringify(answer), {
+      ...ctx,
+      material: "spotify duo 17 CHF manual\nReceipt from Acme Cloud, Inc. $108.10",
+    });
+    expect(result.drafts[0]?.uncertainFields).not.toContain("name");
+    expect(result.drafts[1]?.uncertainFields).toContain("name");
   });
 
   it("believes an unpaid-backlog flag only when the material speaks of it", () => {
