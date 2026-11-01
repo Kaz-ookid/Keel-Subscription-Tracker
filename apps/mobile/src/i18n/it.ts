@@ -253,6 +253,7 @@ export const it: typeof en = {
     heroBy: "entro il {{date}}",
     heroThen: "poi {{amount}} a {{month}}",
     heroNothingNext: "niente a {{month}}",
+    changesAhead: "Cambiamenti in arrivo",
     nothingDue: "Niente in scadenza",
     chipAll: "Tutti",
     chipNoAccount: "Senza conto",

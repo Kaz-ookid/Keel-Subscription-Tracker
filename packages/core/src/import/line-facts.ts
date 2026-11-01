@@ -182,6 +182,9 @@ function readFirstDate(line: string, billingDay: number | undefined): CalendarDa
     if (bare) year = Number(bare[1]);
   }
   if (day === undefined) day = billingDay;
+  // "first billing March 2026" names a month and nothing else: the 1st of
+  // that month beats the parser's default, the 1st of the current month.
+  if (day === undefined && monthYear) day = 1;
   if (day === undefined || month === undefined || year === undefined) return undefined;
   return toDate(year, month, day);
 }

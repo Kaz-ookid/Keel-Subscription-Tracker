@@ -109,6 +109,12 @@ describe("readLineFacts", () => {
     });
   });
 
+  it("takes the 1st when a line names a month and a year but no day", () => {
+    expect(readLineFacts("Mobilis 495 CHF, first billing march 2026")).toMatchObject({
+      firstDate: "2026-03-01",
+    });
+  });
+
   it("leaves out what the line does not state", () => {
     expect(readLineFacts("spotify duo 17.6 on the 13th")).toEqual({ amount: 17.6, billingDay: 13 });
     expect(readLineFacts("pay in 4 times 117.94 EUR at Sample Store, 20 May 2026")).toEqual({

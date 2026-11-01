@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   accrueDueInstallments,
   accrueDueOccurrences,
+  backdatedHistory,
   calendarDate,
   canMarkNextInstallmentPaid,
   canMarkPaid,
@@ -728,6 +729,33 @@ describe("pause / resume", () => {
     // Guards: pause is a no-op on non-active, resume on non-paused.
     expect(pausePaymentItem(paused, { now: now() })).toBe(paused);
     expect(resumePaymentItem(item, { now: now(), asOf: calendarDate("2026-06-20") })).toBe(item);
+  });
+});
+
+describe("backdatedHistory (a first date moved into the past)", () => {
+  it("logs the cycles between the new first date and the old one as paid", () => {
+    // Monthly on the 15th, first set to October, then moved back to July.
+    const item = makeRecurringPaymentItem(
+      { ...input, settlementMode: "manual", firstChargeDate: calendarDate("2026-07-15") },
+      { id: "item-b", now: now() },
+    );
+    let n = 0;
+    const history = backdatedHistory(item, calendarDate("2026-10-15"), {
+      now: now(),
+      makeId: () => `h-${++n}`,
+    });
+    expect(history.map((o) => o.dueDate)).toEqual(["2026-07-15", "2026-08-15", "2026-09-15"]);
+    expect(history.every((o) => o.status === "charged")).toBe(true);
+  });
+
+  it("logs nothing when the date did not move earlier", () => {
+    const item = makeRecurringPaymentItem(
+      { ...input, firstChargeDate: calendarDate("2026-10-15") },
+      { id: "item-c", now: now() },
+    );
+    expect(
+      backdatedHistory(item, calendarDate("2026-07-15"), { now: now(), makeId: () => "x" }),
+    ).toEqual([]);
   });
 });
 

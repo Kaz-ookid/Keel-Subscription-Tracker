@@ -12,6 +12,8 @@ import {
   today,
   type CalendarDate,
   type ProjectedCharge,
+  formatMoney,
+  priceChangesAhead,
 } from "@keel/core";
 import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -37,6 +39,7 @@ import {
   useTheme,
 } from "../../theme";
 import { HeroCard } from "../HeroCard";
+import { BrandBadge } from "../BrandBadge";
 import { UpcomingRow } from "../UpcomingRow";
 
 /** A timeline row: a projected charge, or a settled one kept for completeness. */
@@ -262,6 +265,10 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
     if (nextMonthOpen) sections.push(...nextSections);
   }
 
+  // Price moves and trial ends inside three months: the one thing the
+  // timeline cannot show as a charge, so it gets its own block on top.
+  const changes = priceChangesAhead(items, asOf);
+
   const heroLabel = selectedAccount
     ? t("upcoming.heroNeeds", { name: selectedAccount.name })
     : filter === "none"
@@ -292,6 +299,42 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   return (
     <ScrollView ref={scrollRef} style={styles.list} contentContainerStyle={styles.listContent}>
       {header}
+      {changes.length > 0 && (
+        <View>
+          <View style={styles.sectionHeaderWrap}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t("upcoming.changesAhead")}</Text>
+            </View>
+          </View>
+          {changes.map((change) => (
+            <Pressable
+              key={change.item.id}
+              style={styles.changeRow}
+              onPress={() => router.push({ pathname: "/item", params: { id: change.item.id } })}
+            >
+              <BrandBadge
+                domain={change.item.domain}
+                icon={change.item.icon}
+                fallback={change.item.name.charAt(0).toUpperCase()}
+                color={change.item.color ?? colors.accent}
+                size={32}
+              />
+              <View style={styles.changeText}>
+                <Text style={styles.changeName} numberOfLines={1}>
+                  {change.item.name}
+                </Text>
+                <Text style={styles.changeLine}>
+                  {t(change.kind === "trialEnd" ? "importAI.trialLine" : "importAI.changeLine", {
+                    amount: formatMoney(change.to),
+                    date: formatCalendarDate(change.on),
+                  })}
+                </Text>
+              </View>
+              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+            </Pressable>
+          ))}
+        </View>
+      )}
       {sections.length === 0 && (
         <EmptyState
           icon="calendar"
@@ -414,6 +457,16 @@ function createStyles(colors: ThemeColors) {
       gap: spacing.md,
       marginBottom: spacing.sm,
     },
+    changeRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: spacing.sm,
+      paddingHorizontal: spacing.md,
+      paddingVertical: spacing.sm,
+    },
+    changeText: { flex: 1 },
+    changeName: { ...typography.label, color: colors.text },
+    changeLine: { ...typography.caption, color: colors.mutedText },
     sectionHeaderWrap: {
       backgroundColor: "transparent",
     },

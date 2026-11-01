@@ -29,6 +29,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Alert } from "react-native";
 import {
+  backdatedHistory,
   settleImportedItem,
   appendAiActivity,
   applyAssistantOperation,
@@ -547,18 +548,25 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
         (max, o) => (o.paymentItemId === id && (!max || o.dueDate > max) ? o.dueDate : max),
         undefined,
       );
-      setItems((prev) =>
-        prev.map((i) =>
-          i.id === id
-            ? updateRecurringPaymentItem(i, input, {
-                now: now(),
-                today: today(),
-                lastChargedDate,
-                priceEdit,
-              })
-            : i,
-        ),
-      );
+      const existing = rawRef.current.items.find((i) => i.id === id);
+      if (!existing || existing.schedule.kind !== "RECURRING") return;
+      const updated = updateRecurringPaymentItem(existing, input, {
+        now: now(),
+        today: today(),
+        lastChargedDate,
+        priceEdit,
+      });
+      // A first date moved into the past is history (paid outside the app),
+      // and an automatic item is caught up at once: an edit must never leave
+      // a charge showing as overdue until the next launch.
+      const history = backdatedHistory(updated, existing.schedule.firstChargeDate, {
+        now: now(),
+        makeId: randomUUID,
+      });
+      const caught = catchUp(updated);
+      setItems((prev) => prev.map((i) => (i.id === id ? caught.item : i)));
+      const accrued = [...history, ...caught.occurrences];
+      if (accrued.length > 0) setOccurrences((prev) => [...prev, ...accrued]);
     };
 
     const revertPriceChange = (id: string, effectiveFrom: CalendarDate) => {

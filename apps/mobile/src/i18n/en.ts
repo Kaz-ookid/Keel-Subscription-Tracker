@@ -252,6 +252,7 @@ export const en = {
     heroBy: "by {{date}}",
     heroThen: "then {{amount}} in {{month}}",
     heroNothingNext: "nothing in {{month}}",
+    changesAhead: "Changes ahead",
     nothingDue: "Nothing due",
     chipAll: "All",
     chipNoAccount: "No account",

@@ -4,7 +4,7 @@
 // Same purity contract: all non-determinism (ids, "now") is injected.
 
 import type { RecurrenceRule } from "../primitives/recurrence";
-import { nextDueDate, nextOnGrid, shiftOffWeekend } from "../primitives/schedule-dates";
+import { addDays, nextDueDate, nextOnGrid, shiftOffWeekend } from "../primitives/schedule-dates";
 import { calendarDate, type CalendarDate, type Timestamp } from "../primitives/temporal";
 import {
   COVERED_INSTALLMENT_STATUSES,
@@ -24,6 +24,7 @@ import {
   type RecurringSchedule,
 } from "./payment-item";
 import type { PaymentOccurrence } from "./payment-occurrence";
+import { isRecurringSchedule } from "./payment-item";
 
 /**
  * Finalize a trial/intro once a real charge has reached its conversion date:
@@ -559,6 +560,28 @@ export function accrueDueInstallments(
   if (!changed) return item;
 
   return { ...item, updatedAt: ctx.now, schedule: { ...schedule, installments } };
+}
+
+/**
+ * A first charge date moved into the past is history: the cycles between the
+ * new first date and the old one were paid outside the app. Returns them as
+ * `charged` occurrences, whatever the settlement mode; the item's own cursor
+ * is untouched (it already sits at or past the old first date). Empty when
+ * the date did not move earlier. Pure — id/clock are injected.
+ */
+export function backdatedHistory(
+  item: PaymentItem,
+  previousFirstChargeDate: CalendarDate,
+  ctx: AccrueContext,
+): PaymentOccurrence[] {
+  if (!isRecurringSchedule(item.schedule)) return [];
+  const first = item.schedule.firstChargeDate;
+  if (first >= previousFirstChargeDate) return [];
+  const rewound: PaymentItem = {
+    ...item,
+    schedule: { ...item.schedule, nextChargeDate: first },
+  };
+  return accrueDueOccurrences(rewound, addDays(previousFirstChargeDate, -1), ctx).occurrences;
 }
 
 /** The last day of the month before the one `date` is in. */

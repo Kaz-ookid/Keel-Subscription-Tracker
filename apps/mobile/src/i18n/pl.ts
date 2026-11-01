@@ -273,6 +273,7 @@ const translation = {
     heroBy: "do {{date}}",
     heroThen: "potem {{amount}} w {{month}}",
     heroNothingNext: "nic w {{month}}",
+    changesAhead: "Nadchodzące zmiany",
     nothingDue: "Nic do zapłaty",
     chipAll: "Wszystkie",
     chipNoAccount: "Bez konta",
