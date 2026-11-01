@@ -10,20 +10,18 @@
 
 import { useMemo } from "react";
 import { StyleSheet, View, type StyleProp, type TextStyle } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  FadeOutDown,
-  LinearTransition,
-} from "react-native-reanimated";
+import Animated, { FadeIn, FadeInDown, FadeOutDown } from "react-native-reanimated";
 
 interface Props {
   text: string;
   style?: StyleProp<TextStyle>;
 }
 
-const cellLayout = LinearTransition.duration(220);
-
+// No layout transition on the cells: a width that animates while the text
+// inside it changes sent the main thread into an endless mount-animate-
+// mount loop on Fabric (the launch freeze of 2026-11-01, CPU reports from
+// 2026-10-12 with the same stack). Digits still roll; cells now jump to
+// their new width.
 export function LivingNumber({ text, style }: Props) {
   const chars = useMemo(() => [...text], [text]);
   const n = chars.length;
@@ -32,12 +30,7 @@ export function LivingNumber({ text, style }: Props) {
       {chars.map((char, i) => {
         const posFromRight = n - 1 - i;
         return (
-          <Animated.View
-            key={posFromRight}
-            layout={cellLayout}
-            entering={FadeIn.duration(180)}
-            style={styles.cell}
-          >
+          <Animated.View key={posFromRight} entering={FadeIn.duration(180)} style={styles.cell}>
             <Animated.Text
               key={`${posFromRight}-${char}`}
               entering={FadeInDown.duration(200)}

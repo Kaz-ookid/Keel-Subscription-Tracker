@@ -354,8 +354,10 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
           }
         />
       )}
+      {/* No layout transition on the sections (see LivingNumber): the rows
+          still fade in and out, the fold itself now snaps. */}
       {sections.map((section) => (
-        <Animated.View key={section.key} layout={foldLayout}>
+        <Animated.View key={section.key}>
           {section.toggle ? (
             <Pressable
               style={[styles.sectionHeaderWrap, styles.monthBreak]}
