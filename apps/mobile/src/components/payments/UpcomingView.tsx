@@ -25,7 +25,7 @@ import { dayLabel, monthNameOf } from "../../i18n/dates";
 import { hapticMarkPaid } from "../../lib/haptics";
 import Animated from "react-native-reanimated";
 
-import { foldIn, foldLayout, foldOut } from "../../lib/motion";
+import { foldIn, foldOut } from "../../lib/motion";
 import { AccountChipsRow } from "./AccountChipsRow";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
