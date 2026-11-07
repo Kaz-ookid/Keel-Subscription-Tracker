@@ -12,7 +12,9 @@
       "bundleIdentifier": "ch.keelapp.keel",
       "appleTeamId": "TBF3VV2BT8",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleLocalizations": ["en", "fr", "de", "it", "pl"]
       },
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
