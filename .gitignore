@@ -23,24 +23,5 @@ npm-debug.log*
 .vscode/
 *.swp
 
-# local working notes
-PROJECT_BRIEF.md
-BACKLOG.md
-DESIGN.md
-GROWTH.md
-APPSTORE_BRIEF.md
-CODE_AUDIT.md
-RETEX_NOTES.md
-IDEAS.md
-APPSTORE_SLIDES.md
-JOURNAL.md
-RELEASE_NOTES.md
-KEEL LINKEDIN POST.txt
-
 # separate repository, checked out alongside
 keel-website/
-
-# local data and working assets
-ai-training/
-visuals/
-alternativeto-upload/
