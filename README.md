@@ -132,10 +132,10 @@ recorded, and the surrounding comment carries the decision itself.
 
 ## This repository
 
-The code is public so anyone can read how Keel handles their data. It is
-not an open project: pull requests are closed without review, and issues
-are off. Feedback, bug reports and questions go to
-contactkeel@protonmail.com, and each one gets an answer.
+The code is public so anyone can read how Keel handles their data. Bug
+reports and questions are welcome as issues, or by email at
+contactkeel@protonmail.com. Keel is built by one person, so pull requests
+are not merged.
 
 ## License
 
