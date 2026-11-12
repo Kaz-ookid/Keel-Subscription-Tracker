@@ -118,8 +118,15 @@ export async function getAuthKind(): Promise<AuthKind> {
   }
 }
 
+// The Face ID sheet itself sends the app inactive on iOS. Every caller
+// (lock screen, onboarding nudge, Settings) goes through authenticate(), so
+// one flag here lets the lock gate ignore the AppState changes a prompt causes.
+let authInFlight = false;
+export const isAuthenticating = (): boolean => authInFlight;
+
 /** One OS authentication round: biometrics first, device passcode fallback. */
 export async function authenticate(promptMessage: string): Promise<boolean> {
+  authInFlight = true;
   try {
     const result = await LocalAuthentication.authenticateAsync({
       promptMessage,
@@ -128,5 +135,7 @@ export async function authenticate(promptMessage: string): Promise<boolean> {
     return result.success;
   } catch {
     return false;
+  } finally {
+    authInFlight = false;
   }
 }

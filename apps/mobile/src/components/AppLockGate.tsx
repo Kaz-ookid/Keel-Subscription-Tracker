@@ -30,6 +30,7 @@ import { APP_NAME } from "../constants";
 import {
   authenticate,
   getAuthKind,
+  isAuthenticating,
   loadAppLockConfig,
   onAppLockChange,
   type AppLockConfig,
@@ -64,17 +65,15 @@ export function AppLockGate() {
   // device (or host app) that will only show the passcode sheet.
   const [authKind, setAuthKind] = useState<AuthKind>("generic");
   const configRef = useRef<AppLockConfig | null>(null);
-  // The Face ID sheet itself backgrounds the app on iOS — while a prompt is
-  // up, AppState changes must not re-cover or re-lock.
-  const authBusy = useRef(false);
+  // Set only when the app truly goes to the background. "inactive" alone
+  // (the Face ID sheet, Control Center, a banner) covers but never re-locks.
   const awaySince = useRef<number | null>(null);
 
   const tryUnlock = useCallback(async () => {
-    if (authBusy.current) return;
-    authBusy.current = true;
+    // Any prompt already up (this gate's, onboarding's, Settings') wins.
+    if (isAuthenticating()) return;
     setFailed(false);
     const ok = await authenticate(t("applock.prompt"));
-    authBusy.current = false;
     awaySince.current = null;
     if (ok) {
       setLocked(false);
@@ -114,7 +113,8 @@ export function AppLockGate() {
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
       const current = configRef.current;
-      if (authBusy.current) return;
+      // A Face ID prompt (from anywhere) makes the app inactive: not leaving.
+      if (isAuthenticating()) return;
       if (state === "active") {
         setCovered(false);
         if (current?.enabled && awaySince.current !== null) {
@@ -130,7 +130,9 @@ export function AppLockGate() {
         // security-looking cover with the lock OFF read as a glitch): lock
         // on = the switcher snapshot shows the brand, never amounts; lock
         // off = the switcher shows the app, like any unlocked app.
-        if (awaySince.current === null) awaySince.current = Date.now();
+        if (state === "background" && awaySince.current === null) {
+          awaySince.current = Date.now();
+        }
         setCovered(true);
       }
     });
