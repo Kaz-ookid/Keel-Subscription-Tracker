@@ -130,6 +130,13 @@ section numbers like §7.3). Those are the project's private planning notes
 and are not part of this repository; a citation marks where a decision is
 recorded, and the surrounding comment carries the decision itself.
 
+## This repository
+
+The code is public so anyone can read how Keel handles their data. It is
+not an open project: pull requests are closed without review, and issues
+are off. Feedback, bug reports and questions go to
+contactkeel@protonmail.com, and each one gets an answer.
+
 ## License
 
 The source is published for transparency. © 2026 Maxime Teuber, all rights
