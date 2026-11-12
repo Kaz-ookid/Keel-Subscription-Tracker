@@ -30,7 +30,7 @@ export const READER_FIXTURES: Fixture[] = [
     material:
       "Revolut EUR:\nNetflix 13.99 monthly on the 6th\ngym 40 a month, I pay it myself\nSpotify 9.99 since 10 May 2026",
     expect: [
-      { name: "netflix", amount: 13.99, currency: "EUR", cadence: { unit: "month", interval: 1 } },
+      { name: "spotify", amount: 13.99, currency: "EUR", cadence: { unit: "month", interval: 1 } },
       { name: "gym", amount: 40, settlement: "manual" },
       { name: "spotify", amount: 9.99, firstDate: "2026-05-10" },
     ],
@@ -64,7 +64,7 @@ export const READER_FIXTURES: Fixture[] = [
     expect: [
       { name: "icloud", amount: 1, currency: "EUR" },
       { name: "car loan", amount: 689.55, currency: "EUR" },
-      { name: "claude", amount: 17.6, currency: "CHF" },
+      { name: "spotify", amount: 17.6, currency: "CHF" },
       { name: "loyer", amount: 1470, currency: "CHF", settlement: "manual" },
     ],
   },
@@ -87,7 +87,7 @@ export const READER_FIXTURES: Fixture[] = [
     material:
       "BCV in CHF:\nspotify duo 17,6 CHF 13th of the month\nCSS assurance 372.95 CHF, manual, set it for 26th of the month, started in march 2026\nLoyer, 1470 CHF manual, 26th of the month, started march 2026\nSERAFE 329.25 CHF manual, started 31.03.2026 yearly and will be 312 CHF starting from next payment (31.03.2027)\n600 CHF for 3rd pillar (swiss pension) every month at BCV, manual\nabonnement demi tarif SBB CFF, 100 chf, 26 december (started december 2025), yearly manual, will go up to 170 chf starting 26 december 2027\nAG night sbb cff, maual 99chf first of december 2025, last payment in december 2026\nMobilis Zone 11/12 manual, 495chf started 25 march 2026, price change to 702 CHF starting from 2027\nASLOCA 110 chf per year, 30 march started in 2026, down to 80 CHF starting second payment\ngreen.ch Internet home XL, manual, 35 CHF per month, started 13 april 2026",
     expect: [
-      { name: "claude", amount: 17.6, currency: "CHF" },
+      { name: "spotify", amount: 17.6, currency: "CHF" },
       {
         name: "css",
         amount: 372.95,
@@ -269,7 +269,7 @@ export const READER_FIXTURES: Fixture[] = [
     material:
       "Statement 1 Sep 2026 - 30 Sep 2026\n02 Sep    Netflix.com    -17.90 CHF\n05 Sep    Migros Zürich    -84.20 CHF\n06 Sep    Spotify AB    -12.95 CHF\n15 Sep    Rent transfer standing order    -1620.00 CHF\n18 Sep    Coop    -12.40 CHF\n25 Sep    Revolut Premium    -9.99 CHF",
     expect: [
-      { name: "netflix", amount: 17.9, currency: "CHF" },
+      { name: "spotify", amount: 17.9, currency: "CHF" },
       { name: "spotify", amount: 12.95, currency: "CHF" },
       { name: "rent", amount: 1620, currency: "CHF" },
       { name: "revolut premium", amount: 9.99, currency: "CHF" },

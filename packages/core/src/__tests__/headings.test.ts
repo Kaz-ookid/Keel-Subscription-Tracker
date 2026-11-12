@@ -10,7 +10,10 @@ describe("parseAccountHeading", () => {
   it("reads the account and the currency in several spellings", () => {
     expect(parseAccountHeading("Revolut CHF:")).toEqual({ account: "Revolut", currency: "CHF" });
     expect(parseAccountHeading("BCV in CHF:")).toEqual({ account: "BCV", currency: "CHF" });
-    expect(parseAccountHeading("Boursorama en euro :")).toEqual({ account: "Boursorama", currency: "EUR" });
+    expect(parseAccountHeading("Boursorama en euro :")).toEqual({
+      account: "Boursorama",
+      currency: "EUR",
+    });
     expect(parseAccountHeading("Monzo (GBP):")).toEqual({ account: "Monzo", currency: "GBP" });
   });
 
@@ -59,10 +62,14 @@ describe("expandAccountHeadings", () => {
 describe("splitAccountSections", () => {
   it("cuts the material at its headings and carries each heading's account and currency", () => {
     const material =
-      "intro line\nCIC in euro :\nApple iCloud 1 on the 4th\nBCV in CHF:\nLoyer 1470 manual\n\nSERAFE 329.25";
+      "intro line\nBoursorama in euro :\nApple iCloud 1 on the 4th\nBCV in CHF:\nLoyer 1470 manual\n\nSERAFE 329.25";
     expect(splitAccountSections(material)).toEqual([
       { text: "intro line" },
-      { account: "Boursorama", currency: "EUR", text: "Apple iCloud 1 on the 4th (account Boursorama, EUR)" },
+      {
+        account: "Boursorama",
+        currency: "EUR",
+        text: "Apple iCloud 1 on the 4th (account Boursorama, EUR)",
+      },
       {
         account: "BCV",
         currency: "CHF",

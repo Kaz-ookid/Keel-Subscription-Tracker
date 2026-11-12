@@ -4,9 +4,9 @@ import { detectCurrencyHint } from "../import/currency-hint";
 
 describe("detectCurrencyHint", () => {
   it("reads a plain dollar receipt as USD", () => {
-    expect(
-      detectCurrencyHint("Receipt from Acme Cloud Ltd $108.10 Paid on October 9, 2026"),
-    ).toBe("USD");
+    expect(detectCurrencyHint("Receipt from Acme Cloud Ltd $108.10 Paid on October 9, 2026")).toBe(
+      "USD",
+    );
   });
 
   it("reads codes and unambiguous symbols", () => {

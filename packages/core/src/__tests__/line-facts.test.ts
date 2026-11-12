@@ -116,7 +116,10 @@ describe("readLineFacts", () => {
   });
 
   it("leaves out what the line does not state", () => {
-    expect(readLineFacts("spotify duo 17.6 on the 13th")).toEqual({ amount: 17.6, billingDay: 13 });
+    expect(readLineFacts("spotify duo 17.6 on the 13th")).toEqual({
+      amount: 17.6,
+      billingDay: 13,
+    });
     expect(readLineFacts("pay in 4 times 117.94 EUR at Sample Store, 20 May 2026")).toEqual({
       amount: 117.94,
       currency: "EUR",

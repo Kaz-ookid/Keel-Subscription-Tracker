@@ -781,11 +781,11 @@ describe("buildKeelReadsPrompt", () => {
       material,
     });
     expect(result.drafts).toHaveLength(3);
-    const [claude, css, loan] = result.drafts as RecurringImportDraft[];
-    expect(claude.input.amount).toEqual(fromMajor(17.6, "CHF"));
-    expect(claude.input.firstChargeDate).toBe("2026-10-13");
-    expect(claude.assumedFields).not.toContain("currency");
-    expect(claude.assumedFields).not.toContain("firstDate");
+    const [spotify, css, loan] = result.drafts as RecurringImportDraft[];
+    expect(spotify.input.amount).toEqual(fromMajor(17.6, "CHF"));
+    expect(spotify.input.firstChargeDate).toBe("2026-10-13");
+    expect(spotify.assumedFields).not.toContain("currency");
+    expect(spotify.assumedFields).not.toContain("firstDate");
     expect(css.input.settlementMode).toBe("manual");
     expect(css.input.firstChargeDate).toBe("2026-03-26");
     expect(css.assumedFields).not.toContain("settlement");
