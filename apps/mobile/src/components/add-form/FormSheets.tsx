@@ -289,7 +289,7 @@ export function FormSheets({ form }: { form: AddForm }) {
         >
           {t("add.orColour")}
         </Text>
-        <ScrollView>
+        <ScrollView keyboardShouldPersistTaps="handled">
           <View style={styles.swatchGrid}>
             {/* The ADAPTIVE swatch: the exact color of the latest logo (or a
               bank hex) leads the grid. It sticks around even after the logo

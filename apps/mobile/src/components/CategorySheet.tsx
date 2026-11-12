@@ -55,7 +55,7 @@ export function CategorySheet({ visible, onClose, selectedId, onSelect }: Props)
 
   return (
     <Sheet visible={visible} title={t("categorySheet.title")} onClose={onClose}>
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Pressable style={styles.row} onPress={() => pick(undefined)}>
           <Text style={styles.rowText}>{t("common.none")}</Text>
           {!selectedId && <SymbolView name="checkmark" size={16} tintColor={colors.accent} />}

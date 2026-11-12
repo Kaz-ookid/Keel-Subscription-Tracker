@@ -179,7 +179,9 @@ export function AccountPickerSheet({ visible, onClose, selectedId, onSelect }: P
 
   return (
     <Sheet visible={visible} title={t("accounts.sheetTitle")} onClose={onClose}>
-      <ScrollView contentContainerStyle={styles.content}>
+      {/* handled: with the name field focused, the first tap on Add must add,
+          not just dismiss the keyboard. */}
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Pressable style={styles.row} onPress={() => pick(undefined)}>
           <Text style={styles.rowText}>{t("common.none")}</Text>
           {!selectedId && <SymbolView name="checkmark" size={16} tintColor={colors.accent} />}
@@ -243,7 +245,7 @@ export function AccountEditSheet({ visible, onClose, account, onCreated }: EditP
       title={account ? t("accounts.editAccount") : t("accounts.newAccount")}
       onClose={onClose}
     >
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <AccountForm
           initial={account}
           submitLabel={account ? t("common.save") : t("accounts.addAccount")}
