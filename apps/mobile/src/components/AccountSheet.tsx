@@ -251,7 +251,12 @@ export function AccountEditSheet({ visible, onClose, account, onCreated }: EditP
           submitLabel={account ? t("common.save") : t("accounts.addAccount")}
           onSubmit={(input) => {
             if (account) updateAccount(account.id, input);
-            else onCreated?.(addAccount(input));
+            else {
+              // Not onCreated?.(addAccount(...)): an absent callback would
+              // short-circuit the argument and the account never got created.
+              const created = addAccount(input);
+              onCreated?.(created);
+            }
             onClose();
           }}
         />
