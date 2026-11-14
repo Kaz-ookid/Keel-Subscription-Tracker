@@ -1,15 +1,15 @@
 // iCloud & data: where the data lives and how it leaves. iCloud sync is a
 // stored preference ahead of the real sync engine (local-first MVP, sync
 // later per PROJECT_BRIEF §9); local backups run daily on their own; export
-// and import move whole backups in and out as files; and the one truly
-// destructive action lives at the bottom, red, behind a confirm.
+// writes a backup or a spreadsheet; import takes either back (a backup
+// replaces everything, a spreadsheet adds its items after a review); and
+// the one truly destructive action lives at the bottom, red, behind a confirm.
 
-import { today } from "@keel/core";
+import { parseImportDocument, today } from "@keel/core";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
-import { File, Paths } from "expo-file-system";
+import { File } from "expo-file-system";
 import { useFocusEffect, useRouter } from "expo-router";
-import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +21,7 @@ import { IconChip } from "../src/components/ui/IconChip";
 import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
+import { DATA_FILE_TYPES, readKeelCsv, showExportChoices } from "../src/lib/data-files";
 import {
   deleteFromICloud,
   downloadFromICloud,
@@ -28,7 +29,9 @@ import {
   isICloudAvailable,
   uploadToICloud,
 } from "../src/lib/icloud-backup";
-import { useAppActions } from "../src/state/app-state";
+import { parsePersistedState } from "../src/lib/storage";
+import { useAppActions, useAppData } from "../src/state/app-state";
+import { useImportSession } from "../src/state/import-session";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 const CHIP = {
@@ -42,10 +45,12 @@ const CHIP = {
 
 export default function DataScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { exportData, importData, clearAllData } = useAppActions();
+  const { items, accounts, categories, displayCurrency } = useAppData();
+  const { startSession } = useImportSession();
   const aiHidden = useAiHidden();
 
   const [icloud, setIcloud] = useState(false);
@@ -138,50 +143,64 @@ export default function DataScreen() {
     });
   };
 
-  const exportBackup = async () => {
-    try {
-      const file = new File(Paths.cache, `keel-backup-${today()}.json`);
-      if (file.exists) file.delete();
-      file.create();
-      file.write(JSON.stringify(exportData(), null, 2));
-      try {
-        await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
-      } finally {
-        // The share sheet is done with the file: a full financial dump must
-        // not linger in the cache (2026-09-14 security audit).
-        if (file.exists) file.delete();
-      }
-    } catch {
-      Alert.alert(t("settings.exportFailTitle"), t("settings.exportFailMsg"));
-    }
+  const failImport = (messageKey: string) =>
+    Alert.alert(t("settings.importFailTitle"), t(messageKey));
+
+  // A spreadsheet never replaces anything: its rows go through the import
+  // parser and land on the review screen, where saving adds them.
+  const importCsv = (content: string) => {
+    const document = readKeelCsv(content, categories);
+    if (!document) return failImport("settings.importFailNotBackup");
+    const result = parseImportDocument(JSON.stringify(document), {
+      defaultCurrency: displayCurrency,
+      today: today(),
+      accounts,
+      categories,
+      takenNames: items.map((i) => i.name),
+    });
+    if (result.drafts.length === 0) return failImport("settings.importCsvEmpty");
+    startSession(result.drafts, result.skipped, "csv", result.skippedNames);
+    router.push({ pathname: "/add/import-review", params: { direct: "1" } });
   };
 
-  const importBackup = async () => {
+  const importFile = async () => {
+    let content: string;
     try {
-      const picked = await DocumentPicker.getDocumentAsync({ type: "application/json" });
+      const picked = await DocumentPicker.getDocumentAsync({ type: DATA_FILE_TYPES });
       if (picked.canceled || !picked.assets[0]) return;
-      const content = new File(picked.assets[0].uri).textSync();
-      Alert.alert(t("settings.restoreTitle"), t("settings.restoreMsg"), [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("settings.replace"),
-          style: "destructive",
-          onPress: () => {
-            const result = importData(content);
-            if (!result.ok) {
-              Alert.alert(t("settings.importFailTitle"), t("settings.importFailNotBackup"));
-            } else if (result.dropped > 0) {
-              Alert.alert(
-                t("settings.restoreTitle"),
-                t("settings.restoredPartial", { count: result.dropped }),
-              );
-            }
-          },
-        },
-      ]);
+      const file = new File(picked.assets[0].uri);
+      try {
+        content = file.textSync();
+      } finally {
+        // The picker's cache copy is a plain financial document: not kept.
+        try {
+          file.delete();
+        } catch {
+          // Best-effort cleanup.
+        }
+      }
     } catch {
-      Alert.alert(t("settings.importFailTitle"), t("settings.importFailRead"));
+      return failImport("settings.importFailRead");
     }
+    // Which kind of file it is gets decided before anything is asked.
+    if (!parsePersistedState(content)) return importCsv(content);
+    Alert.alert(t("settings.restoreTitle"), t("settings.restoreMsg"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("settings.replace"),
+        style: "destructive",
+        onPress: () => {
+          const result = importData(content);
+          if (!result.ok) failImport("settings.importFailNotBackup");
+          else if (result.dropped > 0) {
+            Alert.alert(
+              t("settings.restoreTitle"),
+              t("settings.restoredPartial", { count: result.dropped }),
+            );
+          }
+        },
+      },
+    ]);
   };
 
   const confirmClear = () =>
@@ -230,11 +249,14 @@ export default function DataScreen() {
           <Text style={styles.rowValue}>{backupCount || ""}</Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void exportBackup()}>
+        <Pressable
+          style={[styles.row, styles.rowDivider]}
+          onPress={() => showExportChoices(exportData, scheme)}
+        >
           <IconChip icon="square.and.arrow.up" color={CHIP.exportBackup} />
-          <Text style={styles.rowText}>{t("settings.exportBackup")}</Text>
+          <Text style={styles.rowText}>{t("settings.export")}</Text>
         </Pressable>
-        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void importBackup()}>
+        <Pressable style={[styles.row, styles.rowDivider]} onPress={() => void importFile()}>
           <IconChip icon="square.and.arrow.down" color={CHIP.importBackup} />
           <Text style={styles.rowText}>{t("settings.restoreBackup")}</Text>
         </Pressable>

@@ -19,7 +19,7 @@ import {
   type ImportWarning,
   type NewAccountInput,
 } from "@keel/core";
-import { useNavigation, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +30,8 @@ import { COLOR_SWATCHES } from "../../src/constants";
 import { AccountEditSheet } from "../../src/components/AccountSheet";
 import { BrandBadge } from "../../src/components/BrandBadge";
 import { LogoConsentGate } from "../../src/components/LogoConsentGate";
+import { ModalClose } from "../../src/components/ModalClose";
+import { createBackup } from "../../src/lib/backups";
 import { hapticImportConfirm } from "../../src/lib/haptics";
 import { HeroCard } from "../../src/components/HeroCard";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
@@ -88,9 +90,19 @@ export default function ImportReviewScreen() {
   const insets = useSafeAreaInsets();
   const { drafts, skipped, skippedNames, source, removeDraft, assignAccount, clear } =
     useImportSession();
-  const { accounts, categories } = useAppData();
-  const { addAccount, addSubscription, addInstallmentPlan, logAiActivity, createAiBackup } =
-    useAppActions();
+  const { items, accounts, categories } = useAppData();
+  const {
+    addAccount,
+    addSubscription,
+    addInstallmentPlan,
+    logAiActivity,
+    createAiBackup,
+    exportData,
+  } = useAppActions();
+  // A spreadsheet import opens this screen directly (?direct=1): it is then
+  // the sheet's first screen and needs its own leave affordance.
+  const { direct } = useLocalSearchParams<{ direct?: string }>();
+  const fromAi = source !== "csv";
 
   const sortedAccounts = useMemo(
     () => accounts.filter((a) => !a.isArchived).sort((a, b) => a.name.localeCompare(b.name)),
@@ -178,8 +190,11 @@ export default function ImportReviewScreen() {
   const confirmAll = () => {
     hapticImportConfirm();
     // A safety backup BEFORE anything lands, so a bad import can be rolled
-    // back whole from the AI history (same net the assistant has).
-    const backupName = createAiBackup();
+    // back whole from the AI history (same net the assistant has). A
+    // spreadsheet is not an AI import: its net is a plain backup, found in
+    // the backup history (an empty app has nothing to keep).
+    const backupName = fromAi ? createAiBackup() : undefined;
+    if (!fromAi && items.length > 0) createBackup(exportData());
     // Unmatched account names become real accounts — one per distinct name,
     // in the currency of the first draft that mentions it.
     const createdByName = new Map<string, Account>();
@@ -219,12 +234,14 @@ export default function ImportReviewScreen() {
     }
     // The AI trace: what landed, from which door — the record the AI tab
     // shows so a big import never blurs the full picture.
-    logAiActivity({
-      tool: source,
-      summary: { added: drafts.length, updated: 0, removed: 0 },
-      itemNames: drafts.map((d) => d.input.name),
-      backupName,
-    });
+    if (fromAi) {
+      logAiActivity({
+        tool: source,
+        summary: { added: drafts.length, updated: 0, removed: 0 },
+        itemNames: drafts.map((d) => d.input.name),
+        backupName,
+      });
+    }
     clear();
     // Close the WHOLE Add sheet, back to whoever presented it (the tabs,
     // Settings, or onboarding — which then advances to its done pane).
@@ -397,6 +414,7 @@ export default function ImportReviewScreen() {
   if (locked) return null;
   return (
     <View style={styles.screen}>
+      {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
       {/* First AI review also shows brand logos: ask before any load. */}
       <LogoConsentGate />
       <FlatList

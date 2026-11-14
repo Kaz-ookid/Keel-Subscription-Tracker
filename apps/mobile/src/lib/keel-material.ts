@@ -10,6 +10,7 @@ import * as ImagePicker from "expo-image-picker";
 import { scrubPersonalData, type ScrubResult } from "@keel/core";
 
 import { extractPdfText, recognizeScreenshot } from "./apple-intelligence";
+import { DATA_FILE_TYPES } from "./data-files";
 import { setKeelReadsDraft } from "../state/keel-reads-draft";
 
 /** What the document picker accepts: PDFs and anything text-like (CSV and
@@ -18,13 +19,10 @@ import { setKeelReadsDraft } from "../state/keel-reads-draft";
 export const DOCUMENT_TYPES = [
   "application/pdf",
   "text/plain",
-  "text/csv",
-  "text/comma-separated-values",
   "text/markdown",
   "text/tab-separated-values",
-  "application/json",
   "public.plain-text",
-  "public.comma-separated-values-text",
+  ...DATA_FILE_TYPES,
 ];
 
 export type MaterialOutcome =

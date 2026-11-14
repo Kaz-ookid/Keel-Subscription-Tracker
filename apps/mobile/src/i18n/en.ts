@@ -3,6 +3,8 @@
 // error. `bank` and `currencies` are partial overlays resolved with
 // defaultValue fallbacks (brand names and core constants stay the source).
 
+import type { CsvLabels } from "@keel/core";
+
 export const en = {
   common: {
     cancel: "Cancel",
@@ -611,9 +613,12 @@ export const en = {
     remindersOn: "On",
     remindersOff: "Off in iOS Settings",
     browseCommon: "Browse common subscriptions",
-    exportBackup: "Export backup",
+    export: "Export",
+    exportChoiceBackup: "Backup (restores everything)",
+    exportChoiceCsv: "Spreadsheet (CSV)",
     restoreBackup: "Restore backup",
-    backupFooter: "A plain file. It leaves your phone only when you share it.",
+    backupFooter:
+      "A plain file. It leaves your phone only when you share it. A Keel spreadsheet can be imported too: its items are added after a review.",
     snapshotSave: "Save data snapshot",
     snapshotRestore: "Restore data snapshot",
     snapshotOverwriteMsg:
@@ -633,10 +638,11 @@ export const en = {
     onboardingMsg: "Deletes ALL data and replays the first-launch setup.",
     wipeReplay: "Wipe & replay",
     exportFailTitle: "Export failed",
-    exportFailMsg: "Could not create the backup file.",
+    exportFailMsg: "Could not create the file.",
     importFailTitle: "Import failed",
-    importFailNotBackup: "That file doesn't look like a Keel backup.",
+    importFailNotBackup: "That file doesn't look like a Keel backup or spreadsheet.",
     importFailRead: "Could not read that file.",
+    importCsvEmpty: "No item could be read from this spreadsheet.",
     restoreTitle: "Restore backup",
     restoreMsg: "This replaces everything currently in the app.",
     restoredPartial_one: "Restored. {{count}} entry couldn't be read and was skipped.",
@@ -854,7 +860,7 @@ export const en = {
       "Pick the services you know you pay for now, fill in the details later: the queue waits under All.",
     backupTitle: "Backups",
     backupBody:
-      "One automatic local backup a day plus the ones you create; export, import and restore from iCloud & data.",
+      "One automatic local backup a day plus the ones you create; export (a backup or a spreadsheet), import and restore from iCloud & data.",
     lockTitle: "Lock it",
     lockBody:
       "Face ID, Touch ID or your passcode, with a grace period you choose: in Settings, under Privacy.",
@@ -1121,6 +1127,45 @@ export const en = {
     shopping: "Shopping",
     other: "Other",
   },
+  // The spreadsheet export's words (the shape is the core's CsvLabels). The
+  // import matches on them: unique headers, unique values in each group.
+  csv: {
+    columns: {
+      name: "Name",
+      type: "Type",
+      amount: "Amount",
+      currency: "Currency",
+      every: "Every",
+      unit: "Unit",
+      nextPayment: "Next payment",
+      account: "Account",
+      category: "Category",
+      payment: "Payment",
+      status: "Status",
+      monthly: "Monthly",
+      yearly: "Yearly",
+      firstPayment: "First payment",
+      lastPayment: "Last payment",
+      total: "Total",
+      installments: "Installments",
+      paidInstallments: "Paid installments",
+      leftToPay: "Left to pay",
+      provider: "Provider",
+      newPrice: "New price",
+      changesOn: "Changes on",
+      cancelBy: "Cancel by",
+      reminderDays: "Reminder (days before)",
+      weekend: "Weekend",
+      weekdayRule: "Weekday rule",
+      website: "Website",
+      notes: "Notes",
+    },
+    type: { subscription: "Subscription", split: "Split payment" },
+    payment: { automatic: "Automatic", manual: "Manual" },
+    status: { active: "Active", paused: "Paused", ended: "Ended", toCancel: "To cancel" },
+    unit: { day: "Day", week: "Week", month: "Month", year: "Year" },
+    weekend: { before: "Friday before", after: "Monday after" },
+  } satisfies CsvLabels,
   providers: {
     cb_nx: "Card (split payments)",
     other: "Other",

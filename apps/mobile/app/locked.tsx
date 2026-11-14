@@ -4,16 +4,14 @@
 // and the export right here — the data is never hostage. Every write gate
 // in the app lands here (lock-gate.ts).
 
-import { today } from "@keel/core";
-import { File, Paths } from "expo-file-system";
 import { useFocusEffect, useRouter } from "expo-router";
-import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Button } from "../src/components/ui/Button";
+import { showExportChoices } from "../src/lib/data-files";
 import { useEntitlement } from "../src/lib/entitlement";
 import { useFullKeelPrices } from "../src/lib/purchases";
 import { useAppActions } from "../src/state/app-state";
@@ -29,7 +27,7 @@ import {
 
 export default function LockedScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { exportData } = useAppActions();
@@ -48,26 +46,6 @@ export default function LockedScreen() {
       else router.replace("/(tabs)");
     }, [unlocked, router]),
   );
-
-  // The same export as Settings › iCloud & data — right here, because "you
-  // keep your data" must be one tap, not a treasure hunt.
-  const exportBackup = async () => {
-    try {
-      const file = new File(Paths.cache, `keel-backup-${today()}.json`);
-      if (file.exists) file.delete();
-      file.create();
-      file.write(JSON.stringify(exportData(), null, 2));
-      try {
-        await Sharing.shareAsync(file.uri, { mimeType: "application/json" });
-      } finally {
-        // The share sheet is done with the file: a full financial dump must
-        // not linger in the cache (2026-09-14 security audit).
-        if (file.exists) file.delete();
-      }
-    } catch {
-      Alert.alert(t("settings.exportFailTitle"), t("settings.exportFailMsg"));
-    }
-  };
 
   // Unlocked and about to pop: an empty beat of the stage, not a flash of
   // the outdated wall mid-transition.
@@ -118,8 +96,10 @@ export default function LockedScreen() {
       <Button
         variant="secondary"
         icon="square.and.arrow.up"
-        label={t("settings.exportBackup")}
-        onPress={() => void exportBackup()}
+        // The same export as Settings › iCloud & data, right here, because
+        // "you keep your data" must be one tap, not a treasure hunt.
+        label={t("settings.export")}
+        onPress={() => showExportChoices(exportData, scheme)}
       />
 
       <Text style={styles.footnote}>{t("trial.lockedFootnote")}</Text>

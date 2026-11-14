@@ -1,6 +1,6 @@
-// The in-flight AI import: drafts parsed from a paste, held here between the
-// import hub, the review screen and per-draft edits in the Add form (route
-// params can't carry objects). Deliberately NOT persisted — an import is a
+// The in-flight import: drafts parsed from a paste (or from a Keel
+// spreadsheet), held here between the import hub, the review screen and
+// per-draft edits in the Add form (route params can't carry objects). Deliberately NOT persisted — an import is a
 // short-lived review session; nothing lands in real data until the user
 // confirms on the review screen.
 
@@ -13,6 +13,10 @@ import type {
 } from "@keel/core";
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 
+/** Where the drafts came from: an AI door, or a Keel spreadsheet picked in
+ *  iCloud & data (no AI involved, so nothing of it enters the AI trace). */
+export type ImportSource = AiTool | "csv";
+
 type DraftPatch =
   | { kind: "subscription"; input: NewRecurringInput }
   | { kind: "split"; input: NewInstallmentInput };
@@ -23,14 +27,14 @@ interface ImportSessionValue {
   skipped: number;
   /** Their names, when they had one. */
   skippedNames: string[];
-  /** Which AI door produced the drafts — recorded in the AI trace when the
-   *  review confirms. */
-  source: AiTool;
+  /** Which door produced the drafts — an AI one is recorded in the AI trace
+   *  when the review confirms. */
+  source: ImportSource;
   /** Start a fresh review session (replaces any previous drafts). */
   startSession: (
     drafts: ImportDraft[],
     skipped?: number,
-    source?: AiTool,
+    source?: ImportSource,
     skippedNames?: string[],
   ) => void;
   getDraft: (id: string) => ImportDraft | undefined;
@@ -52,7 +56,7 @@ export function ImportSessionProvider({ children }: { children: ReactNode }) {
   const [drafts, setDrafts] = useState<ImportDraft[]>([]);
   const [skipped, setSkipped] = useState(0);
   const [skippedNames, setSkippedNames] = useState<string[]>([]);
-  const [source, setSource] = useState<AiTool>("byo_import");
+  const [source, setSource] = useState<ImportSource>("byo_import");
 
   const value = useMemo<ImportSessionValue>(
     () => ({

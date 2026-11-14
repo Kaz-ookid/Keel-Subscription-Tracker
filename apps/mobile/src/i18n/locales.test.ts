@@ -3,6 +3,7 @@
 // It reads the plain locale objects only, never index.ts (which boots i18next
 // and native modules).
 
+import { CSV_COLUMNS } from "@keel/core";
 import { describe, expect, test } from "vitest";
 
 import { de } from "./de";
@@ -157,6 +158,43 @@ test("no em dash in any string", () => {
       .map(([key]) => `${lang}:${key}`),
   );
   expect(found).toEqual([]);
+});
+
+// The spreadsheet import finds a column, a type or a status by its label.
+describe.each(Object.entries({ en, fr, de, it, pl }))("%s spreadsheet labels", (_lang, locale) => {
+  const { columns, ...groups } = locale.csv;
+  const duplicates = (labels: string[]) => {
+    const lower = labels.map((label) => label.trim().toLowerCase());
+    return lower.filter((label, index) => lower.indexOf(label) !== index);
+  };
+
+  test("every column has a header, and no two headers are the same", () => {
+    expect(CSV_COLUMNS.filter((column) => !columns[column]?.trim())).toEqual([]);
+    expect(duplicates(Object.values(columns))).toEqual([]);
+  });
+
+  test("the values inside each group are all different", () => {
+    for (const [group, values] of Object.entries(groups)) {
+      expect(Object.values(values).filter((value) => !value.trim())).toEqual([]);
+      expect(duplicates(Object.values(values)), group).toEqual([]);
+    }
+  });
+});
+
+// A file written in one language is read with all five label sets.
+test("a spreadsheet label means the same thing in every language", () => {
+  const meaning = new Map<string, string>();
+  const clashes: string[] = [];
+  for (const locale of [en, fr, de, it, pl]) {
+    for (const [group, labels] of Object.entries(locale.csv)) {
+      for (const [key, label] of Object.entries(labels)) {
+        const id = `${group}:${label.trim().toLowerCase()}`;
+        if (meaning.has(id) && meaning.get(id) !== key) clashes.push(id);
+        meaning.set(id, key);
+      }
+    }
+  }
+  expect(clashes).toEqual([]);
 });
 
 test("the debug stretched English is longer and keeps every placeholder", () => {

@@ -30,6 +30,9 @@ export * from "./import/headings";
 export * from "./import/line-facts";
 export * from "./import/types";
 
+// The spreadsheet export, and its way back in through the import parser.
+export * from "./export/csv";
+
 // The assistant (PROJECT_BRIEF §6.1): the model proposes a typed plan, this
 // resolves + validates it; nothing applies without the user's review.
 export * from "./assistant/plan";
