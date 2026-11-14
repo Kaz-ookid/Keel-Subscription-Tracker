@@ -5,6 +5,7 @@
 import { formatCalendarDate, calendarDate } from "@keel/core";
 import * as Sharing from "expo-sharing";
 import { SymbolView } from "expo-symbols";
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -20,6 +21,7 @@ import {
   type BackupEntry,
 } from "../src/lib/backups";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
+import { showPayments } from "../src/lib/tabReset";
 import { useAppActions } from "../src/state/app-state";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
@@ -38,6 +40,7 @@ export default function BackupsScreen() {
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { exportData, importData } = useAppActions();
+  const router = useRouter();
   const [entries, setEntries] = useState<BackupEntry[]>(() => listBackups());
 
   const refresh = () => setEntries(listBackups());
@@ -60,7 +63,10 @@ export default function BackupsScreen() {
           const result = content ? importData(content) : { ok: false, dropped: 0 };
           if (!result.ok) {
             Alert.alert(t("settings.importFailTitle"), t("settings.importFailNotBackup"));
-          } else if (result.dropped > 0) {
+            return;
+          }
+          showPayments(router);
+          if (result.dropped > 0) {
             Alert.alert(
               t("settings.restoreTitle"),
               t("settings.restoredPartial", { count: result.dropped }),

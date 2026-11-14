@@ -30,6 +30,7 @@ import {
   uploadToICloud,
 } from "../src/lib/icloud-backup";
 import { parsePersistedState } from "../src/lib/storage";
+import { showPayments } from "../src/lib/tabReset";
 import { useAppActions, useAppData } from "../src/state/app-state";
 import { useImportSession } from "../src/state/import-session";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
@@ -191,8 +192,9 @@ export default function DataScreen() {
         style: "destructive",
         onPress: () => {
           const result = importData(content);
-          if (!result.ok) failImport("settings.importFailNotBackup");
-          else if (result.dropped > 0) {
+          if (!result.ok) return failImport("settings.importFailNotBackup");
+          showPayments(router);
+          if (result.dropped > 0) {
             Alert.alert(
               t("settings.restoreTitle"),
               t("settings.restoredPartial", { count: result.dropped }),
@@ -206,7 +208,14 @@ export default function DataScreen() {
   const confirmClear = () =>
     Alert.alert(t("settings.clearAll"), t("settings.clearMsg"), [
       { text: t("common.cancel"), style: "cancel" },
-      { text: t("settings.deleteEverything"), style: "destructive", onPress: clearAllData },
+      {
+        text: t("settings.deleteEverything"),
+        style: "destructive",
+        onPress: () => {
+          clearAllData();
+          showPayments(router);
+        },
+      },
     ]);
 
   return (

@@ -3,6 +3,7 @@
 // standard iOS tab-bar behavior. The dock bumps a per-tab counter; screens
 // subscribe and react. Module-level, like the experiments flag store.
 
+import type { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 
 const counters = new Map<string, number>();
@@ -60,4 +61,11 @@ export function useTabReset(tab: string): number {
     };
   }, [tab]);
   return count;
+}
+
+/** After an action that replaces the whole list (clear all, restore a
+ *  backup): close the pushed screens and show Payments, where the result is. */
+export function showPayments(router: ReturnType<typeof useRouter>): void {
+  router.dismissAll();
+  router.navigate("/");
 }
