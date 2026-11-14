@@ -163,6 +163,10 @@ export function updateRecurringPaymentItem(
     status: existing.status === "paused" ? "paused" : rebuilt.status,
     schedule: { ...rebuilt.schedule, nextChargeDate, priceHistory },
   };
+  // The pause keeps the day it began, or resuming would forget it.
+  if (existing.status === "paused" && existing.pausedOn !== undefined) {
+    next.pausedOn = existing.pausedOn;
+  }
   // The cancel plan is set outside the form, so the form's input cannot
   // carry it. It survives an edit, except one that sets an end date: the
   // cancellation is then settled.
@@ -319,16 +323,31 @@ export function unmarkLastInstallmentPaid(item: PaymentItem, ctx: { now: Timesta
 }
 
 /** Pause an active item: it keeps its history but stops being forecast,
- *  accrued, or counted (edge case #7). No-op unless currently active. */
-export function pausePaymentItem(item: PaymentItem, ctx: { now: Timestamp }): PaymentItem {
+ *  accrued, or counted (edge case #7). `today` is recorded as the day the
+ *  pause began: pass it, or a resume cannot tell what was already owed
+ *  from what the pause covered. No-op unless currently active. */
+export function pausePaymentItem(
+  item: PaymentItem,
+  ctx: { now: Timestamp; today?: CalendarDate },
+): PaymentItem {
   if (item.status !== "active") return item;
-  return { ...item, status: "paused", updatedAt: ctx.now };
+  return {
+    ...item,
+    status: "paused",
+    ...(ctx.today !== undefined && { pausedOn: ctx.today }),
+    updatedAt: ctx.now,
+  };
 }
 
 /**
  * Resume a paused item. A recurring schedule's cursor fast-forwards to the
  * next billing-grid date after `asOf` WITHOUT logging the skipped occurrences
  * — nothing was charged while paused, so nothing may enter the ledger.
+ * The fast-forward happens only when a billing fell due DURING the pause
+ * (from `pausedOn` to `asOf`): a pause that covered none, such as one
+ * undone the same day, gives the item back as it was, a payment overdue
+ * before the pause included. An item paused without `pausedOn` (before
+ * 1.1.2) counts its pause from the cursor, as it always did.
  * Installment plans need no adjustment: their unpaid installments simply
  * become due (still owed) again. No-op unless currently paused.
  */
@@ -337,20 +356,24 @@ export function resumePaymentItem(
   ctx: { now: Timestamp; asOf: CalendarDate },
 ): PaymentItem {
   if (item.status !== "paused") return item;
+  const resumed: PaymentItem = { ...item, status: "active", updatedAt: ctx.now };
+  delete resumed.pausedOn;
   if (item.schedule.kind === "RECURRING") {
     const schedule = item.schedule;
-    const nextChargeDate =
-      schedule.nextChargeDate > ctx.asOf
+    const { firstChargeDate, recurrence } = schedule;
+    // The first billing the pause covered: the cursor itself, unless it
+    // was already behind the pause's first day (owed before it began).
+    const firstDueInPause =
+      item.pausedOn === undefined || schedule.nextChargeDate >= item.pausedOn
         ? schedule.nextChargeDate
-        : nextDueDate(schedule.firstChargeDate, schedule.recurrence, ctx.asOf);
-    return {
-      ...item,
-      status: "active",
-      updatedAt: ctx.now,
-      schedule: { ...schedule, nextChargeDate },
-    };
+        : nextDueDate(firstChargeDate, recurrence, addDays(item.pausedOn, -1));
+    const nextChargeDate =
+      firstDueInPause > ctx.asOf
+        ? schedule.nextChargeDate
+        : nextDueDate(firstChargeDate, recurrence, ctx.asOf);
+    resumed.schedule = { ...schedule, nextChargeDate };
   }
-  return { ...item, status: "active", updatedAt: ctx.now };
+  return resumed;
 }
 
 export interface RecordPaymentContext {

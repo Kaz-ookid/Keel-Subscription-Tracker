@@ -691,7 +691,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
     };
 
     const pauseSubscription = (id: string) => {
-      setItems((prev) => prev.map((i) => (i.id === id ? pausePaymentItem(i, { now: now() }) : i)));
+      setItems((prev) =>
+        prev.map((i) => (i.id === id ? pausePaymentItem(i, { now: now(), today: today() }) : i)),
+      );
     };
 
     const resumeSubscription = (id: string) => {

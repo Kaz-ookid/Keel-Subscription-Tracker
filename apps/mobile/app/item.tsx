@@ -14,6 +14,7 @@ import {
   formatCalendarDate,
   formatMoney,
   formatMoneyList,
+  isCurrentCyclePaid,
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
@@ -161,16 +162,10 @@ export default function ItemScreen() {
   const paused = item.status === "paused";
   // One shared rule for both payment types: current month only.
   const markable = canMarkPaid(item, asOf);
-  // Already ticked for the current cycle — say so instead of hiding the button.
-  const paidThisCycle =
-    !markable &&
-    !complete &&
-    !paused &&
-    (installment
-      ? (plan?.paidCount ?? 0) > 0
-      : item.settlementMode === "manual" &&
-        recurring !== undefined &&
-        recurring.nextChargeDate > recurring.firstChargeDate);
+  // Already ticked for the current cycle: say so where the buttons were.
+  // Read from the ledger (the core's rule): the dates alone also move when
+  // a pause ends, and that pays nothing.
+  const paidThisCycle = !markable && isCurrentCyclePaid(item, occurrences);
   // The item's own ledger, newest first — the undoable trail.
   const history = occurrences
     .filter((o) => o.paymentItemId === item.id)
@@ -372,13 +367,29 @@ export default function ItemScreen() {
               />
             </View>
           )}
-          {/* Already ticked: say so where the buttons were. */}
+          {/* Already ticked: say so where the buttons were, with the way
+              back from a mistaken tap right beside it. */}
           {paidThisCycle && (
-            <View style={[styles.infoRow, styles.paidLine]}>
-              <SymbolView name="checkmark.circle.fill" size={16} tintColor={colors.tones.success} />
-              <Text style={[styles.infoLabel, { color: colors.tones.success }]}>
-                {t("item.paidForCycle")}
-              </Text>
+            <View style={styles.infoRow}>
+              <View style={styles.paidLine}>
+                <SymbolView
+                  name="checkmark.circle.fill"
+                  size={16}
+                  tintColor={colors.tones.success}
+                />
+                <Text style={[styles.infoLabel, styles.paidText]} numberOfLines={2}>
+                  {t("item.paidForCycle")}
+                </Text>
+              </View>
+              <Button
+                size="sm"
+                label={t("common.undo")}
+                accessibilityLabel={t("common.undoLast")}
+                onPress={() => {
+                  hapticMarkPaid();
+                  undoPaid(item.id);
+                }}
+              />
             </View>
           )}
         </Card>
@@ -572,7 +583,8 @@ export default function ItemScreen() {
             </Pressable>
             {historyOpen && (
               <Animated.View entering={foldIn} exiting={foldOut}>
-                {item.settlementMode === "manual" && (
+                {/* Undoing an older tick; this cycle's is on the amount card. */}
+                {item.settlementMode === "manual" && !paidThisCycle && (
                   <View style={[styles.infoRow, styles.undoRow]}>
                     <Button
                       size="sm"
@@ -807,7 +819,8 @@ function createStyles(colors: ThemeColors) {
     actionMain: { flex: 2 },
     actionSide: { flex: 1 },
     actionHalf: { flex: 1 },
-    paidLine: { justifyContent: "center", gap: spacing.sm },
+    paidLine: { flex: 1, flexDirection: "row", alignItems: "center", gap: spacing.sm },
+    paidText: { color: colors.tones.success, flexShrink: 1 },
     historyRight: {
       flex: 1,
       flexDirection: "row",

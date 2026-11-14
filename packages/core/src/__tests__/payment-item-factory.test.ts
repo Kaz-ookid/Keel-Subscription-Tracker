@@ -7,6 +7,7 @@ import {
   canMarkNextInstallmentPaid,
   canMarkPaid,
   fromMajor,
+  isCurrentCyclePaid,
   isInstallmentSchedule,
   summarizeInstallmentPlan,
   isPaymentItemComplete,
@@ -22,6 +23,7 @@ import {
   resumePaymentItem,
   rewindRecurringPayment,
   settleImportedItem,
+  skipRecurringPayment,
   sumMoney,
   unmarkLastInstallmentPaid,
   updateInstallmentPaymentItem,
@@ -825,5 +827,92 @@ describe("settleImportedItem (an import lands)", () => {
     });
     if (landed.schedule.kind !== "INSTALLMENT") throw new Error("expected installments");
     expect(landed.schedule.installments.map((i) => i.status)).toEqual(["paid", "paid", "upcoming"]);
+  });
+});
+
+describe("pause / resume, knowing the day the pause began", () => {
+  const nextOf = (item: ReturnType<typeof makeRecurringPaymentItem>) => {
+    if (!isRecurringSchedule(item.schedule)) throw new Error("expected recurring");
+    return item.schedule.nextChargeDate;
+  };
+  // Monthly on the 15th, nothing ticked: the January billing is the cursor.
+  const item = makeRecurringPaymentItem(input, { id: "r1", now: now() });
+
+  it("gives the item back as it was when nothing fell due during the pause", () => {
+    // January 15 is overdue on the 20th; pause and resume that same day.
+    const day = calendarDate("2026-01-20");
+    const paused = pausePaymentItem(item, { now: now(), today: day });
+    expect(paused.pausedOn).toBe("2026-01-20");
+    const resumed = resumePaymentItem(paused, { now: now(), asOf: day });
+    expect(nextOf(resumed)).toBe("2026-01-15");
+    expect(resumed.pausedOn).toBeUndefined();
+    expect(canMarkPaid(resumed, day)).toBe(true);
+    // Still nothing due by February 14: the overdue payment stays owed.
+    const later = resumePaymentItem(paused, { now: now(), asOf: calendarDate("2026-02-14") });
+    expect(nextOf(later)).toBe("2026-01-15");
+  });
+
+  it("skips what fell due during the pause", () => {
+    const paused = pausePaymentItem(item, { now: now(), today: calendarDate("2026-01-20") });
+    // February 15 fell due while paused: the pause was real, the cursor moves on.
+    const resumed = resumePaymentItem(paused, { now: now(), asOf: calendarDate("2026-02-15") });
+    expect(nextOf(resumed)).toBe("2026-03-15");
+    // Paused before the billing, resumed after it: that billing is skipped.
+    const early = pausePaymentItem(item, { now: now(), today: calendarDate("2026-01-10") });
+    expect(nextOf(resumePaymentItem(early, { now: now(), asOf: calendarDate("2026-01-16") }))).toBe(
+      "2026-02-15",
+    );
+    // Paused on the billing day itself: not paying it is what the pause says.
+    const sameDay = pausePaymentItem(item, { now: now(), today: calendarDate("2026-01-15") });
+    expect(
+      nextOf(resumePaymentItem(sameDay, { now: now(), asOf: calendarDate("2026-01-15") })),
+    ).toBe("2026-02-15");
+  });
+
+  it("keeps the pause's day through an edit", () => {
+    const paused = pausePaymentItem(item, { now: now(), today: calendarDate("2026-01-20") });
+    const edited = updateRecurringPaymentItem(
+      paused,
+      { ...input, name: "Renamed" },
+      { now: now() },
+    );
+    expect(edited.pausedOn).toBe("2026-01-20");
+  });
+});
+
+describe("isCurrentCyclePaid", () => {
+  const item = makeRecurringPaymentItem(input, { id: "r1", now: now() });
+  const pay = (i: typeof item, id: string) =>
+    recordRecurringPayment(i, { id, paidDate: calendarDate("2026-01-15"), now: now() });
+
+  it("is true right after a tick, false before it and after its undo", () => {
+    expect(isCurrentCyclePaid(item, [])).toBe(false);
+    const paid = pay(item, "o1");
+    expect(isCurrentCyclePaid(paid.item, [paid.occurrence])).toBe(true);
+    const undone = rewindRecurringPayment(paid.item, {
+      toDueDate: calendarDate("2026-01-15"),
+      now: now(),
+    });
+    expect(isCurrentCyclePaid(undone, [])).toBe(false);
+  });
+
+  it("is false after a skipped cycle and after a pause moved the cursor", () => {
+    const skipped = skipRecurringPayment(item, { id: "s1", now: now() });
+    expect(isCurrentCyclePaid(skipped.item, [skipped.occurrence])).toBe(false);
+    // Paid January, then paused over February and March: April is next, and
+    // the last payment is not the cycle before it.
+    const paid = pay(item, "o1");
+    const paused = pausePaymentItem(paid.item, { now: now(), today: calendarDate("2026-01-20") });
+    const resumed = resumePaymentItem(paused, { now: now(), asOf: calendarDate("2026-03-20") });
+    expect(isCurrentCyclePaid(resumed, [paid.occurrence])).toBe(false);
+  });
+
+  it("only speaks for manual subscriptions", () => {
+    const auto = makeRecurringPaymentItem(
+      { ...input, settlementMode: "automatic" },
+      { id: "a1", now: now() },
+    );
+    const paid = pay(auto, "o1");
+    expect(isCurrentCyclePaid(paid.item, [paid.occurrence])).toBe(false);
   });
 });

@@ -145,6 +145,10 @@ export interface PaymentItem {
   scheduleType: ScheduleType;
   schedule: Schedule;
   status: PaymentItemStatus;
+  /** The day a pause began; present only while `status` is `paused`.
+   *  Resuming reads it to skip what fell due DURING the pause and nothing
+   *  else. Absent on items paused before 1.1.2. */
+  pausedOn?: CalendarDate;
   /** A planned cancellation (recurring items only). Read it through
    *  `isCancelPlanned` / `cancelDeadline`, never directly. */
   cancelPlan?: CancelPlan;

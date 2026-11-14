@@ -399,7 +399,7 @@ export function buildSampleData(): SampleData {
     },
     { id: randomUUID(), now: now() },
   );
-  items.push(pausePaymentItem(yoga, { now: now() }));
+  items.push(pausePaymentItem(yoga, { now: now(), today: asOf }));
 
   return { items, occurrences, accounts: [bcv, revolut] };
 }

@@ -296,7 +296,7 @@ export function applyAssistantOperation(
 ): PaymentItem {
   switch (op.kind) {
     case "pause":
-      return pausePaymentItem(item, { now: ctx.now });
+      return pausePaymentItem(item, { now: ctx.now, today: ctx.today });
     case "resume":
       return resumePaymentItem(item, { now: ctx.now, asOf: ctx.today });
     case "end": {

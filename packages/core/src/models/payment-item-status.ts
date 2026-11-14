@@ -1,6 +1,8 @@
+import { nextOnGrid } from "../primitives/schedule-dates";
 import type { CalendarDate } from "../primitives/temporal";
 import { summarizeInstallmentPlan } from "./installment-plan";
 import { isInstallmentSchedule, isRecurringSchedule, type PaymentItem } from "./payment-item";
+import type { PaymentOccurrence } from "./payment-occurrence";
 
 /**
  * Whether an item has run its course — derived, not a stored flag (so it's
@@ -71,4 +73,27 @@ export function canMarkPaid(item: PaymentItem, asOf: CalendarDate): boolean {
     return withinCurrentMonth(item.schedule.nextChargeDate, asOf);
   }
   return false;
+}
+
+/**
+ * Whether the cycle just before the next billing was ticked paid: the last
+ * hand-recorded event of a manual subscription is a payment, and the cursor
+ * sits exactly one step after it. Read from the ledger, never guessed from
+ * the dates: a resumed pause also moves the cursor, and pays nothing.
+ */
+export function isCurrentCyclePaid(
+  item: PaymentItem,
+  occurrences: readonly PaymentOccurrence[],
+): boolean {
+  if (item.status !== "active" || item.settlementMode !== "manual") return false;
+  if (!isRecurringSchedule(item.schedule) || isPaymentItemComplete(item)) return false;
+  let last: PaymentOccurrence | undefined;
+  for (const o of occurrences) {
+    if (o.paymentItemId !== item.id) continue;
+    if (o.status !== "charged" && o.status !== "skipped") continue;
+    if (!last || o.dueDate > last.dueDate) last = o;
+  }
+  if (!last || last.status !== "charged") return false;
+  const { firstChargeDate, recurrence, nextChargeDate } = item.schedule;
+  return nextOnGrid(firstChargeDate, recurrence, last.dueDate) === nextChargeDate;
 }
