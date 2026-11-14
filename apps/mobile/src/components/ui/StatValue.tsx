@@ -18,7 +18,10 @@ export function StatValue({ label, value, hint, color }: Props) {
   const styles = useStyles(createStyles);
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+      {/* One line: side-by-side tiles keep their numbers level. */}
+      <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+        {label}
+      </Text>
       {/* Living number (§9g): stat changes roll instead of swapping. */}
       <LivingNumber text={value} style={[styles.value, color != null && { color }]} />
       {hint ? <Text style={styles.hint}>{hint}</Text> : null}

@@ -20,7 +20,7 @@ import {
 } from "@keel/core";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -179,10 +179,8 @@ export default function InsightsScreen() {
         : [],
     ),
   );
-  const ongoingHint =
-    bnplThisYear.length > 0
-      ? t("insights.bnplHint", { amount: totals(bnplThisYear) })
-      : t("insights.recurringBaseline");
+  const bnplNote =
+    bnplThisYear.length > 0 ? t("insights.bnplHint", { amount: totals(bnplThisYear) }) : undefined;
 
   // Projected once for the whole screen: the hero's "still due" half and the
   // tapped month's rows both read it.
@@ -211,24 +209,31 @@ export default function InsightsScreen() {
           sub={heroSub}
         />
 
-        {/* Unlabelled numbers are real money; only the THEORY side is marked. */}
-        <View style={styles.statRow}>
-          <Card variant="free" style={styles.statCard}>
-            <StatValue
-              label={t("insights.thisMonth")}
-              value={thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
-              hint={t("insights.actuallyLeaves")}
-            />
-          </Card>
-          <Card variant="free" style={styles.statCard}>
-            <StatValue
-              label={t("insights.averagePerMonth")}
-              value={
-                commitments.monthly.length > 0 ? totals(commitments.monthly) : t("insights.nothing")
-              }
-              hint={ongoingHint}
-            />
-          </Card>
+        {/* Unlabelled numbers are real money; only the THEORY side is marked.
+            Both tiles carry one short hint, so neither stands taller; the
+            split-payments sentence gets the full width under them. */}
+        <View style={styles.statBlock}>
+          <View style={styles.statRow}>
+            <Card variant="free" style={styles.statCard}>
+              <StatValue
+                label={t("insights.thisMonth")}
+                value={thisMonthReal.length > 0 ? totals(thisMonthReal) : t("insights.nothing")}
+                hint={t("insights.actuallyLeaves")}
+              />
+            </Card>
+            <Card variant="free" style={styles.statCard}>
+              <StatValue
+                label={t("insights.averagePerMonth")}
+                value={
+                  commitments.monthly.length > 0
+                    ? totals(commitments.monthly)
+                    : t("insights.nothing")
+                }
+                hint={t("insights.recurringBaseline")}
+              />
+            </Card>
+          </View>
+          {bnplNote && <Text style={styles.statNote}>{bnplNote}</Text>}
         </View>
 
         <YearChart
@@ -288,9 +293,19 @@ function createStyles(colors: ThemeColors) {
       backgroundColor: "transparent",
       padding: spacing.lg,
     },
+    statBlock: {
+      gap: spacing.xs,
+    },
     statRow: {
       flexDirection: "row",
       gap: spacing.sm,
+    },
+    // Under the average tile, which it completes.
+    statNote: {
+      ...typography.caption,
+      color: colors.mutedText,
+      textAlign: "right",
+      paddingHorizontal: spacing.xs,
     },
     statCard: {
       flex: 1,

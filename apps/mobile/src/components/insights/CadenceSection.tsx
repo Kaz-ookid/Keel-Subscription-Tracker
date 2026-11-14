@@ -123,7 +123,12 @@ export function CadenceSection({ items, categories, asOf, displayCurrency, rates
                   {label} <Text style={styles.cadenceCount}>×{g.count}</Text>
                 </Text>
                 <View style={styles.cadenceRight}>
-                  <Text style={styles.cadenceAmount}>
+                  <Text
+                    style={styles.cadenceAmount}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                  >
                     {t("insights.perMoYr", {
                       mo: totals(g.monthlyTotal),
                       yr: totals(g.yearlyTotal),
@@ -193,7 +198,12 @@ export function CadenceSection({ items, categories, asOf, displayCurrency, rates
                 <Text style={styles.cadenceCount}>×{planSummaries.length}</Text>
               </Text>
               <View style={styles.cadenceRight}>
-                <Text style={styles.bnplOwed}>
+                <Text
+                  style={styles.bnplOwed}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}
+                >
                   {t("insights.stillOwed", { amount: totals(bnplRemaining) })}
                 </Text>
                 <SymbolView
@@ -275,9 +285,12 @@ function createStyles(colors: ThemeColors) {
       paddingVertical: spacing.md,
       gap: spacing.sm,
     },
+    // Takes what the label leaves: long figures shrink inside the card.
     cadenceRight: {
+      flex: 1,
       flexDirection: "row",
       alignItems: "center",
+      justifyContent: "flex-end",
       gap: spacing.sm,
     },
     memberRow: {
@@ -310,11 +323,15 @@ function createStyles(colors: ThemeColors) {
     cadenceAmount: {
       ...typography.caption,
       color: colors.mutedText,
+      flexShrink: 1,
+      textAlign: "right",
     },
     // The one number that must not read like a footnote.
     bnplOwed: {
       ...typography.label,
       color: colors.text,
+      flexShrink: 1,
+      textAlign: "right",
     },
     bnplTrackRow: {
       flexDirection: "row",

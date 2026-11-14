@@ -109,7 +109,14 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
           <SymbolView name="chevron.left" size={13} tintColor={colors.text} />
         </Pressable>
         <View style={styles.headerMiddle}>
-          <Text style={styles.monthTitle}>{monthLabel}</Text>
+          <Text
+            style={styles.monthTitle}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {monthLabel}
+          </Text>
           {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
         </View>
         <Pressable
@@ -349,9 +356,10 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "baseline",
       justifyContent: "space-between",
+      gap: spacing.sm,
       paddingHorizontal: spacing.xs,
     },
-    monthTitle: { ...typography.value, color: colors.text },
+    monthTitle: { ...typography.value, color: colors.text, flexShrink: 1 },
     monthTotal: { ...typography.caption, color: colors.mutedText },
     grid: {
       backgroundColor: colors.material,
