@@ -93,7 +93,9 @@ export default function ItemScreen() {
   const styles = useStyles(createStyles);
   const [cancelByOpen, setCancelByOpen] = useState(false);
   // Closed by default: the trail is for looking back, not for every visit.
-  const [historyOpen, setHistoryOpen] = useState(false);
+  // Held per item: this one screen instance serves every item in turn.
+  const [historyOpenFor, setHistoryOpenFor] = useState<string | null>(null);
+  const historyOpen = id !== undefined && historyOpenFor === id;
   // Repaint when a logo's extracted tint lands (dev builds).
   useBrandTints();
   const { items, occurrences, accounts, categories } = useAppData();
@@ -552,7 +554,7 @@ export default function ItemScreen() {
           <Card>
             <Pressable
               style={styles.cardTitleRow}
-              onPress={() => setHistoryOpen((open) => !open)}
+              onPress={() => setHistoryOpenFor(historyOpen ? null : item.id)}
               accessibilityRole="button"
               accessibilityState={{ expanded: historyOpen }}
             >
