@@ -33,6 +33,7 @@ export const de: typeof en = {
     details: "Details",
     accounts: "Konten",
     priceChanges: "Preisänderungen",
+    cancellations: "Kündigungen",
     byAccount: "Nach Konto",
     byCategory: "Nach Kategorie",
     newSubscription: "Neues Abo",
@@ -771,7 +772,7 @@ export const de: typeof en = {
   guide: {
     cancelTitle: "Geplante Kündigungen",
     cancelBody:
-      "Markiere ein Abo zum Kündigen. Keel zeigt, was das pro Monat spart, erinnert dich vor der Frist und beendet das Abo, sobald du es als gekündigt meldest.",
+      "Markiere ein Abo zum Kündigen. Keel zeigt, was das pro Monat spart, erinnert dich vor der Frist und beendet das Abo, sobald du es als gekündigt meldest. Analysen > Kündigungen ordnet deine Abos nach Jahreskosten, damit du leichter entscheidest.",
     title: "Was Keel kann",
     intro: "Die Funktionen, die man leicht übersieht, je eine Zeile.",
     groupTrack: "Erfassen",
@@ -986,6 +987,15 @@ export const de: typeof en = {
     rowPassed: "Frist abgelaufen",
     tag: "Zu kündigen",
     heroAfter: "{{amount}} nach Kündigungen",
+    perYear: "{{amount}} pro Jahr",
+    reviewHint:
+      "Tippe auf ein Abo, das du kündigen willst. Keel erinnert dich vor der nächsten Abbuchung.",
+    stoppedTitle: "Gekündigt",
+    saves: "spart {{amount}} pro Jahr",
+    endedOn: "beendet am {{date}}",
+    endsOn: "endet am {{date}}",
+    planned_one: "{{count}} geplant",
+    planned_other: "{{count}} geplant",
   },
   notifications: {
     cancelBody: "Bis {{date}} kündigen. Nächste Abbuchung: {{amount}}.",

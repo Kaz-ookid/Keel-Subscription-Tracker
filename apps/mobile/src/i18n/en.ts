@@ -34,6 +34,7 @@ export const en = {
     details: "Details",
     accounts: "Accounts",
     priceChanges: "Price changes",
+    cancellations: "Cancellations",
     byAccount: "By account",
     byCategory: "By category",
     newSubscription: "New subscription",
@@ -768,7 +769,7 @@ export const en = {
   guide: {
     cancelTitle: "Planned cancellations",
     cancelBody:
-      "Mark a subscription to cancel. Keel shows what it frees each month, reminds you before the deadline, and ends it when you say you cancelled.",
+      "Mark a subscription to cancel. Keel shows what it frees each month, reminds you before the deadline, and ends it when you say you cancelled. Insights > Cancellations ranks your subscriptions by yearly cost to help you choose.",
     title: "What Keel can do",
     intro: "The features people miss, one line each.",
     groupTrack: "Track",
@@ -979,6 +980,14 @@ export const en = {
     rowPassed: "Deadline passed",
     tag: "To cancel",
     heroAfter: "{{amount}} after cancellations",
+    perYear: "{{amount}} a year",
+    reviewHint: "Tap a subscription you mean to cancel. Keel reminds you before its next charge.",
+    stoppedTitle: "Cancelled",
+    saves: "saves {{amount}} a year",
+    endedOn: "ended {{date}}",
+    endsOn: "ends {{date}}",
+    planned_one: "{{count}} planned",
+    planned_other: "{{count}} planned",
   },
   notifications: {
     cancelBody: "Cancel by {{date}}. Next charge: {{amount}}.",

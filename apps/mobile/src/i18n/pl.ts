@@ -39,6 +39,7 @@ const translation = {
     details: "Szczegóły",
     accounts: "Konta",
     priceChanges: "Zmiany cen",
+    cancellations: "Anulowania",
     byAccount: "Według konta",
     byCategory: "Według kategorii",
     newSubscription: "Nowa subskrypcja",
@@ -836,7 +837,7 @@ const translation = {
   guide: {
     cancelTitle: "Planowane anulowania",
     cancelBody:
-      "Oznacz subskrypcję do anulowania. Keel pokaże, ile zwalnia to miesięcznie, przypomni przed terminem i zakończy ją, gdy potwierdzisz anulowanie.",
+      "Oznacz subskrypcję do anulowania. Keel pokaże, ile zwalnia to miesięcznie, przypomni przed terminem i zakończy ją, gdy potwierdzisz anulowanie. Analizy > Anulowania porządkuje subskrypcje według rocznego kosztu, żeby łatwiej wybrać.",
     title: "Co potrafi Keel",
     intro: "Funkcje, które łatwo przeoczyć, każda w jednym zdaniu.",
     groupTrack: "Śledzenie",
@@ -1064,6 +1065,17 @@ const translation = {
     rowPassed: "Termin minął",
     tag: "Do anulowania",
     heroAfter: "{{amount}} po anulowaniach",
+    perYear: "{{amount}} rocznie",
+    reviewHint:
+      "Dotknij subskrypcji, którą chcesz anulować. Keel przypomni przed następną płatnością.",
+    stoppedTitle: "Anulowane",
+    saves: "oszczędza {{amount}} rocznie",
+    endedOn: "zakończono {{date}}",
+    endsOn: "kończy się {{date}}",
+    planned_one: "{{count}} planowane",
+    planned_few: "{{count}} planowane",
+    planned_many: "{{count}} planowanych",
+    planned_other: "{{count}} planowanych",
   },
   notifications: {
     cancelBody: "Anulować do {{date}}. Następne obciążenie: {{amount}}.",

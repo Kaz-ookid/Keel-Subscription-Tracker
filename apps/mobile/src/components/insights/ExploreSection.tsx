@@ -1,9 +1,11 @@
 // The Explore card at the bottom of Insights: the deeper, focused lenses
-// (by category, by account, price changes) one tap away, out of the way.
+// (by category, by account, price changes, cancellations) one tap away,
+// out of the way.
 // The price-changes row carries its own teaser: how much more per month
 // than at signup, or just how many prices changed.
 
 import {
+  cancelPlansAhead,
   formatTotalsIn,
   money,
   summarizePriceChanges,
@@ -50,6 +52,8 @@ export function ExploreSection({ items, asOf, displayCurrency, rates }: Props) {
         : ""
       : t("insights.creep", { amount: formatTotalsIn(creep, displayCurrency, rates) });
 
+  const plannedCancels = cancelPlansAhead(items, asOf).length;
+
   return (
     <Animated.View layout={foldLayout} style={styles.section}>
       <Text style={styles.sectionTitle}>{t("insights.explore")}</Text>
@@ -75,6 +79,19 @@ export function ExploreSection({ items, asOf, displayCurrency, rates }: Props) {
           <SymbolView name="chart.line.uptrend.xyaxis" size={18} tintColor={colors.accent} />
           <Text style={styles.exploreText}>{t("titles.priceChanges")}</Text>
           <Text style={styles.exploreValue}>{creepLabel}</Text>
+          <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+        {/* Where a cancellation gets decided: every subscription by its
+            yearly cost, and the ones already stopped. */}
+        <Pressable
+          style={[styles.exploreRow, styles.exploreRowDivider]}
+          onPress={() => router.push("/cancellations")}
+        >
+          <SymbolView name="xmark.circle.fill" size={18} tintColor={colors.accent} />
+          <Text style={styles.exploreText}>{t("titles.cancellations")}</Text>
+          <Text style={styles.exploreValue}>
+            {plannedCancels > 0 ? t("cancel.planned", { count: plannedCancels }) : ""}
+          </Text>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
       </Card>

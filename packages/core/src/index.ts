@@ -47,6 +47,7 @@ export * from "./calculations/ledger";
 export * from "./calculations/reminders";
 export * from "./calculations/price-changes-ahead";
 export * from "./calculations/cancel-plans-ahead";
+export * from "./calculations/cancel-review";
 
 // The app-trial clock (PROJECT_BRIEF §7.3) — pure 45-day math over an
 // injected clock; storage and gating live in the app layer.

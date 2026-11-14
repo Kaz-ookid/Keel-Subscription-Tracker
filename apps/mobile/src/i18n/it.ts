@@ -33,6 +33,7 @@ export const it: typeof en = {
     details: "Dettagli",
     accounts: "Conti",
     priceChanges: "Variazioni di prezzo",
+    cancellations: "Disdette",
     byAccount: "Per conto",
     byCategory: "Per categoria",
     newSubscription: "Nuovo abbonamento",
@@ -767,7 +768,7 @@ export const it: typeof en = {
   guide: {
     cancelTitle: "Disdette pianificate",
     cancelBody:
-      "Segna un abbonamento da disdire. Keel mostra quanto libera ogni mese, te lo ricorda prima del termine e chiude la voce quando dici di averlo disdetto.",
+      "Segna un abbonamento da disdire. Keel mostra quanto libera ogni mese, te lo ricorda prima del termine e chiude la voce quando dici di averlo disdetto. Analisi > Disdette ordina gli abbonamenti per costo annuo per aiutarti a scegliere.",
     title: "Cosa sa fare Keel",
     intro: "Le funzioni che sfuggono, una riga ciascuna.",
     groupTrack: "Seguire",
@@ -979,6 +980,15 @@ export const it: typeof en = {
     rowPassed: "Termine scaduto",
     tag: "Da disdire",
     heroAfter: "{{amount}} dopo le disdette",
+    perYear: "{{amount}} all'anno",
+    reviewHint:
+      "Tocca un abbonamento che vuoi disdire. Keel te lo ricorda prima del prossimo addebito.",
+    stoppedTitle: "Disdetti",
+    saves: "risparmi {{amount}} all'anno",
+    endedOn: "terminato il {{date}}",
+    endsOn: "termina il {{date}}",
+    planned_one: "{{count}} pianificata",
+    planned_other: "{{count}} pianificate",
   },
   notifications: {
     cancelBody: "Da disdire entro il {{date}}. Prossimo addebito: {{amount}}.",

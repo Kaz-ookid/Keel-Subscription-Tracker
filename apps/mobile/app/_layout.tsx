@@ -131,6 +131,7 @@ function RootNavigator() {
                 <Stack.Screen name="item" options={{ title: "" }} dangerouslySingular />
                 <Stack.Screen name="accounts" options={{ title: "" }} />
                 <Stack.Screen name="price-changes" options={{ title: "" }} />
+                <Stack.Screen name="cancellations" options={{ title: "" }} />
                 <Stack.Screen name="by-account" options={{ title: "" }} />
                 <Stack.Screen name="by-category" options={{ title: "" }} />
                 <Stack.Screen name="notifications" options={{ title: "" }} />

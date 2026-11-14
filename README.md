@@ -36,7 +36,9 @@ Italian, Polish
 - Planned cancellations: mark a subscription to cancel, see what it frees
   each month, get reminded before the deadline (the next charge, or a
   notice date you set), and end it when you have cancelled. Keel never
-  cancels anything itself.
+  cancels anything itself. The Cancellations screen in Insights ranks
+  subscriptions by yearly cost to help choose, and lists the ones that
+  stopped.
 - Home screen widgets: the next payment and the days ahead.
 
 **Understand**

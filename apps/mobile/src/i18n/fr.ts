@@ -32,6 +32,7 @@ export const fr: typeof en = {
     details: "Détails",
     accounts: "Comptes",
     priceChanges: "Changements de prix",
+    cancellations: "Résiliations",
     byAccount: "Par compte",
     byCategory: "Par catégorie",
     newSubscription: "Nouvel abonnement",
@@ -770,7 +771,7 @@ export const fr: typeof en = {
   guide: {
     cancelTitle: "Résiliations prévues",
     cancelBody:
-      "Marquez un abonnement à résilier. Keel montre ce que cela libère chaque mois, vous le rappelle avant la date limite, et clôt l'abonnement quand vous dites que c'est résilié.",
+      "Marquez un abonnement à résilier. Keel montre ce que cela libère chaque mois, vous le rappelle avant la date limite, et clôt l'abonnement quand vous dites que c'est résilié. Analyses > Résiliations classe vos abonnements par coût annuel pour vous aider à choisir.",
     title: "Ce que Keel sait faire",
     intro: "Les fonctions qui passent souvent inaperçues, en une ligne chacune.",
     groupTrack: "Suivre",
@@ -982,6 +983,15 @@ export const fr: typeof en = {
     rowPassed: "Date limite dépassée",
     tag: "À résilier",
     heroAfter: "{{amount}} après résiliations",
+    perYear: "{{amount}} par an",
+    reviewHint:
+      "Touchez un abonnement que vous comptez résilier. Keel vous le rappelle avant sa prochaine facturation.",
+    stoppedTitle: "Résiliés",
+    saves: "économise {{amount}} par an",
+    endedOn: "terminé le {{date}}",
+    endsOn: "se termine le {{date}}",
+    planned_one: "{{count}} prévue",
+    planned_other: "{{count}} prévues",
   },
   notifications: {
     cancelBody: "À résilier d'ici le {{date}}. Prochain prélèvement : {{amount}}.",
