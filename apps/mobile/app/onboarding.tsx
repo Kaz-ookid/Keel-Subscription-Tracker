@@ -50,8 +50,9 @@ export default function OnboardingScreen() {
   // a plain open is the first-launch run. (The empty-state Get started button
   // opens the Add sheet directly and never lands here.) Browse ADDS pending
   // commitments, which is a write: locked browse bounces to the locked sheet.
-  // First-launch onboarding itself can never be locked (a fresh install has
-  // no trial anchor).
+  // First-launch onboarding CAN be locked: a reinstall keeps the old trial's
+  // anchor. It then stores the picks and closes onto All, like browse; the
+  // write gates there explain the trial (see onAdd).
   const browse = mode === "browse";
   const locked = useLocked();
   useEffect(() => {
@@ -124,7 +125,9 @@ export default function OnboardingScreen() {
   const onAdd = (selected: SuggestedCommitment[]) => {
     addPendingSuggestions(selected);
     // Browse: close and land on the All list, where the picks now live.
-    if (browse) {
+    // Same when the trial has expired: the form would bounce to the locked
+    // sheet in the middle of the tour.
+    if (browse || locked) {
       finish("all");
       return;
     }
