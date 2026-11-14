@@ -28,7 +28,14 @@ export function Chip({ label, selected, onPress, onLongPress, dot }: Props) {
       accessibilityState={{ selected }}
     >
       {dot ? <View style={[styles.dot, { backgroundColor: dot }]} /> : null}
-      <Text style={[styles.text, selected && styles.textSelected]}>{label}</Text>
+      <Text
+        style={[styles.text, selected && styles.textSelected]}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -53,7 +60,8 @@ function createStyles(colors: ThemeColors) {
       borderColor: withAlpha(colors.accent, 0.45),
     },
     dot: { width: 8, height: 8, borderRadius: 4 },
-    text: { ...typography.caption, fontWeight: "600", color: colors.text },
+    // flexShrink: beside the dot the label narrows instead of overflowing.
+    text: { ...typography.caption, fontWeight: "600", color: colors.text, flexShrink: 1 },
     textSelected: { color: colors.accent },
   });
 }

@@ -14,6 +14,7 @@ import { Linking, Platform, Pressable, ScrollView, Share, StyleSheet, Text } fro
 import { APP_STORE_ID, SUPPORT_EMAIL, WEBSITE_URL } from "../src/constants";
 import { IconChip } from "../src/components/ui/IconChip";
 import { Card } from "../src/components/ui/Card";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
 const CHIP = {
@@ -63,11 +64,18 @@ export default function AboutScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("about.title")}</Text>
+      <ScreenTitle>{t("about.title")}</ScreenTitle>
 
       {/* The maker, in three sentences. */}
       <Card variant="free">
-        <Text style={styles.helloTitle}>{t("about.helloTitle")}</Text>
+        <Text
+          style={styles.helloTitle}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+        >
+          {t("about.helloTitle")}
+        </Text>
         <Text style={styles.helloBody}>{t("about.helloBody")}</Text>
       </Card>
 
@@ -160,7 +168,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     helloTitle: { ...typography.h1, color: colors.text, marginBottom: spacing.sm },
     helloBody: { ...typography.body, color: colors.mutedText, lineHeight: 23 },
     nameDef: { ...typography.body, color: colors.mutedText, lineHeight: 23 },

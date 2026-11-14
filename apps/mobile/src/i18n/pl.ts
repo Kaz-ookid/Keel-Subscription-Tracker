@@ -661,6 +661,7 @@ const translation = {
     groupBackup: "Kopie zapasowe",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (debug)",
+    stretchText: "Rozciągnięty tekst (debug)",
     debugTrial6: "Okres próbny: zostało 6 dni",
     debugTrialExpire: "Okres próbny: zakończ teraz (tylko odczyt)",
     debugTrialReset: "Okres próbny: zresetuj zegar",

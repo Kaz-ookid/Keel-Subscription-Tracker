@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AccountEditSheet } from "../src/components/AccountSheet";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { EmptyState } from "../src/components/ui/EmptyState";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { useAppActions, useAppData } from "../src/state/app-state";
 import { radius, spacing, type ThemeColors, typography, useStyles } from "../src/theme";
 
@@ -59,9 +60,9 @@ export default function AccountsScreen() {
           ),
         }}
       />
-      <Text style={[styles.largeTitle, { paddingTop: insets.top + 44 }]}>
+      <ScreenTitle style={[styles.largeTitle, { paddingTop: insets.top + 44 }]}>
         {t("titles.accounts")}
-      </Text>
+      </ScreenTitle>
       {accounts.length === 0 ? (
         <View style={styles.center}>
           <EmptyState
@@ -125,12 +126,7 @@ function createStyles(colors: ThemeColors) {
     // Mirrors the right-side header actions elsewhere (label 15/600, accent).
     headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.xs },
     // Below the transparent header (back + add float above this).
-    largeTitle: {
-      fontSize: 34,
-      fontWeight: "700",
-      color: colors.text,
-      paddingHorizontal: spacing.md,
-    },
+    largeTitle: { paddingHorizontal: spacing.md },
     list: {
       flex: 1,
     },

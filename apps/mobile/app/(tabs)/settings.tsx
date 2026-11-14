@@ -42,6 +42,7 @@ import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
 import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
+import { ScreenTitle } from "../../src/components/ui/ScreenTitle";
 import { TabFade } from "../../src/components/TabFade";
 import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
 import { useEntitlement } from "../../src/lib/entitlement";
@@ -203,7 +204,7 @@ export default function SettingsScreen() {
         style={styles.screen}
         contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
       >
-        <Text style={styles.largeTitle}>{t("tabs.settings")}</Text>
+        <ScreenTitle>{t("tabs.settings")}</ScreenTitle>
 
         {/* Full Keel: the one purchase, worn like a banner, never a nag. */}
         <Pressable
@@ -472,11 +473,6 @@ function createStyles(colors: ThemeColors) {
     },
     // flexGrow keeps the footer's "auto" top margin working when the content
     // is shorter than the screen; the list scrolls once it grows past it.
-    largeTitle: {
-      fontSize: 34,
-      fontWeight: "700",
-      color: colors.text,
-    },
     content: {
       flexGrow: 1,
       padding: spacing.md,

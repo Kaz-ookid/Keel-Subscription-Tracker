@@ -6,13 +6,14 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 
 import { closeAllSwipeRows } from "../../src/components/ui/SwipeRow";
 import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
 import { usePager } from "../../src/components/ui/usePager";
+import { ScreenTitle } from "../../src/components/ui/ScreenTitle";
 import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
 import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
@@ -140,7 +141,7 @@ export default function PaymentsScreen() {
   return (
     <TabFade style={[styles.screen, { paddingTop: insets.top }]}>
       {/* The screen owns its title now: large, on the Ambient stage. */}
-      <Text style={styles.largeTitle}>{t("tabs.payments")}</Text>
+      <ScreenTitle style={styles.largeTitle}>{t("tabs.payments")}</ScreenTitle>
       <View style={styles.switchWrap}>
         <SegmentedPills
           options={VIEWS.map((v) => ({ value: v.value, label: t(v.labelKey) }))}
@@ -207,13 +208,7 @@ function createStyles(colors: ThemeColors) {
     // flex-basis and collapse the horizontal content run.
     page: { height: "100%" },
     // The large title (DESIGN.md §9b): the screen names itself.
-    largeTitle: {
-      fontSize: 34,
-      fontWeight: "700",
-      color: colors.text,
-      paddingHorizontal: spacing.md,
-      paddingTop: spacing.sm,
-    },
+    largeTitle: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
     switchWrap: {
       flexDirection: "row",
       alignItems: "center",

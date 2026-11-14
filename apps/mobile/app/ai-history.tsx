@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "../src/components/ui/Card";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import {
   activityDateLabel,
   toolLabelKey,
@@ -70,7 +71,7 @@ export default function AiHistoryScreen() {
       contentInsetAdjustmentBehavior="automatic"
     >
       <Stack.Screen options={{ title: "" }} />
-      <Text style={styles.largeTitle}>{t("aiHistory.title")}</Text>
+      <ScreenTitle>{t("aiHistory.title")}</ScreenTitle>
 
       {aiActivity.length === 0 && (
         <Card>
@@ -121,7 +122,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     row: {
       flexDirection: "row",
       alignItems: "center",

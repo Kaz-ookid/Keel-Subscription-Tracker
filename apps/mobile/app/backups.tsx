@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { Card } from "../src/components/ui/Card";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import {
   createBackup,
   deleteAllBackups,
@@ -113,7 +114,7 @@ export default function BackupsScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("backups.title")}</Text>
+      <ScreenTitle>{t("backups.title")}</ScreenTitle>
 
       <Card>
         <Pressable style={styles.row} onPress={create}>
@@ -162,7 +163,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     row: {
       flexDirection: "row",
       alignItems: "center",

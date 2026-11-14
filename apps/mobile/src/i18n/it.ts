@@ -596,6 +596,7 @@ export const it: typeof en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (debug)",
+    stretchText: "Testo allungato (debug)",
     debugTrial6: "Prova: 6 giorni rimasti",
     debugTrialExpire: "Prova: termina ora (sola lettura)",
     debugTrialReset: "Prova: azzera il conteggio",

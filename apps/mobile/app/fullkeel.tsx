@@ -15,6 +15,7 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from "re
 
 import { Button } from "../src/components/ui/Button";
 import { Sheen } from "../src/components/ui/Sheen";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
 import { buyFullKeel, restoreFullKeel, useFullKeelPrices } from "../src/lib/purchases";
@@ -80,7 +81,7 @@ export default function FullKeelScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("fullkeel.title")}</Text>
+      <ScreenTitle>{t("fullkeel.title")}</ScreenTitle>
       <Text style={styles.subtitle}>{t("fullkeel.subtitle")}</Text>
 
       {/* The glass hero: price (or ownership), with the light sweeping by. */}
@@ -92,7 +93,14 @@ export default function FullKeelScreen() {
         {full ? (
           <>
             <SymbolView name="checkmark.seal.fill" size={34} tintColor={colors.accent} />
-            <Text style={styles.heroPrice}>{t("fullkeel.ownedTitle")}</Text>
+            <Text
+              style={styles.ownedTitle}
+              numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+            >
+              {t("fullkeel.ownedTitle")}
+            </Text>
             <Text style={styles.heroNote}>{t("fullkeel.ownedBody")}</Text>
           </>
         ) : (
@@ -170,7 +178,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     subtitle: { ...typography.body, color: colors.mutedText, marginTop: -spacing.sm },
     hero: {
       alignItems: "center",
@@ -193,6 +200,8 @@ function createStyles(colors: ThemeColors) {
       marginTop: spacing.sm,
     },
     heroPrice: { ...typography.display, color: colors.text },
+    // A sentence, not a price: h1, so a long translation fits on two lines.
+    ownedTitle: { ...typography.h1, color: colors.text, textAlign: "center" },
     strikePrice: {
       ...typography.label,
       color: colors.mutedText,

@@ -597,6 +597,7 @@ export const fr: typeof en = {
     groupBackup: "Sauvegarde",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (débogage)",
+    stretchText: "Texte allongé (débogage)",
     debugTrial6: "Essai : 6 jours restants",
     debugTrialExpire: "Essai : terminer (lecture seule)",
     debugTrialReset: "Essai : remettre le compteur à zéro",

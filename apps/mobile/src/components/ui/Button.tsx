@@ -67,6 +67,8 @@ export function Button({
       <Text
         style={[size === "lg" ? styles.textLg : styles.textSm, { color: textColor }]}
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.8}
       >
         {label}
       </Text>
@@ -103,7 +105,9 @@ function createStyles(colors: ThemeColors) {
     destructive: {},
     disabled: { opacity: 0.4 },
     pressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
-    textLg: { ...typography.label },
-    textSm: { ...typography.caption, fontWeight: "600" },
+    // flexShrink: beside an icon the label must be able to narrow, or it
+    // would overflow the capsule instead of shrinking its type.
+    textLg: { ...typography.label, flexShrink: 1 },
+    textSm: { ...typography.caption, fontWeight: "600", flexShrink: 1 },
   });
 }

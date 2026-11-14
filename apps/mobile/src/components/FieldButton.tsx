@@ -29,12 +29,21 @@ export function FieldButton({ label, value, accessory, hint, first, info, onPres
   return (
     <Pressable onPress={onPress} style={[styles.row, first && styles.rowFirst]}>
       <View style={styles.labelWrap}>
-        <Text style={styles.label}>{label}</Text>
+        <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+          {label}
+        </Text>
         {info && <InfoDot title={info.title} body={info.body} />}
       </View>
       <View style={styles.right}>
         {value ? (
-          <Text style={[styles.value, hint && { color: colors.tones.warning }]}>{value}</Text>
+          <Text
+            style={[styles.value, hint && { color: colors.tones.warning }]}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.8}
+          >
+            {value}
+          </Text>
         ) : null}
         {accessory}
         <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
@@ -50,6 +59,9 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "space-between",
+      // Only bites when a long label meets a long value: both sides then
+      // narrow (their type shrinks first) instead of running into each other.
+      gap: spacing.sm,
       paddingVertical: spacing.md,
       borderTopWidth: StyleSheet.hairlineWidth,
       borderTopColor: colors.hairline,
@@ -61,19 +73,23 @@ function createStyles(colors: ThemeColors) {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.xs,
+      flexShrink: 1,
     },
     label: {
       ...typography.label,
       color: colors.text,
+      flexShrink: 1,
     },
     right: {
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,
+      flexShrink: 1,
     },
     value: {
       ...typography.body,
       color: colors.mutedText,
+      flexShrink: 1,
     },
   });
 }

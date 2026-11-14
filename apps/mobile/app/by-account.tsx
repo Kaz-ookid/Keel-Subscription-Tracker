@@ -31,6 +31,7 @@ import { HeroCard } from "../src/components/HeroCard";
 import { BrandBadge } from "../src/components/BrandBadge";
 import { Card } from "../src/components/ui/Card";
 import { Chip } from "../src/components/ui/Chip";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { YearChart, type YearChartMonth } from "../src/components/YearChart";
 import { monthFull, monthShort } from "../src/i18n/dates";
 import { monthShifted } from "../src/lib/dates";
@@ -167,7 +168,7 @@ export default function ByAccountScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("titles.byAccount")}</Text>
+      <ScreenTitle>{t("titles.byAccount")}</ScreenTitle>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
         <View style={styles.chipRow}>
           {[
@@ -302,7 +303,6 @@ export default function ByAccountScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     chipRow: { flexDirection: "row", gap: spacing.sm },
     row: {

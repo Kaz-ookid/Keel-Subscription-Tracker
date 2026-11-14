@@ -598,6 +598,7 @@ export const de: typeof en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (Debug)",
+    stretchText: "Gestreckter Text (Debug)",
     debugTrial6: "Test: noch 6 Tage",
     debugTrialExpire: "Test: jetzt beenden (schreibgeschützt)",
     debugTrialReset: "Test: Uhr zurücksetzen",

@@ -84,6 +84,9 @@ function GlassDock({ state, navigation }: BottomTabBarProps) {
               />
               <Text
                 style={[styles.itemLabel, { color: active ? colors.accent : colors.mutedText }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
               >
                 {t(tab.titleKey)}
               </Text>

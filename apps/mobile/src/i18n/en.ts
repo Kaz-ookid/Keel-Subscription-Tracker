@@ -594,6 +594,7 @@ export const en = {
     groupBackup: "Backup",
     groupDebug: "Debug",
     fullkeelDebug: "Full Keel (debug)",
+    stretchText: "Stretched text (debug)",
     debugTrial6: "Trial: 6 days left",
     debugTrialExpire: "Trial: end now (read-only)",
     debugTrialReset: "Trial: reset the clock",

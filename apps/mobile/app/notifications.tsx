@@ -35,6 +35,7 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { Sheet } from "../src/components/Sheet";
 import { Card } from "../src/components/ui/Card";
 import { OptionWheel } from "../src/components/ui/OptionWheel";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { formatHour } from "../src/lib/dates";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
@@ -207,7 +208,7 @@ export default function NotificationsScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("notifCenter.title")}</Text>
+      <ScreenTitle>{t("notifCenter.title")}</ScreenTitle>
 
       <Card style={styles.group}>
         <View style={styles.row}>
@@ -439,7 +440,6 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     sheetContent: { padding: spacing.md },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     gap: { gap: spacing.md },
     group: {},
     groupLabel: {

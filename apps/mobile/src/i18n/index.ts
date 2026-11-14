@@ -14,6 +14,7 @@ import { en } from "./en";
 import { fr } from "./fr";
 import { it } from "./it";
 import { pl } from "./pl";
+import { stretchLocale } from "./stretch";
 
 /** Every language the app ships; the single list the rest derives from. */
 export const APP_LANGUAGES = ["en", "fr", "de", "it", "pl"] as const;
@@ -33,6 +34,14 @@ export type LanguageMode = "system" | AppLanguage;
 
 export const LANGUAGE_KEY = "keel.language.v1";
 
+/** The debug "stretched English" (see stretch.ts). Never in APP_LANGUAGES,
+ *  so no picker lists it and nothing stores it: a relaunch is back to normal. */
+export const STRETCH_LANGUAGE = "xx";
+
+// Same build-time condition as the debug drawer (lib/screenshot-mode repeats
+// it too): i18n must not import a component to learn it.
+const DEBUG_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEBUG_TOOLS === "1";
+
 function isAppLanguage(value: unknown): value is AppLanguage {
   return typeof value === "string" && (APP_LANGUAGES as readonly string[]).includes(value);
 }
@@ -49,6 +58,7 @@ void i18n.use(initReactI18next).init({
     de: { translation: de },
     it: { translation: it },
     pl: { translation: pl },
+    ...(DEBUG_TOOLS ? { [STRETCH_LANGUAGE]: { translation: stretchLocale(en) } } : {}),
   },
   lng: deviceLanguage(),
   fallbackLng: "en",
@@ -77,6 +87,17 @@ export async function setLanguageMode(mode: LanguageMode): Promise<void> {
   } catch {
     // best-effort — the in-session language still switches below
   }
+  await i18n.changeLanguage(mode === "system" ? deviceLanguage() : mode);
+}
+
+/** Debug drawer switch: on shows the stretched English, off returns to the
+ *  user's language (the stored mode, else the device's). */
+export async function setStretchText(on: boolean): Promise<void> {
+  if (on && DEBUG_TOOLS) {
+    await i18n.changeLanguage(STRETCH_LANGUAGE);
+    return;
+  }
+  const mode = await loadLanguageMode();
   await i18n.changeLanguage(mode === "system" ? deviceLanguage() : mode);
 }
 

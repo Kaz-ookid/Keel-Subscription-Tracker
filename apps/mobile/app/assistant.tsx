@@ -18,6 +18,7 @@ import { AiNotice } from "../src/components/ai/AiNotice";
 import { AiPrivacyLine } from "../src/components/ai/AiPrivacyLine";
 import { AiUnavailableNotice } from "../src/components/ai/AiUnavailableNotice";
 import { Button } from "../src/components/ui/Button";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import {
   assistWithKeel,
   keelReadsAvailability,
@@ -91,7 +92,7 @@ export default function AssistantScreen() {
       contentInsetAdjustmentBehavior="automatic"
     >
       <Stack.Screen options={{ title: "" }} />
-      <Text style={styles.largeTitle}>{t("assistant.title")}</Text>
+      <ScreenTitle>{t("assistant.title")}</ScreenTitle>
 
       {availability === "checking" && <AiNotice busy />}
 
@@ -147,7 +148,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     card: {
       backgroundColor: colors.material,
       borderWidth: 1,

@@ -17,6 +17,7 @@ import Animated from "react-native-reanimated";
 import { Card } from "../ui/Card";
 import { SettingsRow } from "./SettingsRow";
 
+import { setStretchText, STRETCH_LANGUAGE } from "../../i18n";
 import { useAiHidden } from "../../lib/ai-visibility";
 import { setAppLockEnabled, setAppLockGrace } from "../../lib/app-lock";
 import {
@@ -41,7 +42,7 @@ const CHIP = { debug: "#8E8E93", sample: "#FF9500", importAI: "#30B0C7" } as con
 export function DebugDrawer() {
   const router = useRouter();
   const { colors } = useTheme();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const styles = useStyles(createStyles);
   const [open, setOpen] = useState(false);
   const entitlement = useEntitlement();
@@ -181,6 +182,21 @@ export function DebugDrawer() {
                 <Switch
                   value={entitlement.owned}
                   onValueChange={(next) => void setFullKeel(next)}
+                  trackColor={{ true: colors.accent }}
+                />
+              }
+            />
+            {/* Every text about 40% longer, the length a wordy translation
+                reaches: walk the screens and see what breaks. Not stored. */}
+            <SettingsRow
+              icon="textformat.size"
+              chipColor={CHIP.debug}
+              label={t("settings.stretchText")}
+              divider
+              right={
+                <Switch
+                  value={i18n.language === STRETCH_LANGUAGE}
+                  onValueChange={(next) => void setStretchText(next)}
                   trackColor={{ true: colors.accent }}
                 />
               }

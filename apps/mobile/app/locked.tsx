@@ -81,7 +81,9 @@ export default function LockedScreen() {
     >
       <View style={styles.hero}>
         <SymbolView name="sailboat.fill" size={40} tintColor={colors.accent} />
-        <Text style={styles.title}>{t("trial.lockedTitle")}</Text>
+        <Text style={styles.title} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.75}>
+          {t("trial.lockedTitle")}
+        </Text>
         <Text style={styles.body}>{t("trial.lockedBody")}</Text>
       </View>
 

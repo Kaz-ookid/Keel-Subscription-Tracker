@@ -27,6 +27,7 @@ import { BrandBadge } from "../src/components/BrandBadge";
 import { DonutChart, type DonutSegment } from "../src/components/DonutChart";
 import { Card } from "../src/components/ui/Card";
 import { EmptyState } from "../src/components/ui/EmptyState";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { useAppData } from "../src/state/app-state";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
@@ -131,7 +132,7 @@ export default function ByCategoryScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("titles.byCategory")}</Text>
+      <ScreenTitle>{t("titles.byCategory")}</ScreenTitle>
       <View style={styles.donutWrap}>
         <DonutChart
           segments={segments}
@@ -230,7 +231,6 @@ export default function ByCategoryScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
     center: {
       flex: 1,

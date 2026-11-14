@@ -18,6 +18,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "re
 import { activityDateLabel } from "../src/lib/ai-activity-display";
 import { Card } from "../src/components/ui/Card";
 import { IconChip } from "../src/components/ui/IconChip";
+import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
 import {
@@ -195,7 +196,7 @@ export default function DataScreen() {
       contentContainerStyle={styles.content}
       contentInsetAdjustmentBehavior="automatic"
     >
-      <Text style={styles.largeTitle}>{t("data.title")}</Text>
+      <ScreenTitle>{t("data.title")}</ScreenTitle>
 
       <Text style={styles.groupLabel}>{t("data.groupIcloud")}</Text>
       <Card>
@@ -266,7 +267,6 @@ function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
-    largeTitle: { fontSize: 34, fontWeight: "700", color: colors.text },
     groupLabel: {
       ...typography.micro,
       color: colors.mutedText,
