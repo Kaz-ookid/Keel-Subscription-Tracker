@@ -1,6 +1,7 @@
 // Brand-bank text matching, shared by the upfront picker (SuggestionPicker)
 // and the Add form's inline name suggestions — so both match and rank a typed
-// query the same way.
+// query the same way. Also the one builder of the route params that open the
+// Add form pre-filled from a bank entry.
 
 import { SUGGESTED_COMMITMENTS, type SuggestedCommitment } from "@keel/core";
 
@@ -26,4 +27,21 @@ export function matchSuggestions(query: string, limit = 5): SuggestedCommitment[
       return aStarts - bStarts || a.name.localeCompare(b.name);
     })
     .slice(0, limit);
+}
+
+/** A bank entry's pre-fillable fields as /add/form route params. */
+export function prefillParams(s: SuggestedCommitment) {
+  return {
+    name: s.name,
+    ...(s.categoryId ? { categoryId: s.categoryId } : {}),
+    ...(s.color ? { color: s.color } : {}),
+    ...(s.domain ? { domain: s.domain } : {}),
+    unit: s.unit,
+  };
+}
+
+/** The same for a To-complete pick: the id lets the form retire the pending
+ *  entry when it saves (see useAddForm). */
+export function pendingFormParams(s: SuggestedCommitment) {
+  return { suggestionId: s.id, ...prefillParams(s) };
 }

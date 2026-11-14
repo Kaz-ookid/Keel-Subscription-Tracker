@@ -24,7 +24,7 @@ const DEFAULT_CONFIG: AppLockConfig = { enabled: false, graceSeconds: 0 };
 
 // Any writer notifies, every reader reacts — a tiny in-memory pub/sub avoids
 // polling, and a snapshot on top makes it an external store so components
-// (Settings, the onboarding nudge) render the SAME state instead of keeping
+// (Settings, the Payments lock card) render the SAME state instead of keeping
 // per-screen copies that drift (same pattern as logo-consent).
 type Listener = (config: AppLockConfig) => void;
 const listeners = new Set<Listener>();
@@ -119,7 +119,7 @@ export async function getAuthKind(): Promise<AuthKind> {
 }
 
 // The Face ID sheet itself sends the app inactive on iOS. Every caller
-// (lock screen, onboarding nudge, Settings) goes through authenticate(), so
+// (lock screen, Payments lock card, Settings) goes through authenticate(), so
 // one flag here lets the lock gate ignore the AppState changes a prompt causes.
 let authInFlight = false;
 export const isAuthenticating = (): boolean => authInFlight;

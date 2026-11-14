@@ -717,56 +717,21 @@ const translation = {
     groupAbout: "O aplikacji",
   },
   onboarding: {
-    tour1Title: "Wszystko w jednym miejscu",
-    tour1Body: "Subskrypcje, rachunki i raty. Także zakupy na 4 raty i opłaty raz w roku.",
-    tour2Title: "Właściwa kwota na właściwej karcie",
-    tour2Body:
-      "Każda płatność jest przypisana do konta bankowego, więc z wyprzedzeniem widzisz, co i skąd zejdzie.",
-    tour3Title: "Co było i co będzie",
-    tour3Body:
-      "Co zapłacono i co nadchodzi: według miesiąca, konta i kategorii, razem z podwyżkami.",
-    tour4Title: "Gotowe w kilka minut",
-    tour4Body:
-      "Wybierz ze znanych usług albo daj AI przeczytać luźną listę, zrzuty ekranu lub eksport ze starej aplikacji. Wszystko będzie już wypełnione.",
-    tour5Title: "Za darmo przez 45 dni",
-    tour5Body:
+    line1: "Wszystko w jednym miejscu",
+    line2: "Właściwa kwota na właściwej karcie",
+    line3: "Co było i co będzie",
+    trialBody:
       "Wszystko jest dostępne przez 45 dni, liczonych od pierwszego zobowiązania. Potem nadal wszystko widzisz i możesz to wyeksportować. Dodawanie, edycja, przypomnienia i widżety wymagają Full Keel: to jednorazowy zakup, objęty Chmurą rodzinną.",
-    skip: "Pomiń",
-    next: "Dalej",
-    continue: "Kontynuuj",
     back: "Wstecz",
-    methodTitle: "Dodaj pierwsze zobowiązania",
-    methodPick: "Wybierz z listy",
-    methodPickSub:
-      "Zaznacz to, za co na pewno płacisz. Trafi na listę Do uzupełnienia i dokończysz, kiedy zechcesz.",
     methodAI: "Import z AI",
-    methodAISub:
-      "Daj AI luźną listę, zrzuty ekranu albo eksport z innej aplikacji: najlepsze, gdy dodajesz wiele naraz.",
     methodManual: "Będę dodawać na bieżąco",
-    methodNote: "Metody można łączyć. Kolejne dodasz w każdej chwili z listy Wszystkie.",
     pickTitle: "Za które z nich płacisz?",
     caughtUpTitle: "Wszystko na bieżąco",
     caughtUpBody:
       "Wszystko z naszej listy popularnych zobowiązań jest już śledzone albo czeka na liście Do uzupełnienia.",
     done: "Gotowe",
-    savedTitle: "Do uzupełnienia: zapisano {{count}}",
-    savedBody:
-      "Znajdziesz je w karcie Płatności, pod Wszystkie. Każda otwiera wypełniony formularz: wystarczy kilka stuknięć.",
-    importedTitle_one: "Zaimportowano: {{count}}",
-    importedTitle_few: "Zaimportowano: {{count}}",
-    importedTitle_many: "Zaimportowano: {{count}}",
-    importedTitle_other: "Zaimportowano: {{count}}",
-    importedBody: "Są już w karcie Płatności.",
-    addMore: "Dodaj więcej",
-    methodMoreTitle: "Dodać więcej?",
-    methodDoneForNow: "Na razie wystarczy",
-    allSetTitle: "Wszystko gotowe",
-    allSetBody: "Zobowiązania dodasz w każdej chwili przyciskiem + na dole.",
-    lockOverline: "Na koniec jedna opcjonalna rzecz",
-    startUsing: "Zacznij używać Keel",
     lockBody: "Możesz to zmienić w każdej chwili w Ustawieniach.",
     lockCta: "Włącz",
-    lockOn: "Blokada włączona.",
   },
   picker: {
     searchPlaceholder: "Szukaj marki…",
@@ -822,7 +787,6 @@ const translation = {
     daysLeft_few: "Zostały {{count}} dni próbne",
     daysLeft_many: "Zostało {{count}} dni próbnych",
     daysLeft_other: "Zostało {{count}} dnia próbnego",
-    disclosure: "45 dni za darmo od pierwszego zobowiązania, potem jednorazowy zakup.",
     lockedTitle: "Okres próbny się skończył",
     lockedBody:
       "Keel działa teraz tylko do odczytu. Wszystko, co śledzisz, nadal tu jest; Full Keel przywraca narzędzia.",

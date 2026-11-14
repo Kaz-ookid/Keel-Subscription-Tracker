@@ -26,6 +26,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { FlatList } from "react-native-gesture-handler";
 
 import { amountInDisplay } from "../../lib/money-display";
+import { pendingFormParams } from "../../lib/suggestions";
 import { useAppActions, useAppData } from "../../state/app-state";
 import {
   dockClearance,
@@ -150,7 +151,7 @@ export function SubscriptionsView() {
           cta={{
             label: t("common.getStarted"),
             // Straight into the Add sheet (same door as the dock's +) — not
-            // back into onboarding's method screen.
+            // back into onboarding.
             onPress: () => router.push("/add"),
           }}
         />
@@ -159,17 +160,7 @@ export function SubscriptionsView() {
   }
 
   const fillIn = (s: SuggestedCommitment) =>
-    router.push({
-      pathname: "/add/form",
-      params: {
-        suggestionId: s.id,
-        name: s.name,
-        ...(s.categoryId ? { categoryId: s.categoryId } : {}),
-        ...(s.color ? { color: s.color } : {}),
-        ...(s.domain ? { domain: s.domain } : {}),
-        unit: s.unit,
-      },
-    });
+    router.push({ pathname: "/add/form", params: pendingFormParams(s) });
 
   const asOf = today();
   const commitments = summarizeCommitments(items, asOf);
@@ -243,9 +234,11 @@ export function SubscriptionsView() {
               }
             />
           )}
-          {/* What the onboarding deck collected: each row opens the Add form
-              pre-filled, the ✗ dismisses without adding. Rendered even when
-              empty, so the to-do list stays discoverable and fillable. */}
+          {/* What the brand picker collected (first launch opens the form
+              on the first pick itself; the rest wait here): each row opens
+              the Add form pre-filled, the ✗ dismisses without adding.
+              Rendered even when empty, so the to-do list stays discoverable
+              and fillable. */}
           <View>
             <Pressable style={styles.pendingHeader} onPress={() => setPendingOpen((o) => !o)}>
               <View style={styles.pendingLine} />

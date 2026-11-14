@@ -1,5 +1,5 @@
-// The brand-bank list, used by onboarding (checklist mode) and the Add flow
-// (single-select mode). One big alphabetical list — predictable to scan — with
+// The brand-bank list, used by onboarding and the browse picker (checklist
+// mode) and the Add flow (single-select mode). One big alphabetical list — predictable to scan — with
 // a chip row to narrow to a category (the chips double as memory prompts:
 // "Transport… right, my transit pass"). Search covers ALL regions and ignores
 // the chip; the browsed list shows only region-free entries plus the device's
@@ -108,7 +108,11 @@ export function SuggestionPicker({ suggestions, addedIds, onAdd, onPick, onCreat
 
   const confirm = () => {
     const selected = suggestions.filter((s) => checked.has(s.id));
-    if (selected.length > 0) onAdd?.(selected);
+    if (selected.length === 0) return;
+    onAdd?.(selected);
+    // The selection is spent: first-launch onboarding keeps this list mounted
+    // under the Add form, and coming back must not offer the same picks again.
+    setChecked(new Set());
   };
 
   return (

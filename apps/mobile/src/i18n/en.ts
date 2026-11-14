@@ -651,55 +651,21 @@ export const en = {
     groupAbout: "About",
   },
   onboarding: {
-    tour1Title: "All of it, in one place",
-    tour1Body:
-      "Subscriptions, bills and split payments. Even the pay-in-4 and the once-a-year ones.",
-    tour2Title: "The right money, on the right card",
-    tour2Body:
-      "Every payment belongs to a bank account, so you see what leaves where before it does.",
-    tour3Title: "Past and future, one glance",
-    tour3Body:
-      "What you paid, what's coming: by month, by account, by category. Price rises included.",
-    tour4Title: "Ready in minutes",
-    tour4Body:
-      "Pick from known services, or let AI read a rough list, screenshots, or your old tracker's export. Everything arrives pre-filled.",
-    tour5Title: "Free for 45 days",
-    tour5Body:
+    line1: "All of it, in one place",
+    line2: "The right money, on the right card",
+    line3: "Past and future, one glance",
+    trialBody:
       "Everything is open for 45 days, counted from your first commitment. After that you still see everything and can export it. Adding, editing, reminders and widgets need Full Keel: a one-time purchase, shared with your Apple Family.",
-    skip: "Skip",
-    next: "Next",
-    continue: "Continue",
     back: "Back",
-    methodTitle: "Add your first commitments",
-    methodPick: "Pick from a list",
-    methodPickSub:
-      "Tap what you know you pay for. They queue in a To-complete list, ready to finish whenever.",
     methodAI: "Import with AI",
-    methodAISub:
-      "Give AI a rough list, screenshots, or another tracker's export: best for adding many at once.",
     methodManual: "I'll add them as I go",
-    methodNote: "Mix and match. You can add more from the All list any time.",
     pickTitle: "Which of these do you pay for?",
     caughtUpTitle: "All caught up",
     caughtUpBody:
       "Everything in our list of common commitments is already tracked or waiting in your To-complete list.",
     done: "Done",
-    savedTitle: "{{count}} saved to your To-complete list",
-    savedBody:
-      "They're under All on the Payments tab. Each opens the form pre-filled: a couple of taps to finish.",
-    importedTitle_one: "{{count}} commitment imported",
-    importedTitle_other: "{{count}} commitments imported",
-    importedBody: "They're live on the Payments tab.",
-    addMore: "Add more",
-    methodMoreTitle: "Add more?",
-    methodDoneForNow: "That's all for now",
-    allSetTitle: "You're ready",
-    allSetBody: "Add commitments any time with the + button below.",
-    lockOverline: "One optional thing before you go",
-    startUsing: "Start using Keel",
     lockBody: "You can change this any time in Settings.",
     lockCta: "Turn on",
-    lockOn: "Lock is on.",
   },
   picker: {
     searchPlaceholder: "Search all brands…",
@@ -753,7 +719,6 @@ export const en = {
       "After that, Keel goes read-only. Full Keel keeps every tool, at the trial price until then.",
     daysLeft_one: "{{count}} trial day left",
     daysLeft_other: "{{count}} trial days left",
-    disclosure: "Free for 45 days from your first commitment, then a one-time purchase.",
     lockedTitle: "Your trial has ended",
     lockedBody:
       "Keel is read-only now. Everything you tracked is still here; Full Keel brings the tools back.",

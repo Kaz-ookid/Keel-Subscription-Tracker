@@ -87,7 +87,8 @@ export function DebugDrawer() {
       { text: t("settings.replace"), style: "destructive", onPress: loadSampleData },
     ]);
 
-  // Relive the first launch: wipe everything, forget the tour was seen, and
+  // Relive the first launch: wipe everything, forget the tour was seen (and
+  // the Payments lock card retired: resetOnboardingSeen clears both), and
   // open onboarding right away, every choice included (logo question, Full
   // Keel switch, the app lock).
   const confirmOnboarding = () =>

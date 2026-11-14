@@ -654,54 +654,21 @@ export const de: typeof en = {
     groupAbout: "Info",
   },
   onboarding: {
-    tour1Title: "Alles an einem Ort",
-    tour1Body:
-      "Abos, Rechnungen und Ratenzahlungen. Auch der Kauf in 4 Raten und die Jahresbeiträge.",
-    tour2Title: "Genug Geld auf dem richtigen Konto",
-    tour2Body: "Jede Zahlung gehört zu einem Konto. So siehst du vorher, was wo abgebucht wird.",
-    tour3Title: "Rückblick und Ausblick",
-    tour3Body:
-      "Was du bezahlt hast, was kommt: nach Monat, Konto und Kategorie. Preiserhöhungen inklusive.",
-    tour4Title: "In Minuten startklar",
-    tour4Body:
-      "Wähle aus bekannten Diensten, oder lass eine KI eine grobe Liste, Screenshots oder den Export deines alten Trackers lesen. Alles kommt vorausgefüllt an.",
-    tour5Title: "45 Tage gratis",
-    tour5Body:
+    line1: "Alles an einem Ort",
+    line2: "Genug Geld auf dem richtigen Konto",
+    line3: "Rückblick und Ausblick",
+    trialBody:
       "45 Tage lang ist alles freigeschaltet, gezählt ab deinem ersten Eintrag. Danach siehst du weiter alles und kannst es exportieren. Für Hinzufügen, Bearbeiten, Erinnerungen und Widgets brauchst du Full Keel: ein einmaliger Kauf, per Familienfreigabe teilbar.",
-    skip: "Überspringen",
-    next: "Weiter",
-    continue: "Fortfahren",
     back: "Zurück",
-    methodTitle: "Leg deine ersten Einträge an",
-    methodPick: "Aus einer Liste wählen",
-    methodPickSub:
-      "Tippe an, wofür du zahlst. Alles landet unter „Zu ergänzen“, die Details trägst du nach, wann du willst.",
     methodAI: "Mit KI importieren",
-    methodAISub:
-      "Gib einer KI eine grobe Liste, Screenshots oder den Export eines anderen Trackers: ideal, wenn es viele sind.",
     methodManual: "Ich lege sie nach und nach an",
-    methodNote: "Alles lässt sich kombinieren. Mehr kommt jederzeit über die Liste „Alle“ dazu.",
     pickTitle: "Wofür davon zahlst du?",
     caughtUpTitle: "Alles erfasst",
     caughtUpBody:
       "Alles aus unserer Liste gängiger Dienste ist schon erfasst oder wartet unter „Zu ergänzen“.",
     done: "Fertig",
-    savedTitle: "{{count}} unter „Zu ergänzen“ gesichert",
-    savedBody:
-      "Du findest sie im Tab „Zahlungen“ unter „Alle“. Jeder Eintrag öffnet das Formular vorausgefüllt: ein paar Mal tippen, fertig.",
-    importedTitle_one: "{{count}} Eintrag importiert",
-    importedTitle_other: "{{count}} Einträge importiert",
-    importedBody: "Du findest sie im Tab „Zahlungen“.",
-    addMore: "Mehr hinzufügen",
-    methodMoreTitle: "Noch mehr?",
-    methodDoneForNow: "Das reicht fürs Erste",
-    allSetTitle: "Du bist startklar",
-    allSetBody: "Neue Einträge legst du jederzeit über die Taste ＋ unten an.",
-    lockOverline: "Eins noch, wenn du magst",
-    startUsing: "Keel starten",
     lockBody: "Du kannst das jederzeit in den Einstellungen ändern.",
     lockCta: "Einschalten",
-    lockOn: "Sperre ist an.",
   },
   picker: {
     searchPlaceholder: "Alle Marken durchsuchen …",
@@ -755,7 +722,6 @@ export const de: typeof en = {
       "Danach kannst du nichts mehr hinzufügen oder ändern. Mit Full Keel behältst du alle Funktionen, bis dahin zum Testpreis.",
     daysLeft_one: "Noch {{count}} Testtag",
     daysLeft_other: "Noch {{count}} Testtage",
-    disclosure: "45 Tage gratis ab deinem ersten Eintrag, danach ein einmaliger Kauf.",
     lockedTitle: "Deine Testphase ist vorbei",
     lockedBody:
       "Du kannst jetzt nichts mehr hinzufügen oder ändern. Alles, was du erfasst hast, ist noch da. Full Keel schaltet das Bearbeiten wieder frei.",

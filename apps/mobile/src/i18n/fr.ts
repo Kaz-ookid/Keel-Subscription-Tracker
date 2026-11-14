@@ -653,55 +653,21 @@ export const fr: typeof en = {
     groupAbout: "À propos",
   },
   onboarding: {
-    tour1Title: "Tout, au même endroit",
-    tour1Body:
-      "Abonnements, factures et paiements échelonnés. Même les achats en 4 fois et ce qui ne tombe qu'une fois par an.",
-    tour2Title: "Le bon montant, sur la bonne carte",
-    tour2Body:
-      "Chaque paiement est relié à un compte bancaire : vous voyez d'où part chaque montant, avant qu'il ne parte.",
-    tour3Title: "Passé et futur, d'un coup d'œil",
-    tour3Body:
-      "Ce que vous avez payé, ce qui arrive : par mois, par compte, par catégorie. Hausses de prix comprises.",
-    tour4Title: "Prêt en quelques minutes",
-    tour4Body:
-      "Choisissez parmi les services connus, ou laissez une IA lire une liste en vrac, des captures ou l'export de votre ancienne app. Tout arrive prérempli.",
-    tour5Title: "Gratuit pendant 45 jours",
-    tour5Body:
+    line1: "Tout, au même endroit",
+    line2: "Le bon montant, sur la bonne carte",
+    line3: "Passé et futur, d'un coup d'œil",
+    trialBody:
       "Tout est débloqué pendant 45 jours, à compter de votre premier engagement. Ensuite, vous pouvez toujours tout consulter et exporter. L'ajout, la modification, les rappels et les widgets demandent Full Keel : un achat unique, inclus dans le Partage familial.",
-    skip: "Passer",
-    next: "Suivant",
-    continue: "Continuer",
     back: "Retour",
-    methodTitle: "Ajoutez vos premiers engagements",
-    methodPick: "Choisir dans une liste",
-    methodPickSub:
-      "Touchez ce que vous payez. Tout va dans la liste À compléter, que vous terminez quand vous voulez.",
     methodAI: "Importer avec l'IA",
-    methodAISub:
-      "Donnez à une IA une liste en vrac, des captures ou l'export d'une autre app : idéal pour en ajouter beaucoup d'un coup.",
     methodManual: "J'ajouterai au fur et à mesure",
-    methodNote: "Combinez comme vous voulez. La liste Tout permet d'en ajouter à tout moment.",
     pickTitle: "Lesquels payez-vous ?",
     caughtUpTitle: "Tout est à jour",
     caughtUpBody:
       "Tous les services de notre catalogue sont déjà suivis ou en attente dans votre liste À compléter.",
     done: "Terminé",
-    savedTitle: "{{count}} ajoutés à votre liste À compléter",
-    savedBody:
-      "Retrouvez-les sous Tout dans l'onglet Paiements. Chacun ouvre un formulaire prérempli : il ne reste qu'à le compléter.",
-    importedTitle_one: "{{count}} engagement importé",
-    importedTitle_other: "{{count}} engagements importés",
-    importedBody: "À retrouver dans l'onglet Paiements.",
-    addMore: "En ajouter d'autres",
-    methodMoreTitle: "En ajouter d'autres ?",
-    methodDoneForNow: "C'est tout pour l'instant",
-    allSetTitle: "Tout est prêt",
-    allSetBody: "Ajoutez des engagements à tout moment avec le bouton + ci-dessous.",
-    lockOverline: "Une dernière option",
-    startUsing: "Commencer avec Keel",
     lockBody: "Modifiable à tout moment dans les Réglages.",
     lockCta: "Activer",
-    lockOn: "Verrou activé.",
   },
   picker: {
     searchPlaceholder: "Rechercher une marque…",
@@ -755,7 +721,6 @@ export const fr: typeof en = {
       "Ensuite, Keel passe en lecture seule. Full Keel garde tous les outils, au prix d'essai jusque-là.",
     daysLeft_one: "{{count}} jour d'essai restant",
     daysLeft_other: "{{count}} jours d'essai restants",
-    disclosure: "Gratuit 45 jours à partir de votre premier engagement, puis un achat unique.",
     lockedTitle: "Votre essai est terminé",
     lockedBody:
       "Keel est maintenant en lecture seule. Tout ce que vous suiviez est toujours là ; Full Keel rétablit les outils.",

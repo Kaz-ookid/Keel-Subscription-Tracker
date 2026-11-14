@@ -15,6 +15,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { ModalClose } from "../../src/components/ModalClose";
 import { SuggestionPicker } from "../../src/components/SuggestionPicker";
 import { useCustomBank } from "../../src/lib/custom-bank";
+import { prefillParams } from "../../src/lib/suggestions";
 import { useAiHidden } from "../../src/lib/ai-visibility";
 import { useAppData } from "../../src/state/app-state";
 import {
@@ -84,15 +85,7 @@ export default function AddChooserScreen() {
         onPick={(s) =>
           router.push({
             pathname: "/add/form",
-            params: s.id.startsWith("custom-")
-              ? {
-                  name: s.name,
-                  ...(s.categoryId ? { categoryId: s.categoryId } : {}),
-                  ...(s.color ? { color: s.color } : {}),
-                  ...(s.domain ? { domain: s.domain } : {}),
-                  unit: s.unit,
-                }
-              : { pick: s.id },
+            params: s.id.startsWith("custom-") ? prefillParams(s) : { pick: s.id },
           })
         }
         onCreate={(name) => router.push({ pathname: "/add/form", params: name ? { name } : {} })}

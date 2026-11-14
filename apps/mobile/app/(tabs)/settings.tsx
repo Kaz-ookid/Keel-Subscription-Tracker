@@ -121,7 +121,7 @@ export default function SettingsScreen() {
   const [languageMode, setLanguageModeState] = useState<LanguageMode>("system");
   const { granted: remindersOn } = useReminderPermission();
   // App lock: what the device offers (wording + availability) and the live
-  // config from the shared store, so enabling it anywhere (onboarding's nudge
+  // config from the shared store, so enabling it anywhere (the Payments card
   // included) is reflected here without a reload.
   const [authKind, setAuthKind] = useState<AuthKind | null>(null);
   const { enabled: lockEnabled, graceSeconds } = useAppLockConfig();

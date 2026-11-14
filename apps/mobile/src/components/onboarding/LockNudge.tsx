@@ -1,12 +1,12 @@
-// The one quiet, clearly OPTIONAL nudge on onboarding's way out: lock the app.
-// Self-contained — probes what the device can lock with, flips the setting via
-// the OS prompt, and renders nothing when the device can't lock at all. The
-// overline says why this card is here; it never blocks the exit.
+// The one quiet, clearly OPTIONAL nudge to lock the app: a card the Payments
+// screen shows once, after onboarding and a first real item. Self-contained:
+// probes what the device can lock with, flips the setting via the OS prompt,
+// and renders nothing when the device can't lock at all or the lock is on.
 
 import { SymbolView } from "expo-symbols";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 import {
   authenticate,
@@ -18,7 +18,13 @@ import {
 import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 import { Button } from "../ui/Button";
 
-export function LockNudge() {
+interface Props {
+  /** Adds a ✕ to the card: "not now". The caller decides what that retires. */
+  onDismiss?: () => void;
+  style?: StyleProp<ViewStyle>;
+}
+
+export function LockNudge({ onDismiss, style }: Props) {
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
@@ -36,7 +42,7 @@ export function LockNudge() {
     await setAppLockEnabled(true);
   };
 
-  if (kind === null || kind === "unavailable") return null;
+  if (on || kind === null || kind === "unavailable") return null;
 
   const label =
     kind === "faceId"
@@ -46,38 +52,25 @@ export function LockNudge() {
         : t("applock.lockGeneric");
 
   return (
-    <View style={styles.wrap}>
-      <Text style={styles.overline}>{t("onboarding.lockOverline")}</Text>
-      <View style={styles.card}>
-        <SymbolView
-          name={on ? "checkmark.circle.fill" : "faceid"}
-          size={24}
-          tintColor={on ? colors.tones.success : colors.accent}
-        />
-        <View style={styles.texts}>
-          <Text style={styles.title}>{on ? t("onboarding.lockOn") : label}</Text>
-          {!on && <Text style={styles.body}>{t("onboarding.lockBody")}</Text>}
-        </View>
-        {!on && <Button size="sm" label={t("onboarding.lockCta")} onPress={() => void enable()} />}
+    <View style={[styles.card, style]}>
+      <SymbolView name="faceid" size={24} tintColor={colors.accent} />
+      <View style={styles.texts}>
+        <Text style={styles.title}>{label}</Text>
+        <Text style={styles.body}>{t("onboarding.lockBody")}</Text>
       </View>
+      <Button size="sm" label={t("onboarding.lockCta")} onPress={() => void enable()} />
+      {onDismiss && (
+        <Pressable accessibilityLabel={t("common.close")} hitSlop={8} onPress={onDismiss}>
+          <SymbolView name="xmark" size={13} tintColor={colors.mutedText} />
+        </Pressable>
+      )}
     </View>
   );
 }
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    wrap: {
-      alignSelf: "stretch",
-      gap: spacing.xs,
-      marginTop: spacing.md,
-    },
-    overline: {
-      ...typography.caption,
-      color: colors.mutedText,
-      textAlign: "center",
-    },
     card: {
-      alignSelf: "stretch",
       flexDirection: "row",
       alignItems: "center",
       gap: spacing.sm,

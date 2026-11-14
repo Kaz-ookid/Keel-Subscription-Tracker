@@ -1,6 +1,8 @@
 // The first tab: one screen, two zooms. "Upcoming" is the cash-flow timeline
 // (what hits, when, from which account); "All" is the catalog of every item,
-// including ended/paused ones a timeline can't show.
+// including ended/paused ones a timeline can't show. It also opens the
+// first-launch onboarding, and once a first item exists it shows the one-time
+// "lock the app" card under the switcher.
 
 import { useFocusEffect, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
@@ -10,6 +12,7 @@ import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "re
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 
+import { LockNudge } from "../../src/components/onboarding/LockNudge";
 import { closeAllSwipeRows } from "../../src/components/ui/SwipeRow";
 import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
 import { usePager } from "../../src/components/ui/usePager";
@@ -19,7 +22,8 @@ import { SubscriptionsView } from "../../src/components/payments/SubscriptionsVi
 import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { TabFade } from "../../src/components/TabFade";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
-import { wasOnboardingSeen } from "../../src/lib/onboarding";
+import { useAppLockConfig } from "../../src/lib/app-lock";
+import { isLockNudgePending, markLockNudgeDone, wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppData } from "../../src/state/app-state";
 import { spacing, type ThemeColors, useStyles, useTheme, withAlpha } from "../../src/theme";
 
@@ -58,6 +62,28 @@ export default function PaymentsScreen() {
       if (!seen) router.push("/onboarding");
     });
   }, [loading, items, accounts, router]);
+
+  // The lock card: offered ONCE, after onboarding, when a first real item
+  // exists and the lock is off (LockNudge hides itself on a device that can't
+  // lock). Re-read on focus: onboarding closing, or the debug replay, changes
+  // the flags while this screen stays mounted. Dismissing it retires it, and
+  // so does the lock turning on, here or in Settings.
+  const [lockNudge, setLockNudge] = useState(false);
+  const hasItems = items.length > 0;
+  useFocusEffect(
+    useCallback(() => {
+      void isLockNudgePending().then(setLockNudge);
+    }, []),
+  );
+  // Also re-read when the first item lands: the flag is written as
+  // onboarding closes, which can finish after this screen refocused.
+  useEffect(() => {
+    if (hasItems) void isLockNudgePending().then(setLockNudge);
+  }, [hasItems]);
+  const { enabled: lockOn } = useAppLockConfig();
+  useEffect(() => {
+    if (lockOn) void markLockNudgeDone();
+  }, [lockOn]);
 
   // The pills are the shared SegmentedPills, driven LIVE by the pager's
   // progress instead of teleporting on settle; the wash fades out when the
@@ -175,6 +201,15 @@ export default function PaymentsScreen() {
           />
         </Pressable>
       </View>
+      {lockNudge && items.length > 0 && (
+        <LockNudge
+          style={styles.lockNudge}
+          onDismiss={() => {
+            setLockNudge(false);
+            void markLockNudgeDone();
+          }}
+        />
+      )}
 
       {onPills ? (
         <ScrollView
@@ -217,6 +252,7 @@ function createStyles(colors: ThemeColors) {
       paddingTop: spacing.md,
     },
     switch: { flex: 1 },
+    lockNudge: { marginHorizontal: spacing.md, marginTop: spacing.md },
     calendarToggle: {
       width: 40,
       height: 40,

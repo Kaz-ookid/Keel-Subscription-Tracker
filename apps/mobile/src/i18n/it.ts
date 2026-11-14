@@ -651,53 +651,20 @@ export const it: typeof en = {
     groupAbout: "Info",
   },
   onboarding: {
-    tour1Title: "Tutto in un posto solo",
-    tour1Body: "Abbonamenti, bollette e pagamenti a rate. Anche il “paga in 4” e le spese annuali.",
-    tour2Title: "I soldi giusti, sulla carta giusta",
-    tour2Body:
-      "Ogni pagamento è legato a un conto, così vedi cosa esce e da dove, prima che succeda.",
-    tour3Title: "Passato e futuro a colpo d'occhio",
-    tour3Body:
-      "Quello che hai pagato, quello che arriva: per mese, per conto, per categoria. Aumenti inclusi.",
-    tour4Title: "Pronto in pochi minuti",
-    tour4Body:
-      "Scegli tra servizi noti, o lascia che l'IA legga una lista alla buona, screenshot o l'export del tuo vecchio tracker. Tutto arriva precompilato.",
-    tour5Title: "Gratis per 45 giorni",
-    tour5Body:
+    line1: "Tutto in un posto solo",
+    line2: "I soldi giusti, sulla carta giusta",
+    line3: "Passato e futuro a colpo d'occhio",
+    trialBody:
       "Tutto è sbloccato per 45 giorni, contati dalla tua prima voce. Dopo vedi ancora tutto e puoi esportarlo. Per aggiungere, modificare, usare promemoria e widget serve Full Keel: un acquisto unico, condiviso con il tuo gruppo “In famiglia”.",
-    skip: "Salta",
-    next: "Avanti",
-    continue: "Continua",
     back: "Indietro",
-    methodTitle: "Aggiungi le tue prime voci",
-    methodPick: "Scegli da una lista",
-    methodPickSub:
-      "Tocca quello che sai di pagare. Finisce in una lista Da completare, pronta quando vuoi.",
     methodAI: "Importa con l'IA",
-    methodAISub:
-      "Dai all'IA una lista alla buona, screenshot o l'export di un altro tracker: ideale per aggiungere tante voci insieme.",
     methodManual: "Le aggiungo man mano",
-    methodNote: "Puoi combinarli. Altre voci si aggiungono quando vuoi dalla lista Tutti.",
     pickTitle: "Quali di questi paghi?",
     caughtUpTitle: "Hai già tutto",
     caughtUpBody: "Ogni voce della nostra lista è già in Keel o ti aspetta in Da completare.",
     done: "Fine",
-    savedTitle: "{{count}} salvati in Da completare",
-    savedBody:
-      "Li trovi sotto Tutti nella scheda Pagamenti. Ognuno apre il modulo precompilato: un paio di tocchi e hai finito.",
-    importedTitle_one: "{{count}} voce importata",
-    importedTitle_other: "{{count}} voci importate",
-    importedBody: "Le trovi nella scheda Pagamenti.",
-    addMore: "Aggiungi altro",
-    methodMoreTitle: "Aggiungere altro?",
-    methodDoneForNow: "Per ora basta così",
-    allSetTitle: "Tutto pronto",
-    allSetBody: "Puoi aggiungere voci quando vuoi con il tasto + qui sotto.",
-    lockOverline: "Un'ultima cosa, facoltativa",
-    startUsing: "Inizia a usare Keel",
     lockBody: "Puoi cambiare quando vuoi nelle Impostazioni.",
     lockCta: "Attiva",
-    lockOn: "Blocco attivo.",
   },
   picker: {
     searchPlaceholder: "Cerca tra tutti i marchi…",
@@ -751,7 +718,6 @@ export const it: typeof en = {
       "Dopo, Keel passa in sola lettura. Con Full Keel tieni tutti gli strumenti, al prezzo di prova fino ad allora.",
     daysLeft_one: "{{count}} giorno di prova rimasto",
     daysLeft_other: "{{count}} giorni di prova rimasti",
-    disclosure: "Gratis per 45 giorni dalla tua prima voce, poi un acquisto unico.",
     lockedTitle: "La prova è finita",
     lockedBody:
       "Keel ora è in sola lettura. Tutto ciò che seguivi è ancora qui; Full Keel riattiva gli strumenti.",

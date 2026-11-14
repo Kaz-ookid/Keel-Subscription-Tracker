@@ -244,7 +244,7 @@ export default function ImportReviewScreen() {
     }
     clear();
     // Close the WHOLE Add sheet, back to whoever presented it (the tabs,
-    // Settings, or onboarding — which then advances to its done pane).
+    // Settings, or onboarding — which then finishes onto Payments).
     // dismissAll() only pops to the sheet's own first screen, which stranded
     // the user back on the import hub after saving.
     const sheet = navigation.getParent();

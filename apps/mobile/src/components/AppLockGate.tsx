@@ -70,7 +70,7 @@ export function AppLockGate() {
   const awaySince = useRef<number | null>(null);
 
   const tryUnlock = useCallback(async () => {
-    // Any prompt already up (this gate's, onboarding's, Settings') wins.
+    // Any prompt already up (this gate's, the lock card's, Settings') wins.
     if (isAuthenticating()) return;
     setFailed(false);
     const ok = await authenticate(t("applock.prompt"));

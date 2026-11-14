@@ -54,8 +54,6 @@ const LENGTH_EXCEPTIONS: Record<Lang, Record<string, string>> = {
     "storage.saveFailedTitle": REVIEWED,
     "settings.remindersOff": REVIEWED,
     "settings.loadSample": REVIEWED,
-    "onboarding.addMore": REVIEWED,
-    "onboarding.methodMoreTitle": REVIEWED,
     "about.groupLegal": REVIEWED,
     "about.privacy": REVIEWED,
     "about.terms": REVIEWED,
