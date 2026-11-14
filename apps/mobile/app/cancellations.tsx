@@ -7,7 +7,6 @@
 
 import {
   cancelReview,
-  effectiveRecurringAmount,
   formatCalendarDate,
   formatMoney,
   formatTotalsIn,
@@ -146,7 +145,9 @@ export default function CancellationsScreen() {
               return row(
                 c.item,
                 c.yearly,
-                `${formatMoney(effectiveRecurringAmount(schedule, asOf))} ${localizedRecurrence(schedule.recurrence)} · ${t(
+                // The same price the year is built on: left times the cycle
+                // equals right, also with a price change or a trial ahead.
+                `${formatMoney(c.price)} ${localizedRecurrence(schedule.recurrence)} · ${t(
                   "item.since",
                   { date: formatCalendarDate(schedule.firstChargeDate) },
                 )}`,

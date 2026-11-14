@@ -80,6 +80,8 @@ describe("cancelReview", () => {
         regularAmount: fromMajor(12, "CHF"),
       },
     });
-    expect(cancelReview([trial], today).running[0].yearly).toEqual(fromMajor(144, "CHF"));
+    const [row] = cancelReview([trial], today).running;
+    expect(row.price).toEqual(fromMajor(12, "CHF"));
+    expect(row.yearly).toEqual(fromMajor(144, "CHF"));
   });
 });

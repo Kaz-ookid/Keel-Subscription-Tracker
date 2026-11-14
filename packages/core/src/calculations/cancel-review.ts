@@ -14,7 +14,11 @@ import { yearlyEquivalent } from "./insights";
 
 export interface CancelCandidate {
   item: PaymentItem;
-  /** A year at the regular price. */
+  /** One billing at the price the decision is about: the one after an
+   *  announced change or a trial, else today's. `yearly` is a year of it,
+   *  so the two always agree on screen. */
+  price: Money;
+  /** A year at that price. */
   yearly: Money;
   /** A live cancel plan is set. */
   planned: boolean;
@@ -37,9 +41,10 @@ export interface CancelReview {
   stopped: StoppedSubscription[];
 }
 
-// The regular price, not a trial's: a free month still costs its year.
-const yearlyCost = (schedule: RecurringSchedule): Money =>
-  yearlyEquivalent(schedule.introOffer?.regularAmount ?? schedule.amount, schedule.recurrence);
+// The regular price, not a trial's or the one about to change: a free
+// month still costs its year.
+const regularPrice = (schedule: RecurringSchedule): Money =>
+  schedule.introOffer?.regularAmount ?? schedule.amount;
 
 /** Active subscriptions without an end, and every subscription with one.
  *  Paused items are in neither list, like in every forecast; split payments
@@ -49,12 +54,13 @@ export function cancelReview(items: readonly PaymentItem[], asOf: CalendarDate):
   const stopped: StoppedSubscription[] = [];
   for (const item of items) {
     if (!isRecurringSchedule(item.schedule)) continue;
-    const yearly = yearlyCost(item.schedule);
+    const price = regularPrice(item.schedule);
+    const yearly = yearlyEquivalent(price, item.schedule.recurrence);
     const { endDate } = item.schedule;
     if (endDate !== undefined) {
       stopped.push({ item, yearly, endDate, ended: endDate < asOf });
     } else if (item.status === "active" && canCancel(item)) {
-      running.push({ item, yearly, planned: isCancelPlanned(item) });
+      running.push({ item, price, yearly, planned: isCancelPlanned(item) });
     }
   }
   stopped.sort((a, b) => (a.endDate < b.endDate ? 1 : a.endDate > b.endDate ? -1 : 0));
