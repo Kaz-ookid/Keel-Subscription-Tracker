@@ -62,9 +62,11 @@ function shareBackup(state: PersistedState): Promise<void> {
   });
 }
 
-function shareCsv(state: PersistedState): Promise<void> {
+/** A state's items as a Keel spreadsheet in the current language: the
+ *  export, and the form in which a backup's items reach the review screen. */
+export function stateToCsv(state: PersistedState): string {
   const categories: Category[] = [...DEFAULT_CATEGORIES, ...state.categories];
-  const csv = itemsToCsv(state.items, {
+  return itemsToCsv(state.items, {
     asOf: today(),
     labels: csvLabels(),
     decimalComma: getLocales()[0]?.decimalSeparator === ",",
@@ -74,7 +76,10 @@ function shareCsv(state: PersistedState): Promise<void> {
       return category && i18n.t(`categories.${id}`, { defaultValue: category.name });
     },
   });
-  return shareFile(`keel-${today()}.csv`, csv, {
+}
+
+function shareCsv(state: PersistedState): Promise<void> {
+  return shareFile(`keel-${today()}.csv`, stateToCsv(state), {
     mimeType: "text/csv",
     UTI: "public.comma-separated-values-text",
   });

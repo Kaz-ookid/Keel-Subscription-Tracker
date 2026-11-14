@@ -645,6 +645,9 @@ export const en = {
     importCsvEmpty: "No item could be read from this spreadsheet.",
     restoreTitle: "Restore backup",
     restoreMsg: "This replaces everything currently in the app.",
+    restoreChoiceMsg:
+      "Replace everything with this backup, or add its items to your list? Replacing saves your current data in Backup history first. Adding goes through a review and leaves payment history out.",
+    restoreAdd: "Add to my list",
     restoredPartial_one: "Restored. {{count}} entry couldn't be read and was skipped.",
     restoredPartial_other: "Restored. {{count}} entries couldn't be read and were skipped.",
     ratesFooter: "rates {{date}} (ECB)",

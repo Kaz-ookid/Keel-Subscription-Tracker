@@ -709,6 +709,9 @@ const translation = {
     importCsvEmpty: "Z tego arkusza nie udało się odczytać żadnej pozycji.",
     restoreTitle: "Przywróć kopię zapasową",
     restoreMsg: "Zastąpi wszystko, co jest teraz w aplikacji.",
+    restoreChoiceMsg:
+      "Zastąpić wszystko tą kopią czy dodać jej pozycje do twojej listy? Przed zastąpieniem obecne dane trafiają do Historii kopii. Dodawanie przechodzi przez przegląd i nie przenosi historii płatności.",
+    restoreAdd: "Dodaj do listy",
     restoredPartial_one: "Przywrócono. Pominięto {{count}} nieczytelny wpis.",
     restoredPartial_few: "Przywrócono. Pominięto {{count}} nieczytelne wpisy.",
     restoredPartial_many: "Przywrócono. Pominięto {{count}} nieczytelnych wpisów.",

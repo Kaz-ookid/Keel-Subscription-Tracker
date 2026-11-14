@@ -69,7 +69,8 @@ Italian, Polish
   backups with history, manual backups, file export and import, and an
   optional iCloud copy that follows your Apple ID.
 - Spreadsheet export: your list as a CSV file for Excel or Numbers. A Keel
-  CSV can be imported back; its items are added after a review.
+  CSV can be imported back; its items are added after a review. A backup
+  can be added the same way instead of replacing everything.
 - No account, no server, no tracking. Face ID or passcode lock.
 
 ## Principles

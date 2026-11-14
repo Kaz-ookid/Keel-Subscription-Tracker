@@ -647,6 +647,9 @@ export const fr: typeof en = {
     importCsvEmpty: "Aucun élément n'a pu être lu dans cette feuille de calcul.",
     restoreTitle: "Restaurer une sauvegarde",
     restoreMsg: "Remplace tout le contenu actuel de l'app.",
+    restoreChoiceMsg:
+      "Tout remplacer par cette sauvegarde, ou ajouter ses éléments à votre liste ? Avant de remplacer, vos données actuelles sont enregistrées dans l'Historique des sauvegardes. L'ajout passe par une vérification et ne reprend pas l'historique des paiements.",
+    restoreAdd: "Ajouter à ma liste",
     restoredPartial_one: "Restauré. {{count}} entrée illisible a été ignorée.",
     restoredPartial_other: "Restauré. {{count}} entrées illisibles ont été ignorées.",
     ratesFooter: "taux du {{date}} (BCE)",

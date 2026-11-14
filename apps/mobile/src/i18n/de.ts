@@ -648,6 +648,9 @@ export const de: typeof en = {
     importCsvEmpty: "Aus dieser Tabelle konnte kein Eintrag gelesen werden.",
     restoreTitle: "Backup wiederherstellen",
     restoreMsg: "Das ersetzt alles, was gerade in der App ist.",
+    restoreChoiceMsg:
+      "Alles durch dieses Backup ersetzen oder seine Einträge zu deiner Liste hinzufügen? Vor dem Ersetzen werden deine aktuellen Daten im Backup-Verlauf gesichert. Beim Hinzufügen prüfst du die Einträge; der Zahlungsverlauf wird nicht übernommen.",
+    restoreAdd: "Zur Liste hinzufügen",
     restoredPartial_one: "Wiederhergestellt. {{count}} unlesbarer Eintrag wurde übersprungen.",
     restoredPartial_other: "Wiederhergestellt. {{count}} unlesbare Einträge wurden übersprungen.",
     ratesFooter: "Kurse {{date}} (EZB)",

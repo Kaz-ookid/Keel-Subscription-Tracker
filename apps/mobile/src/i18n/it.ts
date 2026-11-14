@@ -645,6 +645,9 @@ export const it: typeof en = {
     importCsvEmpty: "Nessuna voce è stata letta da questo foglio di calcolo.",
     restoreTitle: "Ripristina backup",
     restoreMsg: "Sostituisce tutto ciò che c'è ora nell'app.",
+    restoreChoiceMsg:
+      "Sostituire tutto con questo backup o aggiungere le sue voci alla tua lista? Prima di sostituire, i dati attuali vengono salvati nella Cronologia dei backup. L'aggiunta passa da una verifica e non riporta lo storico dei pagamenti.",
+    restoreAdd: "Aggiungi alla lista",
     restoredPartial_one: "Ripristinato. {{count}} voce illeggibile è stata saltata.",
     restoredPartial_other: "Ripristinato. {{count}} voci illeggibili sono state saltate.",
     ratesFooter: "cambi {{date}} (BCE)",

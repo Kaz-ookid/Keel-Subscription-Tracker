@@ -1,8 +1,9 @@
 // iCloud & data: where the data lives and how it leaves. iCloud sync is a
 // stored preference ahead of the real sync engine (local-first MVP, sync
 // later per PROJECT_BRIEF §9); local backups run daily on their own; export
-// writes a backup or a spreadsheet; import takes either back (a backup
-// replaces everything, a spreadsheet adds its items after a review); and
+// writes a backup or a spreadsheet; import takes either back (a spreadsheet
+// adds its items after a review; a backup replaces everything or, when the
+// app already holds items, can add its own through that same review); and
 // the one truly destructive action lives at the bottom, red, behind a confirm.
 
 import { parseImportDocument, today } from "@keel/core";
@@ -21,7 +22,7 @@ import { IconChip } from "../src/components/ui/IconChip";
 import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { listBackupStamps } from "../src/lib/backups";
-import { DATA_FILE_TYPES, readKeelCsv, showExportChoices } from "../src/lib/data-files";
+import { DATA_FILE_TYPES, readKeelCsv, showExportChoices, stateToCsv } from "../src/lib/data-files";
 import {
   deleteFromICloud,
   downloadFromICloud,
@@ -184,24 +185,28 @@ export default function DataScreen() {
       return failImport("settings.importFailRead");
     }
     // Which kind of file it is gets decided before anything is asked.
-    if (!parsePersistedState(content)) return importCsv(content);
-    Alert.alert(t("settings.restoreTitle"), t("settings.restoreMsg"), [
+    const backup = parsePersistedState(content);
+    if (!backup) return importCsv(content);
+    const restore = () => {
+      const result = importData(content);
+      if (!result.ok) return failImport("settings.importFailNotBackup");
+      showPayments(router);
+      if (result.dropped > 0) {
+        Alert.alert(
+          t("settings.restoreTitle"),
+          t("settings.restoredPartial", { count: result.dropped }),
+        );
+      }
+    };
+    // Nothing to lose, nothing to ask.
+    if (items.length === 0) return restore();
+    // With items already here the backup can replace them, or join them:
+    // its items take the spreadsheet's road to the review screen, where
+    // duplicates are flagged and saving adds. No merge of two histories.
+    Alert.alert(t("settings.restoreTitle"), t("settings.restoreChoiceMsg"), [
+      { text: t("settings.replace"), style: "destructive", onPress: restore },
+      { text: t("settings.restoreAdd"), onPress: () => importCsv(stateToCsv(backup)) },
       { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("settings.replace"),
-        style: "destructive",
-        onPress: () => {
-          const result = importData(content);
-          if (!result.ok) return failImport("settings.importFailNotBackup");
-          showPayments(router);
-          if (result.dropped > 0) {
-            Alert.alert(
-              t("settings.restoreTitle"),
-              t("settings.restoredPartial", { count: result.dropped }),
-            );
-          }
-        },
-      },
     ]);
   };
 
