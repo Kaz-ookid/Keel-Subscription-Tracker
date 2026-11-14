@@ -1,7 +1,9 @@
 // Read-only detail view of a payment item. Tapping a card lands here — a
 // frozen, clean rendering of everything the cards don't show — and editing is
 // an explicit step (the Edit header action opens the form), so checking a
-// detail can never accidentally change one.
+// detail can never accidentally change one. Top to bottom: who it is, the
+// amount with the actions on its next payment, the actions on the
+// subscription itself (pause, cancel), then history and facts to read.
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 import {
@@ -28,6 +30,7 @@ import { SymbolView } from "expo-symbols";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import Animated from "react-native-reanimated";
 
 import { BrandBadge } from "../src/components/BrandBadge";
 import { WheelSheet } from "../src/components/WheelSheet";
@@ -38,6 +41,7 @@ import { useBrandTints } from "../src/lib/dominant-color";
 import { formatHour, fromCalendarDate, toCalendarDate } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
+import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { useRatingPrompt } from "../src/lib/rating";
 import { useAppActions, useAppData } from "../src/state/app-state";
@@ -88,6 +92,8 @@ export default function ItemScreen() {
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const [cancelByOpen, setCancelByOpen] = useState(false);
+  // Closed by default: the trail is for looking back, not for every visit.
+  const [historyOpen, setHistoryOpen] = useState(false);
   // Repaint when a logo's extracted tint lands (dev builds).
   useBrandTints();
   const { items, occurrences, accounts, categories } = useAppData();
@@ -163,7 +169,6 @@ export default function ItemScreen() {
       : item.settlementMode === "manual" &&
         recurring !== undefined &&
         recurring.nextChargeDate > recurring.firstChargeDate);
-  const nextAfterCycle = installment ? plan?.nextDue?.dueDate : recurring?.nextChargeDate;
   // The item's own ledger, newest first — the undoable trail.
   const history = occurrences
     .filter((o) => o.paymentItemId === item.id)
@@ -174,6 +179,11 @@ export default function ItemScreen() {
       ? [plan.paidAmount]
       : history.filter((o) => o.status === "charged").map((o) => o.amount),
   ).filter((m) => m.amount > 0);
+  // The closed history row: how many payments, and what they add up to.
+  const historySummary = [
+    t("byAccount.payments", { count: history.filter((o) => o.status === "charged").length }),
+    ...(paidToDate.length > 0 ? [formatMoneyList(paidToDate)] : []),
+  ].join(" · ");
 
   // Cancelling: a plan ("remind me") and its confirmation ("I've cancelled
   // it"). Keel never cancels anything itself; the sheets say so.
@@ -314,7 +324,6 @@ export default function ItemScreen() {
       {recurring && (
         <Card>
           <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>{t("item.amount")}</Text>
             <Text style={styles.heroAmount}>{formatMoney(recurring.amount)}</Text>
             <Text style={styles.heroCaption}>{localizedRecurrence(recurring.recurrence)}</Text>
           </View>
@@ -333,6 +342,40 @@ export default function ItemScreen() {
               <Text style={styles.infoLabel}>{t("item.nextBilling")}</Text>
               <Text style={styles.heroNext}>
                 {formatCalendarDate(shiftOffWeekend(recurring.nextChargeDate, item.weekendShift))}
+              </Text>
+            </View>
+          )}
+          {/* The next payment's actions sit under its date. Skipping is for
+              flexible commitments ("monthly investing"): the cycle is logged
+              as skipped, not paid, so the analytics stay honest. */}
+          {markable && (
+            <View style={styles.actionRow}>
+              <Button
+                style={styles.actionMain}
+                label={t("common.markPaid")}
+                onPress={() => {
+                  hapticMarkPaid();
+                  markPaid(item.id);
+                  askRating();
+                }}
+              />
+              <Button
+                style={styles.actionSide}
+                variant="secondary"
+                label={t("item.skip")}
+                accessibilityLabel={t("item.skipCycle", {
+                  date: formatCalendarDate(recurring.nextChargeDate),
+                })}
+                onPress={guard(() => skipPayment(item.id))}
+              />
+            </View>
+          )}
+          {/* Already ticked: say so where the buttons were. */}
+          {paidThisCycle && (
+            <View style={[styles.infoRow, styles.paidLine]}>
+              <SymbolView name="checkmark.circle.fill" size={16} tintColor={colors.tones.success} />
+              <Text style={[styles.infoLabel, { color: colors.tones.success }]}>
+                {t("item.paidForCycle")}
               </Text>
             </View>
           )}
@@ -452,207 +495,221 @@ export default function ItemScreen() {
         </Card>
       )}
 
-      {/* The recurring counterpart of the installments list: what was paid or
-          skipped, newest first — and the place to undo a mistaken tick. */}
-      {recurring && history.length > 0 && (
+      {/* What changes the subscription itself, right under its amount. Splits
+          have none of this: pausing an installment plan means nothing (the
+          money is owed either way). */}
+      {cancelPlan && cancelBy && (
         <Card>
-          <View style={styles.cardTitleRow}>
-            <Text style={styles.cardTitle}>{t("item.history")}</Text>
-            {item.settlementMode === "manual" && (
-              <Button
-                size="sm"
-                label={t("common.undoLast")}
-                onPress={() => {
-                  hapticMarkPaid();
-                  undoPaid(item.id);
-                }}
-              />
-            )}
+          <InfoRow
+            first
+            label={t("cancel.cancelBy")}
+            value={formatCalendarDate(cancelBy)}
+            styles={styles}
+            onPress={guard(askCancelBy)}
+          />
+          <View style={styles.actionRow}>
+            <Button
+              style={styles.actionHalf}
+              label={t("cancel.done")}
+              onPress={guard(askLastPayment)}
+            />
+            <Button
+              style={styles.actionHalf}
+              variant="secondary"
+              label={t("cancel.keep")}
+              onPress={guard(() => keepSubscription(item.id))}
+            />
           </View>
-          {history.map((o) => (
-            <View key={o.id} style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{formatCalendarDate(o.dueDate)}</Text>
-              <View style={styles.installmentRight}>
-                <Text
-                  style={[
-                    styles.infoValue,
-                    o.status === "skipped" && {
-                      color: colors.mutedText,
-                      textDecorationLine: "line-through",
-                    },
-                  ]}
-                >
-                  {formatMoney(o.amount)}
+        </Card>
+      )}
+      {!complete && recurring && (
+        <View style={styles.pairRow}>
+          <Button
+            style={styles.actionHalf}
+            variant="secondary"
+            label={paused ? t("item.resume") : t("item.pause")}
+            onPress={guard(() =>
+              paused ? resumeSubscription(item.id) : pauseSubscription(item.id),
+            )}
+          />
+          {cancellable && !cancelPlan && (
+            <Button
+              style={styles.actionHalf}
+              variant="secondary"
+              label={t("cancel.start")}
+              onPress={guard(askCancel)}
+            />
+          )}
+        </View>
+      )}
+
+      {/* The recurring counterpart of the installments list: what was paid or
+          skipped, newest first, and the place to undo a mistaken tick. One
+          closed row until asked for: the count and the total are the answer
+          most visits want. */}
+      {recurring && history.length > 0 && (
+        <Animated.View layout={foldLayout}>
+          <Card>
+            <Pressable
+              style={styles.cardTitleRow}
+              onPress={() => setHistoryOpen((open) => !open)}
+              accessibilityRole="button"
+              accessibilityState={{ expanded: historyOpen }}
+            >
+              <Text style={styles.cardTitle}>{t("item.history")}</Text>
+              <View style={styles.historyRight}>
+                <Text style={styles.historySummary} numberOfLines={1}>
+                  {historySummary}
                 </Text>
                 <SymbolView
-                  name={o.status === "skipped" ? "arrow.right.to.line" : "checkmark.circle.fill"}
-                  size={16}
-                  tintColor={o.status === "skipped" ? colors.mutedText : colors.tones.success}
+                  name={historyOpen ? "chevron.up" : "chevron.down"}
+                  size={11}
+                  tintColor={colors.mutedText}
                 />
               </View>
-            </View>
-          ))}
-        </Card>
+            </Pressable>
+            {historyOpen && (
+              <Animated.View entering={foldIn} exiting={foldOut}>
+                {item.settlementMode === "manual" && (
+                  <View style={[styles.infoRow, styles.undoRow]}>
+                    <Button
+                      size="sm"
+                      label={t("common.undoLast")}
+                      onPress={() => {
+                        hapticMarkPaid();
+                        undoPaid(item.id);
+                      }}
+                    />
+                  </View>
+                )}
+                {history.map((o) => (
+                  <View key={o.id} style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>{formatCalendarDate(o.dueDate)}</Text>
+                    <View style={styles.installmentRight}>
+                      <Text
+                        style={[
+                          styles.infoValue,
+                          o.status === "skipped" && {
+                            color: colors.mutedText,
+                            textDecorationLine: "line-through",
+                          },
+                        ]}
+                      >
+                        {formatMoney(o.amount)}
+                      </Text>
+                      <SymbolView
+                        name={
+                          o.status === "skipped" ? "arrow.right.to.line" : "checkmark.circle.fill"
+                        }
+                        size={16}
+                        tintColor={o.status === "skipped" ? colors.mutedText : colors.tones.success}
+                      />
+                    </View>
+                  </View>
+                ))}
+              </Animated.View>
+            )}
+          </Card>
+        </Animated.View>
       )}
 
-      {/* Price changes over time (edge case #1) — only when there were any. */}
-      {recurring && recurring.priceHistory.length > 1 && (
-        <Card>
-          <Text style={styles.cardTitle}>{t("item.priceHistory")}</Text>
-          {recurring.priceHistory.map((entry, i) => (
-            <InfoRow
-              key={`${entry.effectiveFrom}-${i}`}
-              label={t("item.since", { date: formatCalendarDate(entry.effectiveFrom) })}
-              value={formatMoney(entry.amount)}
-              styles={styles}
-            />
-          ))}
-        </Card>
-      )}
-
-      {/* The rest of the facts, out of the way at the bottom. */}
-      <Card>
-        <View style={styles.cardTitleRow}>
-          <Text style={styles.cardTitle}>{t("item.details")}</Text>
-        </View>
-        {recurring && (
-          <>
-            <InfoRow
-              label={t("add.firstBilling")}
-              value={formatCalendarDate(recurring.firstChargeDate)}
-              styles={styles}
-            />
-            <InfoRow
-              label={t("add.lastBilling")}
-              value={recurring.endDate ? formatCalendarDate(recurring.endDate) : t("common.never")}
-              styles={styles}
-            />
-            {cancelPlan && cancelBy && (
+      {/* Everything under the history slides with its fold. */}
+      <Animated.View layout={foldLayout} style={styles.below}>
+        {/* Price changes over time (edge case #1) — only when there were any. */}
+        {recurring && recurring.priceHistory.length > 1 && (
+          <Card>
+            <Text style={styles.cardTitle}>{t("item.priceHistory")}</Text>
+            {recurring.priceHistory.map((entry, i) => (
               <InfoRow
-                label={t("cancel.cancelBy")}
-                value={formatCalendarDate(cancelBy)}
+                key={`${entry.effectiveFrom}-${i}`}
+                label={t("item.since", { date: formatCalendarDate(entry.effectiveFrom) })}
+                value={formatMoney(entry.amount)}
                 styles={styles}
-                onPress={guard(askCancelBy)}
               />
-            )}
-          </>
+            ))}
+          </Card>
         )}
-        {installment && (
-          <>
+
+        {/* The rest of the facts, out of the way at the bottom. */}
+        <Card>
+          <View style={styles.cardTitleRow}>
+            <Text style={styles.cardTitle}>{t("item.details")}</Text>
+          </View>
+          {recurring && (
+            <>
+              <InfoRow
+                label={t("add.firstBilling")}
+                value={formatCalendarDate(recurring.firstChargeDate)}
+                styles={styles}
+              />
+              <InfoRow
+                label={t("add.lastBilling")}
+                value={
+                  recurring.endDate ? formatCalendarDate(recurring.endDate) : t("common.never")
+                }
+                styles={styles}
+              />
+            </>
+          )}
+          {installment && (
+            <>
+              <InfoRow
+                label={t("item.cycle")}
+                value={localizedRecurrence(installment.recurrence)}
+                styles={styles}
+              />
+              {installment.provider && (
+                <InfoRow label={t("add.provider")} value={installment.provider} styles={styles} />
+              )}
+            </>
+          )}
+          {/* A subscription's total is on its History row. */}
+          {installment && paidToDate.length > 0 && (
             <InfoRow
-              label={t("item.cycle")}
-              value={localizedRecurrence(installment.recurrence)}
+              label={t("item.paidToDate")}
+              value={formatMoneyList(paidToDate)}
               styles={styles}
             />
-            {installment.provider && (
-              <InfoRow label={t("add.provider")} value={installment.provider} styles={styles} />
-            )}
-          </>
-        )}
-        {paidToDate.length > 0 && (
+          )}
           <InfoRow
-            label={t("item.paidToDate")}
-            value={formatMoneyList(paidToDate)}
+            label={t("add.account")}
+            value={account?.name ?? t("common.none")}
             styles={styles}
           />
-        )}
-        <InfoRow
-          label={t("add.account")}
-          value={account?.name ?? t("common.none")}
-          styles={styles}
-        />
-        <InfoRow
-          label={t("add.category")}
-          value={
-            category
-              ? t(`categories.${category.id}`, { defaultValue: category.name })
-              : t("common.none")
-          }
-          styles={styles}
-        />
-        <InfoRow
-          label={t("add.reminder")}
-          value={
-            reminderRules(item).length > 0
-              ? reminderRules(item)
-                  .map(
-                    (rule) =>
-                      t("add.reminderDayBefore", { count: rule.daysBefore }) +
-                      (rule.repeat !== undefined
-                        ? ` (${t(rule.repeat === "daily" ? "add.repeatDaily" : "add.repeatWeekly").toLowerCase()})`
-                        : "") +
-                      (rule.hour !== undefined ? ` · ${formatHour(rule.hour)}` : ""),
-                  )
-                  .join(", ")
-              : t("common.never")
-          }
-          styles={styles}
-        />
-        {item.notes ? (
-          <InfoRow label={t("add.description")} value={item.notes} styles={styles} />
-        ) : null}
-      </Card>
-
-      {/* Buttons. Splits have none of these except delete: their payments
-          are marked row by row, and pausing an installment plan means
-          nothing (the money is owed either way). */}
-      {markable && recurring && (
-        <Button
-          label={t("common.markPaid")}
-          onPress={() => {
-            hapticMarkPaid();
-            markPaid(item.id);
-            askRating();
-          }}
-        />
-      )}
-      {/* Flexible commitments ("monthly investing") can sit a cycle out —
-          skipped, not paid: the month stays honest in the analytics. */}
-      {markable && recurring && (
-        <Button
-          variant="secondary"
-          label={t("item.skipCycle", { date: formatCalendarDate(recurring.nextChargeDate) })}
-          onPress={guard(() => skipPayment(item.id))}
-        />
-      )}
-      {paidThisCycle && recurring && (
-        <Button
-          variant="secondary"
-          disabled
-          label={
-            t("item.paidForCycle") +
-            (nextAfterCycle
-              ? t("item.nextAfter", { date: formatCalendarDate(nextAfterCycle) })
-              : "")
-          }
-          onPress={() => {}}
-        />
-      )}
-
-      {!complete && recurring && (
-        <Button
-          variant="secondary"
-          label={paused ? t("item.resume") : t("item.pause")}
-          onPress={guard(() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id)))}
-        />
-      )}
-
-      {cancelPlan ? (
-        <>
-          <Button label={t("cancel.done")} onPress={guard(askLastPayment)} />
-          <Button
-            variant="secondary"
-            label={t("cancel.keep")}
-            onPress={guard(() => keepSubscription(item.id))}
+          <InfoRow
+            label={t("add.category")}
+            value={
+              category
+                ? t(`categories.${category.id}`, { defaultValue: category.name })
+                : t("common.none")
+            }
+            styles={styles}
           />
-        </>
-      ) : (
-        cancellable && (
-          <Button variant="secondary" label={t("cancel.start")} onPress={guard(askCancel)} />
-        )
-      )}
+          <InfoRow
+            label={t("add.reminder")}
+            value={
+              reminderRules(item).length > 0
+                ? reminderRules(item)
+                    .map(
+                      (rule) =>
+                        t("add.reminderDayBefore", { count: rule.daysBefore }) +
+                        (rule.repeat !== undefined
+                          ? ` (${t(rule.repeat === "daily" ? "add.repeatDaily" : "add.repeatWeekly").toLowerCase()})`
+                          : "") +
+                        (rule.hour !== undefined ? ` · ${formatHour(rule.hour)}` : ""),
+                    )
+                    .join(", ")
+                : t("common.never")
+            }
+            styles={styles}
+          />
+          {item.notes ? (
+            <InfoRow label={t("add.description")} value={item.notes} styles={styles} />
+          ) : null}
+        </Card>
 
-      <Button variant="destructive" label={t("common.delete")} onPress={guard(confirmDelete)} />
+        <Button variant="destructive" label={t("common.delete")} onPress={guard(confirmDelete)} />
+      </Animated.View>
 
       {/* The cancel-by date, for a notice period: any day from today. */}
       <WheelSheet
@@ -736,6 +793,30 @@ function createStyles(colors: ThemeColors) {
     infoLabel: { ...typography.body, color: colors.mutedText },
     infoValue: { ...typography.body, color: colors.text, flexShrink: 1, textAlign: "right" },
     infoValueAction: { color: colors.accent },
+    // Buttons side by side: inside a card (under the row they act on) or
+    // freestanding. Equal halves, except Mark paid, which leads.
+    actionRow: {
+      flexDirection: "row",
+      gap: spacing.sm,
+      paddingTop: spacing.xs,
+      paddingBottom: spacing.sm,
+    },
+    pairRow: { flexDirection: "row", gap: spacing.sm },
+    actionMain: { flex: 2 },
+    actionSide: { flex: 1 },
+    actionHalf: { flex: 1 },
+    paidLine: { justifyContent: "center", gap: spacing.sm },
+    historyRight: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "flex-end",
+      gap: spacing.sm,
+      paddingLeft: spacing.md,
+    },
+    historySummary: { ...typography.caption, color: colors.mutedText, flexShrink: 1 },
+    undoRow: { justifyContent: "flex-end" },
+    below: { gap: spacing.md },
     // The native date wheel's own height (as in the add form).
     dateWheel: { height: 216 },
     installmentRight: {
