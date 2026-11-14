@@ -443,6 +443,9 @@ export const it: typeof en = {
     paidForCycle: "Pagato per questo ciclo",
     resume: "Riprendi",
     pause: "Metti in pausa",
+    pauseHint: "Per una pausa nei pagamenti. Esce dai totali e dai promemoria finché non riprendi.",
+    resumeHint:
+      "In pausa: niente viene contato né ricordato. Riprendi quando ricominciano i pagamenti.",
   },
   insights: {
     yearInTotal: "{{year}} in totale",
@@ -963,7 +966,8 @@ export const it: typeof en = {
       "Ecco il testo estratto da ciò che hai scelto. Controllalo, togli ciò che non serve o è privato, poi invia: meno testo, lettura migliore.",
   },
   cancel: {
-    start: "Vuoi disdire?",
+    start: "Disdici questo abbonamento",
+    startHint: "Keel te lo ricorda in tempo e registra la fine. Non disdice mai al posto tuo.",
     sheetNote: "Keel non disdice nulla al posto tuo. Tiene traccia e te lo ricorda.",
     remindMe: "Ricordami di disdire",
     done: "L'ho disdetto",

@@ -443,6 +443,10 @@ export const fr: typeof en = {
     paidForCycle: "Échéance payée",
     resume: "Reprendre",
     pause: "Mettre en pause",
+    pauseHint:
+      "Pour une interruption des paiements. L'abonnement sort de vos totaux et de vos rappels jusqu'à la reprise.",
+    resumeHint:
+      "En pause : rien n'est compté ni rappelé. Reprenez quand les paiements recommencent.",
   },
   insights: {
     yearInTotal: "Total {{year}}",
@@ -966,7 +970,8 @@ export const fr: typeof en = {
       "Voici le texte extrait de ce que vous avez choisi. Vérifiez-le, retirez l'inutile et ce qui est privé, puis envoyez : moins il y a de texte, meilleure est la lecture.",
   },
   cancel: {
-    start: "Résilier ?",
+    start: "Résilier cet abonnement",
+    startHint: "Keel vous le rappelle à temps et note la fin. Il ne résilie jamais à votre place.",
     sheetNote: "Keel ne résilie rien à votre place. Il suit la résiliation et vous la rappelle.",
     remindMe: "Me rappeler de résilier",
     done: "C'est résilié",

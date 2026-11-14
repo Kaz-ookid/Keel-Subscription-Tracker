@@ -444,6 +444,8 @@ export const en = {
     paidForCycle: "Paid for this cycle",
     resume: "Resume",
     pause: "Pause",
+    pauseHint: "For a break in payments. It leaves your totals and reminders until you resume.",
+    resumeHint: "Paused: nothing is counted or reminded. Resume when payments start again.",
   },
   insights: {
     yearInTotal: "{{year}} in total",
@@ -963,7 +965,8 @@ export const en = {
       "Here is the text from what you picked. Check it, cut what doesn't matter and anything private, then send: less text reads better.",
   },
   cancel: {
-    start: "Cancelling?",
+    start: "Cancel this subscription",
+    startHint: "Keel reminds you in time and records the end. It never cancels for you.",
     sheetNote: "Keel does not cancel anything for you. It keeps track and reminds you.",
     remindMe: "Remind me to cancel",
     done: "I've cancelled it",

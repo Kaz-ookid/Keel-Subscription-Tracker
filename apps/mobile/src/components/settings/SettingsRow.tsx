@@ -18,6 +18,9 @@ interface Props {
   icon: string;
   chipColor: string;
   label: string;
+  /** One sentence under the label, for a row whose name alone does not
+   *  say what a tap does (the item screen's Pause and Cancel). */
+  hint?: string;
   /** Muted trailing text (current value); renders before the chevron. */
   value?: string;
   /** Rows that navigate show the chevron; toggles don't. */
@@ -33,6 +36,7 @@ export function SettingsRow({
   icon,
   chipColor,
   label,
+  hint,
   value,
   chevron,
   divider,
@@ -44,7 +48,14 @@ export function SettingsRow({
   const content = (
     <>
       <IconChip icon={icon} color={chipColor} />
-      <Text style={styles.rowText}>{label}</Text>
+      {hint === undefined ? (
+        <Text style={styles.rowText}>{label}</Text>
+      ) : (
+        <View style={styles.rowTextBlock}>
+          <Text style={styles.rowLabel}>{label}</Text>
+          <Text style={styles.rowHint}>{hint}</Text>
+        </View>
+      )}
       {value !== undefined && <Text style={styles.rowValue}>{value}</Text>}
       {right}
       {chevron && <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />}
@@ -72,6 +83,9 @@ function createStyles(colors: ThemeColors) {
       color: colors.text,
       flex: 1,
     },
+    rowTextBlock: { flex: 1, gap: 2 },
+    rowLabel: { ...typography.body, color: colors.text },
+    rowHint: { ...typography.caption, color: colors.mutedText },
     rowValue: {
       ...typography.body,
       color: colors.mutedText,

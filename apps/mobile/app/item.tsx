@@ -34,6 +34,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import Animated from "react-native-reanimated";
 
 import { BrandBadge } from "../src/components/BrandBadge";
+import { SettingsRow } from "../src/components/settings/SettingsRow";
 import { WheelSheet } from "../src/components/WheelSheet";
 import { Button } from "../src/components/ui/Button";
 import { Card } from "../src/components/ui/Card";
@@ -56,6 +57,10 @@ import {
 } from "../src/theme";
 
 import { useLockGuard } from "../src/lib/lock-gate";
+
+// iOS light-tier hexes, like every icon-chip list (see ui/IconChip).
+const CHIP = { pause: "#5E5CE6", resume: "#34C759", cancel: "#FF9500" } as const;
+
 function InfoRow({
   label,
   value,
@@ -536,24 +541,30 @@ export default function ItemScreen() {
         </Card>
       )}
       {!complete && recurring && (
-        <View style={styles.pairRow}>
-          <Button
-            style={styles.actionHalf}
-            variant="secondary"
+        <Card>
+          {/* Rows with a sentence each, not bare buttons: "Pause" and
+              "Cancel" alone told a new user nothing, and "Cancel" scared
+              (retex 2026-11-15). */}
+          <SettingsRow
+            icon={paused ? "play.fill" : "pause.fill"}
+            chipColor={paused ? CHIP.resume : CHIP.pause}
             label={paused ? t("item.resume") : t("item.pause")}
+            hint={paused ? t("item.resumeHint") : t("item.pauseHint")}
             onPress={guard(() =>
               paused ? resumeSubscription(item.id) : pauseSubscription(item.id),
             )}
           />
           {cancellable && !cancelPlan && (
-            <Button
-              style={styles.actionHalf}
-              variant="secondary"
+            <SettingsRow
+              divider
+              icon="xmark"
+              chipColor={CHIP.cancel}
               label={t("cancel.start")}
+              hint={t("cancel.startHint")}
               onPress={guard(askCancel)}
             />
           )}
-        </View>
+        </Card>
       )}
 
       {/* The recurring counterpart of the installments list: what was paid or
@@ -807,15 +818,14 @@ function createStyles(colors: ThemeColors) {
     infoLabel: { ...typography.body, color: colors.mutedText },
     infoValue: { ...typography.body, color: colors.text, flexShrink: 1, textAlign: "right" },
     infoValueAction: { color: colors.accent },
-    // Buttons side by side: inside a card (under the row they act on) or
-    // freestanding. Equal halves, except Mark paid, which leads.
+    // Buttons side by side inside a card, under the row they act on.
+    // Equal halves, except Mark paid, which leads.
     actionRow: {
       flexDirection: "row",
       gap: spacing.sm,
       paddingTop: spacing.xs,
       paddingBottom: spacing.sm,
     },
-    pairRow: { flexDirection: "row", gap: spacing.sm },
     actionMain: { flex: 2 },
     actionSide: { flex: 1 },
     actionHalf: { flex: 1 },

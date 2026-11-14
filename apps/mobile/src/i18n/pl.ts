@@ -497,6 +497,8 @@ const translation = {
     paidForCycle: "Opłacone za ten cykl",
     resume: "Wznów",
     pause: "Wstrzymaj",
+    pauseHint: "Na przerwę w płatnościach. Znika z sum i przypomnień, dopóki nie wznowisz.",
+    resumeHint: "Wstrzymane: nic nie jest liczone ani przypominane. Wznów, gdy płatności wrócą.",
   },
   insights: {
     yearInTotal: "{{year}} łącznie",
@@ -1048,7 +1050,8 @@ const translation = {
       "Automatycznie usunięto dane osobowe: {{count}} ({{kinds}}). Nazwiska i adresy nie są wykrywane, usuń je samodzielnie.",
   },
   cancel: {
-    start: "Rezygnujesz?",
+    start: "Anuluj tę subskrypcję",
+    startHint: "Keel przypomni na czas i zapisze koniec. Nigdy nie anuluje za ciebie.",
     sheetNote: "Keel niczego nie anuluje za ciebie. Pilnuje terminu i przypomina.",
     remindMe: "Przypomnij mi o anulowaniu",
     done: "Już anulowane",

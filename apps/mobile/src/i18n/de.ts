@@ -445,6 +445,10 @@ export const de: typeof en = {
     paidForCycle: "Für diesen Zyklus bezahlt",
     resume: "Fortsetzen",
     pause: "Pausieren",
+    pauseHint:
+      "Für eine Zahlungspause. Das Abo zählt nicht mehr in deinen Summen und Erinnerungen, bis du es fortsetzt.",
+    resumeHint:
+      "Pausiert: Nichts wird gezählt oder erinnert. Setze fort, sobald wieder gezahlt wird.",
   },
   insights: {
     yearInTotal: "{{year}} gesamt",
@@ -970,7 +974,9 @@ export const de: typeof en = {
       "Hier ist der Text aus deiner Auswahl. Prüfe ihn, streiche Unwichtiges und Privates und sende ihn dann. Mit weniger Text klappt das Lesen besser.",
   },
   cancel: {
-    start: "Kündigen?",
+    start: "Dieses Abo kündigen",
+    startHint:
+      "Keel erinnert dich rechtzeitig und hält das Ende fest. Gekündigt wird nie für dich.",
     sheetNote: "Keel kündigt nichts für dich. Es merkt sich die Kündigung und erinnert dich.",
     remindMe: "Ans Kündigen erinnern",
     done: "Ist gekündigt",
