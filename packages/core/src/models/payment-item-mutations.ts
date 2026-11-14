@@ -154,11 +154,16 @@ export function updateRecurringPaymentItem(
           ];
   }
 
-  return {
+  const next: PaymentItem = {
     ...rebuilt,
     createdAt: existing.createdAt,
+    // An edit is not a resume: the factory builds an active item, and a
+    // paused one flipping to active here had its paused months logged as
+    // paid by the catch-up that follows.
+    status: existing.status === "paused" ? "paused" : rebuilt.status,
     schedule: { ...rebuilt.schedule, nextChargeDate, priceHistory },
   };
+  return next;
 }
 
 /**
@@ -233,6 +238,8 @@ export function updateInstallmentPaymentItem(
   return {
     ...rebuilt,
     createdAt: existing.createdAt,
+    // An edit is not a resume (see updateRecurringPaymentItem).
+    status: existing.status === "paused" ? "paused" : rebuilt.status,
     schedule: { ...rebuilt.schedule, installments },
   };
 }

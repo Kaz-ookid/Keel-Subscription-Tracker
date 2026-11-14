@@ -705,6 +705,19 @@ describe("unmarkLastInstallmentPaid", () => {
 });
 
 describe("pause / resume", () => {
+  it("stays paused through an edit, so the paused months are never caught up as paid", () => {
+    const paused = pausePaymentItem(makeRecurringPaymentItem(input, { id: "r1", now: now() }), {
+      now: now(),
+    });
+    const edited = updateRecurringPaymentItem(
+      paused,
+      { ...input, name: "Renamed" },
+      { now: now() },
+    );
+    expect(edited.status).toBe("paused");
+    expect(edited.name).toBe("Renamed");
+  });
+
   it("pauses an active item and resumes without back-charging the gap", () => {
     const item = makeRecurringPaymentItem(input, { id: "r1", now: now() });
     const paused = pausePaymentItem(item, { now: now() });
