@@ -34,6 +34,7 @@ const GROUPS: {
     rows: [
       { key: "trial", icon: "hourglass", color: "#FF9500" },
       { key: "priceChange", icon: "chart.line.uptrend.xyaxis", color: "#FF3B30" },
+      { key: "cancel", icon: "xmark.circle.fill", color: "#FF9F0A" },
       { key: "reminders", icon: "bell.fill", color: "#AF52DE" },
       { key: "weekend", icon: "calendar.circle.fill", color: "#34C759" },
       { key: "digest", icon: "tray.full.fill", color: "#007AFF" },

@@ -1,6 +1,7 @@
 import {
   DEFAULT_CATEGORIES,
   formatTotalsIn,
+  isCancelPlanned,
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
@@ -172,6 +173,14 @@ export function SubscriptionsView() {
 
   const asOf = today();
   const commitments = summarizeCommitments(items, asOf);
+  // With cancellations planned: what the monthly commitment becomes.
+  const cancelling = items.some(isCancelPlanned);
+  const afterCancellations = cancelling
+    ? summarizeCommitments(
+        items.filter((i) => !isCancelPlanned(i)),
+        asOf,
+      ).monthly
+    : [];
 
   // Finished items always sink to the bottom; within the live ones the
   // chosen order applies. The default is the day of the month each item
@@ -219,11 +228,18 @@ export function SubscriptionsView() {
                   : t("allList.nothingYet")
               }
               sub={
-                commitments.bnplOutstanding.length > 0
-                  ? t("allList.bnplOwed", {
+                [
+                  cancelling &&
+                    t("cancel.heroAfter", {
+                      amount: formatTotalsIn(afterCancellations, displayCurrency, rates),
+                    }),
+                  commitments.bnplOutstanding.length > 0 &&
+                    t("allList.bnplOwed", {
                       amount: formatTotalsIn(commitments.bnplOutstanding, displayCurrency, rates),
-                    })
-                  : undefined
+                    }),
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || undefined
               }
             />
           )}

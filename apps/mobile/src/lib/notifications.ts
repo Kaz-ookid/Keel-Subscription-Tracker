@@ -277,18 +277,33 @@ async function runSync(items: readonly PaymentItem[]): Promise<void> {
         content: {
           title: discreet ? "Keel" : reminder.name,
           body: discreet
-            ? i18n.t("notifications.lockedBody")
-            : reminder.kind === "trialEnd" || reminder.kind === "priceChange"
+            ? i18n.t(
+                reminder.kind === "cancelBy"
+                  ? "notifications.lockedCancelBody"
+                  : "notifications.lockedBody",
+              )
+            : reminder.kind === "cancelBy"
               ? i18n.t(
-                  reminder.kind === "trialEnd"
-                    ? "notifications.trialBody"
-                    : "notifications.priceChangeBody",
+                  // On the deadline itself the date is "today": say so.
+                  reminder.fireDate >= reminder.dueDate
+                    ? "notifications.cancelLastDayBody"
+                    : "notifications.cancelBody",
                   {
                     amount: formatMoney(reminder.amount),
                     date: formatCalendarDate(reminder.dueDate),
                   },
                 )
-              : dueBody(formatMoney(reminder.amount), reminder.dueDate, reminder.fireDate),
+              : reminder.kind === "trialEnd" || reminder.kind === "priceChange"
+                ? i18n.t(
+                    reminder.kind === "trialEnd"
+                      ? "notifications.trialBody"
+                      : "notifications.priceChangeBody",
+                    {
+                      amount: formatMoney(reminder.amount),
+                      date: formatCalendarDate(reminder.dueDate),
+                    },
+                  )
+                : dueBody(formatMoney(reminder.amount), reminder.dueDate, reminder.fireDate),
           data: { itemId: reminder.paymentItemId },
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },

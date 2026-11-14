@@ -1,6 +1,7 @@
 import {
   addRecurrence,
   calendarDate,
+  cancelPlansAhead,
   canMarkPaid,
   COVERED_INSTALLMENT_STATUSES,
   endOfMonth,
@@ -9,8 +10,10 @@ import {
   isInstallmentSchedule,
   projectCharges,
   sumByCurrency,
+  summarizeCommitments,
   today,
   type CalendarDate,
+  type PaymentItem,
   type ProjectedCharge,
   formatMoney,
   priceChangesAhead,
@@ -268,6 +271,35 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   // Price moves and trial ends inside three months: the one thing the
   // timeline cannot show as a charge, so it gets its own block on top.
   const changes = priceChangesAhead(items, asOf);
+  // What the user means to cancel, and what that frees each month.
+  const cancels = cancelPlansAhead(items, asOf);
+  const freed = summarizeCommitments(
+    cancels.map((c) => c.item),
+    asOf,
+  ).monthly;
+  // The two notice blocks share one row: a badge, a name, one line.
+  const noticeRow = (item: PaymentItem, line: string, warn = false) => (
+    <Pressable
+      key={item.id}
+      style={styles.changeRow}
+      onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
+    >
+      <BrandBadge
+        domain={item.domain}
+        icon={item.icon}
+        fallback={item.name.charAt(0).toUpperCase()}
+        color={item.color ?? colors.accent}
+        size={32}
+      />
+      <View style={styles.changeText}>
+        <Text style={styles.changeName} numberOfLines={1}>
+          {item.name}
+        </Text>
+        <Text style={[styles.changeLine, warn && { color: colors.tones.warning }]}>{line}</Text>
+      </View>
+      <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
+    </Pressable>
+  );
 
   const heroLabel = selectedAccount
     ? t("upcoming.heroNeeds", { name: selectedAccount.name })
@@ -306,33 +338,36 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
               <Text style={styles.sectionTitle}>{t("upcoming.changesAhead")}</Text>
             </View>
           </View>
-          {changes.map((change) => (
-            <Pressable
-              key={change.item.id}
-              style={styles.changeRow}
-              onPress={() => router.push({ pathname: "/item", params: { id: change.item.id } })}
-            >
-              <BrandBadge
-                domain={change.item.domain}
-                icon={change.item.icon}
-                fallback={change.item.name.charAt(0).toUpperCase()}
-                color={change.item.color ?? colors.accent}
-                size={32}
-              />
-              <View style={styles.changeText}>
-                <Text style={styles.changeName} numberOfLines={1}>
-                  {change.item.name}
-                </Text>
-                <Text style={styles.changeLine}>
-                  {t(change.kind === "trialEnd" ? "importAI.trialLine" : "importAI.changeLine", {
-                    amount: formatMoney(change.to),
-                    date: formatCalendarDate(change.on),
-                  })}
-                </Text>
-              </View>
-              <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
-            </Pressable>
-          ))}
+          {changes.map((change) =>
+            noticeRow(
+              change.item,
+              t(change.kind === "trialEnd" ? "importAI.trialLine" : "importAI.changeLine", {
+                amount: formatMoney(change.to),
+                date: formatCalendarDate(change.on),
+              }),
+            ),
+          )}
+        </View>
+      )}
+      {cancels.length > 0 && (
+        <View>
+          <View style={styles.sectionHeaderWrap}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{t("cancel.sectionTitle")}</Text>
+              <Text style={styles.sectionTotal}>
+                {t("cancel.frees", { amount: totals(freed) })}
+              </Text>
+            </View>
+          </View>
+          {cancels.map((plan) =>
+            noticeRow(
+              plan.item,
+              plan.passed
+                ? t("cancel.rowPassed")
+                : t("cancel.rowBy", { date: formatCalendarDate(plan.deadline) }),
+              plan.passed,
+            ),
+          )}
         </View>
       )}
       {sections.length === 0 && (

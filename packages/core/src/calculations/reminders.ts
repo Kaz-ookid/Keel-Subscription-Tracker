@@ -13,14 +13,17 @@ import {
   isRecurringSchedule,
   type PaymentItem,
 } from "../models/payment-item";
+import { cancelDeadline, isCancelPlanned } from "../models/cancel-plan";
 import { isPaymentItemComplete } from "../models/payment-item-status";
 import { summarizeInstallmentPlan } from "../models/installment-plan";
 
 /** What a reminder is about — the platform localizes the body per kind:
  *  - `charge`: a payment is due ("X is due").
  *  - `trialEnd`: a FREE trial converts ("your trial ends, you'll be charged X").
- *  - `priceChange`: a paid price changes on a date ("price changes to X"). */
-export type ReminderKind = "charge" | "trialEnd" | "priceChange";
+ *  - `priceChange`: a paid price changes on a date ("price changes to X").
+ *  - `cancelBy`: a planned cancellation's deadline nears ("cancel X by D");
+ *    `dueDate` is the deadline, `amount` the charge that follows it. */
+export type ReminderKind = "charge" | "trialEnd" | "priceChange" | "cancelBy";
 
 export interface PlannedReminder {
   /** Stable per-notification handle (`item:kind:fireDate`) — unique within a
@@ -41,6 +44,10 @@ export interface PlannedReminder {
 /** Trial-end reminders always fire even without a per-item charge rule, since
  *  a converting trial is exactly what you don't want to miss. */
 const DEFAULT_TRIAL_LEAD_DAYS = 2;
+
+/** A planned cancellation nags from this many days before its deadline,
+ *  every day until it: the plan IS the request to be reminded. */
+const CANCEL_LEAD_DAYS = 3;
 
 /** The fire dates one rule produces for a due date: one for a plain rule
  *  (clamped to `asOf` so a late-set reminder still nudges once), a series
@@ -64,6 +71,9 @@ function fireDates(rule: ReminderRule, dueDate: CalendarDate, asOf: CalendarDate
  *    overdue loudly in place and notifications don't nag about the past.
  *  - a TRIAL-END reminder when a recurring item is mid-trial, anchored to the
  *    conversion date and announcing the regular price it's about to become.
+ *  - CANCEL-BY reminders for a planned cancellation, daily over the last
+ *    days before its deadline; on those days they replace the item's other
+ *    reminders, so one item never buzzes twice a day.
  * The chronological order is load-bearing: the platform schedules from the
  * front and stops at the OS pending-notification ceiling, so the nearest
  * reminders must come first.
@@ -83,6 +93,33 @@ export function plannedReminders(
     // An ABSENT list (never touched) keeps the trial safety net below.
     const muted = item.reminders !== undefined && item.reminders.length === 0;
 
+    // A planned cancellation, counted down to its deadline.
+    const cancelDays = new Set<CalendarDate>();
+    if (isCancelPlanned(item) && isRecurringSchedule(item.schedule) && !muted) {
+      const deadline = cancelDeadline(item);
+      if (deadline && deadline >= asOf) {
+        const amount = effectiveRecurringAmount(item.schedule, item.schedule.nextChargeDate);
+        for (
+          let date = addDays(deadline, -CANCEL_LEAD_DAYS);
+          date <= deadline;
+          date = addDays(date, 1)
+        ) {
+          if (date < asOf) continue;
+          cancelDays.add(date);
+          reminders.push({
+            id: `${item.id}:cancelBy:${date}`,
+            paymentItemId: item.id,
+            name: item.name,
+            amount,
+            dueDate: deadline,
+            fireDate: date,
+            hour: primary?.hour,
+            kind: "cancelBy",
+          });
+        }
+      }
+    }
+
     // A scheduled price change, anchored to the conversion date and announcing
     // the new price. A free trial (intro price 0) reads as a trial ending; a
     // paid intro reads as a price change — the wording differs per kind.
@@ -92,16 +129,17 @@ export function plannedReminders(
         const lead = primary?.daysBefore ?? DEFAULT_TRIAL_LEAD_DAYS;
         const fireDate = addDays(convertsOn, -lead);
         const clamped = fireDate < asOf ? asOf : fireDate;
-        reminders.push({
-          id: `${item.id}:${item.schedule.amount.amount === 0 ? "trialEnd" : "priceChange"}:${clamped}`,
-          paymentItemId: item.id,
-          name: item.name,
-          amount: regularAmount,
-          dueDate: convertsOn,
-          fireDate: clamped,
-          hour: primary?.hour,
-          kind: item.schedule.amount.amount === 0 ? "trialEnd" : "priceChange",
-        });
+        if (!cancelDays.has(clamped))
+          reminders.push({
+            id: `${item.id}:${item.schedule.amount.amount === 0 ? "trialEnd" : "priceChange"}:${clamped}`,
+            paymentItemId: item.id,
+            name: item.name,
+            amount: regularAmount,
+            dueDate: convertsOn,
+            fireDate: clamped,
+            hour: primary?.hour,
+            kind: item.schedule.amount.amount === 0 ? "trialEnd" : "priceChange",
+          });
       }
     }
 
@@ -135,7 +173,7 @@ export function plannedReminders(
         const seen = new Set<CalendarDate>();
         for (const rule of rules) {
           for (const fireDate of fireDates(rule, dueDate, asOf)) {
-            if (seen.has(fireDate)) continue;
+            if (seen.has(fireDate) || cancelDays.has(fireDate)) continue;
             seen.add(fireDate);
             reminders.push({
               id: `${item.id}:charge:${fireDate}`,

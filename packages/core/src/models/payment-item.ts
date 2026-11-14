@@ -88,6 +88,20 @@ export interface OneTimeAnnualSchedule {
 
 export type Schedule = RecurringSchedule | InstallmentSchedule | OneTimeAnnualSchedule;
 
+/**
+ * The user's plan to cancel a subscription: "remind me to cancel". The item
+ * keeps running and counting until the cancellation is confirmed, which sets
+ * the schedule's `endDate` and removes the plan (see models/cancel-plan.ts).
+ */
+export interface CancelPlan {
+  /** The day the plan was made. */
+  since: CalendarDate;
+  /** The last day to cancel, when the user set one (a notice period, a
+   *  contract date). Absent = the day before the next charge, so the
+   *  deadline follows the subscription cycle after cycle. */
+  cancelBy?: CalendarDate;
+}
+
 export function isRecurringSchedule(schedule: Schedule): schedule is RecurringSchedule {
   return schedule.kind === "RECURRING";
 }
@@ -131,6 +145,9 @@ export interface PaymentItem {
   scheduleType: ScheduleType;
   schedule: Schedule;
   status: PaymentItemStatus;
+  /** A planned cancellation (recurring items only). Read it through
+   *  `isCancelPlanned` / `cancelDeadline`, never directly. */
+  cancelPlan?: CancelPlan;
   notes?: string;
   /** Audit-only bookkeeping (decided 2026-06-12): when the RECORD was made,
    *  not when the commitment started. Analytics/spending-ramp work anchors on

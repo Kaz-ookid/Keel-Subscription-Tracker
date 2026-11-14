@@ -298,10 +298,12 @@ export default function NotificationsScreen() {
                       {reminder.name}
                     </Text>
                     <Text style={styles.rowSub}>
-                      {t("notifCenter.firesOn", {
-                        date: formatCalendarDate(reminder.fireDate),
-                        amount: formatMoney(reminder.amount),
-                      })}
+                      {reminder.kind === "cancelBy"
+                        ? t("notifCenter.cancelOn", { date: formatCalendarDate(reminder.fireDate) })
+                        : t("notifCenter.firesOn", {
+                            date: formatCalendarDate(reminder.fireDate),
+                            amount: formatMoney(reminder.amount),
+                          })}
                     </Text>
                   </View>
                   <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />

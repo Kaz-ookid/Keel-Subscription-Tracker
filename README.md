@@ -33,6 +33,10 @@ Italian, Polish
 - Up to three reminders per commitment, any lead, repeating until the due
   day, plus a daily, weekly or monthly summary of what is still unpaid.
 - Trial-end reminders before the first real charge.
+- Planned cancellations: mark a subscription to cancel, see what it frees
+  each month, get reminded before the deadline (the next charge, or a
+  notice date you set), and end it when you have cancelled. Keel never
+  cancels anything itself.
 - Home screen widgets: the next payment and the days ahead.
 
 **Understand**

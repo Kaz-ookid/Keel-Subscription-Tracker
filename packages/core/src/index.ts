@@ -15,6 +15,7 @@ export * from "./models/payment-item";
 export * from "./models/payment-item-factory";
 export * from "./models/payment-item-mutations";
 export * from "./models/payment-item-status";
+export * from "./models/cancel-plan";
 export * from "./models/payment-occurrence";
 export * from "./models/validate";
 
@@ -42,6 +43,7 @@ export * from "./calculations/digests";
 export * from "./calculations/ledger";
 export * from "./calculations/reminders";
 export * from "./calculations/price-changes-ahead";
+export * from "./calculations/cancel-plans-ahead";
 
 // The app-trial clock (PROJECT_BRIEF §7.3) — pure 45-day math over an
 // injected clock; storage and gating live in the app layer.

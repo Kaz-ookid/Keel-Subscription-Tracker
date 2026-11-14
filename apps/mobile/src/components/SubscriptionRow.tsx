@@ -3,6 +3,7 @@ import {
   formatCalendarDate,
   shiftOffWeekend,
   formatMoney,
+  isCancelPlanned,
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
@@ -118,6 +119,13 @@ export const SubscriptionRow = memo(function SubscriptionRow({ item, onPress, on
       tag = t("row.payInX");
       tagColor = colors.accent;
     }
+  }
+
+  // A planned cancellation outranks the routine tags: it is the thing to
+  // act on. Paused and finished below still win (the plan is dormant then).
+  if (isCancelPlanned(item)) {
+    tag = t("cancel.tag");
+    tagColor = colors.tones.warning;
   }
 
   // Paused: kept around, clearly parked, no action.

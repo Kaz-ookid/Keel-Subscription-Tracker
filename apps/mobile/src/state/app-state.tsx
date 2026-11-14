@@ -42,10 +42,13 @@ import {
   markNextInstallmentPaid,
   now,
   pausePaymentItem,
+  planCancellation,
   recordRecurringPayment,
   reminderRules,
   removePriceChange,
   resumePaymentItem,
+  clearCancelPlan,
+  confirmCancellation,
   rewindRecurringPayment,
   skipRecurringPayment,
   today,
@@ -164,6 +167,14 @@ export interface AppActions {
   pauseSubscription: (id: string) => void;
   /** Resume a paused item; a recurring cursor skips the gap without charging it. */
   resumeSubscription: (id: string) => void;
+  /** Plan to cancel a subscription ("remind me"), or move its deadline;
+   *  no cancelBy = the day before the next charge. */
+  planCancel: (id: string, cancelBy?: CalendarDate) => void;
+  /** Drop the cancel plan: the subscription runs on. */
+  keepSubscription: (id: string) => void;
+  /** The user cancelled it: end the subscription. No lastChargeDate =
+   *  nothing more to pay. */
+  confirmCancel: (id: string, lastChargeDate?: CalendarDate) => void;
   /** Create a custom category; returns it so the caller can select it. */
   addCategory: (name: string, icon: string) => Category;
   /** Create an account; returns it so the caller can select it. */
@@ -689,6 +700,26 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       );
     };
 
+    const planCancel = (id: string, cancelBy?: CalendarDate) => {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? planCancellation(i, { now: now(), today: today(), cancelBy }) : i,
+        ),
+      );
+    };
+
+    const keepSubscription = (id: string) => {
+      setItems((prev) => prev.map((i) => (i.id === id ? clearCancelPlan(i, { now: now() }) : i)));
+    };
+
+    const confirmCancel = (id: string, lastChargeDate?: CalendarDate) => {
+      setItems((prev) =>
+        prev.map((i) =>
+          i.id === id ? confirmCancellation(i, { now: now(), today: today(), lastChargeDate }) : i,
+        ),
+      );
+    };
+
     const addCategory = (name: string, icon: string): Category => {
       const category: Category = { id: randomUUID(), name: name.trim(), icon };
       setCustomCategories((prev) => [...prev, category]);
@@ -968,6 +999,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
       undoInstallmentPaid,
       pauseSubscription,
       resumeSubscription,
+      planCancel,
+      keepSubscription,
+      confirmCancel,
       addCategory,
       addAccount,
       updateAccount,

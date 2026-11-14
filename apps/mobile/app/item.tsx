@@ -3,7 +3,10 @@
 // an explicit step (the Edit header action opens the form), so checking a
 // detail can never accidentally change one.
 
+import DateTimePicker from "@react-native-community/datetimepicker";
 import {
+  canCancel,
+  cancelDeadline,
   canMarkPaid,
   COVERED_INSTALLMENT_STATUSES,
   formatCalendarDate,
@@ -12,6 +15,7 @@ import {
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
+  lastChargeOptions,
   reminderRules,
   shiftOffWeekend,
   summarizeInstallmentPlan,
@@ -21,17 +25,20 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { BrandBadge } from "../src/components/BrandBadge";
+import { WheelSheet } from "../src/components/WheelSheet";
 import { Button } from "../src/components/ui/Button";
 import { Card } from "../src/components/ui/Card";
 import { brandBleed } from "../src/lib/brand";
 import { useBrandTints } from "../src/lib/dominant-color";
-import { formatHour } from "../src/lib/dates";
+import { formatHour, fromCalendarDate, toCalendarDate } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
+import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { useAppActions, useAppData } from "../src/state/app-state";
 import {
   spacing,
@@ -48,30 +55,38 @@ function InfoRow({
   value,
   styles,
   first,
+  onPress,
 }: {
   label: string;
   value: string;
   styles: Styles;
+  /** Makes the row a button (the value takes the accent colour). */
+  onPress?: () => void;
   /** The card's first row carries no divider (dividers sit on TOP, so lists
    *  never end on a stray line). */
   first?: boolean;
 }) {
   return (
-    <View style={[styles.infoRow, first && styles.infoRowFirst]}>
+    <Pressable
+      style={[styles.infoRow, first && styles.infoRowFirst]}
+      onPress={onPress}
+      disabled={!onPress}
+    >
       <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue} numberOfLines={2}>
+      <Text style={[styles.infoValue, onPress && styles.infoValueAction]} numberOfLines={2}>
         {value}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
 export default function ItemScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { colors } = useTheme();
+  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
+  const [cancelByOpen, setCancelByOpen] = useState(false);
   // Repaint when a logo's extracted tint lands (dev builds).
   useBrandTints();
   const { items, occurrences, accounts, categories } = useAppData();
@@ -84,6 +99,9 @@ export default function ItemScreen() {
     pauseSubscription,
     resumeSubscription,
     removeSubscription,
+    planCancel,
+    keepSubscription,
+    confirmCancel,
   } = useAppActions();
   // Editing, deleting, skipping and pausing are WRITES (locked blocks
   // them); mark paid and undo stay free so the data keeps its honesty.
@@ -155,6 +173,67 @@ export default function ItemScreen() {
       : history.filter((o) => o.status === "charged").map((o) => o.amount),
   ).filter((m) => m.amount > 0);
 
+  // Cancelling: a plan ("remind me") and its confirmation ("I've cancelled
+  // it"). Keel never cancels anything itself; the sheets say so.
+  const cancellable = canCancel(item);
+  const cancelPlan = cancellable ? item.cancelPlan : undefined;
+  const cancelBy = cancelPlan ? cancelDeadline(item) : undefined;
+  const cancelPassed = cancelBy !== undefined && cancelBy < asOf;
+
+  // One explicit tap per outcome, no wheel to dismiss by accident.
+  const askLastPayment = () => {
+    const dates = lastChargeOptions(item);
+    showNativeActionSheet(
+      {
+        title: t("cancel.lastPaymentTitle"),
+        message: t("cancel.lastPaymentNote"),
+        options: [
+          t("cancel.nothingMore"),
+          ...dates.map((date) => t("cancel.lastPaymentOn", { date: formatCalendarDate(date) })),
+          t("common.close"),
+        ],
+        cancelButtonIndex: dates.length + 1,
+      },
+      (index) => {
+        if (index === 0) confirmCancel(item.id);
+        else if (index <= dates.length) confirmCancel(item.id, dates[index - 1]);
+      },
+    );
+  };
+
+  const askCancel = () =>
+    showNativeActionSheet(
+      {
+        title: item.name,
+        message: t("cancel.sheetNote"),
+        options: [t("cancel.remindMe"), t("cancel.done"), t("common.close")],
+        cancelButtonIndex: 2,
+      },
+      (index) => {
+        if (index === 0) planCancel(item.id);
+        else if (index === 1) askLastPayment();
+      },
+    );
+
+  const askCancelBy = () => {
+    if (!recurring) return;
+    showNativeActionSheet(
+      {
+        title: t("cancel.cancelBy"),
+        options: [
+          t("cancel.beforeNextCharge", { date: formatCalendarDate(recurring.nextChargeDate) }),
+          t("cancel.chooseDate"),
+          t("common.close"),
+        ],
+        cancelButtonIndex: 2,
+      },
+      (index) => {
+        if (index === 0) planCancel(item.id);
+        else if (index === 1) setCancelByOpen(true);
+      },
+    );
+  };
+
   const confirmDelete = () =>
     Alert.alert(t("row.deleteTitle"), t("row.deleteAskPermanent", { name: item.name }), [
       { text: t("common.cancel"), style: "cancel" },
@@ -218,6 +297,13 @@ export default function ItemScreen() {
           <Text style={[styles.subtitle, { color: colors.tones.warning }]}>{t("row.paused")}</Text>
         )}
         {trialBanner && <Text style={[styles.subtitle, styles.trialBanner]}>{trialBanner}</Text>}
+        {cancelPlan && cancelBy && (
+          <Text style={[styles.subtitle, { color: colors.tones.warning }]}>
+            {cancelPassed
+              ? t("cancel.statusPassed")
+              : t("cancel.status", { date: formatCalendarDate(cancelBy) })}
+          </Text>
+        )}
       </View>
 
       {/* HERO: the few numbers that matter, shown instead of listed. The
@@ -437,6 +523,14 @@ export default function ItemScreen() {
               value={recurring.endDate ? formatCalendarDate(recurring.endDate) : t("common.never")}
               styles={styles}
             />
+            {cancelPlan && cancelBy && (
+              <InfoRow
+                label={t("cancel.cancelBy")}
+                value={formatCalendarDate(cancelBy)}
+                styles={styles}
+                onPress={guard(askCancelBy)}
+              />
+            )}
           </>
         )}
         {installment && (
@@ -538,7 +632,42 @@ export default function ItemScreen() {
         />
       )}
 
+      {cancelPlan ? (
+        <>
+          <Button label={t("cancel.done")} onPress={guard(askLastPayment)} />
+          <Button
+            variant="secondary"
+            label={t("cancel.keep")}
+            onPress={guard(() => keepSubscription(item.id))}
+          />
+        </>
+      ) : (
+        cancellable && (
+          <Button variant="secondary" label={t("cancel.start")} onPress={guard(askCancel)} />
+        )
+      )}
+
       <Button variant="destructive" label={t("common.delete")} onPress={guard(confirmDelete)} />
+
+      {/* The cancel-by date, for a notice period: any day from today. */}
+      <WheelSheet
+        visible={cancelByOpen}
+        title={t("cancel.cancelBy")}
+        onClose={() => setCancelByOpen(false)}
+      >
+        <DateTimePicker
+          value={fromCalendarDate(cancelBy && cancelBy >= asOf ? cancelBy : asOf)}
+          minimumDate={fromCalendarDate(asOf)}
+          mode="date"
+          display="spinner"
+          themeVariant={scheme}
+          textColor={colors.text}
+          style={styles.dateWheel}
+          onChange={(_, picked) => {
+            if (picked) planCancel(item.id, toCalendarDate(picked));
+          }}
+        />
+      </WheelSheet>
     </ScrollView>
   );
 }
@@ -601,6 +730,9 @@ function createStyles(colors: ThemeColors) {
     infoRowFirst: { borderTopWidth: 0 },
     infoLabel: { ...typography.body, color: colors.mutedText },
     infoValue: { ...typography.body, color: colors.text, flexShrink: 1, textAlign: "right" },
+    infoValueAction: { color: colors.accent },
+    // The native date wheel's own height (as in the add form).
+    dateWheel: { height: 216 },
     installmentRight: {
       flexDirection: "row",
       alignItems: "center",

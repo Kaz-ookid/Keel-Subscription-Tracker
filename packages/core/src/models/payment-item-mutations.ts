@@ -163,6 +163,12 @@ export function updateRecurringPaymentItem(
     status: existing.status === "paused" ? "paused" : rebuilt.status,
     schedule: { ...rebuilt.schedule, nextChargeDate, priceHistory },
   };
+  // The cancel plan is set outside the form, so the form's input cannot
+  // carry it. It survives an edit, except one that sets an end date: the
+  // cancellation is then settled.
+  if (existing.cancelPlan && rebuilt.schedule.endDate === undefined) {
+    next.cancelPlan = existing.cancelPlan;
+  }
   return next;
 }
 

@@ -210,6 +210,11 @@ export function isValidPaymentItem(value: unknown): value is PaymentItem {
     value.scheduleType === (value.schedule as Schedule).kind &&
     typeof value.status === "string" &&
     ITEM_STATUS.has(value.status) &&
+    optional(
+      value.cancelPlan,
+      (v) =>
+        isObject(v) && isValidCalendarDate(v.since) && optional(v.cancelBy, isValidCalendarDate),
+    ) &&
     optional(value.notes, (v) => typeof v === "string") &&
     typeof value.createdAt === "string" &&
     typeof value.updatedAt === "string"
