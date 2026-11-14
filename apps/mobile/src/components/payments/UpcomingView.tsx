@@ -26,6 +26,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 
 import { dayLabel, monthNameOf } from "../../i18n/dates";
 import { hapticMarkPaid } from "../../lib/haptics";
+import { useRatingPrompt } from "../../lib/rating";
 import Animated from "react-native-reanimated";
 
 import { foldIn, foldOut } from "../../lib/motion";
@@ -73,6 +74,7 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   const styles = useStyles(createStyles);
   const { items, occurrences, accounts, displayCurrency, rates, loading } = useAppData();
   const { markPaid, markInstallmentPaid, undoPaid, undoInstallmentPaid } = useAppActions();
+  const askRating = useRatingPrompt();
   // Big numbers merge into the display currency.
   const totals = (values: Parameters<typeof formatTotalsIn>[0]) =>
     formatTotalsIn(values, displayCurrency, rates);
@@ -464,6 +466,7 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
                   hapticMarkPaid();
                   if (item.scheduleType === "INSTALLMENT") markInstallmentPaid(item.paymentItemId);
                   else markPaid(item.paymentItemId);
+                  askRating();
                 }}
               />
             </Animated.View>

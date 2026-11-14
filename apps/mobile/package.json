@@ -33,6 +33,7 @@
     "expo-sharing": "~57.0.22",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
+    "expo-store-review": "~57.0.3",
     "expo-symbols": "~57.0.3",
     "i18next": "^26.3.1",
     "react": "19.2.3",

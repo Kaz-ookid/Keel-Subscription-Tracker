@@ -39,6 +39,7 @@ import { formatHour, fromCalendarDate, toCalendarDate } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
+import { useRatingPrompt } from "../src/lib/rating";
 import { useAppActions, useAppData } from "../src/state/app-state";
 import {
   spacing,
@@ -106,6 +107,7 @@ export default function ItemScreen() {
   // Editing, deleting, skipping and pausing are WRITES (locked blocks
   // them); mark paid and undo stay free so the data keeps its honesty.
   const guard = useLockGuard();
+  const askRating = useRatingPrompt();
 
   const item = items.find((i) => i.id === id);
   if (!item) {
@@ -395,8 +397,10 @@ export default function ItemScreen() {
             const tappable = isNextOpen || idx === lastCovered;
             const onTap = () => {
               hapticMarkPaid();
-              if (isNextOpen) markInstallmentPaid(item.id);
-              else undoInstallmentPaid(item.id);
+              if (isNextOpen) {
+                markInstallmentPaid(item.id);
+                askRating();
+              } else undoInstallmentPaid(item.id);
             };
             return (
               <Pressable
@@ -598,6 +602,7 @@ export default function ItemScreen() {
           onPress={() => {
             hapticMarkPaid();
             markPaid(item.id);
+            askRating();
           }}
         />
       )}
