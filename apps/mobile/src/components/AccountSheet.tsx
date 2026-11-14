@@ -244,6 +244,8 @@ export function AccountEditSheet({ visible, onClose, account, onCreated }: EditP
       visible={visible}
       title={account ? t("accounts.editAccount") : t("accounts.newAccount")}
       onClose={onClose}
+      // Closing drops what was typed; saving is the form's own button.
+      closeLabel={t("common.cancel")}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <AccountForm
