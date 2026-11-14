@@ -143,6 +143,13 @@ export function AppLockGate() {
   const loading = config === null;
   const visible = loading || locked || covered;
 
+  // Hidden means UNMOUNTED, never `visible={false}`: on iOS a Modal stays
+  // rendered until the native side reports its dismissal, and a Modal hidden
+  // before iOS had presented it (the cold-start cover, shown for a few ms)
+  // never reports one. Its full-screen host view then sat over the app,
+  // invisible, taking every touch (the frozen launch of 2026-11-14).
+  if (!visible) return null;
+
   // A real Modal (not an absolute overlay): the app's native sheets (Add,
   // import…) present above the root view, and the lock must sit above them.
   // Not locked (the cold-start beat, or the privacy cover) = a replica of the
@@ -150,7 +157,7 @@ export function AppLockGate() {
   // continuous screen; the branded shield surface is the LOCK's, only.
   if (!locked) {
     return (
-      <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
+      <Modal visible transparent={false} animationType="none" onRequestClose={() => {}}>
         <StatusBar style={dark ? "light" : "dark"} />
         <View style={[styles.cover, { backgroundColor: colors.background }]}>
           <Image source={splashLogo} style={styles.splashIcon} />
@@ -160,7 +167,7 @@ export function AppLockGate() {
   }
 
   return (
-    <Modal visible={visible} transparent={false} animationType="none" onRequestClose={() => {}}>
+    <Modal visible transparent={false} animationType="none" onRequestClose={() => {}}>
       {/* The bar follows the cover's ink, not the app behind it. */}
       <StatusBar style={dark ? "light" : "dark"} />
       <View style={[styles.cover, { backgroundColor: coverTop }]}>
