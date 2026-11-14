@@ -193,7 +193,7 @@ extension WidgetSnapshot {
       case ..<0: return "po term."
       case 0: return "dziś"
       case 1: return "jutro"
-      default: return "\(days) dn."
+      default: return "\(days) dni"
       }
     }
     switch days {
@@ -226,7 +226,7 @@ extension WidgetSnapshot {
     // A locked app explains itself; "all clear" would be a false calm.
     if let locked = lockedLine, !locked.isEmpty { return locked }
     if isFrench { return "Rien à venir" }
-    if isGerman { return "Nichts anstehend" }
+    if isGerman { return "Nichts fällig" }
     if isItalian { return "Tutto a posto" }
     if isPolish { return "Nic do zapłaty" }
     return "All clear"
