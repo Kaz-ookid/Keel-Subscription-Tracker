@@ -23,7 +23,7 @@ import { UpcomingView } from "../../src/components/payments/UpcomingView";
 import { TabFade } from "../../src/components/TabFade";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
 import { useAppLockConfig } from "../../src/lib/app-lock";
-import { isLockNudgePending, markLockNudgeDone, wasOnboardingSeen } from "../../src/lib/onboarding";
+import { isNudgePending, markNudgeDone, wasOnboardingSeen } from "../../src/lib/onboarding";
 import { useAppData } from "../../src/state/app-state";
 import { spacing, type ThemeColors, useStyles, useTheme, withAlpha } from "../../src/theme";
 
@@ -72,17 +72,17 @@ export default function PaymentsScreen() {
   const hasItems = items.length > 0;
   useFocusEffect(
     useCallback(() => {
-      void isLockNudgePending().then(setLockNudge);
+      void isNudgePending("lock").then(setLockNudge);
     }, []),
   );
   // Also re-read when the first item lands: the flag is written as
   // onboarding closes, which can finish after this screen refocused.
   useEffect(() => {
-    if (hasItems) void isLockNudgePending().then(setLockNudge);
+    if (hasItems) void isNudgePending("lock").then(setLockNudge);
   }, [hasItems]);
   const { enabled: lockOn } = useAppLockConfig();
   useEffect(() => {
-    if (lockOn) void markLockNudgeDone();
+    if (lockOn) void markNudgeDone("lock");
   }, [lockOn]);
 
   // The pills are the shared SegmentedPills, driven LIVE by the pager's
@@ -206,7 +206,7 @@ export default function PaymentsScreen() {
           style={styles.lockNudge}
           onDismiss={() => {
             setLockNudge(false);
-            void markLockNudgeDone();
+            void markNudgeDone("lock");
           }}
         />
       )}

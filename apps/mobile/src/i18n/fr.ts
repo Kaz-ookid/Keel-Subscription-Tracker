@@ -676,6 +676,21 @@ export const fr: typeof en = {
     lockBody: "Modifiable à tout moment dans les Réglages.",
     lockCta: "Activer",
   },
+  tour: {
+    cardTitle: "Découvrir Keel",
+    cardBody: "Un tour rapide de ce qu'il fait.",
+    cardCta: "Voir",
+    next: "Suivant",
+    title4: "Prêt en quelques minutes",
+    body1:
+      "Abonnements, factures et paiements échelonnés. Même les achats en 4 fois et ce qui ne tombe qu'une fois par an.",
+    body2:
+      "Chaque paiement est relié à un compte bancaire : vous voyez d'où part chaque montant, avant qu'il ne parte.",
+    body3:
+      "Ce que vous avez payé, ce qui arrive : par mois, par compte, par catégorie. Hausses de prix comprises.",
+    body4:
+      "Choisissez parmi les services connus, ou laissez une IA lire une liste en vrac, des captures ou l'export de votre ancienne app. Tout arrive prérempli.",
+  },
   picker: {
     searchPlaceholder: "Rechercher une marque…",
     chipAll: "Toutes",

@@ -672,6 +672,18 @@ export const en = {
     lockBody: "You can change this any time in Settings.",
     lockCta: "Turn on",
   },
+  tour: {
+    cardTitle: "Discover Keel",
+    cardBody: "A short tour of what it does.",
+    cardCta: "Open",
+    next: "Next",
+    title4: "Ready in minutes",
+    body1: "Subscriptions, bills and split payments. Even the pay-in-4 and the once-a-year ones.",
+    body2: "Every payment belongs to a bank account, so you see what leaves where before it does.",
+    body3: "What you paid, what's coming: by month, by account, by category. Price rises included.",
+    body4:
+      "Pick from known services, or let AI read a rough list, screenshots, or your old tracker's export. Everything arrives pre-filled.",
+  },
   picker: {
     searchPlaceholder: "Search all brands…",
     chipAll: "All",

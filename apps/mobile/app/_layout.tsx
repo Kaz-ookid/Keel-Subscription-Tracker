@@ -138,6 +138,7 @@ function RootNavigator() {
                 <Stack.Screen name="data" options={{ title: "" }} />
                 <Stack.Screen name="backups" options={{ title: "" }} />
                 <Stack.Screen name="guide" options={{ title: "" }} />
+                <Stack.Screen name="tour" options={{ title: "" }} />
                 <Stack.Screen name="about" options={{ title: "" }} />
                 <Stack.Screen name="fullkeel" options={{ title: "" }} />
                 <Stack.Screen name="locked" options={{ title: "" }} />

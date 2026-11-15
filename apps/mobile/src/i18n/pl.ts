@@ -738,6 +738,19 @@ const translation = {
     lockBody: "Możesz to zmienić w każdej chwili w Ustawieniach.",
     lockCta: "Włącz",
   },
+  tour: {
+    cardTitle: "Poznaj Keel",
+    cardBody: "Krótki przegląd tego, co potrafi.",
+    cardCta: "Otwórz",
+    next: "Dalej",
+    title4: "Gotowe w kilka minut",
+    body1: "Subskrypcje, rachunki i raty. Także zakupy na 4 raty i opłaty raz w roku.",
+    body2:
+      "Każda płatność jest przypisana do konta bankowego, więc z wyprzedzeniem widzisz, co i skąd zejdzie.",
+    body3: "Co zapłacono i co nadchodzi: według miesiąca, konta i kategorii, razem z podwyżkami.",
+    body4:
+      "Wybierz ze znanych usług albo daj AI przeczytać luźną listę, zrzuty ekranu lub eksport ze starej aplikacji. Wszystko będzie już wypełnione.",
+  },
   picker: {
     searchPlaceholder: "Szukaj marki…",
     chipAll: "Wszystkie",

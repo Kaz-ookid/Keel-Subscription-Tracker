@@ -677,6 +677,19 @@ export const de: typeof en = {
     lockBody: "Du kannst das jederzeit in den Einstellungen ändern.",
     lockCta: "Einschalten",
   },
+  tour: {
+    cardTitle: "Keel entdecken",
+    cardBody: "Eine kurze Tour durch das, was Keel kann.",
+    cardCta: "Ansehen",
+    next: "Weiter",
+    title4: "In Minuten startklar",
+    body1: "Abos, Rechnungen und Ratenzahlungen. Auch der Kauf in 4 Raten und die Jahresbeiträge.",
+    body2: "Jede Zahlung gehört zu einem Konto. So siehst du vorher, was wo abgebucht wird.",
+    body3:
+      "Was du bezahlt hast, was kommt: nach Monat, Konto und Kategorie. Preiserhöhungen inklusive.",
+    body4:
+      "Wähle aus bekannten Diensten, oder lass eine KI eine grobe Liste, Screenshots oder den Export deines alten Trackers lesen. Alles kommt vorausgefüllt an.",
+  },
   picker: {
     searchPlaceholder: "Alle Marken durchsuchen …",
     chipAll: "Alle",

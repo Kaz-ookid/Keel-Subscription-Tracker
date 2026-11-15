@@ -672,6 +672,19 @@ export const it: typeof en = {
     lockBody: "Puoi cambiare quando vuoi nelle Impostazioni.",
     lockCta: "Attiva",
   },
+  tour: {
+    cardTitle: "Scopri Keel",
+    cardBody: "Un breve giro di quello che fa.",
+    cardCta: "Apri",
+    next: "Avanti",
+    title4: "Pronto in pochi minuti",
+    body1: "Abbonamenti, bollette e pagamenti a rate. Anche il “paga in 4” e le spese annuali.",
+    body2: "Ogni pagamento è legato a un conto, così vedi cosa esce e da dove, prima che succeda.",
+    body3:
+      "Quello che hai pagato, quello che arriva: per mese, per conto, per categoria. Aumenti inclusi.",
+    body4:
+      "Scegli tra servizi noti, o lascia che l'IA legga una lista alla buona, screenshot o l'export del tuo vecchio tracker. Tutto arriva precompilato.",
+  },
   picker: {
     searchPlaceholder: "Cerca tra tutti i marchi…",
     chipAll: "Tutti",

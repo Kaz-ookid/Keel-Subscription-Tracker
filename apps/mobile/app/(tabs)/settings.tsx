@@ -4,10 +4,10 @@
 // SettingsRow grammar (src/components/settings/); this file is the list.
 
 import { CURRENCIES, currencyLabel, type CurrencyCode } from "@keel/core";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Image } from "expo-image";
 import { SymbolView } from "expo-symbols";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 
@@ -35,11 +35,13 @@ import { useReminderPermission } from "../../src/lib/notifications";
 import { setAiHidden, useAiHidden } from "../../src/lib/ai-visibility";
 import { setLogoConsent, useLogoConsent } from "../../src/lib/logo-consent";
 import { forgetCachedLogoLookups } from "../../src/lib/logos";
+import { isNudgePending, markNudgeDone } from "../../src/lib/onboarding";
 
 import { APP_NAME } from "../../src/constants";
 import { DEBUG_TOOLS, DebugDrawer } from "../../src/components/settings/DebugDrawer";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
+import { NudgeCard } from "../../src/components/ui/NudgeCard";
 import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
 import { ScreenTitle } from "../../src/components/ui/ScreenTitle";
@@ -133,6 +135,19 @@ export default function SettingsScreen() {
   // re-shows the onboarding explanation as a reminder before it commits.
   const logoConsent = useLogoConsent();
   const [logoSheet, setLogoSheet] = useState(false);
+  // "Discover Keel": offered once after a first launch. The ✕ retires it,
+  // and so does opening the slides. Re-read on focus: onboarding closing,
+  // or the debug replay, changes the flag while this tab stays mounted.
+  const [tourNudge, setTourNudge] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      void isNudgePending("tour").then(setTourNudge);
+    }, []),
+  );
+  const retireTourNudge = () => {
+    setTourNudge(false);
+    void markNudgeDone("tour");
+  };
   // The hard AI lock: on = every AI surface and entry point disappears.
   const aiHidden = useAiHidden();
   useEffect(() => {
@@ -235,6 +250,20 @@ export default function SettingsScreen() {
           </View>
           <SymbolView name="chevron.right" size={13} tintColor={colors.mutedText} />
         </Pressable>
+
+        {tourNudge && (
+          <NudgeCard
+            icon="lightbulb.fill"
+            title={t("tour.cardTitle")}
+            body={t("tour.cardBody")}
+            cta={t("tour.cardCta")}
+            onPress={() => {
+              retireTourNudge();
+              router.push("/tour");
+            }}
+            onDismiss={retireTourNudge}
+          />
+        )}
 
         <Text style={styles.groupLabel}>{t("settings.groupGeneral")}</Text>
         <Card>
