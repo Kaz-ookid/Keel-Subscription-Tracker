@@ -25,7 +25,6 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { SymbolView } from "expo-symbols";
 
-import { hapticLatch } from "../../lib/haptics";
 import { radius, spacing, useTheme } from "../../theme";
 
 const ACTION_W = 72;
@@ -142,7 +141,6 @@ export function SwipeRow({ rowId, onPress, onAction, actionIcon = "trash.fill", 
         if (shouldOpen) {
           translateX.value = withTiming(OPEN_X, { duration: 160 });
           scheduleOnRN(setOpen, true);
-          scheduleOnRN(hapticLatch);
         } else {
           translateX.value = withTiming(0, { duration: 160 });
           scheduleOnRN(setEngaged, false);

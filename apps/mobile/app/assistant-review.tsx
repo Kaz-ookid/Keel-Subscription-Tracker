@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { HeroCard } from "../src/components/HeroCard";
 import { Button } from "../src/components/ui/Button";
 import { localizedRecurrence } from "../src/i18n/recurrence";
-import { hapticSuccess } from "../src/lib/haptics";
+import { hapticImportConfirm } from "../src/lib/haptics";
 import { useAppActions } from "../src/state/app-state";
 import { useAssistantSession } from "../src/state/assistant-session";
 import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
@@ -71,7 +71,7 @@ export default function AssistantReviewScreen() {
   const includedCount = includedOps.length + includedAdditions.length;
 
   const confirm = () => {
-    hapticSuccess();
+    hapticImportConfirm();
     const result = applyAssistantPlan(includedOps, includedAdditions);
     clear();
     router.navigate("/");

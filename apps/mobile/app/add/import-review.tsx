@@ -32,7 +32,7 @@ import { BrandBadge } from "../../src/components/BrandBadge";
 import { LogoConsentGate } from "../../src/components/LogoConsentGate";
 import { ModalClose } from "../../src/components/ModalClose";
 import { createBackup } from "../../src/lib/backups";
-import { hapticSuccess } from "../../src/lib/haptics";
+import { hapticImportConfirm } from "../../src/lib/haptics";
 import { HeroCard } from "../../src/components/HeroCard";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
 import { Button } from "../../src/components/ui/Button";
@@ -188,7 +188,7 @@ export default function ImportReviewScreen() {
     .join(" ");
 
   const confirmAll = () => {
-    hapticSuccess();
+    hapticImportConfirm();
     // A safety backup BEFORE anything lands, so a bad import can be rolled
     // back whole from the AI history (same net the assistant has). A
     // spreadsheet is not an AI import: its net is a plain backup, found in

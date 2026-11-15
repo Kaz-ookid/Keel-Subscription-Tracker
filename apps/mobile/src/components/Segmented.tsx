@@ -1,6 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { hapticSelection } from "../lib/haptics";
 import { spacing, type ThemeColors, typography, useStyles, withAlpha } from "../theme";
 
 export interface SegmentedOption<T> {
@@ -25,10 +24,7 @@ export function Segmented<T extends string | number>({ options, value, onChange 
         return (
           <Pressable
             key={String(opt.value)}
-            onPress={() => {
-              if (opt.value !== value) hapticSelection();
-              onChange(opt.value);
-            }}
+            onPress={() => onChange(opt.value)}
             style={[styles.pill, active && styles.pillActive]}
           >
             <Text style={[styles.label, active && styles.labelActive]}>{opt.label}</Text>
