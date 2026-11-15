@@ -14,10 +14,11 @@ import { LightField } from "../src/components/onboarding/LightField";
 import { Dot, TourPane } from "../src/components/onboarding/TourElements";
 import { Button } from "../src/components/ui/Button";
 import { usePager } from "../src/components/ui/usePager";
-import { useAiHidden } from "../src/lib/ai-visibility";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
-// Titles 1 to 3 are the first-launch screen's three lines.
+// Titles 1 to 3 are the first-launch screen's three lines. The fourth slide
+// names the AI import and shows even with AI features off (user decision
+// 2026-11-15): the tour says what Keel can do, and they may turn it on.
 const PANES = [
   { titleKey: "onboarding.line1", bodyKey: "tour.body1" },
   { titleKey: "onboarding.line2", bodyKey: "tour.body2" },
@@ -32,19 +33,16 @@ export default function TourScreen() {
   const styles = useStyles(createStyles);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  // The last slide is about the AI import: the hard AI lock hides it.
-  const aiHidden = useAiHidden();
-  const panes = aiHidden ? PANES.slice(0, 3) : PANES;
 
   const ref = useRef<ScrollView>(null);
-  const pager = usePager({ ref, pageWidth: width, pageCount: panes.length });
-  const last = pager.page === panes.length - 1;
+  const pager = usePager({ ref, pageWidth: width, pageCount: PANES.length });
+  const last = pager.page === PANES.length - 1;
 
   return (
     <View style={[styles.screen, { paddingBottom: insets.bottom }]}>
       <LightField accent={colors.accentStrong} />
       <ScrollView ref={ref} {...pager.scrollProps}>
-        {panes.map((p, i) => (
+        {PANES.map((p, i) => (
           <TourPane
             key={p.titleKey}
             index={i}
@@ -58,7 +56,7 @@ export default function TourScreen() {
         ))}
       </ScrollView>
       <View style={styles.dots}>
-        {panes.map((p, i) => (
+        {PANES.map((p, i) => (
           <Dot key={p.titleKey} index={i} progress={pager.progress} style={styles.dot} />
         ))}
       </View>
