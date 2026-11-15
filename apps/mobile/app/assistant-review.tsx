@@ -19,7 +19,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-nati
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { HeroCard } from "../src/components/HeroCard";
-import { Button } from "../src/components/ui/Button";
+import { GlassButton } from "../src/components/ui/GlassButton";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticImportConfirm } from "../src/lib/haptics";
 import { useAppActions } from "../src/state/app-state";
@@ -204,8 +204,16 @@ export default function AssistantReviewScreen() {
       </ScrollView>
 
       {includedCount > 0 && (
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-          <Button label={t("assistant.apply", { count: includedCount })} onPress={confirm} />
+        <View
+          pointerEvents="box-none"
+          style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}
+        >
+          <GlassButton
+            tinted
+            large
+            label={t("assistant.apply", { count: includedCount })}
+            onPress={confirm}
+          />
         </View>
       )}
     </View>
@@ -215,7 +223,7 @@ export default function AssistantReviewScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    content: { padding: spacing.md, paddingBottom: spacing.xl * 2, gap: spacing.sm },
+    content: { padding: spacing.md, paddingBottom: 132, gap: spacing.sm },
     note: { ...typography.caption, color: colors.mutedText, fontStyle: "italic" },
     card: {
       flexDirection: "row",
@@ -253,11 +261,14 @@ function createStyles(colors: ThemeColors) {
       textAlign: "center",
       paddingTop: spacing.xl,
     },
+    // No slab, no line: the confirm floats over the list as glass, and
+    // the list pads its end to scroll clear of it.
     footer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
       padding: spacing.md,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-      backgroundColor: colors.materialStrong,
     },
   });
 }

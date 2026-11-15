@@ -19,6 +19,7 @@ import { Ambient } from "../src/components/Ambient";
 import { LightField } from "../src/components/onboarding/LightField";
 import { SuggestionPicker } from "../src/components/SuggestionPicker";
 import { Button } from "../src/components/ui/Button";
+import { GlassButton } from "../src/components/ui/GlassButton";
 import { OptionWheel } from "../src/components/ui/OptionWheel";
 import { APP_NAME } from "../src/constants";
 import { APP_LANGUAGES, LANGUAGE_LABELS, setLanguageMode, type AppLanguage } from "../src/i18n";
@@ -168,7 +169,9 @@ export default function OnboardingScreen() {
               days from the first commitment, what read-only keeps, what the
               one purchase returns. Surprise is what writes one-star reviews. */}
           <Text style={styles.disclosure}>{t("onboarding.trialBody")}</Text>
-          <Button
+          <GlassButton
+            tinted
+            large
             label={t("common.getStarted")}
             onPress={() => setPhase("pick")}
             style={styles.cta}
@@ -248,7 +251,9 @@ export default function OnboardingScreen() {
           >
             <Text style={styles.paneTitle}>{t("onboarding.caughtUpTitle")}</Text>
             <Text style={styles.paneBody}>{t("onboarding.caughtUpBody")}</Text>
-            <Button
+            <GlassButton
+              tinted
+              large
               label={t("onboarding.done")}
               onPress={() => finish(landing)}
               style={styles.cta}
@@ -350,7 +355,7 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       paddingBottom: spacing.md,
     },
-    // Layout-only: the look comes from ui/Button.
+    // Layout-only: the look comes from ui/GlassButton.
     cta: {
       marginHorizontal: spacing.lg,
       marginBottom: spacing.lg,

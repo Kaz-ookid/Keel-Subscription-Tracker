@@ -7,7 +7,7 @@ import { SymbolView } from "expo-symbols";
 import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
+import { emphasis, spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 
 // The one implementation lives in ui/; re-exported for existing importers.
 import { IconChip } from "../ui/IconChip";
@@ -62,7 +62,14 @@ export function SettingsRow({
     </>
   );
   return onPress ? (
-    <Pressable style={[styles.row, divider && styles.rowDivider]} onPress={onPress}>
+    <Pressable
+      style={({ pressed }) => [
+        styles.row,
+        divider && styles.rowDivider,
+        pressed && { opacity: emphasis.pressed },
+      ]}
+      onPress={onPress}
+    >
       {content}
     </Pressable>
   ) : (

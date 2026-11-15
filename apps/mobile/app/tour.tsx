@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LightField } from "../src/components/onboarding/LightField";
 import { Dot, TourPane } from "../src/components/onboarding/TourElements";
-import { Button } from "../src/components/ui/Button";
+import { GlassButton } from "../src/components/ui/GlassButton";
 import { usePager } from "../src/components/ui/usePager";
 import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../src/theme";
 
@@ -60,7 +60,10 @@ export default function TourScreen() {
           <Dot key={p.titleKey} index={i} progress={pager.progress} style={styles.dot} />
         ))}
       </View>
-      <Button
+      {/* Floats over the drifting light: glass, tinted as the one action. */}
+      <GlassButton
+        tinted
+        large
         label={last ? t("guide.title") : t("tour.next")}
         onPress={() => (last ? router.replace("/guide") : pager.goTo(pager.page + 1))}
         style={styles.cta}
@@ -103,7 +106,7 @@ function createStyles(colors: ThemeColors) {
       borderRadius: 4,
       backgroundColor: colors.accent,
     },
-    // Layout-only: the look comes from ui/Button.
+    // Layout-only: the look comes from ui/GlassButton.
     cta: {
       marginHorizontal: spacing.lg,
       marginBottom: spacing.lg,

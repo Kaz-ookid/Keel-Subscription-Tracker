@@ -35,7 +35,7 @@ import { createBackup } from "../../src/lib/backups";
 import { hapticImportConfirm } from "../../src/lib/haptics";
 import { HeroCard } from "../../src/components/HeroCard";
 import { localizedRecurrence } from "../../src/i18n/recurrence";
-import { Button } from "../../src/components/ui/Button";
+import { GlassButton } from "../../src/components/ui/GlassButton";
 import { Chip } from "../../src/components/ui/Chip";
 import { SectionDivider } from "../../src/components/ui/SectionDivider";
 import { useAppActions, useAppData } from "../../src/state/app-state";
@@ -439,8 +439,16 @@ export default function ImportReviewScreen() {
       {drafts.length > 0 && (
         // The screen lives in a page sheet, which eats the bottom inset —
         // pad the footer so the confirm never sits half off-screen.
-        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}>
-          <Button label={t("importAI.addAll", { count: drafts.length })} onPress={confirmAll} />
+        <View
+          pointerEvents="box-none"
+          style={[styles.footer, { paddingBottom: Math.max(insets.bottom, spacing.md) }]}
+        >
+          <GlassButton
+            tinted
+            large
+            label={t("importAI.addAll", { count: drafts.length })}
+            onPress={confirmAll}
+          />
         </View>
       )}
       <AccountEditSheet
@@ -458,7 +466,7 @@ export default function ImportReviewScreen() {
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    listContent: { padding: spacing.md, paddingBottom: spacing.xl * 2, gap: spacing.sm },
+    listContent: { padding: spacing.md, paddingBottom: 132, gap: spacing.sm },
     header: { marginTop: spacing.sm },
     headerNew: { opacity: 0.85 },
     card: {
@@ -491,11 +499,14 @@ function createStyles(colors: ThemeColors) {
     chipRow: { flexDirection: "row", gap: spacing.sm },
     empty: { alignItems: "center", paddingTop: spacing.xl },
     emptyText: { ...typography.body, color: colors.mutedText },
+    // No slab, no line: the confirm floats over the list as glass, and
+    // the list pads its end to scroll clear of it.
     footer: {
+      position: "absolute",
+      left: 0,
+      right: 0,
+      bottom: 0,
       padding: spacing.md,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.border,
-      backgroundColor: colors.materialStrong,
     },
   });
 }

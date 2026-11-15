@@ -3,7 +3,7 @@ import { type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { InfoDot } from "./InfoDot";
-import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../theme";
+import { emphasis, spacing, type ThemeColors, typography, useStyles, useTheme } from "../theme";
 
 interface Props {
   label: string;
@@ -27,7 +27,14 @@ export function FieldButton({ label, value, accessory, hint, first, info, onPres
   const { colors } = useTheme();
   const styles = useStyles(createStyles);
   return (
-    <Pressable onPress={onPress} style={[styles.row, first && styles.rowFirst]}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.row,
+        first && styles.rowFirst,
+        pressed && { opacity: emphasis.pressed },
+      ]}
+    >
       <View style={styles.labelWrap}>
         <Text style={styles.label} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
           {label}

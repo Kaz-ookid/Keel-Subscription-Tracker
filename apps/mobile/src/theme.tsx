@@ -1,7 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { SemanticTone } from "@keel/core";
-import { type ReactNode, createContext, useContext, useEffect, useMemo, useState } from "react";
-import { Appearance, useColorScheme } from "react-native";
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+} from "react";
+import { AccessibilityInfo, Appearance, useColorScheme } from "react-native";
 
 // Keel's palette (DESIGN.md §3.1): navy is the hull, sea glass the waterline.
 // Light mode uses cool blue-greys (not iOS defaults); dark mode is "night at
@@ -228,13 +236,55 @@ export function useThemeMode() {
   return useContext(ThemeModeContext);
 }
 
+// Two display settings of iOS (Accessibility > Display & Text Size) change
+// Keel's own surfaces; the system adapts its bars and real glass by itself.
+//   Reduce Transparency: the translucent material turns opaque.
+//   Increase Contrast: the faint contour becomes the solid border.
+// One number, so a change is one snapshot: bit 0 transparency, bit 1 contrast.
+let display = 0;
+const displayListeners = new Set<() => void>();
+function setDisplayBit(bit: number, on: boolean): void {
+  const next = on ? display | bit : display & ~bit;
+  if (next === display) return;
+  display = next;
+  displayListeners.forEach((listener) => listener());
+}
+void AccessibilityInfo.isReduceTransparencyEnabled().then((on) => setDisplayBit(1, on));
+void AccessibilityInfo.isDarkerSystemColorsEnabled().then((on) => setDisplayBit(2, on));
+AccessibilityInfo.addEventListener("reduceTransparencyChanged", (on) => setDisplayBit(1, on));
+AccessibilityInfo.addEventListener("darkerSystemColorsChanged", (on) => setDisplayBit(2, on));
+const subscribeDisplay = (listener: () => void): (() => void) => {
+  displayListeners.add(listener);
+  return () => displayListeners.delete(listener);
+};
+const displaySnapshot = () => display;
+
+// One object per scheme and setting, built once: useStyles memoizes on it.
+const accommodatedCache = new Map<string, ThemeColors>();
+function accommodated(scheme: ColorScheme, bits: number): ThemeColors {
+  const base = scheme === "dark" ? darkColors : light;
+  if (bits === 0) return base;
+  const key = `${scheme}${bits}`;
+  let colors = accommodatedCache.get(key);
+  if (!colors) {
+    colors = {
+      ...base,
+      ...(bits & 1 ? { material: base.materialStrong } : {}),
+      ...(bits & 2 ? { hairline: base.border } : {}),
+    };
+    accommodatedCache.set(key, colors);
+  }
+  return colors;
+}
+
 /** Active colours + scheme: the user's preference, or the device's when
  *  following the system. */
 export function useTheme(): { colors: ThemeColors; scheme: ColorScheme } {
   const { mode } = useContext(ThemeModeContext);
   const system = useColorScheme();
   const scheme: ColorScheme = mode === "system" ? (system === "dark" ? "dark" : "light") : mode;
-  return { colors: scheme === "dark" ? darkColors : light, scheme };
+  const display = useSyncExternalStore(subscribeDisplay, displaySnapshot);
+  return { colors: accommodated(scheme, display), scheme };
 }
 
 /** The separation model light mode was missing: a whisper of navy shadow
@@ -296,6 +346,12 @@ export const typography = {
   body: { fontSize: 16 },
   label: { fontSize: 15, fontWeight: "600" },
   caption: { fontSize: 13 },
+  // A list section's header (Settings, the guide): sentence case, as
+  // iOS 26 writes them. `micro` keeps its capitals for overlines.
+  groupLabel: {
+    fontSize: 13,
+    fontWeight: "600",
+  },
   micro: {
     fontSize: 11,
     fontWeight: "600",
@@ -309,4 +365,6 @@ export const typography = {
 export const emphasis = {
   dim: 0.45,
   hint: 0.7,
+  // A tappable row under the finger (SettingsRow, FieldButton).
+  pressed: 0.55,
 } as const;

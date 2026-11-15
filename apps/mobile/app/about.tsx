@@ -174,7 +174,7 @@ function createStyles(colors: ThemeColors) {
     nameWord: { fontWeight: "800", color: colors.accent },
     namePron: { fontStyle: "italic" },
     groupLabel: {
-      ...typography.micro,
+      ...typography.groupLabel,
       color: colors.mutedText,
       marginBottom: -spacing.sm,
       paddingHorizontal: spacing.xs,

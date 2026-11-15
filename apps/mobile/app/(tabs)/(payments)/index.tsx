@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LockNudge } from "../../../src/components/onboarding/LockNudge";
 import { closeAllSwipeRows } from "../../../src/components/ui/SwipeRow";
+import { Glass } from "../../../src/components/ui/Glass";
 import { SegmentedPills } from "../../../src/components/ui/SegmentedPills";
 import { usePager } from "../../../src/components/ui/usePager";
 import { ScreenTitle } from "../../../src/components/ui/ScreenTitle";
@@ -27,7 +28,7 @@ import { useAppLockConfig } from "../../../src/lib/app-lock";
 import { useLockGuard } from "../../../src/lib/lock-gate";
 import { isNudgePending, markNudgeDone, wasOnboardingSeen } from "../../../src/lib/onboarding";
 import { useAppData } from "../../../src/state/app-state";
-import { spacing, type ThemeColors, useStyles, useTheme, withAlpha } from "../../../src/theme";
+import { contrastText, spacing, useStyles, useTheme } from "../../../src/theme";
 
 // The harbor is no longer a top-level view: it lives INSIDE the schedule
 // slot as the calendar's bonus lens (see ScheduleView).
@@ -197,6 +198,7 @@ export default function PaymentsScreen() {
           progress={pager.progress}
           washOpacity={highlightOpacity}
           style={styles.switch}
+          glass
         />
         <Pressable
           accessibilityLabel={t("payments.calendarA11y")}
@@ -206,13 +208,18 @@ export default function PaymentsScreen() {
             setView("calendar");
             setScheduleLens("grid");
           }}
-          style={[styles.calendarToggle, view === "calendar" && styles.calendarToggleActive]}
         >
-          <SymbolView
-            name="calendar"
-            size={17}
-            tintColor={view === "calendar" ? colors.accent : colors.text}
-          />
+          <Glass
+            interactive
+            tint={view === "calendar" ? colors.accent : undefined}
+            style={styles.calendarToggle}
+          >
+            <SymbolView
+              name="calendar"
+              size={17}
+              tintColor={view === "calendar" ? contrastText(colors.accent) : colors.text}
+            />
+          </Glass>
         </Pressable>
       </View>
       {lockNudge && items.length > 0 && (
@@ -246,16 +253,17 @@ export default function PaymentsScreen() {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles() {
   return StyleSheet.create({
     pager: { flex: 1 },
     // Width comes inline (the window width); flex here would zero the
     // flex-basis and collapse the horizontal content run.
     page: { height: "100%" },
     // The large title (DESIGN.md §9b): the screen names itself.
-    // 2 pt down centres the 34 pt title on the bar button beside it; the
+    // 4 pt down centres the 34 pt title on the bar button beside it (the
+    // bar is about 50 pt tall on iOS 26, measured on a screenshot); the
     // right padding keeps a long title clear of that button.
-    largeTitle: { paddingLeft: spacing.md, paddingRight: 72, paddingTop: 2 },
+    largeTitle: { paddingLeft: spacing.md, paddingRight: 72, paddingTop: 4 },
     switchWrap: {
       flexDirection: "row",
       alignItems: "center",
@@ -265,19 +273,14 @@ function createStyles(colors: ThemeColors) {
     },
     switch: { flex: 1 },
     lockNudge: { marginHorizontal: spacing.md, marginTop: spacing.md },
+    // A glass circle beside the glass switch; tinted while the calendar
+    // is the view on screen.
     calendarToggle: {
-      width: 40,
-      height: 40,
-      borderRadius: 999,
-      borderWidth: 1,
-      borderColor: colors.hairline,
-      backgroundColor: colors.material,
+      width: 44,
+      height: 44,
+      borderRadius: 22,
       alignItems: "center",
       justifyContent: "center",
-    },
-    calendarToggleActive: {
-      backgroundColor: withAlpha(colors.accent, 0.2),
-      borderColor: withAlpha(colors.accent, 0.45),
     },
   });
 }

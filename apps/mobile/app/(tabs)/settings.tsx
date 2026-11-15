@@ -506,14 +506,14 @@ function createStyles(colors: ThemeColors) {
       flexGrow: 1,
       padding: spacing.md,
       // Same height as the Payments title, which shares its bar's row.
-      paddingTop: 2,
+      paddingTop: 4,
       paddingBottom: spacing.xl,
       gap: spacing.md,
     },
     // Micro overline naming each card group; pulled tight to its own card
     // (the screen gap stays between GROUPS, not between label and card).
     groupLabel: {
-      ...typography.micro,
+      ...typography.groupLabel,
       color: colors.mutedText,
       marginBottom: -spacing.sm,
       paddingHorizontal: spacing.xs,

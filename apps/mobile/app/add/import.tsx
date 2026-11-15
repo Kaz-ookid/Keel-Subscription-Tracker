@@ -61,6 +61,7 @@ function ImportHub({ initialPage }: { initialPage: number }) {
           value={PAGES[pager.page] ?? "keel"}
           onChange={(key) => pager.goTo(PAGES.indexOf(key))}
           progress={pager.progress}
+          glass
         />
       </View>
       <ScrollView

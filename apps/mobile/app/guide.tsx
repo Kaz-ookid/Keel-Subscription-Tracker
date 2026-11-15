@@ -104,7 +104,7 @@ function createStyles(colors: ThemeColors) {
     intro: { ...typography.body, color: colors.mutedText, marginTop: -spacing.sm },
     group: { gap: spacing.sm },
     groupLabel: {
-      ...typography.micro,
+      ...typography.groupLabel,
       color: colors.mutedText,
       paddingHorizontal: spacing.xs,
     },

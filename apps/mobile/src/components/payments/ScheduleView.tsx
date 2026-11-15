@@ -9,13 +9,12 @@
 // the grid back. Each lens fades in, so the swap reads as one surface
 // changing, not a teardown.
 
-import { SymbolView } from "expo-symbols";
-import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
-import { radius, spacing, useTheme, type ThemeColors } from "../../theme";
+import { spacing } from "../../theme";
+import { GlassButton } from "../ui/GlassButton";
 import { CalendarMonthView } from "./CalendarMonthView";
 import { HarborView } from "./HarborView";
 
@@ -28,9 +27,7 @@ export function ScheduleView({
   lens: ScheduleLens;
   onLens: (lens: ScheduleLens) => void;
 }) {
-  const { colors, scheme } = useTheme();
   const { t } = useTranslation();
-  const styles = useMemo(() => createStyles(colors, scheme), [colors, scheme]);
 
   if (lens === "harbor") {
     return (
@@ -38,13 +35,12 @@ export function ScheduleView({
         {/* Full-bleed sea; the way back floats over the water so nothing
             cuts the scene short. */}
         <HarborView />
-        <Pressable
+        <GlassButton
+          icon="arrow.backward"
           style={styles.lensButton}
           onPress={() => onLens("grid")}
           accessibilityLabel={t("payments.calendarA11y")}
-        >
-          <SymbolView name="arrow.backward" size={15} tintColor={colors.text} />
-        </Pressable>
+        />
       </View>
     );
   }
@@ -55,26 +51,12 @@ export function ScheduleView({
   );
 }
 
-function createStyles(colors: ThemeColors, scheme: "light" | "dark") {
-  return StyleSheet.create({
-    fill: { flex: 1 },
-    // Floats over the canvas top-right corner, clear of the paused shelf.
-    lensButton: {
-      position: "absolute",
-      top: spacing.md + spacing.sm,
-      right: spacing.md + spacing.sm,
-      width: 32,
-      height: 32,
-      borderRadius: radius.sm,
-      backgroundColor: colors.surface,
-      alignItems: "center",
-      justifyContent: "center",
-      // A floating control needs a real shadow in the dark, only a breath
-      // of one on the light ground (iOS light convention).
-      shadowColor: "#000",
-      shadowOpacity: scheme === "dark" ? 0.25 : 0.08,
-      shadowRadius: 6,
-      shadowOffset: { width: 0, height: 2 },
-    },
-  });
-}
+const styles = StyleSheet.create({
+  fill: { flex: 1 },
+  // Floats over the canvas top-right corner, clear of the paused shelf.
+  lensButton: {
+    position: "absolute",
+    top: spacing.md + spacing.sm,
+    right: spacing.md + spacing.sm,
+  },
+});

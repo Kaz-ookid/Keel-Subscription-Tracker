@@ -49,7 +49,7 @@ function createStyles(colors: ThemeColors) {
       alignItems: "center",
       gap: spacing.sm,
       backgroundColor: colors.material,
-      borderRadius: radius.md,
+      borderRadius: radius.xl,
       borderWidth: 1,
       borderColor: colors.hairline,
       padding: spacing.md,

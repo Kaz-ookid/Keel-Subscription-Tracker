@@ -377,6 +377,8 @@ export default function ItemScreen() {
                     name="checkmark.circle.fill"
                     size={16}
                     tintColor={colors.tones.success}
+                    // Plays as the line appears: the tick just made.
+                    animationSpec={{ effect: { type: "bounce" } }}
                   />
                   <Text style={[styles.infoLabel, styles.paidText]} numberOfLines={2}>
                     {t("item.paidForCycle")}

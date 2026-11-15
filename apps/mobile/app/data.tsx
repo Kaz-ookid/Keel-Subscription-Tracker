@@ -304,7 +304,7 @@ function createStyles(colors: ThemeColors) {
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     groupLabel: {
-      ...typography.micro,
+      ...typography.groupLabel,
       color: colors.mutedText,
       marginBottom: -spacing.sm,
       paddingHorizontal: spacing.xs,
