@@ -15,7 +15,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useEffect, useRef, useState } from "react";
 import { Text, View } from "react-native";
 
-import { monoPolarity, noteBrandLogo, useBrandTints } from "../lib/dominant-color";
+import { noteBrandLogo, useBrandTints } from "../lib/dominant-color";
 import { useLogosEnabled } from "../lib/logo-consent";
 import {
   hostOf,
@@ -153,12 +153,10 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
   // remount (the calendar's many small badges) flash brand color first.
   const expectInstant = logosEnabled ? knownCachedLogo(domain) != null : cachedUri != null;
 
-  // The plate under a loaded logo. Colored logos are designed for light
-  // plates → white, always. A KNOWN mono logo gets the contrasting plate
-  // (light mark → navy, dark mark → white). Unknown stays white: most
-  // unextracted logos are colored, and navy would look off under them.
-  const polarity = monoPolarity(domain);
-  const plateColor = polarity === "light" ? colors.navy : colors.white;
+  // The plate under a logo: solid white, always (Maxime, 2026-11-15). Logos
+  // with transparency let the row's colour through and read as broken, and
+  // the navy plate once given to light marks hid dark ones it misjudged.
+  // Known cost: a white-only mark disappears on it.
 
   return (
     <View style={{ width: size, height: size }}>
@@ -198,7 +196,9 @@ export function BrandBadge({ domain, icon, fallback, color, size = 44 }: Props) 
           width: size,
           height: size,
           borderRadius: size / 2,
-          backgroundColor: loaded ? plateColor : "transparent",
+          // From the first frame when the logo is at hand: waiting for the
+          // load event left instant loads without their plate.
+          backgroundColor: loaded || expectInstant ? colors.white : "transparent",
         }}
         contentFit="cover"
       />
