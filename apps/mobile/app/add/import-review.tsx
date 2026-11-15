@@ -12,6 +12,9 @@
 import {
   formatCalendarDate,
   formatMoney,
+  isInstallmentSchedule,
+  isRecurringSchedule,
+  summarizeInstallmentPlan,
   toMajor,
   type Account,
   type ImportDraft,
@@ -50,14 +53,15 @@ import {
 } from "../../src/theme";
 
 import { useLockedRedirect } from "../../src/lib/lock-gate";
-/** Warnings that get their own line; account-unmatched is the account chip. */
+/** Warnings that get their own line: the ones where Keel replaced what was
+ *  written (a currency, a cycle, a date) and the duplicate. The rest stay
+ *  silent: an import is something the user prepared, and the card already
+ *  shows its category and account (retex 2026-11-15). account-unmatched is
+ *  the account line. */
 const WARNING_KEYS: Partial<Record<ImportWarning["code"], string>> = {
-  "currency-mismatch": "importAI.warnCurrencyMismatch",
   "currency-defaulted": "importAI.warnCurrencyDefaulted",
-  "category-unknown": "importAI.warnCategoryUnknown",
   "cadence-defaulted": "importAI.warnCadenceDefaulted",
   "date-defaulted": "importAI.warnDateDefaulted",
-  "provider-unknown": "importAI.warnProviderUnknown",
   duplicate: "importAI.warnDuplicate",
 };
 
@@ -170,7 +174,7 @@ export default function ImportReviewScreen() {
   // an unpaid backlog — the ones worth a second look before confirming.
   const attention = drafts.filter(
     (d) =>
-      d.warnings.length > 0 ||
+      d.warnings.some((w) => WARNING_KEYS[w.code]) ||
       d.uncertainFields.length > 0 ||
       d.input.notes ||
       !d.settlePast ||
@@ -252,6 +256,26 @@ export default function ImportReviewScreen() {
     else router.back();
   };
 
+  // The tracked item a duplicate warning points at, in one line: its price
+  // and cycle, and its account. Matched the way the parser matched it.
+  const existingFacts = (name: string | undefined): string | undefined => {
+    const existing = items.find((i) => i.name.trim().toLowerCase() === name?.toLowerCase());
+    if (!existing) return name;
+    const schedule = existing.schedule;
+    let facts: string;
+    if (isRecurringSchedule(schedule)) {
+      facts = `${formatMoney(schedule.amount)} · ${localizedRecurrence(schedule.recurrence)}`;
+    } else if (isInstallmentSchedule(schedule)) {
+      const plan = summarizeInstallmentPlan(schedule);
+      facts = t("importAI.splitLine", {
+        total: formatMoney(plan.totalAmount),
+        count: plan.totalCount,
+      });
+    } else facts = formatMoney(schedule.amount);
+    const account = accounts.find((a) => a.id === existing.accountId);
+    return account ? `${facts} · ${account.name}` : facts;
+  };
+
   const renderDraft = (draft: ImportDraft) => {
     const input = draft.input;
     const category = categories.find((c) => c.id === input.categoryId);
@@ -277,7 +301,10 @@ export default function ImportReviewScreen() {
     const warningLines = draft.warnings
       .map((w) => {
         const key = WARNING_KEYS[w.code];
-        return key ? t(key, { detail: w.detail }) : null;
+        if (!key) return null;
+        // A duplicate names what is already there, so the two can be told
+        // apart without leaving the review.
+        return t(key, { detail: w.code === "duplicate" ? existingFacts(w.detail) : w.detail });
       })
       .filter((line): line is string => line !== null);
     // The per-item report: everything the user should look at, in orange,
