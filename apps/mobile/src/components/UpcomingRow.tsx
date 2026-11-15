@@ -3,7 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { SymbolView } from "expo-symbols";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { brandBleed } from "../lib/brand";
 import { useBrandTints } from "../lib/dominant-color";
@@ -20,6 +20,7 @@ import {
 } from "../theme";
 import { Button } from "./ui/Button";
 import { BrandBadge } from "./BrandBadge";
+import { ItemRowLink } from "./ItemRowLink";
 
 interface Props {
   charge: ProjectedCharge;
@@ -35,7 +36,6 @@ interface Props {
   onUndo?: () => void;
   /** Outside a day section (e.g. the paid fold) the row states its own date. */
   dated?: boolean;
-  onPress: () => void;
   onMarkPaid: () => void;
 }
 
@@ -48,7 +48,6 @@ export const UpcomingRow = memo(function UpcomingRow({
   skipped,
   onUndo,
   dated,
-  onPress,
   onMarkPaid,
 }: Props) {
   const { colors } = useTheme();
@@ -74,88 +73,96 @@ export const UpcomingRow = memo(function UpcomingRow({
   if (skipped) parts.push(t("row.skipped"));
 
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
-    >
-      {/* The brand's color bleeds softly from the badge side (§9c). */}
-      <LinearGradient
-        colors={[withAlpha(accent, settled ? 0.06 : 0.16), "transparent"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0.65, y: 0 }}
-        style={StyleSheet.absoluteFill}
-        pointerEvents="none"
-      />
-      {/* Dim the content, not the whole row — Undo must keep full strength. */}
-      <View style={settled && styles.dimmed}>
-        <BrandBadge
-          domain={charge.domain}
-          icon={charge.icon ?? category?.icon}
-          fallback={charge.name.charAt(0).toUpperCase()}
-          color={accent}
-          size={36}
-        />
-      </View>
+    <ItemRowLink itemId={charge.paymentItemId} style={styles.row}>
+      {(pressed) => (
+        <View style={[styles.content, pressed && styles.pressed]}>
+          {/* The brand's color bleeds softly from the badge side (§9c). */}
+          <LinearGradient
+            colors={[withAlpha(accent, settled ? 0.06 : 0.16), "transparent"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0.65, y: 0 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          {/* Dim the content, not the whole row — Undo must keep full strength. */}
+          <View style={settled && styles.dimmed}>
+            <BrandBadge
+              domain={charge.domain}
+              icon={charge.icon ?? category?.icon}
+              fallback={charge.name.charAt(0).toUpperCase()}
+              color={accent}
+              size={36}
+            />
+          </View>
 
-      <View style={[styles.middle, settled && styles.dimmed]}>
-        <Text style={styles.name} numberOfLines={1}>
-          {charge.name}
-        </Text>
-        <Text style={styles.sub} numberOfLines={1}>
-          {/* The Overdue section groups many dates — each row says its own. */}
-          {overdue ? (
-            <Text style={{ color: colors.tones.warning }}>
-              {t("row.due", { date: formatCalendarDate(charge.dueDate) })} ·{" "}
+          <View style={[styles.middle, settled && styles.dimmed]}>
+            <Text style={styles.name} numberOfLines={1}>
+              {charge.name}
             </Text>
-          ) : null}
-          {parts.join(" · ")}
-        </Text>
-      </View>
+            <Text style={styles.sub} numberOfLines={1}>
+              {/* The Overdue section groups many dates — each row says its own. */}
+              {overdue ? (
+                <Text style={{ color: colors.tones.warning }}>
+                  {t("row.due", { date: formatCalendarDate(charge.dueDate) })} ·{" "}
+                </Text>
+              ) : null}
+              {parts.join(" · ")}
+            </Text>
+          </View>
 
-      <View style={styles.right}>
-        <View style={[styles.amountRow, settled && styles.dimmed]}>
-          {paid && (
-            <SymbolView name="checkmark.circle.fill" size={14} tintColor={colors.tones.success} />
-          )}
-          <Text
-            style={[
-              styles.amount,
-              overdue && !settled && { color: colors.tones.warning },
-              settled && { color: colors.mutedText },
-              skipped && { textDecorationLine: "line-through" },
-            ]}
-          >
-            {formatMoney(charge.amount)}
-          </Text>
+          <View style={styles.right}>
+            <View style={[styles.amountRow, settled && styles.dimmed]}>
+              {paid && (
+                <SymbolView
+                  name="checkmark.circle.fill"
+                  size={14}
+                  tintColor={colors.tones.success}
+                />
+              )}
+              <Text
+                style={[
+                  styles.amount,
+                  overdue && !settled && { color: colors.tones.warning },
+                  settled && { color: colors.mutedText },
+                  skipped && { textDecorationLine: "line-through" },
+                ]}
+              >
+                {formatMoney(charge.amount)}
+              </Text>
+            </View>
+            {/* Ticking off settles QUIETLY (the row dims, the check appears) —
+                the ripple ring that bloomed here read as visual noise. */}
+            {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
+            {settled && onUndo && <Button size="sm" label={t("common.undo")} onPress={onUndo} />}
+          </View>
         </View>
-        {/* Ticking off settles QUIETLY (the row dims, the check appears) —
-            the ripple ring that bloomed here read as visual noise. */}
-        {showMarkPaid && <Button size="sm" label={t("common.markPaid")} onPress={onMarkPaid} />}
-        {settled && onUndo && <Button size="sm" label={t("common.undo")} onPress={onUndo} />}
-      </View>
-    </Pressable>
+      )}
+    </ItemRowLink>
   );
 });
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
+    // The card itself: one plain object, as ItemRowLink asks.
     row: {
-      flexDirection: "row",
-      alignItems: "center",
       backgroundColor: colors.material,
       borderWidth: 1,
       borderColor: colors.hairline,
       borderRadius: radius.lg,
+      overflow: "hidden",
+    },
+    content: {
+      flexDirection: "row",
+      alignItems: "center",
       paddingVertical: spacing.sm + 2,
       paddingHorizontal: spacing.md,
       gap: spacing.md,
-      overflow: "hidden",
     },
+    pressed: { opacity: emphasis.pressed },
     // Settled content stays for completeness but doesn't catch the eye.
     dimmed: {
       opacity: emphasis.dim,
     },
-    rowPressed: { transform: [{ scale: 0.98 }], opacity: 0.9 },
     amountRow: {
       flexDirection: "row",
       alignItems: "center",

@@ -1,5 +1,4 @@
 import {
-  canCancel,
   canMarkPaid,
   formatCalendarDate,
   shiftOffWeekend,
@@ -13,16 +12,14 @@ import {
   type PaymentItem,
 } from "@keel/core";
 import { LinearGradient } from "expo-linear-gradient";
-import { Link, useRouter } from "expo-router";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 import { localizedRecurrence } from "../i18n/recurrence";
 import { brandBleed } from "../lib/brand";
-import { useCancelFlow } from "../lib/cancel-flow";
 import { useBrandTints } from "../lib/dominant-color";
-import { useAppActions, useAppData } from "../state/app-state";
+import { useAppData } from "../state/app-state";
 import {
   emphasis,
   radius,
@@ -34,20 +31,16 @@ import {
   withAlpha,
 } from "../theme";
 import { BrandBadge } from "./BrandBadge";
-
-import { useLockGuard } from "../lib/lock-gate";
+import { ItemRowLink } from "./ItemRowLink";
 interface Props {
   item: PaymentItem;
 }
 
 export const SubscriptionRow = memo(function SubscriptionRow({ item }: Props) {
-  const router = useRouter();
   const { colors } = useTheme();
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { categories, accounts } = useAppData();
-  const { pauseSubscription, resumeSubscription, removeSubscription } = useAppActions();
-  const { askCancel } = useCancelFlow();
   const category = categories.find((c) => c.id === item.categoryId);
   const account = accounts.find((a) => a.id === item.accountId);
 
@@ -143,104 +136,54 @@ export const SubscriptionRow = memo(function SubscriptionRow({ item }: Props) {
     tagColor = colors.mutedText;
   }
 
-  // A tap opens the item; a long press opens the system context menu (the
-  // one an app icon has), which plays its own haptic. It replaced the swipe
-  // (retex 2026-11-15). Every action here is a WRITE: locked, it lands on
-  // the locked sheet instead. The delete alert stays.
-  const guard = useLockGuard();
-  const paused = item.status === "paused";
-  const confirmDelete = () => {
-    Alert.alert(t("row.deleteTitle"), t("row.deleteAsk", { name: item.name }), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("common.delete"),
-        style: "destructive",
-        onPress: () => removeSubscription(item.id),
-      },
-    ]);
-  };
+  // Finished or paused: kept around, clearly parked.
+  const parked = complete || item.status === "paused";
 
   return (
-    <Link href={{ pathname: "/item", params: { id: item.id } }} asChild>
-      <Link.Trigger>
-        {/* One plain style object, no array and no function: the link
-            merges styles into its child and would drop either. The pressed
-            answer is on the content for the same reason. */}
-        <Pressable style={complete || paused ? styles.rowDim : styles.row}>
-          {({ pressed }) => (
-            <View style={[styles.content, pressed && styles.pressed]}>
-              {/* The brand's color bleeds softly from the badge side (§9c). */}
-              <LinearGradient
-                colors={[withAlpha(accent, 0.16), "transparent"]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 0.65, y: 0 }}
-                style={StyleSheet.absoluteFill}
-                pointerEvents="none"
-              />
-              <BrandBadge
-                domain={item.domain}
-                icon={item.icon ?? category?.icon}
-                fallback={item.name.charAt(0).toUpperCase()}
-                color={accent}
-              />
+    <ItemRowLink itemId={item.id} style={parked ? styles.rowDim : styles.row}>
+      {(pressed) => (
+        <View style={[styles.content, pressed && styles.pressed]}>
+          {/* The brand's color bleeds softly from the badge side (§9c). */}
+          <LinearGradient
+            colors={[withAlpha(accent, 0.16), "transparent"]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0.65, y: 0 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          <BrandBadge
+            domain={item.domain}
+            icon={item.icon ?? category?.icon}
+            fallback={item.name.charAt(0).toUpperCase()}
+            color={accent}
+          />
 
-              <View style={styles.middle}>
-                <Text style={styles.name} numberOfLines={1}>
-                  {item.name}
-                </Text>
-                {subLine && (
-                  <Text style={styles.sub} numberOfLines={1}>
-                    {subLine}
-                  </Text>
-                )}
-                {tag ? (
-                  <Text style={[styles.tag, { color: tagColor }]} numberOfLines={1}>
-                    {tag}
-                    {account ? <Text style={styles.tagAccount}> · {account.name}</Text> : null}
-                  </Text>
-                ) : null}
-              </View>
+          <View style={styles.middle}>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {subLine && (
+              <Text style={styles.sub} numberOfLines={1}>
+                {subLine}
+              </Text>
+            )}
+            {tag ? (
+              <Text style={[styles.tag, { color: tagColor }]} numberOfLines={1}>
+                {tag}
+                {account ? <Text style={styles.tagAccount}> · {account.name}</Text> : null}
+              </Text>
+            ) : null}
+          </View>
 
-              <View style={styles.right}>
-                {amount && <Text style={styles.amount}>{amount}</Text>}
-              </View>
-            </View>
-          )}
-        </Pressable>
-      </Link.Trigger>
-      <Link.Menu>
-        <Link.MenuAction
-          icon="pencil"
-          onPress={guard(() => router.push({ pathname: "/add/form", params: { id: item.id } }))}
-        >
-          {t("common.edit")}
-        </Link.MenuAction>
-        {/* The item screen's own conditions for these two. */}
-        <Link.MenuAction
-          icon={paused ? "play" : "pause"}
-          hidden={complete || !recurring}
-          onPress={guard(() => (paused ? resumeSubscription(item.id) : pauseSubscription(item.id)))}
-        >
-          {paused ? t("item.resume") : t("item.pause")}
-        </Link.MenuAction>
-        <Link.MenuAction
-          icon="xmark.circle"
-          hidden={complete || !recurring || !canCancel(item) || !!item.cancelPlan}
-          onPress={guard(() => askCancel(item))}
-        >
-          {t("cancel.start")}
-        </Link.MenuAction>
-        <Link.MenuAction icon="trash" destructive onPress={guard(confirmDelete)}>
-          {t("common.delete")}
-        </Link.MenuAction>
-      </Link.Menu>
-    </Link>
+          <View style={styles.right}>{amount && <Text style={styles.amount}>{amount}</Text>}</View>
+        </View>
+      )}
+    </ItemRowLink>
   );
 });
 
 function createStyles(colors: ThemeColors) {
-  // The card itself, also what the context menu lifts: its corners and
-  // ground must be on the pressed view.
+  // The card itself: one plain object, as ItemRowLink asks.
   const row = {
     backgroundColor: colors.material,
     borderWidth: 1,
@@ -250,7 +193,6 @@ function createStyles(colors: ThemeColors) {
   } as const;
   return StyleSheet.create({
     row,
-    // Finished or paused: kept around, clearly parked.
     rowDim: { ...row, opacity: emphasis.dim },
     content: {
       flexDirection: "row",

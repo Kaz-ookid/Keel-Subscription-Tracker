@@ -457,9 +457,6 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
                       }
                     : undefined
                 }
-                onPress={() =>
-                  router.push({ pathname: "/item", params: { id: item.paymentItemId } })
-                }
                 onMarkPaid={() => {
                   hapticMarkPaid();
                   if (item.scheduleType === "INSTALLMENT") markInstallmentPaid(item.paymentItemId);
