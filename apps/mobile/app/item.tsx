@@ -18,7 +18,6 @@ import {
   isInstallmentSchedule,
   isPaymentItemComplete,
   isRecurringSchedule,
-  lastChargeOptions,
   reminderRules,
   shiftOffWeekend,
   summarizeInstallmentPlan,
@@ -43,6 +42,7 @@ import { useBrandTints } from "../src/lib/dominant-color";
 import { formatHour, fromCalendarDate, toCalendarDate } from "../src/lib/dates";
 import { localizedRecurrence } from "../src/i18n/recurrence";
 import { hapticMarkPaid } from "../src/lib/haptics";
+import { useCancelFlow } from "../src/lib/cancel-flow";
 import { foldIn, foldLayout, foldOut } from "../src/lib/motion";
 import { showNativeActionSheet } from "../src/lib/native-sheet";
 import { useRatingPrompt } from "../src/lib/rating";
@@ -116,12 +116,12 @@ export default function ItemScreen() {
     removeSubscription,
     planCancel,
     keepSubscription,
-    confirmCancel,
   } = useAppActions();
   // Editing, deleting, skipping and pausing are WRITES (locked blocks
   // them); mark paid and undo stay free so the data keeps its honesty.
   const guard = useLockGuard();
   const askRating = useRatingPrompt();
+  const { askCancel, askLastPayment } = useCancelFlow();
 
   const item = items.find((i) => i.id === id);
   if (!item) {
@@ -193,41 +193,6 @@ export default function ItemScreen() {
   const cancelPlan = cancellable ? item.cancelPlan : undefined;
   const cancelBy = cancelPlan ? cancelDeadline(item) : undefined;
   const cancelPassed = cancelBy !== undefined && cancelBy < asOf;
-
-  // One explicit tap per outcome, no wheel to dismiss by accident.
-  const askLastPayment = () => {
-    const dates = lastChargeOptions(item);
-    showNativeActionSheet(
-      {
-        title: t("cancel.lastPaymentTitle"),
-        message: t("cancel.lastPaymentNote"),
-        options: [
-          t("cancel.nothingMore"),
-          ...dates.map((date) => t("cancel.lastPaymentOn", { date: formatCalendarDate(date) })),
-          t("common.close"),
-        ],
-        cancelButtonIndex: dates.length + 1,
-      },
-      (index) => {
-        if (index === 0) confirmCancel(item.id);
-        else if (index <= dates.length) confirmCancel(item.id, dates[index - 1]);
-      },
-    );
-  };
-
-  const askCancel = () =>
-    showNativeActionSheet(
-      {
-        title: item.name,
-        message: t("cancel.sheetNote"),
-        options: [t("cancel.remindMe"), t("cancel.done"), t("common.close")],
-        cancelButtonIndex: 2,
-      },
-      (index) => {
-        if (index === 0) planCancel(item.id);
-        else if (index === 1) askLastPayment();
-      },
-    );
 
   const askCancelBy = () => {
     if (!recurring) return;
@@ -527,7 +492,7 @@ export default function ItemScreen() {
               <Button
                 style={styles.actionHalf}
                 label={t("cancel.done")}
-                onPress={guard(askLastPayment)}
+                onPress={guard(() => askLastPayment(item))}
               />
               <Button
                 style={styles.actionHalf}
@@ -559,7 +524,7 @@ export default function ItemScreen() {
                 chipColor={CHIP.cancel}
                 label={t("cancel.start")}
                 hint={t("cancel.startHint")}
-                onPress={guard(askCancel)}
+                onPress={guard(() => askCancel(item))}
               />
             )}
           </Card>

@@ -14,7 +14,6 @@ import { useSharedValue, withTiming } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LockNudge } from "../../../src/components/onboarding/LockNudge";
-import { closeAllSwipeRows } from "../../../src/components/ui/SwipeRow";
 import { Glass } from "../../../src/components/ui/Glass";
 import { SegmentedPills } from "../../../src/components/ui/SegmentedPills";
 import { usePager } from "../../../src/components/ui/usePager";
@@ -110,19 +109,7 @@ export default function PaymentsScreen() {
     mountKey: onPills,
     onSettle: (page) => setView(page === 1 ? "all" : "upcoming"),
   });
-  const goToPage = (page: number, animated: boolean) => {
-    closeAllSwipeRows();
-    pager.goTo(page, animated);
-  };
-  // ANY page movement (finger or programmatic) folds open swipe rows shut,
-  // and so does leaving the screen — a revealed trash button must never
-  // survive a context change.
-  const onPagerBeginDrag = () => closeAllSwipeRows();
-  useFocusEffect(
-    useCallback(() => {
-      return () => closeAllSwipeRows();
-    }, []),
-  );
+  const goToPage = pager.goTo;
   useEffect(() => {
     // Reanimated shared values are driven by assigning `.value`.
     if (view === "upcoming" || view === "all") {
@@ -233,12 +220,7 @@ export default function PaymentsScreen() {
       )}
 
       {onPills ? (
-        <ScrollView
-          ref={pagerRef}
-          style={styles.pager}
-          onScrollBeginDrag={onPagerBeginDrag}
-          {...pager.scrollProps}
-        >
+        <ScrollView ref={pagerRef} style={styles.pager} {...pager.scrollProps}>
           <View key="upcoming" style={[styles.page, { width: pageWidth }]} collapsable={false}>
             <UpcomingView resetSignal={resetSignal} />
           </View>

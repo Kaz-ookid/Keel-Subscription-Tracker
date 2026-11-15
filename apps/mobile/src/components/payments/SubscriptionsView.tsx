@@ -20,10 +20,7 @@ import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
-// The gesture-handler FlatList registers its scroll with the gesture system,
-// which the rows' swipe pan needs to win a leftward drag (see SwipeRow).
-import { FlatList } from "react-native-gesture-handler";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { amountInDisplay } from "../../lib/money-display";
 import { pendingFormParams } from "../../lib/suggestions";
@@ -35,7 +32,6 @@ import { HeroCard } from "../HeroCard";
 import { SubscriptionRow } from "../SubscriptionRow";
 import { Button } from "../ui/Button";
 import { Chip } from "../ui/Chip";
-import { closeAllSwipeRows } from "../ui/SwipeRow";
 import { EmptyState } from "../ui/EmptyState";
 import { WheelSheet } from "../WheelSheet";
 
@@ -104,7 +100,7 @@ export function SubscriptionsView() {
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { items, pending, accounts, displayCurrency, rates, loading } = useAppData();
-  const { removeSubscription, removePendingSuggestion } = useAppActions();
+  const { removePendingSuggestion } = useAppActions();
   // Open by default — the whole point of the list is to be acted on.
   const [pendingOpen, setPendingOpen] = useState(true);
   // Catalog ordering: stable billing-day by default; the control above the
@@ -198,8 +194,6 @@ export function SubscriptionsView() {
       contentInsetAdjustmentBehavior="automatic"
       data={sorted}
       keyExtractor={(item) => item.id}
-      // Scrolling moves attention: any open swipe row folds back shut.
-      onScrollBeginDrag={closeAllSwipeRows}
       contentContainerStyle={styles.listContent}
       ListHeaderComponent={
         <View style={styles.headerStack}>
@@ -324,13 +318,7 @@ export function SubscriptionsView() {
           </View>
         </View>
       }
-      renderItem={({ item }) => (
-        <SubscriptionRow
-          item={item}
-          onPress={() => router.push({ pathname: "/item", params: { id: item.id } })}
-          onDelete={() => removeSubscription(item.id)}
-        />
-      )}
+      renderItem={({ item }) => <SubscriptionRow item={item} />}
       ListFooterComponent={
         <WheelSheet
           visible={sortSheet}
