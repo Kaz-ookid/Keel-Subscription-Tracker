@@ -38,21 +38,31 @@ export function WheelSheet({ visible, title, onClose, children }: Props) {
     // Fade the MODAL (the scrim) and slide only the tray: sliding the whole
     // modal made the backdrop rise as a visible rectangle.
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} />
-      <Animated.View
-        entering={SlideInDown.duration(280)}
-        style={glassOn ? styles.inset : styles.sheet}
-      >
-        {glassOn ? <Glass style={styles.glassTray}>{body}</Glass> : body}
-      </Animated.View>
+      <View style={styles.root}>
+        {/* The dimming covers the WHOLE screen: an inset glass tray lets the
+            screen show around and through it, and an undimmed band behind
+            it read as a pale rectangle (build 29). */}
+        <Pressable style={styles.backdrop} onPress={onClose} />
+        <Animated.View
+          entering={SlideInDown.duration(280)}
+          style={glassOn ? styles.inset : styles.sheet}
+        >
+          {glassOn ? <Glass style={styles.glassTray}>{body}</Glass> : body}
+        </Animated.View>
+      </View>
     </Modal>
   );
 }
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
+    root: { flex: 1, justifyContent: "flex-end" },
     backdrop: {
-      flex: 1,
+      position: "absolute",
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
       backgroundColor: colors.scrim,
     },
     // Opaque on purpose: the wheel is text you READ, and content scrolling
