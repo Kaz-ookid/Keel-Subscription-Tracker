@@ -19,7 +19,7 @@ import {
   type ImportWarning,
   type NewAccountInput,
 } from "@keel/core";
-import { Stack, useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -414,7 +414,7 @@ export default function ImportReviewScreen() {
   if (locked) return null;
   return (
     <View style={styles.screen}>
-      {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
+      {direct ? <ModalClose /> : null}
       {/* First AI review also shows brand logos: ask before any load. */}
       <LogoConsentGate />
       <FlatList

@@ -270,16 +270,16 @@ export default function ItemScreen() {
       <Stack.Screen
         options={{
           title: "",
-          headerRight: () => (
-            <Pressable
-              onPress={guard(() => router.push({ pathname: "/add/form", params: { id: item.id } }))}
-              hitSlop={12}
-            >
-              <Text style={styles.headerAction}>{t("common.edit")}</Text>
-            </Pressable>
-          ),
         }}
       />
+      {/* A word, not a symbol: Apple's own exception for Edit. */}
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          onPress={guard(() => router.push({ pathname: "/add/form", params: { id: item.id } }))}
+        >
+          {t("common.edit")}
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
 
       {/* Identity, under the brand's own glow (§9c): the item's color
           lights the top of its screen like Subo's Netflix red. */}
@@ -774,7 +774,6 @@ function createStyles(colors: ThemeColors) {
     emptyHint: { ...typography.body, color: colors.mutedText },
     // Accent like every header action (accounts, form) — white was invisible
     // over the light Ambient with the transparent header.
-    headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.sm },
     identity: {
       alignItems: "center",
       gap: spacing.xs,

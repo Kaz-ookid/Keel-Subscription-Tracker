@@ -11,6 +11,7 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
+import { useGlass } from "../../lib/glass";
 import { hapticSelection } from "../../lib/haptics";
 import Animated, {
   useAnimatedStyle,
@@ -20,6 +21,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { spacing, type ThemeColors, typography, useStyles, withAlpha } from "../../theme";
+import { Glass } from "./Glass";
 
 interface Option<T extends string> {
   value: T;
@@ -39,6 +41,9 @@ interface Props<T extends string> {
    *  selection (Payments' calendar/harbor toggles). */
   washOpacity?: SharedValue<number>;
   style?: StyleProp<ViewStyle>;
+  /** The track as glass, for a switch that floats over content (iOS 26
+   *  and later; the material track otherwise). */
+  glass?: boolean;
 }
 
 export function SegmentedPills<T extends string>({
@@ -48,8 +53,11 @@ export function SegmentedPills<T extends string>({
   progress,
   washOpacity,
   style,
+  glass,
 }: Props<T>) {
   const styles = useStyles(createStyles);
+  const glassOn = useGlass() && glass === true;
+  const Track = glassOn ? Glass : View;
   const [trackWidth, setTrackWidth] = useState(0);
   // Track padding 3 + 1px borders; gaps of 3 between pills.
   const pillWidth =
@@ -71,7 +79,10 @@ export function SegmentedPills<T extends string>({
   }));
 
   return (
-    <View style={[styles.track, style]} onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}>
+    <Track
+      style={[styles.track, glassOn && styles.trackGlass, style]}
+      onLayout={(e) => setTrackWidth(e.nativeEvent.layout.width)}
+    >
       {pillWidth > 0 && <Animated.View style={[styles.wash, { width: pillWidth }, washStyle]} />}
       {options.map((option) => {
         const active = option.value === value;
@@ -98,7 +109,7 @@ export function SegmentedPills<T extends string>({
           </Pressable>
         );
       })}
-    </View>
+    </Track>
   );
 }
 
@@ -115,6 +126,9 @@ function createStyles(colors: ThemeColors) {
       // The wash must never escape the capsule, even mid-overscroll.
       overflow: "hidden",
     },
+    // Glass replaces the material fill; the 1px border stays, invisible,
+    // so the pill geometry does not move.
+    trackGlass: { backgroundColor: "transparent", borderColor: "transparent" },
     wash: {
       position: "absolute",
       top: 3,

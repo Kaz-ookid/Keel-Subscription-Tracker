@@ -154,6 +154,9 @@ const modeListeners = new Set<() => void>();
 function setCurrentMode(next: ThemeMode): void {
   if (next === currentMode) return;
   currentMode = next;
+  // What the system draws (tab bar, bar buttons, alerts, pickers, glass)
+  // follows the device unless told the app's own choice.
+  Appearance.setColorScheme(next === "system" ? "unspecified" : next);
   for (const listener of modeListeners) listener();
 }
 
@@ -307,7 +310,3 @@ export const emphasis = {
   dim: 0.45,
   hint: 0.7,
 } as const;
-
-/** Bottom padding scrollable tab screens need so their last rows can clear
- *  the floating glass dock (DESIGN.md §9b). */
-export const dockClearance = 108;

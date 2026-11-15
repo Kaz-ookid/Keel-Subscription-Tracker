@@ -2,30 +2,32 @@
 // (what hits, when, from which account); "All" is the catalog of every item,
 // including ended/paused ones a timeline can't show. It also opens the
 // first-launch onboarding, and once a first item exists it shows the one-time
-// "lock the app" card under the switcher.
+// "lock the app" card under the switcher. Adding is this screen's primary
+// action: a system bar button, top right (the tab bar only navigates).
 
-import { useFocusEffect, useRouter } from "expo-router";
+import { Stack, useFocusEffect, useRouter } from "expo-router";
+import { useHeaderHeight } from "expo-router/react-navigation";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useSharedValue, withTiming } from "react-native-reanimated";
 
-import { LockNudge } from "../../src/components/onboarding/LockNudge";
-import { closeAllSwipeRows } from "../../src/components/ui/SwipeRow";
-import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
-import { usePager } from "../../src/components/ui/usePager";
-import { ScreenTitle } from "../../src/components/ui/ScreenTitle";
-import { ScheduleView, type ScheduleLens } from "../../src/components/payments/ScheduleView";
-import { SubscriptionsView } from "../../src/components/payments/SubscriptionsView";
-import { UpcomingView } from "../../src/components/payments/UpcomingView";
-import { TabFade } from "../../src/components/TabFade";
-import { consumePaymentsView, onTabReset, useTabReset } from "../../src/lib/tabReset";
-import { useAppLockConfig } from "../../src/lib/app-lock";
-import { isNudgePending, markNudgeDone, wasOnboardingSeen } from "../../src/lib/onboarding";
-import { useAppData } from "../../src/state/app-state";
-import { spacing, type ThemeColors, useStyles, useTheme, withAlpha } from "../../src/theme";
+import { LockNudge } from "../../../src/components/onboarding/LockNudge";
+import { closeAllSwipeRows } from "../../../src/components/ui/SwipeRow";
+import { SegmentedPills } from "../../../src/components/ui/SegmentedPills";
+import { usePager } from "../../../src/components/ui/usePager";
+import { ScreenTitle } from "../../../src/components/ui/ScreenTitle";
+import { ScheduleView, type ScheduleLens } from "../../../src/components/payments/ScheduleView";
+import { SubscriptionsView } from "../../../src/components/payments/SubscriptionsView";
+import { UpcomingView } from "../../../src/components/payments/UpcomingView";
+import { TabStage } from "../../../src/components/TabStage";
+import { consumePaymentsView, onTabReset, useTabReset } from "../../../src/lib/tabReset";
+import { useAppLockConfig } from "../../../src/lib/app-lock";
+import { useLockGuard } from "../../../src/lib/lock-gate";
+import { isNudgePending, markNudgeDone, wasOnboardingSeen } from "../../../src/lib/onboarding";
+import { useAppData } from "../../../src/state/app-state";
+import { spacing, type ThemeColors, useStyles, useTheme, withAlpha } from "../../../src/theme";
 
 // The harbor is no longer a top-level view: it lives INSIDE the schedule
 // slot as the calendar's bonus lens (see ScheduleView).
@@ -39,7 +41,9 @@ const VIEWS: { value: PaymentsView; labelKey: string }[] = [
 export default function PaymentsScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
+  // Adding is a write: once locked, the + presents the locked sheet (§7.3).
+  const guard = useLockGuard();
   const styles = useStyles(createStyles);
   // Another screen may have requested a landing view (e.g. the browse picker
   // closes onto All, where its picks now live).
@@ -165,8 +169,17 @@ export default function PaymentsScreen() {
   );
 
   return (
-    <TabFade style={[styles.screen, { paddingTop: insets.top }]}>
-      {/* The screen owns its title now: large, on the Ambient stage. */}
+    <TabStage style={{ paddingTop: headerHeight }}>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          icon="plus"
+          variant="prominent"
+          accessibilityLabel={t("tabs.addA11y")}
+          onPress={guard(() => router.push("/add"))}
+        />
+      </Stack.Toolbar>
+      {/* The screen owns its title: large, on the Ambient stage, under
+          the bar that carries the +. */}
       <ScreenTitle style={styles.largeTitle}>{t("tabs.payments")}</ScreenTitle>
       <View style={styles.switchWrap}>
         <SegmentedPills
@@ -228,22 +241,18 @@ export default function PaymentsScreen() {
       ) : (
         <ScheduleView lens={scheduleLens} onLens={setScheduleLens} />
       )}
-    </TabFade>
+    </TabStage>
   );
 }
 
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
-    screen: {
-      flex: 1,
-      backgroundColor: "transparent",
-    },
     pager: { flex: 1 },
     // Width comes inline (the window width); flex here would zero the
     // flex-basis and collapse the horizontal content run.
     page: { height: "100%" },
     // The large title (DESIGN.md §9b): the screen names itself.
-    largeTitle: { paddingHorizontal: spacing.md, paddingTop: spacing.sm },
+    largeTitle: { paddingHorizontal: spacing.md },
     switchWrap: {
       flexDirection: "row",
       alignItems: "center",

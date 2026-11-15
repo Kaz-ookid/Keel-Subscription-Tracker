@@ -631,6 +631,8 @@ export const it: typeof en = {
     testOnboarding: "Prova l'onboarding (cancella i dati)",
     assistantDebug: "Assistente IA (sperimentale)",
     readerLab: "Laboratorio del lettore (debug)",
+    glassLab: "Lab del vetro (debug)",
+    glassOff: "Simula senza Liquid Glass (debug)",
     clearAll: "Cancella tutti i dati",
     clearMsg:
       "Ogni abbonamento, pagamento, categoria e conto verrà eliminato. Non si può annullare.",

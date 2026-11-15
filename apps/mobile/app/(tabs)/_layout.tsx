@@ -1,161 +1,70 @@
-// The tab chrome (DESIGN.md §9b): no header bars — each screen draws its own
-// large title over the Ambient stage — and the tab bar is a floating glass
-// dock. Content scrolls UNDER the dock (screens pad their bottom by
-// DOCK_CLEARANCE). `action: true` is the center ＋ — it opens the Add modal
-// instead of switching tab.
+// The tab chrome: the system's own tab bar (real Liquid Glass on iOS 26 and
+// later, the classic bar below), three destinations. Adding is an action, so
+// it lives in the Payments top bar, not here: Apple keeps tab bars for
+// navigation. Each tab's first scroll view is inset by the system, so no
+// screen pads for the bar by hand; Payments opts out (its first scroll view
+// is the side-to-side pager) and insets its lists itself.
+//
+// NativeTabs is still marked unstable in SDK 57 (stable in 58).
 
-import { BlurView } from "expo-blur";
-import { Tabs, useRouter } from "expo-router";
-import type { ComponentProps } from "react";
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
+import { NativeTabs } from "expo-router/unstable-native-tabs";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { useLockGuard } from "../../src/lib/lock-gate";
 import { useScreenshotMode } from "../../src/lib/screenshot-mode";
 import { bumpTabReset } from "../../src/lib/tabReset";
-import { radius, typography, useTheme, withAlpha } from "../../src/theme";
+import { useTheme } from "../../src/theme";
 
-type SymbolName = SymbolViewProps["name"];
+// Re-tapping the active tab sends its screen home (§9i). The press event
+// fires before the tab changes, so "already focused" means a re-tap.
+const resetOnRetap =
+  (tab: string) =>
+  ({ navigation }: { navigation: { isFocused: () => boolean } }) => ({
+    tabPress: () => {
+      if (navigation.isFocused()) bumpTabReset(tab);
+    },
+  });
 
-// The props expo-router hands a custom `tabBar` (SDK 56+ no longer exposes
-// React Navigation's types directly).
-type BottomTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>>[0];
-
-const TABS: { name: string; titleKey: string; sf: string; action?: boolean }[] = [
-  { name: "index", titleKey: "tabs.payments", sf: "creditcard.fill" },
-  { name: "insights", titleKey: "tabs.insights", sf: "chart.bar.fill" },
-  { name: "new", titleKey: "", sf: "plus", action: true },
-  { name: "settings", titleKey: "tabs.settings", sf: "gearshape.fill" },
-];
-
-function GlassDock({ state, navigation }: BottomTabBarProps) {
-  const router = useRouter();
-  const { colors, scheme } = useTheme();
-  const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
-  // Adding is a write: once locked, the + presents the locked sheet (§7.3).
-  const guard = useLockGuard();
-  // Quadruple-tap screenshot mode (debug builds): the dock steps out of
-  // the frame so store captures get the full screen.
-  const captureMode = useScreenshotMode();
-
-  if (captureMode) return null;
-
-  return (
-    <View
-      style={[styles.dockWrap, { bottom: Math.max(insets.bottom, 12) }]}
-      pointerEvents="box-none"
-    >
-      <BlurView
-        intensity={50}
-        tint={scheme === "dark" ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight"}
-        style={[styles.dock, { borderColor: colors.hairline, backgroundColor: colors.material }]}
-      >
-        {TABS.map((tab) => {
-          if (tab.action) {
-            return (
-              <Pressable
-                key={tab.name}
-                onPress={guard(() => router.push("/add"))}
-                accessibilityLabel={t("tabs.addA11y")}
-                // Tinted, not solid (§9f): an accent wash in the glass.
-                style={[styles.plus, { backgroundColor: withAlpha(colors.accent, 0.28) }]}
-              >
-                <SymbolView name={tab.sf as SymbolName} size={22} tintColor={colors.accent} />
-              </Pressable>
-            );
-          }
-          const index = state.routes.findIndex((r) => r.name === tab.name);
-          const active = state.index === index;
-          return (
-            <Pressable
-              key={tab.name}
-              // Re-tapping the active tab sends its screen home (§9i).
-              onPress={() => (active ? bumpTabReset(tab.name) : navigation.navigate(tab.name))}
-              accessibilityLabel={t(tab.titleKey)}
-              style={styles.item}
-            >
-              <SymbolView
-                name={tab.sf as SymbolName}
-                size={22}
-                tintColor={active ? colors.accent : colors.mutedText}
-              />
-              <Text
-                style={[styles.itemLabel, { color: active ? colors.accent : colors.mutedText }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}
-              >
-                {t(tab.titleKey)}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </BlurView>
-    </View>
-  );
-}
+// Each tab hosts its own Ambient stage (TabStage); the navigator's default
+// opaque fill would only sit under it.
+const CONTENT = { backgroundColor: "transparent" } as const;
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
+  const { t } = useTranslation();
+  // Quadruple-tap screenshot mode (debug builds): the bar steps out of the
+  // frame so store captures get the full screen.
+  const captureMode = useScreenshotMode();
+
   return (
-    <Tabs
-      tabBar={(props) => <GlassDock {...props} />}
-      screenOptions={{
-        // Screens own their titles now (large titles on the Ambient stage).
-        headerShown: false,
-        sceneStyle: { backgroundColor: "transparent" },
-        // Switching is INSTANT; the fade-through (§3.6) is each screen's own
-        // TabFade wrapper. The navigator-owned fade got stuck at opacity 0
-        // when transitions were interrupted by fast switching.
-        animation: "none",
-      }}
-    >
-      <Tabs.Screen name="index" />
-      <Tabs.Screen name="insights" />
-      <Tabs.Screen name="new" />
-      <Tabs.Screen name="settings" />
-    </Tabs>
+    <NativeTabs tintColor={colors.accent} minimizeBehavior="onScrollDown" hidden={captureMode}>
+      <NativeTabs.Trigger
+        name="(payments)"
+        contentStyle={CONTENT}
+        // The pager is this tab's first scroll view: the system inset and
+        // scroll-to-top would act on it, sideways. The screen does both.
+        disableAutomaticContentInsets
+        disableScrollToTop
+        listeners={resetOnRetap("index")}
+      >
+        <NativeTabs.Trigger.Icon sf="creditcard.fill" />
+        <NativeTabs.Trigger.Label>{t("tabs.payments")}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
+        name="insights"
+        contentStyle={CONTENT}
+        listeners={resetOnRetap("insights")}
+      >
+        <NativeTabs.Trigger.Icon sf="chart.bar.fill" />
+        <NativeTabs.Trigger.Label>{t("tabs.insights")}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger
+        name="settings"
+        contentStyle={CONTENT}
+        listeners={resetOnRetap("settings")}
+      >
+        <NativeTabs.Trigger.Icon sf="gearshape.fill" />
+        <NativeTabs.Trigger.Label>{t("tabs.settings")}</NativeTabs.Trigger.Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }
-
-const styles = StyleSheet.create({
-  dockWrap: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  dock: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    borderRadius: 32,
-    borderWidth: 1,
-    overflow: "hidden",
-  },
-  item: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 2,
-    width: 76,
-    paddingVertical: 4,
-    borderRadius: radius.lg,
-  },
-  itemLabel: {
-    ...typography.micro,
-    textTransform: "none",
-    letterSpacing: 0,
-  },
-  plus: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 2,
-  },
-});

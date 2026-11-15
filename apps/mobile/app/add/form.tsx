@@ -9,7 +9,7 @@ import { usePreventRemove } from "expo-router/react-navigation";
 import { Stack, useLocalSearchParams, useNavigation } from "expo-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, View } from "react-native";
 
 import { AmountSection } from "../../src/components/add-form/AmountSection";
 import {
@@ -22,7 +22,7 @@ import { ScheduleSection } from "../../src/components/add-form/ScheduleSection";
 import { useAddForm, type PlanType } from "../../src/components/add-form/useAddForm";
 import { ModalClose } from "../../src/components/ModalClose";
 import { SegmentedPills } from "../../src/components/ui/SegmentedPills";
-import { spacing, type ThemeColors, typography, useStyles } from "../../src/theme";
+import { spacing, useStyles } from "../../src/theme";
 
 import { useLockedRedirect } from "../../src/lib/lock-gate";
 const PLAN_TYPES: { value: PlanType; labelKey: string }[] = [
@@ -83,18 +83,22 @@ export default function AddFormScreen() {
       <Stack.Screen
         options={{
           title: form.isEditing || form.isDraft ? t("titles.edit") : t("titles.newSubscription"),
-          // Direct entries are the sheet's first screen: the ✕ closes it.
-          // From the chooser, the native back chevron appears on its own.
-          ...(direct ? { headerLeft: () => <ModalClose /> } : {}),
-          headerRight: () => (
-            <Pressable onPress={form.submit} disabled={!form.canSubmit} hitSlop={12}>
-              <Text style={[styles.headerAction, !form.canSubmit && styles.headerActionDisabled]}>
-                {form.isEditing || form.isDraft ? t("common.save") : t("common.add")}
-              </Text>
-            </Pressable>
-          ),
         }}
       />
+      {/* Direct entries are the sheet's first screen: the ✕ closes it.
+          From the chooser, the native back chevron appears on its own. */}
+      {direct ? <ModalClose /> : null}
+      {/* The confirm: the system's tinted checkmark, greyed until the form
+          can be saved. */}
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          icon="checkmark"
+          variant="prominent"
+          disabled={!form.canSubmit}
+          accessibilityLabel={form.isEditing || form.isDraft ? t("common.save") : t("common.add")}
+          onPress={form.submit}
+        />
+      </Stack.Toolbar>
 
       <IdentityHeader form={form} />
 
@@ -118,14 +122,12 @@ export default function AddFormScreen() {
   );
 }
 
-function createStyles(colors: ThemeColors) {
+function createStyles() {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
     content: { padding: spacing.md, paddingBottom: spacing.xl },
     modeSwitch: {
       marginBottom: spacing.md,
     },
-    headerAction: { ...typography.label, color: colors.accent, paddingHorizontal: spacing.sm },
-    headerActionDisabled: { opacity: 0.4 },
   });
 }

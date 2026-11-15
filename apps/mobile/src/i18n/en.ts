@@ -630,6 +630,8 @@ export const en = {
     testOnboarding: "Test onboarding (wipes data)",
     assistantDebug: "AI assistant (experimental)",
     readerLab: "Reader lab (debug)",
+    glassLab: "Glass lab (debug)",
+    glassOff: "Pretend no Liquid Glass (debug)",
     clearAll: "Clear all data",
     clearMsg:
       "Every subscription, payment, category and account will be deleted. This cannot be undone.",

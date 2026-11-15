@@ -5,7 +5,7 @@
 // explains itself. The pager is the shared usePager (the Payments tab's),
 // the pills the shared SegmentedPills, driven live by the pager's progress.
 
-import { Stack, useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams } from "expo-router";
 import { useHeaderHeight } from "expo-router/react-navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -51,7 +51,7 @@ function ImportHub({ initialPage }: { initialPage: number }) {
   if (locked) return null;
   return (
     <View style={[styles.screen, { paddingTop: headerHeight }]}>
-      {direct ? <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} /> : null}
+      {direct ? <ModalClose /> : null}
       <View style={styles.switchWrap}>
         <SegmentedPills
           options={PAGES.map((key) => ({

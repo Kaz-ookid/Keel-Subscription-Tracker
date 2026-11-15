@@ -28,15 +28,7 @@ import { FlatList } from "react-native-gesture-handler";
 import { amountInDisplay } from "../../lib/money-display";
 import { pendingFormParams } from "../../lib/suggestions";
 import { useAppActions, useAppData } from "../../state/app-state";
-import {
-  dockClearance,
-  radius,
-  spacing,
-  type ThemeColors,
-  typography,
-  useStyles,
-  useTheme,
-} from "../../theme";
+import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 import { AccountChipsRow } from "./AccountChipsRow";
 import { BrandBadge } from "../BrandBadge";
 import { HeroCard } from "../HeroCard";
@@ -203,6 +195,7 @@ export function SubscriptionsView() {
   return (
     <FlatList
       style={styles.list}
+      contentInsetAdjustmentBehavior="automatic"
       data={sorted}
       keyExtractor={(item) => item.id}
       // Scrolling moves attention: any open swipe row folds back shut.
@@ -363,7 +356,7 @@ function createStyles(colors: ThemeColors) {
     },
     listContent: {
       padding: spacing.md,
-      paddingBottom: dockClearance,
+      paddingBottom: spacing.xl,
       gap: spacing.sm,
     },
     center: {

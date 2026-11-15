@@ -634,6 +634,8 @@ export const de: typeof en = {
     testOnboarding: "Onboarding testen (löscht Daten)",
     assistantDebug: "KI-Assistent (experimentell)",
     readerLab: "Leser-Labor (Debug)",
+    glassLab: "Glas-Labor (Debug)",
+    glassOff: "Ohne Liquid Glass simulieren (Debug)",
     clearAll: "Alle Daten löschen",
     clearMsg:
       "Jedes Abo, jede Zahlung, jede Kategorie und jedes Konto wird gelöscht. Das lässt sich nicht rückgängig machen.",

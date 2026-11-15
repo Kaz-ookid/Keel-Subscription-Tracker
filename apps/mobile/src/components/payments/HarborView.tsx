@@ -34,7 +34,6 @@ import Svg, { G, Line, Path, Rect } from "react-native-svg";
 import { amountInDisplay } from "../../lib/money-display";
 import { useAppData } from "../../state/app-state";
 import {
-  dockClearance,
   emphasis,
   radius,
   spacing,
@@ -336,6 +335,7 @@ export function HarborView() {
       <ScrollView
         style={styles.screen}
         contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
         contentOffset={{ x: 0, y: canvasHeight }}
       >
         {/* The scene assembles organically: water first, then the fleet fades
@@ -835,7 +835,7 @@ export function HarborView() {
 function createStyles(colors: ThemeColors, scheme: "light" | "dark") {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    content: { padding: spacing.md, paddingBottom: dockClearance, gap: spacing.sm },
+    content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.sm },
     center: {
       flex: 1,
       justifyContent: "center",

@@ -34,14 +34,7 @@ import { AccountChipsRow } from "./AccountChipsRow";
 import { EmptyState } from "../ui/EmptyState";
 import { SectionDivider } from "../ui/SectionDivider";
 import { useAppActions, useAppData } from "../../state/app-state";
-import {
-  dockClearance,
-  spacing,
-  type ThemeColors,
-  typography,
-  useStyles,
-  useTheme,
-} from "../../theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../../theme";
 import { HeroCard } from "../HeroCard";
 import { BrandBadge } from "../BrandBadge";
 import { UpcomingRow } from "../UpcomingRow";
@@ -331,7 +324,12 @@ export function UpcomingView({ resetSignal }: { resetSignal?: number }) {
   // reanimated accordion as every other screen (foldLayout on every block, so
   // opening a fold slides the whole timeline instead of popping it).
   return (
-    <ScrollView ref={scrollRef} style={styles.list} contentContainerStyle={styles.listContent}>
+    <ScrollView
+      ref={scrollRef}
+      style={styles.list}
+      contentContainerStyle={styles.listContent}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       {header}
       {changes.length > 0 && (
         <View>
@@ -485,7 +483,7 @@ function createStyles(colors: ThemeColors) {
     },
     listContent: {
       padding: spacing.md,
-      paddingBottom: dockClearance,
+      paddingBottom: spacing.xl,
     },
     center: {
       flex: 1,

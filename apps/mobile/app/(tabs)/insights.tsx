@@ -37,17 +37,10 @@ import { monthFull, monthShort } from "../../src/i18n/dates";
 import { monthShifted } from "../../src/lib/dates";
 import { totalInDisplay } from "../../src/lib/money-display";
 import { foldLayout } from "../../src/lib/motion";
-import { TabFade } from "../../src/components/TabFade";
+import { TabStage } from "../../src/components/TabStage";
 import { useTabReset } from "../../src/lib/tabReset";
 import { useAppData } from "../../src/state/app-state";
-import {
-  dockClearance,
-  spacing,
-  type ThemeColors,
-  typography,
-  useStyles,
-  useTheme,
-} from "../../src/theme";
+import { spacing, type ThemeColors, typography, useStyles, useTheme } from "../../src/theme";
 
 // The chart's slide range: two years back, two years ahead. Plenty of runway
 // in both directions while staying a cheap, plain-View render.
@@ -62,7 +55,11 @@ export default function InsightsScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const resetSignal = useTabReset("insights");
   useEffect(() => {
-    if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
+    // The system insets this scroll view under the status bar, so its
+    // top is at minus that inset.
+    if (resetSignal) scrollRef.current?.scrollTo({ y: -insets.top, animated: true });
+    // A re-tap is the only trigger; an inset change must not scroll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetSignal]);
   const styles = useStyles(createStyles);
   const { items, occurrences, categories, displayCurrency, rates, loading } = useAppData();
@@ -196,11 +193,12 @@ export default function InsightsScreen() {
   const selectedKey = selected !== null ? buckets[selected]?.monthStart.slice(0, 7) : undefined;
 
   return (
-    <TabFade style={styles.screen}>
+    <TabStage>
       <ScrollView
         ref={scrollRef}
         style={styles.screen}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <ScreenTitle>{t("tabs.insights")}</ScreenTitle>
         <HeroCard
@@ -270,7 +268,7 @@ export default function InsightsScreen() {
 
         <ExploreSection items={items} asOf={asOf} displayCurrency={displayCurrency} rates={rates} />
       </ScrollView>
-    </TabFade>
+    </TabStage>
   );
 }
 
@@ -282,7 +280,8 @@ function createStyles(colors: ThemeColors) {
     },
     content: {
       padding: spacing.md,
-      paddingBottom: dockClearance,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xl,
       gap: spacing.md,
     },
     center: {

@@ -3,7 +3,7 @@ import { Stack } from "expo-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useHeaderHeight } from "expo-router/react-navigation";
 
 import { AccountEditSheet } from "../src/components/AccountSheet";
 import { BrandBadge } from "../src/components/BrandBadge";
@@ -14,7 +14,7 @@ import { radius, spacing, type ThemeColors, typography, useStyles } from "../src
 
 import { useLockGuard } from "../src/lib/lock-gate";
 export default function AccountsScreen() {
-  const insets = useSafeAreaInsets();
+  const headerHeight = useHeaderHeight();
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
   const { accounts } = useAppData();
@@ -44,23 +44,16 @@ export default function AccountsScreen() {
 
   return (
     <View style={styles.screen}>
-      {/* The screen's single primary action lives in the header (§3.5).
-          Text, not a glyph: custom header glyphs drift off-center in the
-          native bar (see ModalClose's rule). */}
-      <Stack.Screen
-        options={{
-          headerRight: () => (
-            <Pressable
-              onPress={guard(() => open())}
-              hitSlop={12}
-              accessibilityLabel={t("accounts.addAccount")}
-            >
-              <Text style={styles.headerAction}>{t("common.add")}</Text>
-            </Pressable>
-          ),
-        }}
-      />
-      <ScreenTitle style={[styles.largeTitle, { paddingTop: insets.top + 44 }]}>
+      {/* The screen's single primary action lives in the header (§3.5),
+          as a system bar button. */}
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button
+          icon="plus"
+          accessibilityLabel={t("accounts.addAccount")}
+          onPress={guard(() => open())}
+        />
+      </Stack.Toolbar>
+      <ScreenTitle style={[styles.largeTitle, { paddingTop: headerHeight }]}>
         {t("titles.accounts")}
       </ScreenTitle>
       {accounts.length === 0 ? (

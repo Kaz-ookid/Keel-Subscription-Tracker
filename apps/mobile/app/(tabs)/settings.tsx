@@ -45,7 +45,7 @@ import { NudgeCard } from "../../src/components/ui/NudgeCard";
 import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
 import { ScreenTitle } from "../../src/components/ui/ScreenTitle";
-import { TabFade } from "../../src/components/TabFade";
+import { TabStage } from "../../src/components/TabStage";
 import { LogoConsentSheet } from "../../src/components/LogoConsentSheet";
 import { useEntitlement } from "../../src/lib/entitlement";
 import { useFullKeelPrices } from "../../src/lib/purchases";
@@ -53,7 +53,6 @@ import { useAppActions, useAppData } from "../../src/state/app-state";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
-  dockClearance,
   spacing,
   type ThemeColors,
   type ThemeMode,
@@ -113,7 +112,11 @@ export default function SettingsScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const resetSignal = useTabReset("settings");
   useEffect(() => {
-    if (resetSignal) scrollRef.current?.scrollTo({ y: 0, animated: true });
+    // The system insets this scroll view under the status bar, so its
+    // top is at minus that inset.
+    if (resetSignal) scrollRef.current?.scrollTo({ y: -insets.top, animated: true });
+    // A re-tap is the only trigger; an inset change must not scroll.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetSignal]);
   const { accounts, displayCurrency, rates } = useAppData();
   const { setDisplayCurrency } = useAppActions();
@@ -213,11 +216,12 @@ export default function SettingsScreen() {
     option.label ?? t(option.labelKey ?? "");
 
   return (
-    <TabFade style={styles.screen}>
+    <TabStage>
       <ScrollView
         ref={scrollRef}
         style={styles.screen}
-        contentContainerStyle={[styles.content, { paddingTop: insets.top + spacing.sm }]}
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
       >
         <ScreenTitle>{t("tabs.settings")}</ScreenTitle>
 
@@ -490,7 +494,7 @@ export default function SettingsScreen() {
           onDismiss={() => setLogoSheet(false)}
         />
       </ScrollView>
-    </TabFade>
+    </TabStage>
   );
 }
 
@@ -505,7 +509,8 @@ function createStyles(colors: ThemeColors) {
     content: {
       flexGrow: 1,
       padding: spacing.md,
-      paddingBottom: dockClearance,
+      paddingTop: spacing.sm,
+      paddingBottom: spacing.xl,
       gap: spacing.md,
     },
     // Micro overline naming each card group; pulled tight to its own card

@@ -633,6 +633,8 @@ export const fr: typeof en = {
     testOnboarding: "Tester l'accueil (efface tout)",
     assistantDebug: "Assistant IA (expérimental)",
     readerLab: "Labo du lecteur (debug)",
+    glassLab: "Labo du verre (debug)",
+    glassOff: "Simuler sans Liquid Glass (debug)",
     clearAll: "Tout effacer",
     clearMsg:
       "Tous les abonnements, paiements, catégories et comptes seront supprimés. Action irréversible.",

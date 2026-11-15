@@ -29,6 +29,7 @@ import {
 } from "../../lib/entitlement";
 import { resetLogoConsent } from "../../lib/logo-consent";
 import { foldIn, foldOut } from "../../lib/motion";
+import { setGlassPretendNone, useGlassPretendNone } from "../../lib/glass";
 import { resetOnboardingSeen } from "../../lib/onboarding";
 import { useAppActions, useAppData } from "../../state/app-state";
 import { spacing, typography, useStyles, useTheme, type ThemeColors } from "../../theme";
@@ -40,6 +41,7 @@ export const DEBUG_TOOLS = __DEV__ || process.env.EXPO_PUBLIC_DEBUG_TOOLS === "1
 const CHIP = { debug: "#8E8E93", sample: "#FF9500", importAI: "#30B0C7" } as const;
 
 export function DebugDrawer() {
+  const glassOff = useGlassPretendNone();
   const router = useRouter();
   const { colors } = useTheme();
   const { t, i18n } = useTranslation();
@@ -174,6 +176,29 @@ export function DebugDrawer() {
                 onPress={() => router.push("/reader-lab")}
               />
             )}
+            <SettingsRow
+              icon="drop.fill"
+              chipColor={CHIP.debug}
+              label={t("settings.glassLab")}
+              chevron
+              divider
+              onPress={() => router.push("/glass-lab")}
+            />
+            {/* Keel's own glass controls fall back to the blur material, as
+                on iOS 16.4 to 18. The system bars stay what iOS draws. */}
+            <SettingsRow
+              icon="drop.degreesign.slash"
+              chipColor={CHIP.debug}
+              label={t("settings.glassOff")}
+              divider
+              right={
+                <Switch
+                  value={glassOff}
+                  onValueChange={setGlassPretendNone}
+                  trackColor={{ true: colors.accent }}
+                />
+              }
+            />
             <SettingsRow
               icon="checkmark.seal.fill"
               chipColor={CHIP.debug}

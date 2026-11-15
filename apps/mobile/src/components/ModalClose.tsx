@@ -1,29 +1,24 @@
-// The task-sheet close, top LEFT on sheet screens with no screen behind them.
+// The task-sheet close, top LEFT on sheet screens with no screen behind them:
+// the system's own bar button with the standard xmark, so iOS draws its glass
+// and places it. Render it in the screen body; it shows in the header.
 //
-// THE RULE (ends dogfood rounds 1-12 of glyph drift): glyphs in the native
-// header are drawn ONLY by the system (real back buttons on pushed screens).
-// Custom header buttons are TEXT, the same treatment as the Save/Add actions
-// on the right, which have always rendered perfectly. Text has no optical
-// box for the native bar to misplace.
+// History: custom header glyphs drifted off-center for twelve dogfood rounds
+// and the rule became "text only". System bar items ended that: the glyph is
+// the system's again, never a view of ours inside the bar.
 
-import { useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useTranslation } from "react-i18next";
-import { Pressable, StyleSheet, Text } from "react-native";
-
-import { typography, useTheme } from "../theme";
 
 export function ModalClose() {
   const router = useRouter();
-  const { colors } = useTheme();
   const { t } = useTranslation();
   return (
-    <Pressable onPress={() => router.back()} hitSlop={12} accessibilityLabel={t("common.close")}>
-      <Text style={[styles.label, { color: colors.accent }]}>{t("common.close")}</Text>
-    </Pressable>
+    <Stack.Toolbar placement="left">
+      <Stack.Toolbar.Button
+        icon="xmark"
+        accessibilityLabel={t("common.close")}
+        onPress={() => router.back()}
+      />
+    </Stack.Toolbar>
   );
 }
-
-const styles = StyleSheet.create({
-  // Mirrors the headerAction text on the right (label 15/600, accent).
-  label: { ...typography.label, paddingHorizontal: 8 },
-});

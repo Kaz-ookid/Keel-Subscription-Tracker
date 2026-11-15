@@ -694,6 +694,8 @@ const translation = {
     testOnboarding: "Testuj onboarding (kasuje dane)",
     assistantDebug: "Asystent AI (eksperymentalny)",
     readerLab: "Laboratorium czytnika (debug)",
+    glassLab: "Laboratorium szkła (debug)",
+    glassOff: "Symuluj brak Liquid Glass (debug)",
     clearAll: "Wyczyść wszystkie dane",
     clearMsg:
       "Wszystkie subskrypcje, płatności, kategorie i konta zostaną usunięte. Tego nie da się cofnąć.",

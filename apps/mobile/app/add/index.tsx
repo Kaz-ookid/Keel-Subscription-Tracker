@@ -6,7 +6,7 @@
 
 import { SUGGESTED_COMMITMENTS } from "@keel/core";
 import { useHeaderHeight } from "expo-router/react-navigation";
-import { Stack, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { SymbolView } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -54,7 +54,7 @@ export default function AddChooserScreen() {
   if (locked) return null;
   return (
     <View style={[styles.screen, { paddingTop: headerHeight }]}>
-      <Stack.Screen options={{ headerLeft: () => <ModalClose /> }} />
+      <ModalClose />
       {/* The quiet just-in-time discovery of the AI import (§6.1) — Settings
           stays its deliberate home. Gone entirely under the AI lock. */}
       {!aiHidden && (

@@ -43,7 +43,7 @@ export default function LockedScreen() {
     useCallback(() => {
       if (!unlocked) return;
       if (router.canGoBack()) router.back();
-      else router.replace("/(tabs)");
+      else router.replace("/");
     }, [unlocked, router]),
   );
 

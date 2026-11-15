@@ -29,12 +29,14 @@ interface Props {
   options: readonly WheelOption[];
   value: string;
   onChange: (value: string) => void;
+  /** See WheelSheet. */
+  glass?: boolean;
 }
 
-export function OptionWheel({ visible, title, onClose, options, value, onChange }: Props) {
+export function OptionWheel({ visible, title, onClose, options, value, onChange, glass }: Props) {
   const { colors } = useTheme();
   return (
-    <WheelSheet visible={visible} title={title} onClose={onClose}>
+    <WheelSheet visible={visible} title={title} onClose={onClose} glass={glass}>
       <Picker selectedValue={value} onValueChange={(v) => onChange(String(v))}>
         {options.map((o) => (
           <Picker.Item key={o.value} label={o.label} value={o.value} color={colors.text} />

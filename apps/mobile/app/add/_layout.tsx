@@ -12,21 +12,31 @@ import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 
 import { Ambient } from "../../src/components/Ambient";
+import { useGlass } from "../../src/lib/glass";
 import { useTheme } from "../../src/theme";
 
 export default function AddLayout() {
   const { colors, scheme } = useTheme();
   const { t } = useTranslation();
+  const glass = useGlass();
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Ambient />
       <Stack
         screenOptions={{
-          // Real Apple glass for the bar (§9b): the system blur over the
-          // stage, titles on it; screens opt into automatic insets.
+          // A bare bar: on iOS 26 and later the system blurs the content
+          // edge under it by itself, and a background of ours would fight
+          // that. Older iOS keeps the blur band. Screens opt into
+          // automatic insets.
           headerTransparent: true,
-          headerBlurEffect:
-            scheme === "dark" ? "systemUltraThinMaterialDark" : "systemUltraThinMaterialLight",
+          ...(glass
+            ? {}
+            : {
+                headerBlurEffect:
+                  scheme === "dark"
+                    ? ("systemUltraThinMaterialDark" as const)
+                    : ("systemUltraThinMaterialLight" as const),
+              }),
           headerShadowVisible: false,
           headerTintColor: colors.accent,
           headerTitleStyle: { color: colors.text },

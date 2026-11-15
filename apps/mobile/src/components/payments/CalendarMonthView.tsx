@@ -29,7 +29,6 @@ import { monthShifted } from "../../lib/dates";
 import { useAppData } from "../../state/app-state";
 import { monthCharges, monthWeeks, type DayCharge } from "./calendar-month-data";
 import {
-  dockClearance,
   emphasis,
   radius,
   spacing,
@@ -99,7 +98,11 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
   const gridHeight = 40 + 6 * 58;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.screen}
+      contentContainerStyle={styles.content}
+      contentInsetAdjustmentBehavior="automatic"
+    >
       <View style={styles.header}>
         <Pressable
           onPress={() => pagerRef.current?.setPage(currentPage - 1)}
@@ -335,7 +338,7 @@ const MonthGrid = memo(function MonthGrid({
 function createStyles(colors: ThemeColors) {
   return StyleSheet.create({
     screen: { flex: 1, backgroundColor: "transparent" },
-    content: { padding: spacing.md, paddingBottom: dockClearance, gap: spacing.md },
+    content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     header: {
       flexDirection: "row",
       alignItems: "center",
