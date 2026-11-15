@@ -14,6 +14,8 @@ interface Props {
   label?: string;
   onPress: () => void;
   tinted?: boolean;
+  /** The tall capsule of a screen's floating confirm. */
+  large?: boolean;
   disabled?: boolean;
   /** Required for an icon-only button. */
   accessibilityLabel?: string;
@@ -28,6 +30,7 @@ export function GlassButton({
   label,
   onPress,
   tinted,
+  large,
   disabled,
   accessibilityLabel,
   style,
@@ -45,7 +48,7 @@ export function GlassButton({
       <Glass
         interactive
         tint={tinted ? colors.accent : undefined}
-        style={[styles.glass, label !== undefined && styles.capsule]}
+        style={[styles.glass, label !== undefined && styles.capsule, large && styles.large]}
       >
         {icon !== undefined && <SymbolView name={icon} size={18} tintColor={ink} />}
         {label !== undefined && (
@@ -69,6 +72,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   capsule: { paddingHorizontal: spacing.md },
+  large: { height: 52, borderRadius: 26 },
   label: { ...typography.label },
   disabled: { opacity: 0.4 },
 });

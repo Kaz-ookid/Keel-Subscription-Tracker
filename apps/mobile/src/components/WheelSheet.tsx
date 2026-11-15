@@ -13,17 +13,16 @@ interface Props {
   onClose: () => void;
   /** Typically a <Picker> (native iOS wheel) supplied by the caller. */
   children: ReactNode;
-  /** The tray as an inset glass panel, like the system's half sheets
-   *  (iOS 26 and later; opaque tray otherwise). */
-  glass?: boolean;
 }
 
 /** Bottom-anchored sheet hosting a native wheel picker, with a "Done" bar —
  *  the classic iOS "tap field → wheel slides up" pattern. */
-export function WheelSheet({ visible, title, onClose, children, glass }: Props) {
+export function WheelSheet({ visible, title, onClose, children }: Props) {
   const { t } = useTranslation();
   const styles = useStyles(createStyles);
-  const glassOn = useGlass() && glass === true;
+  // An inset glass panel, like the system's half sheets, on iOS 26 and
+  // later (judged readable on device, 2026-11-15); the opaque tray below.
+  const glassOn = useGlass();
   const body = (
     <>
       <View style={styles.header}>

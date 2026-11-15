@@ -1,15 +1,19 @@
 import { type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Modal, StyleSheet, Text, View } from "react-native";
 
 import { spacing, type ThemeColors, typography, useStyles } from "../theme";
+import { GlassButton } from "./ui/GlassButton";
 
 interface Props {
   visible: boolean;
   title: string;
   onClose: () => void;
-  /** The header button's text; defaults to "Done" (pickers that keep state).
-   *  Pass "Close" for act-on-tap lists where nothing is being confirmed. */
+  /** What closing means, said to VoiceOver. Without it the sheet is a picker
+   *  that keeps its state: the tinted checkmark on the right ("Done"). With
+   *  it ("Close", "Cancel") nothing is being confirmed: the xmark on the
+   *  left. Apple's placement: leaving on the leading side, confirming on the
+   *  trailing one. */
   closeLabel?: string;
   children: ReactNode;
 }
@@ -28,10 +32,26 @@ export function Sheet({ visible, title, onClose, closeLabel, children }: Props) 
     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>{title}</Text>
-          <Pressable onPress={onClose} hitSlop={8}>
-            <Text style={styles.done}>{closeLabel ?? t("common.done")}</Text>
-          </Pressable>
+          {/* Equal side slots keep the title centred whichever side holds
+              the button. */}
+          <View style={styles.side}>
+            {closeLabel !== undefined && (
+              <GlassButton icon="xmark" accessibilityLabel={closeLabel} onPress={onClose} />
+            )}
+          </View>
+          <Text style={styles.title} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+            {title}
+          </Text>
+          <View style={[styles.side, styles.sideEnd]}>
+            {closeLabel === undefined && (
+              <GlassButton
+                icon="checkmark"
+                tinted
+                accessibilityLabel={t("common.done")}
+                onPress={onClose}
+              />
+            )}
+          </View>
         </View>
         <View style={styles.body}>{children}</View>
       </View>
@@ -48,20 +68,18 @@ function createStyles(colors: ThemeColors) {
     header: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "space-between",
+      gap: spacing.sm,
       paddingHorizontal: spacing.md,
       paddingVertical: spacing.md,
-      borderBottomWidth: StyleSheet.hairlineWidth,
-      borderBottomColor: colors.hairline,
     },
+    side: { width: 44, alignItems: "flex-start" },
+    sideEnd: { alignItems: "flex-end" },
     title: {
       ...typography.label,
       color: colors.text,
       fontSize: 17,
-    },
-    done: {
-      ...typography.label,
-      color: colors.accent,
+      flex: 1,
+      textAlign: "center",
     },
     body: {
       flex: 1,

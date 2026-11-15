@@ -10,7 +10,6 @@ import { findNodeHandle, ScrollView, StyleSheet, Text, View } from "react-native
 
 import { DEBUG_TOOLS } from "../src/components/settings/DebugDrawer";
 import { Button } from "../src/components/ui/Button";
-import { Card } from "../src/components/ui/Card";
 import { GlassButton } from "../src/components/ui/GlassButton";
 import { OptionWheel } from "../src/components/ui/OptionWheel";
 import { ScreenTitle } from "../src/components/ui/ScreenTitle";
@@ -34,7 +33,7 @@ export default function GlassLabScreen() {
   const styles = useStyles(createStyles);
   const glass = useGlass();
   const [pill, setPill] = useState<"a" | "b">("a");
-  const [wheel, setWheel] = useState<"glass" | "opaque" | null>(null);
+  const [wheel, setWheel] = useState(false);
   const [wheelValue, setWheelValue] = useState("Monthly");
   const sheetButton = useRef<View>(null);
 
@@ -70,19 +69,15 @@ export default function GlassLabScreen() {
       <SegmentedPills options={PILLS} value={pill} onChange={setPill} />
       <SegmentedPills options={PILLS} value={pill} onChange={setPill} glass />
 
-      <Text style={styles.label}>3. Wheel: glass tray against today's tray</Text>
-      <Card>
-        <Text style={styles.body}>Is the wheel as easy to read on glass?</Text>
-        <View style={styles.pair}>
-          <Button size="sm" label="Glass tray" onPress={() => setWheel("glass")} />
-          <Button
-            size="sm"
-            variant="secondary"
-            label="Today's tray"
-            onPress={() => setWheel("opaque")}
-          />
-        </View>
-      </Card>
+      <Text style={styles.label}>3. Wheel on its tray</Text>
+      <View style={styles.start}>
+        <Button
+          size="sm"
+          variant="secondary"
+          label="Open the wheel"
+          onPress={() => setWheel(true)}
+        />
+      </View>
 
       <Text style={styles.label}>4. Action sheet from its button</Text>
       <View ref={sheetButton} collapsable={false} style={styles.start}>
@@ -116,13 +111,12 @@ export default function GlassLabScreen() {
       </View>
 
       <OptionWheel
-        visible={wheel !== null}
+        visible={wheel}
         title="Billing cycle"
-        onClose={() => setWheel(null)}
+        onClose={() => setWheel(false)}
         options={WHEEL}
         value={wheelValue}
         onChange={setWheelValue}
-        glass={wheel === "glass"}
       />
     </ScrollView>
   );
@@ -134,7 +128,6 @@ function createStyles(colors: ThemeColors) {
     content: { padding: spacing.md, paddingBottom: spacing.xl, gap: spacing.md },
     note: { ...typography.caption, color: colors.mutedText },
     label: { ...typography.label, color: colors.text, paddingTop: spacing.sm },
-    body: { ...typography.body, color: colors.text, paddingVertical: spacing.sm },
     strip: {
       flexDirection: "row",
       alignItems: "center",
@@ -143,7 +136,6 @@ function createStyles(colors: ThemeColors) {
       borderRadius: 24,
       overflow: "hidden",
     },
-    pair: { flexDirection: "row", gap: spacing.sm, paddingBottom: spacing.md },
     start: { alignSelf: "flex-start" },
   });
 }

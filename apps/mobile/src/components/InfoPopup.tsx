@@ -18,7 +18,9 @@ import Animated, {
 import { scheduleOnRN } from "react-native-worklets";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { useGlass } from "../lib/glass";
 import { radius, spacing, type ThemeColors, typography, useStyles, useTheme } from "../theme";
+import { Glass } from "./ui/Glass";
 
 interface Props {
   visible: boolean;
@@ -34,6 +36,9 @@ export function InfoPopup({ visible, title, onClose, tall, children }: Props) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = useStyles(createStyles);
+  // An inset glass panel on iOS 26 and later, like the system's half
+  // sheets; the opaque card below.
+  const glassOn = useGlass();
 
   // Drag-to-dismiss on the WHOLE card. The pan runs alongside the body
   // ScrollView: it only accumulates while the scroll sits at its top, and it
@@ -87,11 +92,13 @@ export function InfoPopup({ visible, title, onClose, tall, children }: Props) {
               entering={SlideInDown.duration(280)}
               style={[
                 styles.card,
+                glassOn && styles.cardGlass,
                 tall && styles.cardTall,
                 { paddingBottom: Math.max(insets.bottom, spacing.lg) },
                 cardDrag,
               ]}
             >
+              {glassOn && <Glass style={styles.glassFill} />}
               <View style={styles.grabber} />
               <View style={styles.header}>
                 <Text style={styles.title}>{title}</Text>
@@ -137,6 +144,16 @@ function createStyles(colors: ThemeColors) {
       paddingHorizontal: spacing.lg,
       maxHeight: "72%",
     },
+    // The glass sits behind the content as its own layer; the card only
+    // keeps the shape and steps in from the screen edges.
+    cardGlass: {
+      backgroundColor: "transparent",
+      borderRadius: 36,
+      marginHorizontal: spacing.sm,
+      marginBottom: spacing.sm,
+      overflow: "hidden",
+    },
+    glassFill: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, borderRadius: 36 },
     cardTall: {
       maxHeight: "88%",
     },
