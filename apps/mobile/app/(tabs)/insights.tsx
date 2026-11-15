@@ -280,7 +280,8 @@ function createStyles(colors: ThemeColors) {
     },
     content: {
       padding: spacing.md,
-      paddingTop: spacing.sm,
+      // Same height as the Payments title, which shares its bar's row.
+      paddingTop: 2,
       paddingBottom: spacing.xl,
       gap: spacing.md,
     },

@@ -6,12 +6,12 @@
 // action: a system bar button, top right (the tab bar only navigates).
 
 import { Stack, useFocusEffect, useRouter } from "expo-router";
-import { useHeaderHeight } from "expo-router/react-navigation";
 import { SymbolView } from "expo-symbols";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { useSharedValue, withTiming } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { LockNudge } from "../../../src/components/onboarding/LockNudge";
 import { closeAllSwipeRows } from "../../../src/components/ui/SwipeRow";
@@ -41,7 +41,7 @@ const VIEWS: { value: PaymentsView; labelKey: string }[] = [
 export default function PaymentsScreen() {
   const { colors } = useTheme();
   const { t } = useTranslation();
-  const headerHeight = useHeaderHeight();
+  const insets = useSafeAreaInsets();
   // Adding is a write: once locked, the + presents the locked sheet (§7.3).
   const guard = useLockGuard();
   const styles = useStyles(createStyles);
@@ -169,7 +169,7 @@ export default function PaymentsScreen() {
   );
 
   return (
-    <TabStage style={{ paddingTop: headerHeight }}>
+    <TabStage style={{ paddingTop: insets.top }}>
       <Stack.Toolbar placement="right">
         <Stack.Toolbar.Button
           icon="plus"
@@ -178,8 +178,9 @@ export default function PaymentsScreen() {
           onPress={guard(() => router.push("/add"))}
         />
       </Stack.Toolbar>
-      {/* The screen owns its title: large, on the Ambient stage, under
-          the bar that carries the +. */}
+      {/* The screen owns its title: large, on the Ambient stage, on the
+          bar's own row, facing the + (retex 2026-11-15: a row of its own
+          under the bar wasted the top of the screen). */}
       <ScreenTitle style={styles.largeTitle}>{t("tabs.payments")}</ScreenTitle>
       <View style={styles.switchWrap}>
         <SegmentedPills
@@ -252,7 +253,9 @@ function createStyles(colors: ThemeColors) {
     // flex-basis and collapse the horizontal content run.
     page: { height: "100%" },
     // The large title (DESIGN.md §9b): the screen names itself.
-    largeTitle: { paddingHorizontal: spacing.md },
+    // 2 pt down centres the 34 pt title on the bar button beside it; the
+    // right padding keeps a long title clear of that button.
+    largeTitle: { paddingLeft: spacing.md, paddingRight: 72, paddingTop: 2 },
     switchWrap: {
       flexDirection: "row",
       alignItems: "center",
