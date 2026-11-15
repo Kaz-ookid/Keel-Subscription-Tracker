@@ -1,6 +1,8 @@
-// The onboarding tour's water-surface layer: soft light sources drifting over
-// the Ambient stage — pure aura language (DESIGN.md §9), no scenery. Each glow
-// runs its own slow loop with its own period so they never sync.
+// Soft light sources drifting over the Ambient stage: pure aura language
+// (DESIGN.md §9), no scenery. Each glow runs its own slow loop with its own
+// period so they never sync. Two layouts: the tour's light wanders the whole
+// screen; "top" gathers it in the upper half, for a screen that wears one
+// colour (the item screen and its brand).
 
 import { useEffect } from "react";
 import { Dimensions } from "react-native";
@@ -73,7 +75,43 @@ function Glow({
 
 /** Three unsynchronized glows: different sizes, periods and drift directions
  *  keep the light wandering without ever repeating visibly. */
-export function LightField({ accent }: { accent: string }) {
+export function LightField({ accent, weight }: { accent: string; weight?: "top" }) {
+  if (weight === "top") {
+    return (
+      <>
+        <Glow
+          size={640}
+          color={accent}
+          peak={0.34}
+          top={-300}
+          left={SCREEN_WIDTH * 0.18}
+          driftX={-90}
+          driftY={50}
+          duration={12000}
+        />
+        <Glow
+          size={440}
+          color={accent}
+          peak={0.24}
+          top={-120}
+          left={-220}
+          driftX={100}
+          driftY={40}
+          duration={17000}
+        />
+        <Glow
+          size={340}
+          color={accent}
+          peak={0.14}
+          top={SCREEN_HEIGHT * 0.12}
+          left={SCREEN_WIDTH * 0.5}
+          driftX={-70}
+          driftY={-50}
+          duration={10000}
+        />
+      </>
+    );
+  }
   return (
     <>
       <Glow
