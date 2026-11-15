@@ -14,6 +14,7 @@ export default tseslint.config(
       "**/*.config.js", // metro/babel CommonJS configs
       "**/expo-env.d.ts",
       "keel-website/", // separate repo (plain browser JS), lives here gitignored
+      "visuals/", // local working assets; the video project there lints itself
     ],
   },
   js.configs.recommended,
