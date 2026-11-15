@@ -7,6 +7,7 @@ import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
 import { SegmentedPills } from "../ui/SegmentedPills";
 import { Card } from "../ui/Card";
+import { Fold } from "../ui/Fold";
 import { useFormStyles } from "./styles";
 import type { AddForm, AmountMode } from "./useAddForm";
 
@@ -44,7 +45,9 @@ export function AmountSection({ form }: { form: AddForm }) {
         />
         <InfoDot title={t("add.infoAmountTitle")} body={t("add.infoAmountBody")} />
       </View>
-      {form.showTrial ? <Text style={styles.preview}>{t("add.trialPriceHint")}</Text> : null}
+      <Fold open={form.showTrial}>
+        <Text style={styles.preview}>{t("add.trialPriceHint")}</Text>
+      </Fold>
 
       <Card variant="list" style={styles.group}>
         {/* Where the money comes from, right next to how much it is — for both
@@ -70,44 +73,42 @@ export function AmountSection({ form }: { form: AddForm }) {
           onPress={() => form.setSheet("account")}
         />
 
-        {form.isInstallment && (
-          <>
-            <View style={styles.rowField}>
-              <View style={styles.labelWithInfo}>
-                <Text style={styles.label}>{t("add.amountIs")}</Text>
-                <InfoDot title={t("add.infoAmountIsTitle")} body={t("add.infoAmountIsBody")} />
-              </View>
-              <View style={styles.rowControl}>
-                <SegmentedPills
-                  options={amountModeOptions}
-                  value={form.amountMode}
-                  onChange={form.setAmountMode}
-                />
-              </View>
+        <Fold open={form.isInstallment}>
+          <View style={styles.rowField}>
+            <View style={styles.labelWithInfo}>
+              <Text style={styles.label}>{t("add.amountIs")}</Text>
+              <InfoDot title={t("add.infoAmountIsTitle")} body={t("add.infoAmountIsBody")} />
             </View>
-            {/* The count lives with the amount: together they are what the
-                per-payment preview below is computed from. */}
-            <View style={styles.rowField}>
-              <View style={styles.labelWithInfo}>
-                <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
-                <InfoDot
-                  title={t("add.infoInstallmentsTitle")}
-                  body={t("add.infoInstallmentsBody")}
-                />
-              </View>
-              <TextInput
-                style={[styles.input, styles.intervalInput]}
-                value={form.installmentsText}
-                onChangeText={form.setInstallmentsText}
-                keyboardType="number-pad"
+            <View style={styles.rowControl}>
+              <SegmentedPills
+                options={amountModeOptions}
+                value={form.amountMode}
+                onChange={form.setAmountMode}
               />
             </View>
-          </>
-        )}
+          </View>
+          {/* The count lives with the amount: together they are what the
+                per-payment preview below is computed from. */}
+          <View style={styles.rowField}>
+            <View style={styles.labelWithInfo}>
+              <Text style={styles.label}>{t("add.numberOfPayments")}</Text>
+              <InfoDot
+                title={t("add.infoInstallmentsTitle")}
+                body={t("add.infoInstallmentsBody")}
+              />
+            </View>
+            <TextInput
+              style={[styles.input, styles.intervalInput]}
+              value={form.installmentsText}
+              onChangeText={form.setInstallmentsText}
+              keyboardType="number-pad"
+            />
+          </View>
+        </Fold>
       </Card>
-      {form.isInstallment && form.installmentPreview ? (
+      <Fold open={form.isInstallment && Boolean(form.installmentPreview)}>
         <Text style={styles.preview}>{form.installmentPreview}</Text>
-      ) : null}
+      </Fold>
     </>
   );
 }

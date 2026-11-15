@@ -18,9 +18,6 @@ import {
   setLanguageMode,
   type LanguageMode,
 } from "../../src/i18n";
-import Animated from "react-native-reanimated";
-
-import { foldIn, foldOut } from "../../src/lib/motion";
 import { useTabReset } from "../../src/lib/tabReset";
 import {
   authenticate,
@@ -41,6 +38,7 @@ import { APP_NAME } from "../../src/constants";
 import { DEBUG_TOOLS, DebugDrawer } from "../../src/components/settings/DebugDrawer";
 import { SettingsRow } from "../../src/components/settings/SettingsRow";
 import { Card } from "../../src/components/ui/Card";
+import { Fold } from "../../src/components/ui/Fold";
 import { NudgeCard } from "../../src/components/ui/NudgeCard";
 import { OptionWheel } from "../../src/components/ui/OptionWheel";
 import { Sheen } from "../../src/components/ui/Sheen";
@@ -394,19 +392,17 @@ export default function SettingsScreen() {
               ) : undefined
             }
           />
-          {lockEnabled && (
-            <Animated.View entering={foldIn} exiting={foldOut}>
-              <SettingsRow
-                icon="clock.fill"
-                chipColor={CHIP.grace}
-                label={t("applock.requireAfter")}
-                value={graceLabel(graceSeconds)}
-                chevron
-                divider
-                onPress={() => setWheel("grace")}
-              />
-            </Animated.View>
-          )}
+          <Fold open={lockEnabled}>
+            <SettingsRow
+              icon="clock.fill"
+              chipColor={CHIP.grace}
+              label={t("applock.requireAfter")}
+              value={graceLabel(graceSeconds)}
+              chevron
+              divider
+              onPress={() => setWheel("grace")}
+            />
+          </Fold>
           <Text style={styles.cardFooter}>{t("applock.footer")}</Text>
         </Card>
 
@@ -509,7 +505,8 @@ function createStyles(colors: ThemeColors) {
     content: {
       flexGrow: 1,
       padding: spacing.md,
-      paddingTop: spacing.sm,
+      // Same height as the Payments title, which shares its bar's row.
+      paddingTop: 2,
       paddingBottom: spacing.xl,
       gap: spacing.md,
     },

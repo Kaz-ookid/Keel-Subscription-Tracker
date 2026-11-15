@@ -3,9 +3,6 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-import Animated from "react-native-reanimated";
-
-import { foldIn, foldOut } from "../../lib/motion";
 
 import { radius, spacing, typography, useTheme, type ThemeColors } from "../../theme";
 import { BrandBadge } from "../BrandBadge";
@@ -13,6 +10,7 @@ import { FieldButton } from "../FieldButton";
 import { InfoDot } from "../InfoDot";
 import { SegmentedPills } from "../ui/SegmentedPills";
 import { Card } from "../ui/Card";
+import { Fold } from "../ui/Fold";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
@@ -270,62 +268,62 @@ export function MetaSection({ form }: { form: AddForm }) {
             trackColor={{ true: colors.accent }}
           />
         </View>
-        {reminderOn && (
-          <Animated.View entering={foldIn} exiting={foldOut}>
-            {form.reminderRows.map((row, i) => (
-              <View key={i}>
-                {/* Extra rules introduce themselves with a quiet header that
+        <Fold open={reminderOn}>
+          {form.reminderRows.map((row, i) => (
+            <View key={i}>
+              {/* Extra rules introduce themselves with a quiet header that
                     also removes them — rule 1 needs neither. */}
-                {i > 0 && (
-                  <View style={styles.rowField}>
-                    <Text style={styles.label}>{t("add.reminderNth", { count: i + 1 })}</Text>
-                    <Pressable
-                      onPress={() => form.removeReminderDraft(i)}
-                      hitSlop={10}
-                      accessibilityLabel={t("add.reminderRemove")}
-                    >
-                      <SymbolView name="minus.circle.fill" size={20} tintColor={colors.mutedText} />
-                    </Pressable>
-                  </View>
-                )}
-                <FieldButton
-                  label={t("add.reminderWhen")}
-                  info={{
-                    title: t("add.infoReminderWhenTitle"),
-                    body: t("add.infoReminderWhenBody"),
-                  }}
-                  value={row.label}
-                  onPress={() => form.openReminderSheet(i, "reminder")}
-                />
-                <FieldButton
-                  label={t("add.reminderTime")}
-                  info={{
-                    title: t("add.infoReminderTimeTitle"),
-                    body: t("add.infoReminderTimeBody"),
-                  }}
-                  value={row.hourLabel}
-                  onPress={() => form.openReminderSheet(i, "reminderHour")}
-                />
-                <FieldButton
-                  label={t("add.reminderRepeat")}
-                  info={{
-                    title: t("add.infoReminderRepeatTitle"),
-                    body: t("add.infoReminderRepeatBody"),
-                  }}
-                  value={row.repeatLabel}
-                  onPress={() => form.openReminderSheet(i, "reminderRepeat")}
-                />
-              </View>
-            ))}
-            {form.reminderRows.length < 3 && (
-              <Pressable style={styles.rowField} onPress={form.addReminderDraft}>
-                <Text style={[styles.label, { color: colors.accent }]}>{t("add.reminderAdd")}</Text>
-              </Pressable>
-            )}
-          </Animated.View>
-        )}
+              {i > 0 && (
+                <View style={styles.rowField}>
+                  <Text style={styles.label}>{t("add.reminderNth", { count: i + 1 })}</Text>
+                  <Pressable
+                    onPress={() => form.removeReminderDraft(i)}
+                    hitSlop={10}
+                    accessibilityLabel={t("add.reminderRemove")}
+                  >
+                    <SymbolView name="minus.circle.fill" size={20} tintColor={colors.mutedText} />
+                  </Pressable>
+                </View>
+              )}
+              <FieldButton
+                label={t("add.reminderWhen")}
+                info={{
+                  title: t("add.infoReminderWhenTitle"),
+                  body: t("add.infoReminderWhenBody"),
+                }}
+                value={row.label}
+                onPress={() => form.openReminderSheet(i, "reminder")}
+              />
+              <FieldButton
+                label={t("add.reminderTime")}
+                info={{
+                  title: t("add.infoReminderTimeTitle"),
+                  body: t("add.infoReminderTimeBody"),
+                }}
+                value={row.hourLabel}
+                onPress={() => form.openReminderSheet(i, "reminderHour")}
+              />
+              <FieldButton
+                label={t("add.reminderRepeat")}
+                info={{
+                  title: t("add.infoReminderRepeatTitle"),
+                  body: t("add.infoReminderRepeatBody"),
+                }}
+                value={row.repeatLabel}
+                onPress={() => form.openReminderSheet(i, "reminderRepeat")}
+              />
+            </View>
+          ))}
+          {form.reminderRows.length < 3 && (
+            <Pressable style={styles.rowField} onPress={form.addReminderDraft}>
+              <Text style={[styles.label, { color: colors.accent }]}>{t("add.reminderAdd")}</Text>
+            </Pressable>
+          )}
+        </Fold>
       </Card>
-      {reminderOn ? <Text style={styles.preview}>{t("add.reminderDefaultHint")}</Text> : null}
+      <Fold open={reminderOn}>
+        <Text style={styles.preview}>{t("add.reminderDefaultHint")}</Text>
+      </Fold>
     </>
   );
 }

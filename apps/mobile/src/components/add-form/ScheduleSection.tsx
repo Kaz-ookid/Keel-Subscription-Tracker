@@ -9,6 +9,7 @@ import { InfoDot } from "../InfoDot";
 import { Segmented, type SegmentedOption } from "../Segmented";
 import { SegmentedPills } from "../ui/SegmentedPills";
 import { Card } from "../ui/Card";
+import { Fold } from "../ui/Fold";
 import { useFormStyles } from "./styles";
 import type { AddForm } from "./useAddForm";
 
@@ -27,7 +28,6 @@ function useUnitOptions(): SegmentedOption<TimeUnit>[] {
 function RepeatsOnRow({ form }: { form: AddForm }) {
   const { t } = useTranslation();
   const styles = useFormStyles();
-  if (form.unit !== "month") return null;
   return (
     <View style={styles.rowField}>
       <View style={styles.labelWithInfo}>
@@ -104,34 +104,32 @@ function TrialRow({ form, freeTrial }: { form: AddForm; freeTrial: boolean }) {
         </View>
       </View>
 
-      {form.showTrial && (
-        <>
-          <View style={styles.rowField}>
-            <View style={styles.labelWithInfo}>
-              <Text style={styles.label}>
-                {freeTrial ? t("add.regularPrice") : t("item.newPrice")}
-              </Text>
-              <InfoDot title={t("add.infoNewPriceTitle")} body={t("add.infoNewPriceBody")} />
-            </View>
-            <View style={styles.rowControl}>
-              <TextInput
-                style={styles.input}
-                value={form.trialRegularText}
-                onChangeText={form.setTrialRegularText}
-                placeholder="0.00"
-                keyboardType="decimal-pad"
-              />
-            </View>
+      <Fold open={form.showTrial}>
+        <View style={styles.rowField}>
+          <View style={styles.labelWithInfo}>
+            <Text style={styles.label}>
+              {freeTrial ? t("add.regularPrice") : t("item.newPrice")}
+            </Text>
+            <InfoDot title={t("add.infoNewPriceTitle")} body={t("add.infoNewPriceBody")} />
           </View>
+          <View style={styles.rowControl}>
+            <TextInput
+              style={styles.input}
+              value={form.trialRegularText}
+              onChangeText={form.setTrialRegularText}
+              placeholder="0.00"
+              keyboardType="decimal-pad"
+            />
+          </View>
+        </View>
 
-          <FieldButton
-            label={freeTrial ? t("add.trialEnds") : t("item.changesOn")}
-            info={{ title: t("add.infoConvertsTitle"), body: t("add.infoConvertsBody") }}
-            value={formatCalendarDate(form.convertsCal)}
-            onPress={() => form.setSheet("convertsDate")}
-          />
-        </>
-      )}
+        <FieldButton
+          label={freeTrial ? t("add.trialEnds") : t("item.changesOn")}
+          info={{ title: t("add.infoConvertsTitle"), body: t("add.infoConvertsBody") }}
+          value={formatCalendarDate(form.convertsCal)}
+          onPress={() => form.setSheet("convertsDate")}
+        />
+      </Fold>
     </>
   );
 }
@@ -172,7 +170,9 @@ export function ScheduleSection({ form }: { form: AddForm }) {
           onPress={() => form.setSheet("date")}
         />
 
-        <RepeatsOnRow form={form} />
+        <Fold open={form.unit === "month"}>
+          <RepeatsOnRow form={form} />
+        </Fold>
 
         <WeekendRow form={form} />
 
@@ -214,31 +214,35 @@ export function ScheduleSection({ form }: { form: AddForm }) {
           </View>
         </View>
 
-        {!freeTrial && (
+        <Fold open={!freeTrial}>
           <FieldButton
             label={t("add.firstBilling")}
             info={{ title: t("add.infoFirstBillingTitle"), body: t("add.infoFirstBillingBody") }}
             value={formatCalendarDate(form.firstDateCal)}
             onPress={() => form.setSheet("date")}
           />
-        )}
+        </Fold>
 
-        <RepeatsOnRow form={form} />
+        <Fold open={form.unit === "month"}>
+          <RepeatsOnRow form={form} />
+        </Fold>
 
         <WeekendRow form={form} />
 
         <TrialRow form={form} freeTrial={freeTrial} />
 
-        {!freeTrial && (
+        <Fold open={!freeTrial}>
           <FieldButton
             label={t("add.lastBilling")}
             info={{ title: t("add.infoEndsTitle"), body: t("add.infoEndsBody") }}
             value={form.endDateCal ? formatCalendarDate(form.endDateCal) : t("common.never")}
             onPress={() => form.setSheet("endDate")}
           />
-        )}
+        </Fold>
       </Card>
-      {form.trialPreview ? <Text style={styles.preview}>{form.trialPreview}</Text> : null}
+      <Fold open={Boolean(form.trialPreview)}>
+        <Text style={styles.preview}>{form.trialPreview}</Text>
+      </Fold>
     </>
   );
 }
