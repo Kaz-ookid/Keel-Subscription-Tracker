@@ -18,6 +18,7 @@ import { Sheen } from "../src/components/ui/Sheen";
 import { ScreenTitle } from "../src/components/ui/ScreenTitle";
 import { useAiHidden } from "../src/lib/ai-visibility";
 import { useEntitlement } from "../src/lib/entitlement";
+import { hapticError, hapticSuccess } from "../src/lib/haptics";
 import { buyFullKeel, restoreFullKeel, useFullKeelPrices } from "../src/lib/purchases";
 import {
   radius,
@@ -53,7 +54,9 @@ export default function FullKeelScreen() {
     setBusy(true);
     const outcome = await buyFullKeel(entitlement.state);
     setBusy(false);
+    if (outcome === "purchased") hapticSuccess();
     if (outcome === "failed") {
+      hapticError();
       Alert.alert(t("fullkeel.buyFailTitle"), t("fullkeel.buyFailMsg"));
     } else if (outcome === "pending") {
       Alert.alert(t("fullkeel.pendingTitle"), t("fullkeel.pendingMsg"));
@@ -68,9 +71,11 @@ export default function FullKeelScreen() {
     setBusy(true);
     const outcome = await restoreFullKeel();
     setBusy(false);
+    if (outcome === "restored") hapticSuccess();
     if (outcome === "none") {
       Alert.alert(t("fullkeel.restoreNoneTitle"), t("fullkeel.restoreNoneMsg"));
     } else if (outcome === "failed" || outcome === "unavailable") {
+      hapticError();
       Alert.alert(t("fullkeel.restoreFailTitle"), t("fullkeel.restoreFailMsg"));
     }
   };

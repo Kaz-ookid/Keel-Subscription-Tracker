@@ -26,6 +26,7 @@ import PagerView from "react-native-pager-view";
 
 import { monthFull, weekdayShort } from "../../i18n/dates";
 import { monthShifted } from "../../lib/dates";
+import { hapticSelection } from "../../lib/haptics";
 import { useAppData } from "../../state/app-state";
 import { monthCharges, monthWeeks, type DayCharge } from "./calendar-month-data";
 import {
@@ -105,7 +106,10 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
     >
       <View style={styles.header}>
         <Pressable
-          onPress={() => pagerRef.current?.setPage(currentPage - 1)}
+          onPress={() => {
+            hapticSelection();
+            pagerRef.current?.setPage(currentPage - 1);
+          }}
           hitSlop={10}
           style={styles.chevronButton}
         >
@@ -123,7 +127,10 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
           {monthTotals.length > 0 && <Text style={styles.monthTotal}>{totals(monthTotals)}</Text>}
         </View>
         <Pressable
-          onPress={() => pagerRef.current?.setPage(currentPage + 1)}
+          onPress={() => {
+            hapticSelection();
+            pagerRef.current?.setPage(currentPage + 1);
+          }}
           hitSlop={10}
           style={styles.chevronButton}
         >
@@ -132,7 +139,10 @@ export function CalendarMonthView({ onOpenHarbor }: { onOpenHarbor?: () => void 
         {/* The bonus lens: the same schedule as a harbor (experiment). */}
         {onOpenHarbor && (
           <Pressable
-            onPress={onOpenHarbor}
+            onPress={() => {
+              hapticSelection();
+              onOpenHarbor();
+            }}
             hitSlop={10}
             style={styles.chevronButton}
             accessibilityLabel={t("payments.harborA11y")}

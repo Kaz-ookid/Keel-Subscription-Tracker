@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeIn } from "react-native-reanimated";
 
+import { hapticSelection } from "../../lib/haptics";
 import { radius, spacing, useTheme, type ThemeColors } from "../../theme";
 import { CalendarMonthView } from "./CalendarMonthView";
 import { HarborView } from "./HarborView";
@@ -40,7 +41,10 @@ export function ScheduleView({
         <HarborView />
         <Pressable
           style={styles.lensButton}
-          onPress={() => onLens("grid")}
+          onPress={() => {
+            hapticSelection();
+            onLens("grid");
+          }}
           accessibilityLabel={t("payments.calendarA11y")}
         >
           <SymbolView name="arrow.backward" size={15} tintColor={colors.text} />

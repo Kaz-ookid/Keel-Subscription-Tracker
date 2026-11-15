@@ -5,6 +5,7 @@
 
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import { hapticSelection } from "../../lib/haptics";
 import { spacing, type ThemeColors, typography, useStyles, withAlpha } from "../../theme";
 
 interface Props {
@@ -22,7 +23,10 @@ export function Chip({ label, selected, onPress, onLongPress, dot }: Props) {
   return (
     <Pressable
       style={[styles.chip, selected && styles.chipSelected]}
-      onPress={onPress}
+      onPress={() => {
+        hapticSelection();
+        onPress();
+      }}
       onLongPress={onLongPress}
       accessibilityRole="button"
       accessibilityState={{ selected }}

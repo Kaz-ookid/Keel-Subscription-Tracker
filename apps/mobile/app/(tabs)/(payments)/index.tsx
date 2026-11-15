@@ -24,6 +24,7 @@ import { UpcomingView } from "../../../src/components/payments/UpcomingView";
 import { TabStage } from "../../../src/components/TabStage";
 import { consumePaymentsView, onTabReset, useTabReset } from "../../../src/lib/tabReset";
 import { useAppLockConfig } from "../../../src/lib/app-lock";
+import { hapticSelection } from "../../../src/lib/haptics";
 import { useLockGuard } from "../../../src/lib/lock-gate";
 import { isNudgePending, markNudgeDone, wasOnboardingSeen } from "../../../src/lib/onboarding";
 import { useAppData } from "../../../src/state/app-state";
@@ -200,6 +201,7 @@ export default function PaymentsScreen() {
         <Pressable
           accessibilityLabel={t("payments.calendarA11y")}
           onPress={() => {
+            if (view !== "calendar") hapticSelection();
             // Always lands on the GRID: pressing it while the harbor lens is
             // up is the way back to the calendar.
             setView("calendar");
